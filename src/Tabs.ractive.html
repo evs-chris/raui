@@ -1,0 +1,486 @@
+<div class-rtabs {{yield extra-attributes}} class-rtabs-flat="~/flat" class-rtabs-margin="~/margin" class-rtabs-fill="~/fill">
+  <div class-rtabs-tab-window {{#if .direction === 'left'}}class-rtabs-going-left{{else}}class-rtabs-going-right{{/if}}>
+    <div class-rtabs-tabs>
+      <div class-rtabs-left class-rtabs-center="~/center">
+        {{#each .tabs}}{{#unless .right}}{{>tab}}{{/unless}}{{/each}}
+      </div>
+      <div class-rtabs-right>
+        {{#each .tabs}}{{#if .right}}{{>tab}}{{/if}}{{/each}}
+      </div>
+      <div class-rtabs-indicator style-left="{{.selectedLeft}}px" {{#if .selectedRight !== undefined}}style-right="{{.selectedRight}}px"{{/if}} />
+      </div>
+  </div>
+  <div class-rtabs-content-wrapper>
+    <div class-rtabs-content-window
+      {{#if .transition === 'fade'}}
+        class-rtabs-trans-fade
+      {{elseif .transition === 'slide'}}
+        class-rtabs-trans-slide
+      {{/if}}
+    >
+      <div class-rtabs-contents style-opacity="{{~/opacity}}" style-left="{{.selectedContent * -100}}%" class-rtabs-pad="~/pad">
+        {{#each .tabs}}{{>tab-content}}{{/each}}
+      </div>
+    </div>
+  </div>
+</div>
+
+<template id="tab">
+  <div
+    class-rtabs-tab
+    class-rtabs-selected="~/selected === @index && !.button"
+    {{#if typeof .disabled === 'string' ? ~/[.disabled] : .disabled}}class-rtabs-disabled
+    {{elseif !.button}}on-click=['select', @index]{{/if}}
+    as-registered="@index"
+    {{#if .extraTab}}{{yield .extraTab}}{{/if}}
+  >
+    {{#if typeof .title === 'string'}}{{title}}{{elseif .title}}{{yield .title}}{{/if}}
+    {{#if .closable && !.button}}<div class-rtabs-close on-click=['close', @index]>&times;</div>{{/if}}
+  </div>
+</template>
+
+<template id="tab-content">
+  {{#if !.button}}{{#if ~/height === 'dynamic' && ~/selectedContent !== @index}}<div class-rtabs-placeholder />{{/if}}<div
+      class-rtabs-tab-content
+      class-rtabs-selected-content="~/selectedContent === @index"
+      class-rtabs-dyna="~/height === 'dynamic'"
+      {{#if .extra}}{{yield .extra}}{{/if}}
+    >
+      {{yield .template}}
+    </div>{{else}}<div class-rtabs-placeholder />{{/if}}
+</template>
+
+<script>
+  import Ractive from 'ractive';
+
+  let resizer;
+  const instances = [];
+
+  class Tabs extends Ractive {
+    constructor(opts) {
+      super(opts);
+    }
+
+    updateIndicator() {
+      const node = this._tabs[this.get('selected')];
+
+      if (node) {
+        const start = this.get('selectedLeft');
+        if (start === undefined) {
+          this.set({
+            selectedLeft: node.offsetLeft,
+            selectedRight: node.offsetParent.clientWidth - (node.offsetLeft + node.offsetWidth)
+          });
+        } else {
+          const max = node.offsetParent.clientWidth;
+          const left = node.offsetLeft, width = node.clientWidth, right = max - left - width;
+
+          this.set({
+            direction: left < start ? 'left' : 'right',
+            selectedLeft: left,
+            selectedRight: right
+          });
+        }
+      } else {
+        this.set({
+          selectedLeft: 0,
+          selectedRight: this.find('.tabs').offsetWidth
+        });
+      }
+    }
+  }
+
+  const tabAttrs = ['closable', 'disabled', 'title', 'right', 'button'];
+
+  // TODO: api handles
+  Ractive.extendWith(Tabs, {
+    template: $TEMPLATE,
+    cssId: 'rtab',
+    noCssTransform: true,
+    css: $CSS,
+    attributes: ['transition', 'flat', 'pad', 'center', 'height', 'fill'],
+    data() {
+      return {
+        tabs: [],
+        rightTabs: [],
+        selected: 0,
+        selectedContent: 0,
+        opacity: 1
+      }
+    },
+    on: {
+      construct,
+      config() {
+        if ( this._tabs ) this.set('tabs', (this.get('tabs') || []).concat(this._tabs), { shuffle: true });
+      },
+      select,
+      close,
+      teardown() {
+        instances.splice(instances.indexOf(this), 1);
+      },
+      render() {
+        this._resizeListener = this.root.on('*.resize', () => this.updateIndicator());
+        setTimeout(() => this.updateIndicator());
+      },
+      unrender() {
+        if (this._resizeListener) {
+          this._resizeListener.cancel();
+          this._resizeListener = null;
+        }
+      }
+    },
+    decorators: {
+      registered(node, idx) {
+        const me = this;
+
+        if (!this._tabs) this._tabs = [];
+
+        this._tabs[idx] = node;
+        this.updateIndicator();
+
+        return {
+          teardown() {},
+          invalidate() {
+            me.updateIndicator();
+          },
+          update(idx) {
+            me._tabs[idx] = node;
+            setTimeout(() => me.updateIndicator());
+          }
+        };
+      }
+    }
+  });
+
+  function construct() {
+    const cmp = this.component;
+    if ( !cmp ) return;
+
+    const tpl = cmp.template.f || [];
+    const attrs = cmp.template.m ? cmp.template.m.slice() : [];
+    const t = cmp.template;
+    cmp.template = { e: t.e, f: t.f, t: t.t, m: attrs };
+
+    const tabs = tpl.filter(n => n.e === 'tab').map(t => {
+      const tab = {
+        template: { t: t.f }
+      };
+      const extra = [];
+      const extraTab = [];
+
+      t.m.forEach(a => {
+        if (a.t === 13 && ~tabAttrs.indexOf(a.n)) {
+          if (a.n === 'disabled' && a.f && a.f.length === 1 && a.f[0].t === 2) {
+            const cnd = `_cnd${attrs.length}`;
+            tab[a.n] = cnd;
+            attrs.push({ t: 13, n: cnd, f: a.f });
+          } else {
+            tab[a.n] = a.f === 0 ? true : typeof a.f === 'string' ? a.f : { t: a.f };
+          }
+        }
+        else if (a.t === 70) extraTab.push(a);
+        else extra.push(a);
+      });
+
+      if (extra.length) tab.extra = { t: extra };
+      if (extraTab.length) tab.extraTab = { t: extraTab };
+
+      return tab;
+    });
+
+    this._tabs = tabs;
+
+    if (!resizer && typeof window !== undefined) {
+      resizer = true;
+      window.addEventListener('resize', () => {
+        instances.forEach(i => i.updateIndicator());
+      });
+    }
+
+    instances.push(this);
+  }
+
+  function select(ctx, idx) {
+    const current = this.get('selected');
+    const prs = [];
+    const node = this.find('.contents');
+    const trans = this.get('transition');
+
+    if (current !== idx) {
+      if (trans === 'fade') {
+        this.set({
+          opacity: 0,
+          selected: idx
+        });
+        this.updateIndicator();
+
+        setTimeout(() => {
+          this.set({
+            selectedContent: idx,
+            opacity: 1
+          });
+        }, 150);
+      } else if (trans === 'slide') {
+        this.set('selected', idx);
+        this.set('selectedContent', idx);
+        this.updateIndicator();
+      } else {
+        this.set({
+          selected: idx,
+          selectedContent: idx
+        });
+        this.updateIndicator();
+      }
+    }
+  }
+
+  function close(ctx, idx) {
+    const tab = this.getContext(this._tabs[idx]);
+    let ok = true;
+
+    if (tab.element.events.find(e => e.events.find(e => e.name === 'close'))) {
+      ok = tab.raise('close');
+    }
+
+    if (ok) this.splice('tabs', idx, 1);
+
+    return false;
+  }
+
+  export default Tabs;
+</script>
+
+<script rel="css">
+  return `
+  .rtabs {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .rtabs-tab-window {
+    overflow-y: hidden;
+    overflow-x: auto;
+    box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.14),
+      0 1px 5px 0 rgba(0, 0, 0, 0.12),
+      0 3px 1px -2px rgba(0, 0, 0, 0.2);
+    color: ${data('tabs.tab.fg') || data('fg1') || '#222'};
+    background-color: ${data('tabs.tab.bg') || data('bg1') || '#fff'};
+    position: relative;
+    flex-shrink: 0;
+  }
+  .secondary > .rtabs-tab-window {
+    color: ${data('fg2') || '#222'};
+    background-color: ${data('bg2') || '#fff'};
+  }
+  .alt1 > .rtabs-tab-window {
+    color: ${data('alt1.fg1') || '#222'};
+    background-color: ${data('alt1.bg1') || '#fff'};
+  }
+  .alt1.secondary > .rtabs-tab-window {
+    color: ${data('alt1.fg2') || '#222'};
+    background-color: ${data('alt1.bg2') || '#fff'};
+  }
+  .alt2 > .rtabs-tab-window {
+    color: ${data('alt2.fg1') || '#222'};
+    background-color: ${data('alt2.bg1') || '#fff'};
+  }
+  .alt2.secondary > .rtabs-tab-window {
+    color: ${data('alt2.fg2') || '#222'};
+    background-color: ${data('alt2.bg2') || '#fff'};
+  }
+
+  .rtabs-flat > .rtabs-tab-window {
+    box-shadow: none;
+  }
+  .rtabs-flat > .rtabs-tab-window:after {
+    content: '';
+    height: 0.15em;
+    position: absolute;
+    bottom: 0px;
+    width: 100%;
+    display: block;
+    background-color: ${data('tabs.tab.fg') || data('bga1') || '#222'};
+  }
+  .rtabs-flat.secondary > .rtabs-tab-window:after {
+    background-color: ${data('tabs.tab.fg') || data('bga2') || '#222'};
+  }
+  .rtabs-flat.alt1 > .rtabs-tab-window:after {
+    background-color: ${data('alt1.bga1') || '#222'};
+  }
+  .rtabs-flat.alt1.secondary > .rtabs-tab-window:after {
+    background-color: ${data('alt1.bga2') || '#222'};
+  }
+  .rtabs-flat.alt2 > .rtabs-tab-window:after {
+    background-color: ${data('alt2.bga1') || '#222'};
+  }
+  .rtabs-flat.alt2.secondary > .rtabs-tab-window:after {
+    background-color: ${data('alt2.bga2') || '#222'};
+  }
+
+  .rtabs-center.rtabs-left {
+    text-align: center;
+  }
+
+  .rtabs-pad {
+    padding: 1em;
+  }
+
+  .rtabs-fill {
+    flex-grow: 1;
+  }
+
+  .rtabs-tabs {
+    display: table;
+    position: relative;
+    min-width: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+    white-space: nowrap;
+  }
+
+  .rtabs-tab {
+    display: inline-block;
+    box-sizing: border-box;
+    padding: 0.5em 1em;
+    height: 2.5em;
+    cursor: pointer;
+    opacity: 0.9;
+    transition: opacity 0.2s ease-in-out;
+    user-select: none;
+  }
+  .rtabs-tab:hover {
+    opacity: 1;
+  }
+
+  .rtabs-selected {
+    opacity: 1;
+  }
+
+  .rtabs-disabled {
+    opacity: 0.4;
+  }
+
+  .rtabs-right {
+    text-align: right;
+    display: table-cell;
+  }
+
+  .rtabs-left {
+    text-align: left;
+    display: table-cell;
+  }
+
+  .rtabs-close {
+    display: inline-block;
+    margin-right: -0.5em;
+    font-weight: 700;
+    opacity: 0.3;
+    transition: opacity: 0.2s ease-in-out;
+  }
+
+  .rtabs-close:hover {
+    opacity: 1;
+  }
+
+  .rtabs-indicator {
+    position: absolute;
+    bottom: 0;
+    height: 0.15em;
+    background-color: ${data('tabs.indicator.color') || data('fga1') || 'darkblue'};
+    z-index: 2;
+  }
+
+  .secondary > .rtabs-tab-window .rtabs-indicator {
+    background-color: ${data('fga2') || 'darkblue'};
+  }
+  .alt1 > .rtabs-tab-window .rtabs-indicator {
+    background-color: ${data('alt1.fga1') || 'darkblue'};
+  }
+  .alt1.secondary > .rtabs-tab-window .rtabs-indicator {
+    background-color: ${data('alt1.fga2') || 'darkblue'};
+  }
+  .alt2 > .rtabs-tab-window .rtabs-indicator {
+    background-color: ${data('alt2.fga1') || 'darkblue'};
+  }
+  .alt2.secondary > .rtabs-tab-window .rtabs-indicator {
+    background-color: ${data('alt2.fga2') || 'darkblue'};
+  }
+
+  .rtabs-going-left .rtabs-indicator {
+    transition: left 0.2s ease-in-out, right 0.2s ease-in-out 0.1s;
+  }
+  .rtabs-going-right .rtabs-indicator {
+    transition: left 0.2s ease-in-out 0.1s, right 0.2s ease-in-out;
+  }
+
+  .rtabs-content-wrapper {
+    width: 100%;
+    padding-top: 0.4em;
+    box-sizing: border-box;
+    overflow-y: auto;
+  }
+  .rtabs-fill > .rtabs-content-wrapper {
+    min-height: 100%;
+    position: relative;
+  }
+
+  .rtabs-content-window {
+    width: 100%;
+    overflow: hidden;
+  }
+
+  .rtabs {
+    color: ${data('tabs.content.fg') || data('fg1') || '#222'};
+    background-color: ${data('tabs.content.bg') || data('bg1') || '#fff'};
+  }
+  .rtabs.alt1 {
+    color: ${data('alt1.fg1') || '#222'};
+    background-color: ${data('alt1.bg1') || '#fff'};
+  }
+  rtabs.alt2 {
+    color: ${data('alt2.fg1') || '#222'};
+    background-color: ${data('alt2.bg1') || '#fff'};
+  }
+
+  .rtabs-contents {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    position: relative;
+    white-space: nowrap;
+    left: 0;
+  }
+  .rtabs-trans-slide > .rtabs-contents {
+    transition: left 0.2s ease-in-out;
+  }
+  .rtabs-trans-fade > .rtabs-contents {
+    transition: opacity 0.15s ease;
+    opacity: 1;
+  }
+
+  .rtabs-tab-content {
+    display: inline-block;
+    width: 100%;
+    vertical-align: top;
+    white-space: initial;
+    transition: opacity 0.1s ease-in-out;
+  }
+  .rtabs-placeholder {
+    display: inline-block;
+    width: 100%;
+    height: 1px;
+  }
+  .rtabs-dyna.rtabs-tab-content {
+    display: none;
+  }
+  .rtabs-dyna.rtabs-selected-content {
+    display: inline-block;
+  }
+  .rtabs-pad > .rtabs-tab-content {
+    padding: 1em;
+    box-sizing: border-box;
+  }
+  `
+</script>

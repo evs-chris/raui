@@ -1,0 +1,261 @@
+<div class-rsplit class-vertical=".vertical" class-horizontal="!.vertical" {{yield extra-attributes}}>
+  <div class="start" {{#if .vertical}}style-width="calc({{size}}% - 6px)"{{else}}style-height="calc({{size}}% - 6px)"{{/if}}>
+    {{yield start}}
+  </div>
+  <div class="sep" class-draggable="!.noDrag" {{#if .vertical}}style-left="calc({{size}}% - 6px)"{{else}}style-top="calc({{size}}% - 6px)"{{/if}} {{#unless .noDrag}}as-sizeHandle=".vertical"{{/unless}}><div class="vsizer"></div><div class="rs-btns">
+    {{#unless .noMax || .maxed === 1 || (.noMaxStart && .maxed !== 2)}}<div on-click=['toStart']>&#9666;</div>{{/unless}}
+    {{#unless .noMax || .maxed === 2 || (.noMaxEnd && .maxed !== 1)}}<div on-click=['toEnd']>&#9656;</div>{{/unless}}
+  </div></div>
+  <div class="end" {{#if .vertical}}style-width="calc({{100 - size}}% - 6px"{{else}}style-height="calc({{100 - size}}% - 6px)"{{/if}}>
+    {{yield end}}
+  </div>
+</div>
+
+<script>
+  import Ractive from 'ractive';
+
+  function sizeHandle(node, vertical) {
+    const ctx = this.getContext(node);
+    const root = node.parentNode;
+    let pos;
+    let vert = vertical;
+    let posKey = vertical ? 'screenX' : 'screenY';
+    let init;
+
+    function start(ev) {
+      document.addEventListener('touchmove', move, true);
+      document.addEventListener('mousemove', move, true);
+      document.addEventListener('mouseup', end, true);
+      document.addEventListener('touchend', end, true);
+
+      init = ctx.get('size');
+
+      if (posKey in ev) {
+        pos = ev[posKey];
+      } else {
+        pos = ev.touches[0][posKey];
+      }
+    }
+
+    function move(ev) {
+      const cur = posKey in ev ? ev[posKey] : ev.touches[0][posKey];
+      const width = vert ? root.clientWidth : root.clientHeight;
+      let target = init + (((cur - pos) / width) * 100);
+      if (target < 10) target = 10;
+      else if (target > 90) target = 90;
+      ctx.set({
+        size: target,
+        maxed: false
+      });
+      ev.preventDefault();
+      ev.stopPropagation();
+    }
+
+    function end() {
+      document.removeEventListener('touchmove', move, true);
+      document.removeEventListener('mousemove', move, true);
+      document.removeEventListener('mouseup', end, true);
+      document.removeEventListener('touchend', end, true);
+    }
+
+    ctx.listen('mousedown', start);
+    ctx.listen('touchstart', start);
+
+    return {
+      teardown() {
+        ctx.unlisten('mousedown', start);
+        ctx.unlisten('touchstart', start);
+        end();
+      },
+      update(vertical) {
+        vert = vertical;
+        posKey = vertical ? 'clientX' : 'clientY';
+      }
+    };
+  }
+
+  class Split extends Ractive {
+    constructor(opts) { super(opts); }
+  }
+
+  Ractive.extendWith(Split, {
+    template: $TEMPLATE,
+    decorators: { sizeHandle },
+    noCssTransform: true,
+    cssId: 'split',
+    css: $CSS,
+    attributes: [ 'size', 'vertical', 'noDrag', 'noMax', 'noMaxStart', 'noMaxEnd' ],
+    data() {
+      return {
+        size: 50,
+        noDrag: false,
+        noMaxStart: false,
+        noMaxEnd: false
+      };
+    },
+    on: {
+      config,
+      'toStart toEnd'(ctx) {
+        if (this.get('maxed')) {
+          this.animate('size', this.get('last'), { duration: 200, easing: 'easeInOut' });
+          this.set('maxed', false);
+          return false;
+        }
+
+        this.set('last', this.get('size'));
+        this.set('maxed', ctx.name === 'toStart' ? 1 : 2);
+
+        const root = this.find('div');
+        const size = this.get('vertical') ? root.clientWidth : root.clientHeight;
+        this.animate('size', ((ctx.name === 'toEnd' ? size - 6 : 6) / size) * 100, { duration: 200, easing: 'easeInOut' });
+
+        return false;
+      }
+    },
+    observe: {
+      'size vertical': {
+        init: false,
+        handler() {
+          this._resizeM = true;
+
+          if (this._resizeT) {
+            return;
+          }
+
+          const fire = () => {
+            this._resizeT = false;
+            if (this._resizeM) {
+              this._resizeM = false;
+              this.fire('resize');
+              this._resizeT = setTimeout(fire, 200);
+            }
+          };
+
+          fire();
+        }
+      }
+    }
+  });
+
+  function config() {
+    const tpl = this.partials.content;
+    if (tpl) {
+      const panes = tpl.filter(n => n.e === 'pane');
+      if (!this.partials.start && panes[0]) {
+        this.partials.start = panes.shift().f;
+      }
+      if (!this.partials.end && panes[0]) {
+        this.partials.end = panes[0].f;
+      }
+    }
+  }
+
+  export default Split;
+</script>
+
+<style>
+  .rsplit {
+    position: relative;
+    width: 100%;
+    height: 100%;
+  }
+
+  .rsplit > .start,
+  .rsplit > .end,
+  .rsplit > .sep {
+    position: absolute;
+    overflow: auto;
+  }
+
+  .rsplit.vertical > .start {
+    top: 0;
+    left: 0;
+    height: 100%;
+  }
+
+  .rsplit.horizontal > .start {
+    top: 0;
+    left: 0;
+    width: 100%;
+  }
+
+  .rsplit.vertical > .end {
+    top: 0;
+    right: 0;
+    height: 100%;
+  }
+
+  .rsplit.horizontal > .end {
+    right: 0;
+    bottom: 0;
+    width: 100%;
+  }
+
+  .rsplit.vertical > .sep {
+    top: 0;
+    bottom: 0;
+    width: 12px;
+  }
+  .rsplit.vertical > .sep.draggable {
+    cursor: ew-resize;
+  }
+
+  .rsplit.horizontal > .sep {
+    left: 0;
+    right: 0;
+    height: 12px;
+  }
+  .rsplit.horizontal > .sep.draggable {
+    cursor: ns-resize;
+  }
+</style>
+
+<script rel="css">
+  return `
+  .rsplit > .sep {
+    background-color: ${data('split.color.bg') || 'rgba(0, 0, 0, 0.1)'};
+    color: ${data('split.color.fg') || 'rgba(0, 0, 0, 0.7)'};
+    text-align: center;
+    overflow: hidden;
+    touch-action: none;
+  }
+  `;
+</script>
+
+<style>
+  .rsplit > .sep .vsizer {
+    display: inline-block;
+    vertical-align: middle;
+    height: 100%;
+  }
+
+  .rsplit > .sep .rs-btns {
+    display: inline-block;
+    vertical-align: middle;
+
+  }
+
+  .rsplit > .sep .rs-btns div {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    vertical-align: top;
+    line-height: 10px;
+    cursor: pointer;
+    opacity: 0.3;
+    transition: opacity 0.2s ease-in-out;
+  }
+
+  .rsplit > .sep .rs-btns div:hover {
+    opacity: 1;
+  }
+
+  .rsplit.vertical > .sep .rs-btns div {
+    margin: 1em 0;
+  }
+
+  .rsplit.horizontal > .sep .rs-btns div {
+    margin: 0 1em;
+    transform: rotate(90deg);
+  }
+</style>

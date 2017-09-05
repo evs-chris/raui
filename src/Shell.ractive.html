@@ -1,0 +1,268 @@
+<div class-rshell {{yield extra-attributes}}>
+  <div class-rshell-main>
+    {{#if ._top}}<div class-rshell-top {{#if ._topA}}{{yield ._topA}}{{/if}}>{{yield ._top}}</div>{{/if}}
+      <div class-rshell-has-left="._left && !._leftOver && !.leftOver" class-rshell-has-right="._right && !._rightOver && !.rightOver" class-rshell-left-hidden=".leftHidden" class-rshell-right-hidden=".rightHidden">
+        <div class-rshell-modal class-rshell-blocked=".blocked" on-click="@.set({ leftHidden: leftOver || _leftOver ? true : leftHidden, rightHidden: rightOver || _rightOver ? true : rightHidden })" />
+        {{#if ._left}}<div class-rshell-left {{#if ._leftA}}{{yield ._leftA}}{{/if}} on-click="(._leftOver || leftOver) && @.toggle('leftHidden')">{{yield ._left}}</div>{{/if}}
+        {{#if ._center}}<div class-rshell-center {{#if ._centerA}}{{yield ._centerA}}{{/if}}>{{yield ._center}}</div>{{/if}}
+        {{#if ._right}}<div class-rshell-right {{#if ._rightA}}{{yield ._rightA}}{{/if}} on-click="(._rightOver || .rightOver) && @.toggle('rightHidden')">{{yield ._right}}</div>{{/if}}
+      </div>
+    {{#if ._bottom}}<div class-rshell-bottom {{#if ._bottomA}}{{yield ._bottomA}}{{/if}}>{{yield ._bottom}}</div>{{/if}}
+  </div>
+  {{#if ._leftP}}<div class-rshell-left-pop {{#if ._leftPA}}{{yield ._leftPA}}{{/if}}>{{yield ._leftP}}</div>{{/if}}
+  {{#if ._rightP}}<div class-rshell-right-pop {{#if ._rightPA}}{{yield ._rightPA}}{{/if}}>{{yield ._rightP}}</div>{{/if}}
+</div>
+
+<script>
+  import Ractive from 'ractive';
+
+  class Shell extends Ractive {
+    constructor(opts) { super(opts); }
+  }
+
+  Ractive.extendWith(Shell, {
+    template: $TEMPLATE,
+    attributes: [],
+    css: $CSS,
+    cssId: 'rshell',
+    noCssTransform: true,
+    computed: {
+      blocked: {
+        get() { return ((this.get('leftOver') || this.get('_leftOver')) && !this.get('leftHidden')) || ((this.get('rightOver') || this.get('_rightOver')) && !this.get('rightHidden')); }
+      }
+    },
+    on: {
+      construct,
+      config() {
+        if (this._items) this.set(this._items);
+      },
+      init() {
+        if (this.get('@style.shell.sides.initialTimeout') && (this.get('rightOver') || this.get('leftOver'))) {
+          setTimeout(() => {
+            if (this.get('rightOver')) this.set('rightHidden', true);
+            if (this.get('leftOver')) this.set('leftHidden', true);
+          }, this.get('@style.shell.sides.initialTimeout') || 1500);
+        } else {
+            if (this.get('rightOver')) this.set('rightHidden', true);
+            if (this.get('leftOver')) this.set('leftHidden', true);
+        }
+      }
+    },
+    observe: {
+      '@style'(v) {
+        initMediaListener(this);
+      },
+      'leftHidden rightHidden': {
+        handler() {
+          setTimeout(() => this.fire('resize'), 410);
+        },
+        defer: true,
+        init: false
+      }
+    }
+  });
+
+  const parts = ['top', 'bottom', 'center', 'left', 'right', 'leftP', 'rightP'];
+  const skipAttrs = ['hidden', 'primary', 'over'];
+  function construct() {
+    const cmp = this.component;
+    if ( !cmp ) return;
+
+    const tpl = cmp.template.f || [];
+    const attrs = cmp.template.m ? cmp.template.m.slice() : [];
+    const t = cmp.template;
+    cmp.template = { e: t.e, f: t.f, t: t.t, m: attrs };
+
+    const items = {};
+
+    tpl.forEach(e => {
+      if (~parts.indexOf(e.e)) {
+        items[`_${e.e}`] = { t: e.f };
+        if (e.m) {
+          const as = e.m.filter(a => !~skipAttrs.indexOf(a.n));
+
+          if (as.length) {
+            items[`_${e.e}A`] = { t: as };
+          }
+
+          if (as.length !== e.m.length) {
+            let a = e.m.find(a => a.n === 'hidden');
+            if (a) attrs.push({ t: 13, n: `${e.e}Hidden`, f: a.f });
+            a = e.m.find(a => a.n === 'over');
+            if (a) attrs.push({ t: 13, n: `${e.e}Over`, f: a.f });
+            a = e.m.find(a => a.n === 'primary');
+            if (a) attrs.push({ t: 13, n: `_${e.e}Primary`, f: a.f });
+          }
+        }
+      }
+    });
+
+    this._items = items;
+  }
+
+  function initMediaListener(r) {
+    if (typeof window === 'undefined') return;
+
+    const left = r.get('@style.shell.left.width') || r.get('@style.menu.width') || '18em';
+    const right = r.get('@style.shell.right.width') || r.get('@style.menu.width') || '18em';
+    const hasLeft = r.get('_left') && !r.get('leftOver');
+    const hasRight = r.get('_right') && !r.get('rightOver');
+    const prim = (!hasLeft || r.get('_rightPrimary')) ? 'r' : 'l';
+    const hasPrimary = hasLeft || hasRight;
+    const hasSecondary = hasLeft && hasRight;
+    const medium = r.get('@style.break.medium') || '960px';
+
+    if (!hasPrimary) return;
+
+    if (r._media) {
+      r._media.cancel();
+    }
+
+    const media = {};
+    r._media = media;
+
+    const div = document.createElement('div');
+    document.body.appendChild(div);
+    div.style.width = `calc((${medium} + ${prim === 'l' ? left : right}) - 1px)`;
+    const style = getComputedStyle(div);
+    const primary = window.matchMedia(`(max-width: ${style.width})`);
+    if (hasSecondary) {
+      div.style.width = `calc(((${medium} + ${prim === 'l' ? left : right})${hasSecondary ? ` + ${prim === 'l' ? right : left}` : ''}) - 1px)`;
+    }
+    const secondary = hasSecondary && window.matchMedia(`(max-width: ${style.width})`);
+    document.body.removeChild(div);
+
+    function matcher() {
+      const left = !hasLeft ? true : prim === 'l' ? primary.matches : secondary ? secondary.matches : false;
+      const right = !hasRight ? true : prim === 'r' ? primary.matches : secondary ? secondary.matches : false;
+      r.set({
+        leftHidden: left,
+        rightHidden: right,
+        _leftOver: left,
+        _rightOver: right
+      });
+    }
+
+    primary.addListener(matcher);
+    secondary && secondary.addListener(matcher);
+
+    media.cancel = function() {
+      r._media = null;
+      primary.removeListener(matcher);
+      secondary && secondary.removeListener(matcher);
+    }
+
+    matcher();
+  }
+
+  export default Shell;
+</script>
+
+<script rel="css">
+  const left = data('shell.left.width') || data('menu.width') || '18em';
+  const right = data('shell.right.width') || data('menu.width') || '18em';
+  return `
+  .rshell {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    overflow: hidden;
+  }
+  .rshell-modal {
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+    opacity: 0;
+    background-color: #000;
+    z-index: -1;
+    transition: opacity 0.4s ease-in-out, z-index 0s linear 0.4s;
+  }
+  .rshell-modal.rshell-blocked {
+    opacity: 0.5;
+    z-index: 3;
+    transition: opacity 0.4s ease-in-out, z-index 0s linear;
+  }
+  .rshell-main {
+    width: 100%;
+    height: 100%;
+    box-sizing: border-box;
+    display: flex;
+    overflow: hidden;
+    z-index: 1;
+  }
+
+  .rshell-left, .rshell-right {
+    position: absolute;
+    top: 0;
+    box-sizing: border-box;
+    height: 100%;
+    overflow: auto;
+    z-index: 4;
+    background-color: ${data('shell.menu.bg') || data('bg1') || 'inherit'};
+    transition: transform 0.4s ease-in-out;
+  }
+  .rshell-left {
+    left: 0;
+    width: ${left};
+  }
+  .rshell-right {
+    right: 0;
+    width: ${right};
+  }
+  .rshell-left-hidden > .rshell-left {
+    transform: translateX(-100%);
+  }
+  .rshell-right-hidden > .rshell-right {
+    transform: translateX(100%);
+  }
+  .rshell-has-right > .rshell-right,
+  .rshell-has-left > .rshell-left {
+    z-index: 1;
+  }
+
+  .rshell-center {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 1;
+    box-sizing: border-box;
+    transition: left 0.4s ease-in-out, width 0.4s ease-in-out;
+    height: 100%;
+    width: 100%;
+    overflow: auto;
+  }
+  .rshell-has-left > .rshell-center {
+    width: calc(100% - ${left});
+    left: ${left};
+  }
+  .rshell-has-right > .rshell-center {
+    width: calc(100% - ${right});
+    left: 0;
+  }
+  .rshell-has-left.rshell-has-right > .rshell-center {
+    width: calc(100% - ${left} - ${right});
+    left: ${left};
+  }
+  .rshell-has-left.rshell-left-hidden > .rshell-center {
+    width: 100%;
+    left: 0;
+  }
+  .rshell-has-right.rshell-right-hidden > .rshell-center {
+    width: 100%;
+  }
+  .rshell-has-left.rshell-has-right.rshell-left-hidden > .rshell-center {
+    width: calc(100% - ${right});
+    left: 0;
+  }
+  .rshell-has-left.rshell-has-right.rshell-right-hidden > .rshell-center {
+    width: calc(100% - ${left});
+    left: ${left};
+  }
+  .rshell-has-left.rshell-has-right.rshell-left-hidden.rshell-right-hidden > .rshell-center {
+    width: 100%;
+    left: 0;
+  }
+  `;
+</script>
