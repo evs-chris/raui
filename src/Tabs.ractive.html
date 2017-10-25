@@ -40,11 +40,13 @@
 </template>
 
 <template id="tab-content">
-  {{#if !.button}}{{#if ~/height === 'dynamic' && ~/selectedContent !== @index}}<div class-rtabs-placeholder />{{/if}}<div
+  {{#if !.button}}<div
       class-rtabs-tab-content
       class-rtabs-selected-content="~/selectedContent === @index"
       class-rtabs-dyna="~/height === 'dynamic'"
+      class-rtabs-not-selected="~/selectedContent !== @index"
       {{#if .extra}}{{yield .extra}}{{/if}}
+      {{#if .pad === false}}class-rtabs-no-pad{{elseif .padRef}}class-rtabs-no-pad="~/[.padRef]"{{/if}}
     >
       {{yield .template}}
     </div>{{else}}<div class-rtabs-placeholder />{{/if}}
@@ -90,7 +92,7 @@
     }
   }
 
-  const tabAttrs = ['closable', 'disabled', 'title', 'right', 'button'];
+  const tabAttrs = ['closable', 'disabled', 'title', 'right', 'button', 'no-pad'];
 
   // TODO: api handles
   Ractive.extendWith(Tabs, {
@@ -172,8 +174,15 @@
         if (a.t === 13 && ~tabAttrs.indexOf(a.n)) {
           if (a.n === 'disabled' && a.f && a.f.length === 1 && a.f[0].t === 2) {
             const cnd = `_cnd${attrs.length}`;
-            tab[a.n] = cnd;
+            tab.disabled = cnd;
             attrs.push({ t: 13, n: cnd, f: a.f });
+          } else if (a.n === 'no-pad') {
+            if (!a.f) tab.pad = false;
+            else if (a.f.length === 1 && a.f[0].t === 2) {
+              const cnd = `_cnd${attrs.length}`;
+              tab.padRef = cnd;
+              attrs.push({ t: 13, n: cnd, f: a.f });
+            }
           } else {
             tab[a.n] = a.f === 0 ? true : typeof a.f === 'string' ? a.f : { t: a.f };
           }
@@ -417,18 +426,19 @@
 
   .rtabs-content-wrapper {
     width: 100%;
-    padding-top: 0.4em;
     box-sizing: border-box;
-    overflow-y: auto;
-  }
-  .rtabs-fill > .rtabs-content-wrapper {
-    min-height: 100%;
-    position: relative;
+    display: flex;
+    flex-direction: column;
+    flex-grow: 2;
+    overflow: hidden;
   }
 
   .rtabs-content-window {
     width: 100%;
-    overflow: hidden;
+    display: flex;
+    flex-grow: 1;
+    overflow-y: auto;
+    overflow-x: hidden
   }
 
   .rtabs {
@@ -449,8 +459,11 @@
     padding: 0;
     margin: 0;
     position: relative;
-    white-space: nowrap;
     left: 0;
+    display: block;
+    flex-wrap: nowrap;
+    white-space: nowrap;
+    width: 100%;
   }
   .rtabs-trans-slide > .rtabs-contents {
     transition: left 0.2s ease-in-out;
@@ -458,6 +471,11 @@
   .rtabs-trans-fade > .rtabs-contents {
     transition: opacity 0.15s ease;
     opacity: 1;
+    white-space: nowrap;
+  }
+
+  .rtabs-fill > div > div > .rtabs-contents {
+    display: flex;
   }
 
   .rtabs-tab-content {
@@ -466,21 +484,33 @@
     vertical-align: top;
     white-space: initial;
     transition: opacity 0.1s ease-in-out;
+    flex-shrink: 0;
+    white-space: initial;
+    display: inline-block;
+    flex-direction: column;
+    flex-grow: 1;
   }
+  .rtabs-fill > div > div > div > .rtabs-tab-content {
+    display: flex;
+  }
+
   .rtabs-placeholder {
     display: inline-block;
     width: 100%;
     height: 1px;
+    flex-shrink: 0;
   }
-  .rtabs-dyna.rtabs-tab-content {
-    display: none;
-  }
-  .rtabs-dyna.rtabs-selected-content {
-    display: inline-block;
+  .rtabs-dyna.rtabs-not-selected {
+    height: 1px;
+    opacity: 0;
+    overflow: hidden;
   }
   .rtabs-pad > .rtabs-tab-content {
     padding: 1em;
     box-sizing: border-box;
+  }
+  .rtabs-pad > .rtabs-tab-content.rtabs-no-pad {
+    padding: 0;
   }
   `
 </script>
