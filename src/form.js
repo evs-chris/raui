@@ -4,7 +4,7 @@ export function style(data) {
     display: inline-block;
     font-size: 0.8em;
     color: ${data('form.color.accent') || data('fg1') || '#222'};
-    min-height: 3em;
+    min-height: 6.5em;
     transition: 0.2s ease-in-out;
     transition-property: color;
     vertical-align: middle;
@@ -19,16 +19,12 @@ export function style(data) {
     border-radius: 2px;
     box-shadow: none;
     transition-property: color, border-color, box-shadow;
-    margin: 0 0.2em;
+    margin: 0.8em 0.2em;
   }
 
   label.field.inline {
-    padding-top: 1.8em;
+    padding-top: 3em;
     cursor: pointer;
-  }
-
-  label.field.file {
-    height: 6.037em;
   }
 
   label.field.focus {
@@ -59,9 +55,10 @@ export function style(data) {
     box-shadow: none;
     width: 100%;
     margin-bottom: 0.8em;
+    font-size: 1.2em;
   }
   label.field > select {
-    height: 2.3em;
+    height: 2.22em;
     box-sizing: border-box;
   }
 
@@ -93,6 +90,7 @@ export function style(data) {
   }
 
   label.field > textarea {
+    font-size: 1.4em;
     border: none;
   }
 
@@ -144,25 +142,37 @@ export function style(data) {
     width: 0;
     height: 0;
     opacity: 0;
-    z-inde: -1;
+    z-index: -1;
   }
   label.field.file:after {
     position: absolute;
     content: 'Choose a file';
     width: calc(100% - 1em);
-    height: 1em;
+    height: 1.22em;
     color: ${data('form.color.accent') || data('fg1') || '#222'};
     border-color: ${data('form.color.accent') || data('fg1') || '#222'};
     border-bottom-style: solid;
-    border-bottom-width: 1px;
+    border-bottom-width: 0.0625em;
     text-align: center;
     padding: 0.5em 0;
     cursor: pointer;
     font-style: oblique;
     left: 0.5em;
-    top: 2.35em;
+    bottom: 1.78em;
     transition: 0.2s ease-in-out;
     transition-property: color, border-bolor, box-shadow;
+  }
+
+  label.field.button > button {
+    position: relative;
+    top: 1.2em;
+    font-size: 1.2em;
+  }
+
+  label.field.plain > div {
+    position: absolute;
+    font-size: 1.2em;
+    top: 2.28em;
   }
   `;
 }
@@ -179,43 +189,64 @@ function blurred(ev) {
 
 export function field(node) {
   const ctx = this.getContext(node);
+  let cls = [];
 
   const isField = !!~node.className.indexOf('field');
-  if (!isField) node.className += ' field';
+  if (!isField) cls.push('field');
 
   const isCheck = !!node.querySelector('input[type=checkbox], input[type=radio]');
-  if (isCheck) node.className += ' inline';
+  if (isCheck) cls.push('inline');
 
   const isArea = !!node.querySelector('textarea');
-  if (isArea) node.className += ' textarea';
+  if (isArea) cls.push('textarea');
 
   const isFile = !!node.querySelector('input[type=file]');
-  if (isFile) node.className += ' file';
+  if (isFile) cls.push('file');
+
+  const isButton = !!node.querySelector('button');
+  if (isButton) cls.push('button');
+
+  const isPlain = !!node.querySelector('div');
+  if (isPlain) cls.push('plain');
 
   const focus = ctx.listen('focusin', focused);
   const blur = ctx.listen('focusout', blurred);
 
+  node.className += (node.className.length ? ' ' : '') + cls.join(' ');
+
   return {
     update: noop,
     teardown() {
+      let cls = node.className;
+
       if (!isField) {
-        node.className = node.className.replace(/\bfield\b/, '').trim();
+        cls = cls.replace(/\bfield\b/, '').trim();
       }
 
       if (isCheck) {
-        node.className = node.className.replace(/\binline\b/, '').trim();
+        cls = cls.replace(/\binline\b/, '').trim();
       }
 
       if (isArea) {
-        node.className = node.className.replace(/\btextarea\b/, '').trim();
+        cls = cls.replace(/\btextarea\b/, '').trim();
       }
 
       if (isFile) {
-        node.className = node.className.replace(/\bfile\/b/, '').trim();
+        cls = cls.replace(/\bfile\/b/, '').trim();
+      }
+
+      if (isButton) {
+        cls = cls.replace(/\bbutton\/b/, '').trim();
+      }
+
+      if (isPlain) {
+        cls = cls.replace(/\bplain\/b/, '').trim();
       }
 
       focus.cancel();
       blur.cancel();
+
+      node.className = cls;
     }
   }
 }

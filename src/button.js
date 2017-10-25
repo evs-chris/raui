@@ -15,11 +15,16 @@ export default function button(data) {
       transition: 0.2s ease-in-out;
       transition-property: box-shadow, opacity;
       font-size: 1em;
-      line-height: 36px;
+      line-height: 1.5em;
       background-color: ${data('button.bg') || data('bg2') || '#ddd'};
       color: ${data('button.fg') || data('fg2') || '#222'};
       vertical-align: middle;
-      height: 2.25em;
+      min-height: 2.25em;
+    }
+
+    button[disabled], .btn.disabled {
+      opacity: 0.7;
+      cursor: not-allowed;
     }
 
     button.round {
@@ -62,6 +67,10 @@ export default function button(data) {
       box-shadow: 0 3px 3px 0 rgba(0,0,0,0.14),
       0 1px 7px 0 rgba(0,0,0,0.12),
       0 3px 1px -1px rgba(0,0,0,0.2);
+    }
+
+    button[disabled]:hover, .btn.disabled:hover {
+      opacity: 0.7;
     }
 
     button.flat:hover, .btn.flat:hover {

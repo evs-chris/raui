@@ -1,6 +1,6 @@
 {
   "name": "ractive-materialish",
   "peerDependencies": {
-    "ractive": ">= 0.9.3"
+    "ractive": ">= 0.9.7"
   }
 }
