@@ -1,4 +1,4 @@
-<div class-rtable class-rtable-virtual="~/paginate === 'virtual'">
+<div class-rtable class-rtable-virtual="~/paginate === 'virtual'" class-rtable-auto="~/paginate === 'auto'">
   <div class-rtable-top>
     <table {{yield extra-attributes}}>
       {{>head}}
@@ -19,6 +19,7 @@
   <div class-rtable-bottom>
     <div class-rtable-info>
       {{#if pagination && rows.length}}{{~/page * ~/pagination.per + 1}} - {{~/page + 1 === ~/pagination.total ? ~/rows.length : (~/page + 1) * ~/pagination.per}} of {{~/rows.length}}{{#if ~/isFiltered}} ({{~/items.length}} total){{/if}}{{/if}}
+      {{#if _paginate === 1}}&nbsp;{{/if}}
     </div>
     <div class-rtable-pages>
     {{#if ~/page > 0}}<span on-click="@.set('page', ~/page - 1)">Previous</span>{{/if}}
@@ -178,6 +179,9 @@
         if (this._row) this.partials.row = this._row;
         if (this._head) this.partials.head = this._head;
       },
+      render() {
+        if (this._autoObserver) this._autoObserver.fire();
+      },
       selectAll() {
         let sel, item;
         if (this.allSelected()) {
@@ -197,6 +201,35 @@
         }
 
         this.fire('selection', {}, { item, items: sel });
+      }
+    },
+    observe: {
+      paginate(v) {
+        if (v === 'auto' || v instanceof Ractive) {
+          if (this._autoObserver) this._autoObserver.cancel(); // may be changing instances
+
+          const root = v === 'auto' ? this.root : v;
+
+          const fn = () => {
+            if (!this.fragment.rendered) return;
+            const top = this.find('.rtable-top');
+            if (!top) return;
+
+            if (fn.last === top.clientHeight) return;
+
+            this.set('_paginate', 1);
+            const rows = this.findAll('tr');
+
+            this.set('_paginate', Math.floor((top.clientHeight - rows[0].offsetHeight) / rows[1].offsetHeight));
+
+            fn.last = top.clientHeight;
+          };
+
+          this._autoObserver = root.on('*.resize', fn);
+          this._autoObserver.fire = fn;
+        } else if (this._autoObserver) {
+          this._autoObserver.cancel();
+        }
       }
     },
     data() {
@@ -225,12 +258,12 @@
           // TODO: object filter with operators targeting specific cols e.g. age > 20
           if (typeof filter === 'string') {
             const nocase = filter === filter.toLowerCase() || filter === filter.toUpperCase();
-            if (nocase) filter = filter.toLowerCase();
+            const re = new RegExp(filter, nocase ? 'i' : '');
             list = list.filter(l => {
               let i = cols.length;
               while (i--) {
                 const v = applyPath(l, cols[i]);
-                if (l && typeof v === 'string' && ~(nocase ? v.toLowerCase() : v).indexOf(filter)) return true;
+                if (re.test(v)) return true;
               }
               return false;
             });
@@ -281,8 +314,8 @@
           if (!per) return rows;
 
           if (typeof per !== 'number' && isNaN(+per)) {
-            // TODO: virtual table/auto size
-            per = 30;
+            if (per === 'auto' || per instanceof Ractive) per = intPer || 1;
+            else per = 30; // TODO: virtual table/auto size
           }
 
           if (offset * per > rows.length) setTimeout(() => this.set('page', 0), 0);
@@ -294,8 +327,12 @@
         get() {
           const items = this.get('items');
           const rows = this.get('rows');
-          const per = this.get('paginate');
+          let per = this.get('paginate');
           const offset = this.get('page') || 0;
+
+          if (typeof per !== 'number' && isNaN(per)) {
+            per = this.get('_paginate');
+          }
 
           if (!per) return;
 
@@ -471,11 +508,10 @@
   .rtable > div > table {
     width: 100%;
     border-collapse: collapse;
-    margin: 0.5em 0;
   }
 
   .rtable td {
-    padding: 0.3em 0.5em;
+    padding: 0.5em;
   }
 
   .rtable-header {
@@ -521,13 +557,16 @@
   }
 
   .rtable-top {
-    flex-grow: 5
+    flex-grow: 5;
+    flex-shrink: 1;
+    overflow-y: auto;
+    margin: 0.5em 0;
   }
 
   .rtable-bottom {
     display: flex;
     flex-wrap: wrap;
-    flex-shrink: 1;
+    flex-shrink: 0;
   }
 
   .rtable-info {
