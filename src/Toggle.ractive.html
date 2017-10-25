@@ -1,53 +1,79 @@
 <div
   class-rtoggle
   {{yield extra-attributes}}
-  class-disabled=".disabled"
-  class-true=".value"
-  class-false=".value === false || (!.nullable && (.value === null || .value === undefined))"
-  class-null=".value === null || .value === undefined"
-  {{#unless .disabled}}on-click="toggle"{{/unless}}
+  class-rtoggle-disabled="__toggle.disabled"
+  class-rtoggle-true="__toggle._value"
+  class-rtoggle-false="__toggle._value === false || (!__toggle.nullable && (__toggle._value === null || __toggle._value === undefined))"
+  class-rtoggle-null="__toggle._value === null || __toggle._value === undefined"
+  {{#unless __toggle.disabled}}on-click="__toggle.toggle()"{{/unless}}
 >
-  <div class="toggle-rail" />
-  <div class="nubbin" />
+  <div class="rtoggle-rail" />
+  <div class="rtoggle-nubbin" />
 </div>
 
 <script>
   import Ractive from 'ractive';
 
-  class Toggle extends Ractive {
-    constructor(opts) { super(opts); }
-  }
+  const template = $TEMPLATE;
 
-  Ractive.extendWith(Toggle, {
-    template: $TEMPLATE,
-    noCssTransform: true,
-    cssId: 'toggle',
-    css: $CSS,
-    attributes: ['value', 'nullable', 'disabled', 'undefined'],
-    on: {
-      toggle
+  export default Ractive.macro(
+    ( handle, attrs ) => {
+      const obj = {
+        observers: [],
+        update(attrs) { handle.set('@local', attrs, { deep: true }); },
+        teardown() {
+          obj.observers.forEach( o => o.cancel() );
+        }
+      };
+
+      handle.aliasLocal('__toggle');
+
+      let lock = false;
+      obj.observers.push(handle.observe(attrs.value, v => {
+        if (!lock) {
+          lock = true;
+          handle.set('@local._value', v);
+          lock = false;
+        }
+      }));
+      obj.observers.push(handle.observe('@local._value', v => {
+        if (!lock) {
+          lock = true;
+          handle.set(handle.attributes.value, v);
+          lock = false;
+        }
+      }));
+
+      handle.set('@local', attrs, { deep: true });
+
+      handle.setTemplate(template);
+
+      handle.set('@local.toggle', function () {
+        const { _value, nullable } = handle.get('@local');
+        let value;
+
+        if (_value) value = false;
+        else if (_value === false) {
+          if (nullable) value = handle.get('@local.undefined') ? undefined : null;
+          else value = true;
+        } else {
+          value = true;
+        }
+
+        handle.set('@local._value', value);
+
+        return false;
+      });
+
+      return obj;
+    },
+    {
+      noCssTransform: true,
+      cssId: 'toggle',
+      css: $CSS,
+      attributes: ['value', 'nullable', 'disabled', 'undefined']
     }
-  });
-
-  function toggle() {
-    const current = this.get('value');
-    const nullable = this.get('nullable');
-    let value;
-
-    if (current) value = false;
-    else if (current === false) {
-      if (nullable) value = this.get('undefined') ? undefined : null;
-      else value = true;
-    } else {
-      value = true;
-    }
-
-    this.set('value', value);
-
-    return false;
-  }
-
-  export default Toggle;
+  );
 </script>
 
 <script rel="css" data-name="d">
@@ -60,7 +86,7 @@
     font-size: 1.1em;
   }
 
-  .rtoggle .toggle-rail {
+  .rtoggle-rail {
     height: 0.${d('toggle.square') ? '8' : '7'}em;
     top: 0.${d('toggle.square') ? '1' : '15'}em;
     width: 100%;
@@ -70,30 +96,30 @@
     transition: background-color 0.3s ease-in-out;
   }
 
-  .rtoggle.true .toggle-rail {
+  .rtoggle-true .rtoggle-rail {
     background-color: ${d('toggle.color.rail.on') || 'rgba(0, 0, 0, 0.2)'};
   }
 
-  .rtoggle.null .toggle-rail {
+  .rtoggle-null .rtoggle-rail {
     background-color: ${d('toggle.color.rail.null') || 'rgba(0, 0, 0, 0.35)'};
   }
 
-  .rtoggle.true .nubbin {
+  .rtoggle-true .rtoggle-nubbin {
     background-color: ${d('toggle.color.on') || '#fefefe'};
     left: 0.7em;
   }
 
-  .rtoggle.null .nubbin {
+  .rtoggle-null .rtoggle-nubbin {
     background-color: ${d('toggle.color.null') || '#fefefe'};
     left: 0.35em;
   }
 
 
-  .rtoggle.disabled .toggle-rail {
+  .rtoggle-disabled .rtoggle-rail {
     background-color: ${d('toggle.color.disabled') || '#888'};
   }
 
-  .rtoggle .nubbin {
+  .rtoggle-nubbin {
     position: absolute;
     top: 0;
     left: 0;
@@ -106,10 +132,12 @@
     box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.14),
       0 1px 5px 0 rgba(0, 0, 0, 0.12),
       0 3px 1px -2px rgba(0, 0, 0, 0.2);
+    cursor: pointer;
   }
 
-  .rtoggle.disabled .nubbin {
+  .rtoggle-disabled .rtoggle-nubbin {
     background-color: ${d('toggle.color.disabled') || '#888'};
+    cursor: not-allowed;
   }
   `;
 </script>
