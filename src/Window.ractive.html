@@ -9,7 +9,9 @@
     {{#each @.children.byName.window}}
     <#window control="{{~/windows[.instance.id]}}" bind-root="~/" />
     {{/each}}
+    <div class-rwhost-modal {{#if ~/blocked}}class-rwhost-modal-active style-z-index="{{~/blocked}}"{{/if}} />
   </div>
+  {{>toast}}
   <div class-rwhost-sizer as-tracked=`sizer` />
 </div>
 
@@ -19,7 +21,7 @@
     {{#if ~/root.max || ~/root.userMax || ~/control.max}}
       {{#unless ~/control.autosize || ~/control.dialog}}style-top="0" style-left="0" style-width="100%" style-height="100%"{{/unless}}
       class-rwindow-max="!~/control.dialog"
-      window-in-out
+      window-out
     {{else}}
       {{#if ~/control.resizable}}
         class-rwindow-resizable
@@ -35,9 +37,11 @@
     class-rwindow-topmost="~/control.topmost"
   >
     <div class-rwindow
-      {{#unless (~/control.movable === false || ~/root.max || ~/root.userMax || ~/control.max) && !~/control.dialog}}
+      {{#if !(~/control.movable === false || ~/root.max || ~/root.userMax || ~/control.max) && !~/control.dialog}}
         on-mousedown-touchstart="@._startMove(@event)"
-      {{/unless}}
+      {{elseif !~/control.topmost}}
+        on-mousedown-touchstart="@.raise()"
+      {{/if}}
     >
       <div class-rwindow-modal class-rwindow-blocked="~/control.blockers.length"></div>
       <div class-rwindow-pane as-tracked=`pane` {{#if ~/control.autosize}}class-rwindow-autosizing{{/if}}>
@@ -59,12 +63,12 @@
     </div>
   </div>
   {{/unless}}
-  <div class-rwindow-content as-tracked=`content` class-rwindow-pad="~/pad" class-rwindow-flex="~/control.flex" {{#if ~/control.autosize}}style-overflow=visible{{/if}}>{{>contents}}</div>
-  {{#if ~/buttons && ~/buttons.length}}
-    <div class-rwindow-buttons>
-      <div class-rwindow-left-buttons>{{#each ~/leftButtons}}<button on-click=".action()" {{#if .class}}class="{{.class}}"{{/if}}>{{.label}}</button>{{/each}}</div>
-      <div class-rwindow-center-buttons>{{#each ~/centerButtons}}<button on-click=".action()" {{#if .class}}class="{{.class}}"{{/if}}>{{.label}}</button>{{/each}}</div>
-      <div class-rwindow-right-buttons>{{#each ~/rightButtons}}<button on-click=".action()" {{#if .class}}class="{{.class}}"{{/if}}>{{.label}}</button>{{/each}}</div>
+  <div class-rwindow-content as-tracked=`content` class-rwindow-pad="~/control.pad" class-rwindow-flex="~/control.flex" {{#if ~/control.autosize}}style-overflow=visible{{/if}}>{{>contents}}</div>
+  {{#if ~/buttons}}
+    <div class-rwindow-buttons style-display="{{ ~/visibleButtons ? 'block' : 'none'}}">
+      <div class-rwindow-left-buttons>{{#each ~/leftButtons}}{{#if .partial}}{{>.partial}}{{else}}<button on-click=".action()" {{#if .class}}class="{{.class}}"{{/if}}>{{.label}}</button>{{/if}}{{/each}}</div>
+      <div class-rwindow-center-buttons>{{#each ~/centerButtons}}{{#if .partial}}{{>.partial}}{{else}}<button on-click=".action()" {{#if .class}}class="{{.class}}"{{/if}}>{{.label}}</button>{{/if}}{{/each}}</div>
+      <div class-rwindow-right-buttons>{{#each ~/rightButtons}}{{#if .partial}}{{>.partial}}{{else}}<button on-click=".action()" {{#if .class}}class="{{.class}}"{{/if}}>{{.label}}</button>{{/if}}{{/each}}</div>
     </div>
   {{/if}}
   <div class-rwindow-pane-bottom>
@@ -90,12 +94,15 @@
 <script>
   import Ractive from 'ractive';
   import expand from './transition-expand';
+  import Toast from './Toast.ractive.html';
 
   const escape = Ractive.escapeKey;
+  let windowTrans;
 
   export class Base extends Ractive {
     constructor(opts) { super(opts); }
   }
+
   Ractive.extendWith(Base, {
     css: $CSS,
     cssId: 'rwindow',
@@ -110,25 +117,42 @@
     },
     transitions: {
       window(t, params) {
+        if (windowTrans) return t.complete();
+
+        windowTrans = t;
+
         const p = t.processParams(params, { duration: 400, easing: 'easeInOut' });
+        const parent = t.node.parentNode;
+        const overflow = parent.style ? parent.style.overflow : '';
+
+        if (parent.style) parent.style.overflow = 'hidden';
+
         if (t.isIntro || p.intro) {
           t.setStyle({
-            transform: 'translate(50%, 0px) scale(1.1, 1.1)',
+            transform: 'translate(30%, 0px) scale(1.1, 1.1)',
             opacity: 0
           });
-          return t.animateStyle({
+          t.animateStyle({
             transform: 'none',
             opacity: 1
-          }, p);
+          }, p).then(() => {
+            windowTrans = false;
+            t.complete();
+            if (parent.style) parent.style.overflow = overflow;
+          });
         } else {
           t.setStyle({
             transform: 'none',
             opacity: 1
           });
-          return t.animateStyle({
-            transform: 'translate(50%, 0px) scale(1.1, 1.1)',
+          t.animateStyle({
+            transform: 'translate(30%, 0px) scale(1.1, 1.1)',
             opacity: 0
-          }, p);
+          }, p).then(() => {
+            windowTrans = false;
+            t.complete();
+            if (parent.style) parent.style.overflow = overflow;
+          });;
         }
       }
     }
@@ -139,7 +163,13 @@
     constructor(opts) { super(opts); }
 
     get current() {
-      return this.getWindow(this.get('current.id'));
+      const top = this.get('topLevel');
+      return this.getWindow(this.get('windows')[top].id);
+    }
+
+    get currentId() {
+      const top = this.get('topLevel');
+      return this.get(`windows.${escape(top)}.id`);
     }
 
     addWindow(window, opts) {
@@ -151,7 +181,7 @@
 
       if (!window.id) window.set('@.id', options.id || `window${id++}`);
       if (!this.get(`windows.${escape(window.id)}`)) {
-        this.set(`windows.${escape(window.id)}`, Object.assign(Object.create(options || null), { show: options.show !== false, autosize: true, id: window.id, blockers: [], close: true, minimize: true, maximize: true }));
+        this.set(`windows.${escape(window.id)}`, Object.assign({ show: options.show !== false, autosize: true, id: window.id, blockers: [], close: true, minimize: true, maximize: true }, options, { id: window.id }));
       }
 
       window.host = this;
@@ -165,10 +195,18 @@
 
       if (options.block) {
         const parent = options.block.id || options.block;
-        this.push(`windows.${escape(parent)}.blockers`, window.id);
-        window.set('control.blocking', parent);
+        if (typeof parent === 'string' && parent in this.get('windows')) {
+          this.push(`windows.${escape(parent)}.blockers`, window.id);
+          window.set('control.blocking', parent);
+        }
       }
-      this.place(window);
+
+      if (options.top && options.left) {
+        window.move(options.top, options.left);
+      } else {
+        this.place(window);
+      }
+
       this.raise(window, options.show !== false);
 
       window.on('close', () => {
@@ -200,42 +238,63 @@
     }
 
     raise(window, show) {
-      const wnd = window instanceof Window ? window : this.children.byName.window.filter(a => a.instance.id === window).map(a => a.instance)[0];
+      let wnd = window instanceof Window ? window : this.children.byName.window.filter(a => a.instance.id === window).map(a => a.instance)[0];
       const object = this.get('windows');
       const host = this;
       const wnds = Object.keys(object).map(k => object[k]);
       let top = wnds.length + 1;
+      const last = this.get('topLevel');
+      const wasBlocked = this.get('blocked');
+
+      function blocks(id) {
+        const bs = host.get(`windows.${escape(id)}.blockers`);
+        if (!bs) return;
+        bs.forEach(b => host.add(`windows.${escape(b)}.index`, top++));
+        bs.forEach(b => blocks(b));
+      }
 
       if (wnd) {
         wnd.set('control.index', show === false ? -1 : top++);
         if (show !== false && !wnd.visible) wnd.show();
 
-        function blocks(id) {
-          const bs = host.get(`windows.${escape(id)}.blockers`);
-          if (!bs) return;
-          bs.forEach(b => host.add(`windows.${escape(b)}.index`, top++));
-          bs.forEach(b => blocks(b));
-        }
-
         blocks(wnd.id);
       }
+
+      wnds.filter(w => w.show !== false && w.block === true).forEach(w => {
+        this.set(`windows.${escape(w.id)}.index`, (w.index || 0) + top);
+        blocks(w.id);
+      });
 
       const ordered = wnds.sort((l, r) => !l.show ? -1 : !r.show ? 1 : l.index < r.index ? -1 : 1);
       const visible = ordered.filter(w => w.show);
       top = ordered.indexOf(visible[visible.length - 1]);
       const sets = {};
 
+      let modalIdx = null;
       ordered.forEach((w, i) => {
         const key = escape(w.id);
-        sets[`windows.${key}.index`] = i
+        if (w.block === true && modalIdx === null) modalIdx = i;
+        sets[`windows.${key}.index`] = modalIdx !== null ? i + 2 : i;
         sets[`windows.${key}.topmost`] = i === top;
         sets[`windows.${key}.stack`] = ordered.length - i;
       });
+
+      if (modalIdx !== null) {
+        sets['blocked'] = modalIdx + 1;
+      } else {
+        sets['blocked'] = 0;
+      }
 
       if (~top && ordered.length) sets[`topLevel`] = ordered[top].id;
       else sets[`topLevel`] = null;
 
       this.set(sets);
+
+      top = sets['topLevel'];
+      if (top && top !== last && this.get('currentMax')) {
+        wnd = this.getWindow(top);
+        wnd.transition('window', wnd.find('div'), { intro: true });
+      }
     }
 
     place(wnd) {
@@ -321,7 +380,7 @@
     }
   }
 
-  Base.extendWith(Host, {
+  Base.extendWith(Host, Toast.apply({
     template: $TEMPLATE,
     cssId: 'window-host',
     noIntro: true,
@@ -393,7 +452,7 @@
         }
       }
     }
-  });
+  }));
 
   function initMediaListener(r) {
     if (r._media) {
@@ -575,6 +634,18 @@
       this.fire('resize');
     }
 
+    move(top, left) {
+      if (typeof top === 'string') top = this.host.sizeInEm(top);
+      if (typeof left === 'string') top = this.host.sizeInEm(left);
+
+      const set = {};
+
+      if (typeof top === 'number') set['control.top'] = top;
+      if (typeof left === 'number') set['control.left'] = left;
+
+      this.set(set);
+    }
+
     _startMove(event) {
       if (event.type === 'mousedown' && event.button !== 0) return;
       if (!this.get('control.topmost')) this.raise();
@@ -668,9 +739,6 @@
         let dx = l ? x - sx : 0;
         let dy = t ? y - sy : 0;
 
-        if (ox + dx < 0) dx = 0 - ox;
-        if (oy + dy < 0) dy = 0 - oy;
-
         // resizing from top/left requires top/left/width/height adjustments
         const set = {};
 
@@ -697,6 +765,9 @@
           delete set['control.height'];
           delete set['control.top'];
         }
+
+        if (set['control.left'] < 0) set['control.left'] = 0;
+        if (set['control.top'] < 0) set['control.top'] = 0;
 
         if (set['control.width']) set['control.width'] = this.host.sizeInEm(set['control.width']);
         if (set['control.height']) set['control.height'] = this.host.sizeInEm(set['control.height']);
@@ -751,6 +822,7 @@
     }
   }
 
+  const buttonAttrs = [ 'left', 'right', 'center', 'condition' ];
   Base.extendWith(Window, {
     template: $PARTIALS['window'],
     cssId: 'window',
@@ -762,7 +834,8 @@
     },
     data() {
       return {
-        buttons: []
+        buttons: [],
+        visibleButtons: 0
       }
     },
     computed: {
@@ -776,6 +849,18 @@
         return (this.get('buttons') || []).filter(b => !b.where || b.where === 'right');
       }
     },
+    decorators: {
+      button(node) {
+        const ctx = this.getContext(node);
+
+        ctx.add('visibleButtons');
+
+        return {
+          update() {},
+          teardown() { ctx.subtract('visibleButtons'); }
+        };
+      }
+    },
     on: {
       config() {
         let parent = Window.prototype.template;
@@ -787,6 +872,42 @@
           if (!this.partials.hasOwnProperty('contents')) this.partials.contents = child;
           this.template = parent;
         }
+      },
+      construct() {
+        const wnd = this.constructor;
+        if (!wnd._constructed) {
+          wnd._constructed = 1;
+          const tpl = wnd.prototype.template.t.slice();
+          const btns = tpl.find(e => e.e === 'buttons');
+          wnd.prototype.template.t = tpl.filter(e => e.e !== 'buttons');
+
+          function mapButton(b) {
+            const attrs = b.m || [];
+            const res = {
+              partial: { t: [{ t: b.t, e: b.e, f: b.f, m: attrs.filter(a => !~buttonAttrs.indexOf(a.n)) }] },
+              where: attrs.find(a => a.n === 'left') ? 'left' : attrs.find(a => a.n === 'center') ? 'center' : 'right'
+            }
+            res.partial.t[0].m.push({ t: 71, n: 'button' });
+            return res;
+          }
+
+          if (btns) {
+            wnd._btns = btns.f.filter(e => e.e === 'button' || (e.t === 4 && (e.n === 50 || e.n === 51) && e.f.find(e => e.e === 'button'))).map(n => {
+              if (n.t === 4) {
+                const b = mapButton(n.f.find(e => e.e === 'button'));
+                b.partial = { t: [{ t: n.t, n: n.n, r: n.r, rx: n.rx, x: n.x, f: [b.partial.t[0]] }] };
+                return b;
+              } else {
+                const b = mapButton(n);
+                return b;
+              }
+            });
+          }
+        }
+      },
+      init() {
+        const wnd = this.constructor;
+        if (wnd._btns && !this.get('buttons.length')) this.set('buttons', wnd._btns);
       }
     }
   });
@@ -816,10 +937,28 @@
     box-sizing: border-box;
     flex-grow: 2;
     overflow: auto;
+    background-color: ${data('window.host.bg') || data('bg1') || '#fff'};
   }
 
   .rwhost-pane-content {
     flex-grow: 1;
+  }
+
+  .rwhost-modal {
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+    z-index: -1;
+    opacity: 0;
+    transition: opacity 0.2s ease-in-out, z-index 0s linear 0.2s;
+    background-color: #000;
+  }
+  .rwhost-modal-active {
+    opacity: 0.5;
+    z-index: 1;
+    transition: opacity 0.2s ease-in-out, z-index 0s linear;
   }
 
   .rwindow-wrapper {
@@ -958,6 +1097,8 @@
   .rwindow-controls {
     display: flex;
     justify-content: flex-end;
+    align-items: center;
+    flex-grow: 1;
   }
   .rwindow-controls > div {
     margin: 0 1em 0 0;
