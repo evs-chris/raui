@@ -12,6 +12,11 @@ const defaults = {
     units: [ 2, 3, 4, 5, 8 ],
     max: '0'
   },
+  xsmall: {
+    units: [ 2, 3, 4, 5, 8 ],
+    max: '20em',
+    prefix: 'xs'
+  },
   small: {
     units: [ 2, 3, 4, 5, 8, 10, 12 ],
     max: '36em'
@@ -34,7 +39,8 @@ const defaults = {
   }
 }
 
-// TODO: drop classlist
+const regexps = { 'grid grid-root': /\bgrid grid-root\b/g };
+const spaces = /\s+/g;
 export function grid(node, _type, _path) {
   const ctx = this.getContext(node);
   const owner = this;
@@ -48,9 +54,13 @@ export function grid(node, _type, _path) {
 
     if (!type || type === 'class') {
       for (const k in points) {
-        if (points[k] <= size) node.classList.add(k);
-        else node.classList.remove(k);
+        if (points[k] <= size) {
+          regexps[k].lastIndex = -1;
+          if (!regexps[k].test(node.className)) node.className += ` ${k}`;
+        } else node.className = node.className.replace(regexps[k], '').trim();
       }
+
+      node.className = node.className.replace(spaces, ' ');
     }
   }
 
@@ -61,6 +71,7 @@ export function grid(node, _type, _path) {
     for (const k in breaks) {
       s.style.width = breaks[k].max;
       points[k] = s.clientWidth;
+      if (!regexps[k]) regexps[k] = new RegExp(`\\b${k}\\b`, 'g');
     }
     resize();
   }
@@ -68,7 +79,7 @@ export function grid(node, _type, _path) {
   const listener = this.root.on('*.resize', resize);
   const observer = this.observe('@style.breaks', settings);
 
-  node.classList.add('grid');
+  node.className += ' grid grid-root';
   settings();
 
   return {
@@ -79,7 +90,7 @@ export function grid(node, _type, _path) {
       resize();
     },
     teardown() {
-      node.classList.remove('grid');
+      node.className = node.className.replace(regexps['grid grid-root'], '').trim();
       listener.cancel();
       observer.cancel();
     }
@@ -89,14 +100,18 @@ export function grid(node, _type, _path) {
 export function style(data) {
   const defs = data('break') || defaults;
 
-  let out = '.grid > .row > * { position: relative; width: 100%; } .grid { display: block; } .grid > .row { display: flex; flex-wrap: wrap; }';
+  let out = `.grid > .row > * { position: relative; width: 100%; transition: width 0.2s ease-in-out; }
+.grid { display: block; }
+.grid > .row { display: flex; flex-wrap: wrap; }
+.grid > .row > .pad { display: flex; flex-direction: column; padding: 0.5em; box-sizing: border-box; }`;
+
   let str;
 
   Object.keys(defs).forEach(k => {
     const size = defs[k];
-    const name = size.name || k[0];
+    const name = size.prefix || k[0];
 
-    out += `\n.${k} > .${name}0 { width: 0; overflow: hidden; }`;
+    out += `\n.${k} > .row > .${name}0 { width: 0; overflow: hidden; }`;
 
     size.units.forEach(u => {
       for (let i = 1; i < u; i++) {
