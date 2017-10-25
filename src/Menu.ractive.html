@@ -5,7 +5,14 @@
 <template id="items">
   {{#each .items}}
   {{#if .condition === undefined || (typeof .condition === 'boolean' && .condition) || (typeof .condition === 'string' && ~/[.condition]) || (typeof .condition === 'function' && .condition())}}
-  <div class-rmenu-entry {{#if !.type || .type === 'item'}}class-rmenu-item{{elseif .type === 'section'}}class-rmenu-section{{elseif .type === 'container'}}class-rmenu-container{{/if}} class-rmenu-expanded=".open" expand-in-out {{#if .refPartial}}{{>.refPartial}}{{elseif typeof .ref === 'string'}}as-ref=".ref"{{/if}} {{#if .attrsPartial}}{{yield .attrsPartial}}{{/if}}>
+    <div
+      class-rmenu-entry
+      {{#if !.type || .type === 'item'}}class-rmenu-item{{elseif .type === 'section'}}class-rmenu-section{{elseif .type === 'container'}}class-rmenu-container{{/if}}
+      class-rmenu-expanded=".open"
+      expand-in-out
+      {{#if .refPartial}}{{>.refPartial}}{{elseif typeof .ref === 'string'}}as-ref=".ref"{{/if}}
+      {{#if .attrsPartial}}{{yield .attrsPartial}}{{/if}}
+    >
       {{>.type || 'item'}}
     </div>
   {{/if}}
@@ -13,7 +20,9 @@
 </template>
 
 <template id="item">
-  <div class-rmenu-main>
+  <div class-rmenu-main
+    {{#if .activeRef}}class-rmenu-active="~/[.activeRef]"{{elseif typeof .active === 'function'}}class-rmenu-active=".active()"{{elseif typeof .active === 'boolean'}}class-rmenu-active=".active"{{/if}}
+  >
     {{#if .left}}<div class-menu-left>{{{.left}}}</div>{{elseif .leftPartial}}<div class-rmenu-left>{{yield .leftPartial}}</div>{{/if}}
     {{#if .items && .items.length && @.visibleItems(.items)}}
     <div class-rmenu-expand on-click="@context.toggle('.open'), false" expand-in-out={ axis: 'x' } />
@@ -177,6 +186,12 @@
             attrs.push({ t: 13, n: cnd, f: a.f });
             res.refPartials = { t:[{ t: 71, n: 'ref', f: { r: cnd, s: '[_0]' } }] };
           }
+        } else if (a.n === 'active') {
+          if (a.f && a.f.length === 1 && a.f[0].t === 2) {
+            const cnd = `_cnd${attrs.length}`;
+            res.activeRef = cnd;
+            attrs.push({ t: 13, n: cnd, f: a.f });
+          }
         } else {
           as.push(a);
         }
@@ -231,6 +246,21 @@
       const path = this.parent.keypath + '.items';
       const parent = this.menu.get(path);
       return `${path}.${parent.indexOf(this.item)}`;
+    }
+
+    get active() {
+      if (this.removed) return;
+      const item = this.item;
+      if (item.activeRef) return this.menu.get(item.activeRef);
+      else if (typeof item.active === 'function') return item.active();
+      else return item.active;
+    }
+
+    set active(v) {
+      if (this.removed) return;
+      const item = this.item;
+      if (item.activeRef) return this.menu.set(item.activeRef, v);
+      else return this.set(`.active`, v);
     }
 
     addItem(item, idx) {
@@ -298,25 +328,29 @@
   }
   .rmenu-main {
     width: 100%;
-    padding: 0.5em 0.3em;
     box-sizing: border-box;
-    cursor: pointer;
     user-select: none;
+    transition: 0.3s ease-in-out;
+    transition-property: color, background-color;
+  }
+  .rmenu-main.rmenu-active {
+    color: ${data('menu.fgActive') || data('fga1') || '#07e'};
+    background-color: ${data('menu.bgActive') || data('bg1') || '#dfdfdf'};
   }
   .rmenu-left {
     float: left;
-    margin: 0 0.5em;
+    margin: 0 0 0 0.5em;
   }
   .rmenu-right {
     float: right;
-    margin: 0 0.5em;
+    margin: 0 0.5em 0 0;
   }
   .rmenu-items {
     display: block;
   }
   .rmenu-expand {
-    width: 1em;
-    height: 100%;
+    width: 1.5em;
+    height: 2em;
     float: right;
     padding-left: 0.5em;
   }
@@ -324,7 +358,7 @@
     position: relative;
     display: inline-block;
     font-size: 0.5em;
-    top: -0.5em;
+    top: 1em;
     padding: 0 0.5em 0.5em 0;
     content: '\u25e2';
     transform: rotate(45deg);
@@ -336,6 +370,8 @@
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    cursor: pointer;
+    padding: 0.4em 0.5em;
   }
 
   .rmenu-section {
