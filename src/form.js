@@ -1,3 +1,5 @@
+import globalRegister from './globalRegister';
+
 export function style(data) {
   return `
   label.field {
@@ -250,3 +252,7 @@ export function field(node) {
     }
   }
 }
+
+field.style = style;
+
+globalRegister('field', 'decorators', field);

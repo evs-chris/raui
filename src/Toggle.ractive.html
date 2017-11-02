@@ -13,10 +13,11 @@
 
 <script>
   import Ractive from 'ractive';
+  import globalRegister from './globalRegister';
 
   const template = $TEMPLATE;
 
-  export default Ractive.macro(
+  const Toggle = Ractive.macro(
     ( handle, attrs ) => {
       const obj = {
         observers: [],
@@ -74,6 +75,10 @@
       attributes: ['value', 'nullable', 'disabled', 'undefined']
     }
   );
+
+  globalRegister('RMToggle', 'partials', Toggle);
+
+  export default Toggle;
 </script>
 
 <script rel="css" data-name="d">

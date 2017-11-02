@@ -128,6 +128,7 @@
 
 <script>
   import Ractive from 'ractive';
+  import globalRegister from './globalRegister';
 
   function isArray(it) { return !!it && Object.prototype.toString.call(it) === '[object Array]'; }
   function getType(it) {
@@ -295,6 +296,8 @@
       }
     }
   });
+
+  globalRegister('RMJSONEditor', 'components', JSONEditor);
 
   export default JSONEditor;
 </script>

@@ -54,6 +54,7 @@
 
 <script>
   import Ractive from 'ractive';
+  import globalRegister from './globalRegister';
 
   let resizer;
   const instances = [];
@@ -256,6 +257,8 @@
     return false;
   }
 
+  globalRegister('RMTabs', 'components', Tabs);
+
   export default Tabs;
 </script>
 
@@ -280,8 +283,8 @@
     flex-shrink: 0;
   }
   .secondary > .rtabs-tab-window {
-    color: ${data('fg2') || '#222'};
-    background-color: ${data('bg2') || '#fff'};
+    color: ${data('fg2') || '#fff'};
+    background-color: ${data('bg2') || '#07e'};
   }
   .alt1 > .rtabs-tab-window {
     color: ${data('alt1.fg1') || '#222'};
@@ -313,7 +316,7 @@
     background-color: ${data('tabs.tab.fg') || data('bga1') || '#222'};
   }
   .rtabs-flat.secondary > .rtabs-tab-window:after {
-    background-color: ${data('tabs.tab.fg') || data('bga2') || '#222'};
+    background-color: ${data('tabs.tab.fg') || data('bga2') || '#07e'};
   }
   .rtabs-flat.alt1 > .rtabs-tab-window:after {
     background-color: ${data('alt1.bga1') || '#222'};
@@ -402,7 +405,7 @@
   }
 
   .secondary > .rtabs-tab-window .rtabs-indicator {
-    background-color: ${data('fga2') || 'darkblue'};
+    background-color: ${data('fga2') || '#fff'};
   }
   .alt1 > .rtabs-tab-window .rtabs-indicator {
     background-color: ${data('alt1.fga1') || 'darkblue'};

@@ -1,6 +1,28 @@
 {
   "name": "ractive-materialish",
+  "version": "0.1.0",
+  "description": "Materialish components, decorators, and helpers for apps",
+  "homepage": "https://github.com/evs-chris/ractive-materialish",
+  "bugs": "https://github.com/evs-chris/ractive-materialish/issues",
+  "license": "MIT",
+  "author": {
+    "name": "Chris Reeves"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/evs-chris/ractive-materialish.git"
+  },
+  "devDependencies": {
+    "rollup": "^0.50",
+    "ractive": "^0.9.7",
+    "rollup-plugin-ractive-bin": "^1",
+    "rollup-plugin-buble": "^0.16",
+    "rollup-plugin-uglify": "^2"
+  },
   "peerDependencies": {
     "ractive": ">= 0.9.7"
+  },
+  "scripts": {
+    "build": "rollup -c rollup.config.js"
   }
 }

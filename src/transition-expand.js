@@ -1,3 +1,5 @@
+import globalRegister from './globalRegister';
+
 export default function expand(t, params) {
   const p = t.processParams(params, { duration: 200, easing: 'easeInOut' });
   t.setStyle('overflow', 'hidden');
@@ -14,3 +16,4 @@ export default function expand(t, params) {
   }
 }
 
+globalRegister('expand', 'transitions', expand);

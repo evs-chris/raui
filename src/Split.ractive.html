@@ -13,6 +13,7 @@
 
 <script>
   import Ractive from 'ractive';
+  import globalRegister from './globalRegister';
 
   function sizeHandle(node, vertical) {
     const ctx = this.getContext(node);
@@ -149,6 +150,8 @@
       }
     }
   }
+
+  globalRegister('RMSplit', 'components', Split);
 
   export default Split;
 </script>

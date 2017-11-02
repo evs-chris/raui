@@ -1,3 +1,5 @@
+import globalRegister from './globalRegister';
+
 let el;
 function sizer() {
   if (!el) {
@@ -124,3 +126,7 @@ export function style(data) {
 
   return out;
 }
+
+grid.style = style;
+
+globalRegister('grid', 'decorators', grid);

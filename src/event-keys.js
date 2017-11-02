@@ -1,6 +1,7 @@
 import Ractive from 'ractive';
+import globalRegister from './globalRegister';
 
-export default function keys(...keys) {
+export function keys(...keys) {
   return function KeyEvent(node, fire) {
     const ctx = Ractive.getContext(node);
 
@@ -39,5 +40,7 @@ export function tab(instance) {
   } else {
     nodes[idx + 1].focus();
   }
-
 }
+
+globalRegister('RMKeyEvent', 'events', keys);
+globalRegister('EMTabEvent', 'events', tab);

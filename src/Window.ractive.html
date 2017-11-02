@@ -95,6 +95,7 @@
   import Ractive from 'ractive';
   import expand from './transition-expand';
   import Toast from './Toast.ractive.html';
+  import globalRegister from './globalRegister';
 
   const escape = Ractive.escapeKey;
   let windowTrans;
@@ -911,6 +912,9 @@
       }
     }
   });
+
+  globalRegister('RMWindowHost', 'components', Host);
+  globalRegister('RMWindow', 'components', Window);
 </script>
 
 <script rel="css">

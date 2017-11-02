@@ -51,6 +51,7 @@
 
 <script>
   import Ractive from 'ractive';
+  import globalRegister from './globalRegister';
 
   const sortRE = /^([-+])?([^\s]+)$/;
 
@@ -489,6 +490,8 @@
     this._row = row;
     this._head = header;
   }
+
+  globalRegister('RMTable', 'components', Table);
 
   export default Table;
 </script>

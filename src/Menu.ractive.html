@@ -62,6 +62,7 @@
 <script>
   import Ractive from 'ractive';
   import expand from './transition-expand';
+  import globalRegister from './globalRegister';
 
   class Menu extends Ractive {
     constructor(opt) { super(opts); }
@@ -305,6 +306,8 @@
       return this.menu.set(`${this.keypath}.${key}`, value);
     }
   }
+
+  globalRegister('RMMenu', 'components', Menu);
 
   export default Menu;
 </script>

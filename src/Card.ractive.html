@@ -4,10 +4,11 @@
 
 <script>
   import Ractive from 'ractive';
+  import globalRegister from './globalRegister';
 
   const template = $TEMPLATE;
 
-  export default Ractive.macro(
+  const Card = Ractive.macro(
     handle => {
       handle.setTemplate( template );
     }, {
@@ -16,6 +17,10 @@
       attributes: []
     }
   );
+
+  globalRegister('RMCard', 'partials', Card);
+
+  export default Card;
 </script>
 
 <script rel="css">
