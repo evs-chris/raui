@@ -5,7 +5,7 @@ const uglify = require('rollup-plugin-uglify');
 
 const prefix = 'RM';
 const components = [ 'Table', 'Tabs', 'Window', 'Toggle', 'Card', 'Menu', 'Split', 'Shell', 'AppBar', 'JSONEditor' ];
-const helpers = [ 'grid', 'button', 'form', 'event-keys', 'transition-expand' ]
+const helpers = [ 'grid', 'button', 'form', 'event-keys', 'transition-expand', 'masked-input', 'scroll-spy' ]
 
 let bundles = [];
 
