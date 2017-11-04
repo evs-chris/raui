@@ -1,0 +1,64 @@
+<div class-rappbar {{yield extra-attributes}}>
+  <div class-rappbar-left>{{#if ._leftP}}{{yield ._leftP}}{{/if}}</div>
+  <div class-rappbar-center>{{#if ._centerP}}{{yield ._centerP}}{{/if}}</div>
+  <div class-rappbar-right>{{#if ._rightP}}{{yield ._rightP}}{{/if}}</div>
+</div>
+
+<script>
+  import Ractive from 'ractive';
+  import globalRegister from './globalRegister';
+
+  class AppBar extends Ractive {
+    constructor(opts) { super(opts); }
+  }
+
+  Ractive.extendWith(AppBar, {
+    template: $TEMPLATE,
+    css: $CSS,
+    cssId: 'appbar',
+    attributes: [],
+    on: {
+      config() {
+        const tpl = this.partials.content;
+        if (tpl) {
+          tpl.forEach(e => {
+            if (e.e === 'left') this.set('_leftP', { t: e.f });
+            if (e.e === 'center') this.set('_centerP', { t: e.f });
+            if (e.e === 'right') this.set('_rightP', { t: e.f });
+          });
+        }
+      }
+    }
+  });
+
+  globalRegister('RMAppBar', 'components', AppBar);
+
+  export default AppBar;
+</script>
+
+<script rel="css">
+  return `
+  .rappbar {
+    display: flex;
+    padding: 1em;
+    background-color: ${data('appbar.bg') || data('bg2') || '#07e'};
+    color: ${data('appbar.fg') || data('fg2') || '#f9f9f9'};
+  }
+
+  .rappbar-left {
+    flex-grow: 3;
+    display: flex;
+    justify-content: flex-start;
+  }
+
+  .rappbar-right {
+    flex-grow: 3;
+    display: flex;
+    justify-content: flex-start;
+  }
+
+  .rappbar-center {
+    flex-shrink: 1;
+  }
+  `;
+</script>

@@ -1,0 +1,177 @@
+{{#if ~/_toast}}{{#with ~/_toast}}
+<div class-rtoast class-rtoast-bottom=".bottom" class-rtoast-left=".left" class-rtoast-right=".right">
+  <div toast-in-out class="rtoast-body{{#if .type}} rtoast-{{.type}}{{/if}}{{#if .class}}{{.class}}{{/if}}" {{#if .dismissable !== false}}on-click="@._closeToast()"{{/if}}>
+    <div class-rtoast-message>{{.message}}</div>
+    {{#if .dismissable !== false || .buttons.length}}
+    <div class-rtoast-buttons>
+      {{#each .buttons}}
+        <button class="rtoast-button{{#if .class}} {{.class}}{{/if}}" {{#if typeof .action === 'function'}}on-click=".action()"{{/if}}>{{.label}}</button>
+      {{else}}
+        <button class-rtoast-button>Close</button>
+      {{/each}}
+    </div>
+    {{/if}}
+  </div>
+</div>
+{{/with}}{{/if}}
+
+<script>
+  const DEFAULTS = {
+    timeout: 6000,
+    top: true
+  };
+
+  export const style = $CSS;
+
+  export default {
+    template: $TEMPLATE,
+    apply(proto, options) {
+      const defaults = Object.assign({}, DEFAULTS, options);
+      const toasts = [];
+      let tm;
+      let active;
+
+      proto.toast = function toast(message, options) {
+        const opts = Object.assign({ message, instance: this }, defaults, this.toastDefaults, options);
+        toasts.push(opts);
+        if (!active) showToast();
+      }
+
+      proto._closeToast = function() {
+        if (tm) {
+          clearTimeout(tm);
+          tm = null;
+        }
+
+        active.instance.set('_toast', null).then(() => {
+          active = null;
+          if (toasts.length) showToast();
+        });
+      };
+
+      function showToast() {
+        active = toasts.shift();
+        active.instance.set('_toast', active).then(() => {
+          if (active.timeout) {
+            tm = setTimeout(() => {
+              active.instance._closeToast();
+            }, active.timeout);
+          }
+        });
+      }
+
+      proto.transitions = proto.transitions || {};
+      proto.partials = proto.partials || {};
+      proto.on = proto.on || {};
+
+      proto.partials.toast = this.template;
+
+      proto.transitions.toast = function(t, ps) {
+        const params = t.processParams({ duration: 200 }, ps);
+        const opacity = t.getStyle('opacity');
+        if (t.isIntro) {
+          t.setStyle({
+            opacity: 0,
+            transform: `translateY(${active.bottom ? '' : '-'}1em)`
+          });
+          return t.animateStyle({
+            opacity,
+            transform: `none`
+          }, params);
+        } else {
+          t.setStyle({
+            opacity,
+            transform: `none`
+          });
+          return t.animateStyle({
+            opacity: 0,
+            transform: `translateY(${active.bottom ? '' : '-'}1em)`
+          }, params);
+        }
+      };
+
+      proto.on['close-toast'] = function() {
+        this._closeToast();
+      };
+
+      const pcss = proto.css;
+      proto.css = function(data) {
+        let css = '';
+        if (typeof pcss === 'string') css += pcss;
+        else if (typeof pcss === 'function') css += pcss(data);
+        return style(data) + css;
+      }
+
+      return proto;
+    }
+  };
+</script>
+
+<script rel="css">
+  return `
+  .rtoast {
+    position: absolute;
+    display: flex;
+    justify-content: center;
+    left: 1em;
+    right: 1em;
+    top: 1em;
+    bottom: auto;
+    z-index: 2;
+  }
+  .rtoast-message {
+    padding: 0.5em 0.5em 0.5em 1em;
+    flex-grow: 2;
+  }
+  .rtoast-buttons {
+    display: inline-block;
+    padding: 0.5em 1em 0.5em 0.5em;
+    flex-shrink: 1;
+  }
+  .rtoast-button {
+    background-color: transparent;
+    color: inherit;
+    padding: 0.5em 1em;
+    margin: 0 0 0 1em;
+    line-height: 1em;
+    box-shadow: none;
+  }
+  .rtoast-bottom {
+    bottom: 1em;
+    top: auto;
+  }
+  .rtoast-left {
+    justify-content: flex-start;
+  }
+  .rtoast-right {
+    justify-content: flex-end;
+  }
+  .rtoast-body {
+    display: flex;
+    flex-shrink: 2;
+    align-items: center;
+    border-radius: 2px;
+    color: ${data('toast.fg') || data('bg1') || '#fff'};
+    background-color: ${data('toast.bg') || data('fg1') || '#222'};
+    box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.14), 0 1px 5px 0 rgba(0, 0, 0, 0.12), 0 3px 1px -2px rgba(0, 0, 0, 0.2);
+    opacity: 0.95;
+  }
+
+  .rtoast-success {
+    color: ${data('toast.success.fg') || '#f9f9f9'};
+    background-color: ${data('toast.success.bg') || '#4caf50'};
+  }
+  .rtoast-info {
+    color: ${data('toast.info.fg') || '#f9f9f9'};
+    background-color: ${data('toast.info.bg') || '#07e'};
+  }
+  .rtoast-warn {
+    color: ${data('toast.warn.fg') || '#222'};
+    background-color: ${data('warn.success.bg') || '#ffc107'};
+  }
+  .rtoast-error {
+    color: ${data('toast.error.fg') || '#f9f9f9'};
+    background-color: ${data('toast.error.bg') || '#ff5252'};
+  }
+  `;
+</script>

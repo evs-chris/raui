@@ -1,0 +1,637 @@
+<div class-rtable class-rtable-virtual="~/paginate === 'virtual'" class-rtable-auto="~/paginate === 'auto'">
+  <div class-rtable-top>
+    <table {{yield extra-attributes}}>
+      {{>head}}
+      {{>body}}
+      {{#if !~/rows.length}}<tr class-rtable-row><td colspan="{{~/columns.length + (~/allowSelect ? 1 : 0)}}">{{yield empty}}</td></tr>{{/if}}
+    </table>
+  </div>
+  {{>pagination}}
+</div>
+
+<template id="body">
+  {{#each ~/visibleRows}}
+  {{>row}}
+  {{/each}}
+</template>
+
+<template id="pagination">
+  <div class-rtable-bottom>
+    <div class-rtable-info>
+      {{#if pagination && rows.length}}{{~/page * ~/pagination.per + 1}} - {{~/page + 1 === ~/pagination.total ? ~/rows.length : (~/page + 1) * ~/pagination.per}} of {{~/rows.length}}{{#if ~/isFiltered}} ({{~/items.length}} total){{/if}}{{/if}}
+      {{#if _paginate === 1}}&nbsp;{{/if}}
+    </div>
+    <div class-rtable-pages>
+    {{#if ~/page > 0}}<span on-click="@.set('page', ~/page - 1)">Previous</span>{{/if}}
+    {{#each ~/pagination.array}}
+      {{#if . == ~/page + 1}}
+      <input on-change="(/^\d+$/.test(@node.value) && +@node.value > 0 && +@node.value <= ~/pagination.total && @.set('page', +@node.value - 1)) || @.nodeSet(@node, 'value', ~/page + 1)" value="{{.}}" twoway=false />
+      {{elseif . === '...'}}<span on-click="@.set('page', ../[@index - 1])">...</span>
+      {{else}}
+        <span on-click="@.set('page', . - 1)">{{.}}</span>
+      {{/if}}
+    {{/each}}
+    {{#if ~/page < ~/pagination.total - 1}}<span on-click="@.set('page', ~/page + 1)">Next</span>{{/if}}
+    </div>
+  </div>
+</template>
+
+<template id="empty">
+  No data.
+</template>
+
+<template id="csp-dummy">
+  <div
+    on-click="@this._setSort(.index, @event)"
+    on-click="@this._select(., @event), false"
+    on-click="['select', ., ~/rows.indexOf(.), ~/visibleRows.indexOf(.)]"
+  />
+  {{#if ~~/selections.indexOf(.)}}...{{/if}}
+</template>
+
+<script>
+  import Ractive from 'ractive';
+  import globalRegister from './globalRegister';
+
+  const sortRE = /^([-+])?([^\s]+)$/;
+
+  class Table extends Ractive {
+    constructor(opts) { super(opts); }
+
+    allSelected() {
+      const sel = this.get('selections');
+      const visible = this.get('visibleRows');
+
+      for (let i = 0; i < visible.length; i++) {
+        if (!~sel.indexOf(visible[i])) return false;
+      }
+
+      return true;
+    }
+
+    nodeSet(node, prop, value) { node[prop] = value; }
+
+    _setSort(idx, ev) {
+      const col = this.get(`columns.${idx}`);
+      if (!col || !(col.sort || col.filter)) return;
+      let sort = col.sort || col.filter;
+      if (typeof sort === 'string' && sort[0] === '~') sort = this.get(sort);
+
+      const multi = ev.ctrlKey;
+      let sorts = this.get('sort');
+
+      if (!Array.isArray(sort)) sort = [sort];
+      if (!sorts) sorts = [];
+      else if (!Array.isArray(sorts)) sorts = [sorts];
+
+      if (!sorts.length) this.set('sort', sort.map(s => `+${s}`));
+      else {
+        const cur = sorts.map(s => sortRE.exec(s).slice(1));
+        const overlap = sort.reduce((a, c) => a && !!cur.find(s => s[1] === c), true);
+        if (overlap && sorts.length !== sort.length && !multi) this.set('sort', sort.map(s => `+${sort}`));
+        else if (!multi) {
+          if (overlap) this.set('sort', cur.map(s => `${s[0] === '+' ? '-' : '+'}${s[1]}`));
+          else this.set('sort', sort.map(s => `+${s}`));
+        } else {
+          if (overlap) this.set('sort', cur.map(s => ~sort.indexOf(s[1]) ? `${s[0] === '+' ? '-' : '+'}${s[1]}` : s[0] + s[1]));
+          else this.set('sort', sorts.concat(sort.map(s => `+${s}`)));
+        }
+      }
+    }
+
+    _select(src, ev) {
+      let sels = this.get('selections');
+      if (!sels) {
+        sels = [];
+        this.set('selections', sels);
+      }
+
+      const i = sels.indexOf(src);
+
+      if (~i) this.splice('selections', i, 1);
+      else this.push('selections', src);
+
+      if (i >= sels.length || sels.length === 1) this.set('selected', sels[sels.length - 1]);
+
+      this.fire('selection', {}, { item: sels[sels.length - 1], items: sels });
+
+      setTimeout(() => ev.target.checked = !~i);
+    }
+
+    select() {
+      const selected = this.get('selected');
+
+      if (selected) {
+        this.fire('selected', {}, selected, this.get('rows').indexOf(selected), this.get('visibleRows').indexOf(selected));
+      }
+    }
+
+    selectionOffset(offset) {
+      const selected = this.get('selected');
+      let visible = this.get('visibleRows');
+      if (!selected || !~visible.indexOf(selected)) {
+        let next = offset > 0 ? visible[0] : visible[visible.length - 1];
+        this.set({
+          selected: next,
+          selections: [next]
+        });
+      } else {
+        const idx = visible.indexOf(selected);
+        if (offset > 0 ? idx + offset >= visible.length : idx + offset < 0 ) {
+          const move = (offset < 1 ? -1 : 1);
+          if ((move < 0 && this.get('page') + move >= 0) || (move > 0 && this.get('page') + move < this.get('pagination.total'))) {
+            this.add('page', move);
+          }
+          visible = this.get('visibleRows');
+          const next = offset > 0 ? visible[0] : visible[visible.length - 1];
+          this.set({
+            selected: next,
+            selections: [next]
+          });
+        } else {
+          this.set({
+            selected: visible[idx + offset],
+            selections: [visible[idx + offset]]
+          });
+        }
+      }
+
+      this.fire('selection', {}, { item: this.get('selected'), items: this.get('selections') });
+    }
+
+    selectionDown() {
+      this.selectionOffset(1);
+    }
+
+    selectionUp() {
+      this.selectionOffset(-1);
+    }
+  }
+
+  Ractive.extendWith(Table, {
+    template: $TEMPLATE,
+    css: $CSS,
+    cssId: 'rtable',
+    attributes: [ 'paginate', 'items', 'filter', 'sort' ],
+    on: {
+      construct,
+      config() {
+        if (this._items) this.set(this._items);
+        if (this._row) this.partials.row = this._row;
+        if (this._head) this.partials.head = this._head;
+      },
+      render() {
+        if (this._autoObserver) this._autoObserver.fire();
+      },
+      selectAll() {
+        let sel, item;
+        if (this.allSelected()) {
+          item = null;
+          sel = [];
+          this.set({
+            selections: sel,
+            selected: item
+          });
+        } else {
+          sel = this.get('visibleRows').slice();
+          item = sel[0];
+          this.set({
+            selections: sel,
+            selected: item
+          });
+        }
+
+        this.fire('selection', {}, { item, items: sel });
+      }
+    },
+    observe: {
+      paginate(v) {
+        if (v === 'auto' || v instanceof Ractive) {
+          if (this._autoObserver) this._autoObserver.cancel(); // may be changing instances
+
+          const root = v === 'auto' ? this.root : v;
+
+          const fn = () => {
+            if (!this.fragment.rendered) return;
+            const top = this.find('.rtable-top');
+            if (!top) return;
+
+            if (fn.last === top.clientHeight) return;
+
+            this.set('_paginate', 1);
+            const rows = this.findAll('tr');
+
+            this.set('_paginate', Math.floor((top.clientHeight - rows[0].offsetHeight) / rows[1].offsetHeight));
+
+            fn.last = top.clientHeight;
+          };
+
+          this._autoObserver = root.on('*.resize', fn);
+          this._autoObserver.fire = fn;
+        } else if (this._autoObserver) {
+          this._autoObserver.cancel();
+        }
+      }
+    },
+    data() {
+      return {
+        page: 0,
+        selections: [],
+        allowSelect: true,
+        allowSelectAll: true
+      }
+    },
+    computed: {
+      rows: {
+        get() {
+          const cols = this.viewmodel.value.columns.filter(c => c.filter).map(c => {
+            let v = c.filter;
+            if (v.indexOf('~/') === 0) v = this.get(v);
+            if (typeof v === 'string') v = Ractive.splitKeypath(v);
+            if (!Array.isArray(v)) return;
+            return v;
+          }).filter(c => c);
+          let list = this.get('items');
+          const src = list;
+          let filter = this.get('filter');
+          let sort = this.get('sort');
+
+          // TODO: object filter with operators targeting specific cols e.g. age > 20
+          if (typeof filter === 'string') {
+            const nocase = filter === filter.toLowerCase() || filter === filter.toUpperCase();
+            const re = new RegExp(filter, nocase ? 'i' : '');
+            list = list.filter(l => {
+              let i = cols.length;
+              while (i--) {
+                const v = applyPath(l, cols[i]);
+                if (re.test(v)) return true;
+              }
+              return false;
+            });
+          } else if (filter instanceof RegExp) {
+            list = list.filter(l => {
+              let i = cols.length;
+              while (i--) {
+                const v = applyPath(l, cols[i]);
+                if (l && typeof v === 'string' && filter.test(v)) return true;
+              }
+            });
+          }
+
+          if (typeof sort === 'string') sort = [sort];
+
+          if (Array.isArray(sort)) {
+            sort = sort.map(f => ({
+              dir: f[0] === '-' ? -1 : 1,
+              path: Ractive.splitKeypath(f[0] === '-' || f[0] === '+' ? f.substr(1) : f)
+            }));
+
+            list.sort((a, b) => {
+              let aa, bb, p;
+              for (let i = 0; i < sort.length; i++) {
+                aa = applyPath(a, sort[i].path);
+                bb = applyPath(b, sort[i].path);
+                p = sort[i].dir * compare(aa, bb);
+
+                if (p !== 0) return p;
+              }
+
+              return p;
+            });
+          }
+
+          this.set('isFiltered', src.length !== list.length);
+
+          return list;
+        }
+      },
+      visibleRows: {
+        get() {
+          const rows = this.get('rows');
+          let per = this.get('paginate');
+          const intPer = this.get('_paginate');
+          let offset = this.get('page') || 0;
+
+          if (!per) return rows;
+
+          if (typeof per !== 'number' && isNaN(+per)) {
+            if (per === 'auto' || per instanceof Ractive) per = intPer || 1;
+            else per = 30; // TODO: virtual table/auto size
+          }
+
+          if (offset * per > rows.length) setTimeout(() => this.set('page', 0), 0);
+
+          return rows.slice(per * offset, per * offset + per);
+        }
+      },
+      pagination: {
+        get() {
+          const items = this.get('items');
+          const rows = this.get('rows');
+          let per = this.get('paginate');
+          const offset = this.get('page') || 0;
+
+          if (typeof per !== 'number' && isNaN(per)) {
+            per = this.get('_paginate');
+          }
+
+          if (!per) return;
+
+          const total = Math.ceil(rows.length / per);
+          const info = {
+            max: Math.ceil(items.length / per),
+            total,
+            per
+          };
+
+          if (info.total > 14) {
+            const arr = info.array = [];
+
+            if (offset > 5) arr.push(1, 2, 3, '...');
+            else arr.push(1, 2, 3, 4, 5, 6, 7, 8);
+
+            if (offset > 5 && offset + 6 < total) arr.push(offset - 1, offset, offset + 1, offset + 2, offset + 3, '...', total - 2, total - 1, total);
+            else if (offset + 6 < total) arr.push('...', total - 2, total - 1, total);
+            else arr.push(total - 7, total - 6, total - 5, total - 4, total - 3, total - 2, total - 1, total);
+          } else {
+            info.array = Array.apply(null, { length: info.total }).map((v, i) => i + 1);
+          }
+
+          return info;
+        }
+      }
+    }
+  });
+
+  function applyPath(src, path) {
+    if (path.length && typeof src !== 'object') return;
+    let res = src;
+    for (let i = 0; i < path.length; i++) {
+      res = res[path[i]];
+      if (typeof res !== 'object') return i + 1 < path.length ? undefined : res;
+    }
+    return res;
+  }
+
+  function compare(a, b) {
+    return a < b ? -1 :
+      a > b ? 1 :
+      a == b ? 0 :
+      !a && b ? -1 :
+      a && !b ? 1 :
+      0;
+  }
+
+  const colAttrs = ['label', 'type', 'filter', 'hidden', 'sort'];
+  function construct() {
+    const cmp = this.component;
+    if ( !cmp ) return;
+
+    const tpl = cmp.template.f || [];
+    const attrs = cmp.template.m ? cmp.template.m.slice() : [];
+    const t = cmp.template;
+    cmp.template = { e: t.e, f: t.f, t: t.t, m: attrs };
+
+    const columns = [];
+
+    let id = 0;
+    function map(attr, partial) {
+      if (attr && attr.f && attr.f.length === 1 && attr.f[0].t === 2) {
+        const n = `_a${id++}`;
+        attrs.push({ t: 13, n, f: attr.f });
+        return partial ? { t: [{ t: 2, r: `~/${n}` }] } : { t: 2, r: `~/${n}` };
+      }
+      return attr && attr.f;
+    }
+
+    // get column defs
+    // build row partial
+    tpl.forEach(e => {
+      if (e.e === 'column') {
+        const col = {};
+        col.index = columns.length;
+        columns.push(col);
+
+        col.content = (e.f || []).filter(e => e.e !== 'edit');
+
+        col.label = e.m.find(a => a.n === 'label');
+        if (col.label && col.label.f) col.label = map(col.label);
+        if (!col.label) col.label = '';
+        if (!Array.isArray(col.label)) col.label = [col.label];
+
+        col.type = e.m.find(a => a.n === 'type');
+        if (col.type && col.type.f) col.type = col.type.f;
+        if (!col.type) col.type = 'string';
+
+        col.filter = e.m.find(a => a.n === 'filter');
+        if (col.filter && col.filter.f) {
+          col.filter = map(col.filter);
+          if (col.filter.r) col.filter = col.filter.r;
+        }
+
+        col.sort = e.m.find(a => a.n === 'sort');
+        if (col.sort && col.sort.f) {
+          col.sort = map(col.sort);
+          if (col.sort.r) col.sort = col.sort.r;
+        }
+
+        col.hidden = e.m.find(a => a.n === 'hidden');
+        if (col.hidden && col.hidden.f === 0) col.hidden = true;
+        else if (col.hidden && typeof col.hidden.f === 'object') col.hidden = map(col.hidden);
+        else col.hidden = false;
+        if (typeof col.hidden === 'string') col.hidden = false;
+
+        col.attrs = e.m.filter(a => !~colAttrs.indexOf(a.n));
+      }
+    });
+
+    this._items = { columns };
+
+    const sortKey = '[_0._setSort(_1,_2)]';
+    const header = [{ t: 7, e: 'tr', m: [{ t: 13, n: 'class-rtable-header' }], f: columns.filter(c => c.hidden !== true).map(c => {
+      const th = { t: 7, e: 'th', f: c.label, m: [{ t: 13, n: 'class-rtable-header' }, { t: 4, n: 53, r: `~/columns.${c.index}`, f: [{ t: 70, n: ['click'], f: { r: ['@this', '.index', '@event'], s: sortKey} }] }] };
+      if (c.type) th.m.push({ t: 13, n: `class-rtable-${c.type}-column` });
+      let res = th;
+
+      if (c.hidden && c.hidden.r) {
+        res = { t: 4, n: 51, r: c.hidden.r, f: [th] };
+      }
+
+      return res;
+    }) }];
+
+    // selectall
+    header[0].f.unshift({
+      t: 4, n: 50, r: '~/allowSelect', f: [{ t: 7, e: 'th', m: [{ t: 13, n: 'class-rtable-select-header' }], f: [{ t: 4, n: 50, r: '~/allowSelectAll', f: [{ t: 7, e: 'input', m: [{ t: 73, v: 't', f: 'false' }, { t: 13, n: 'type', f: 'checkbox' }, { t: 13, n: 'checked', f: [{ t: 2, x: { r: ['@this'], s: '_0.allSelected()' } }] }, { t: 70, n: ['click'], f: 'selectAll' }, { t: 13, n: 'class-rtable-select' }] }] }] }]
+    });
+
+    const row = [{ t: 7, e: 'tr', f: columns.filter(c => c.hidden !== true).map(c => {
+      // TODO: editable, selection, etc
+      const td = { t: 7, e: 'td', f: c.content, m: c.attrs };
+      if (c.type) td.m = [{ t: 13, n: `class-rtable-${c.type}-column` }];
+      let res = td;
+
+      if (c.hidden && c.hidden.r) {
+        res = { t: 4, n: 51, r: c.hidden.r, f: [td] };
+      }
+
+      return res;
+    }), m: [
+      { t: 13, n: 'class-rtable-row' },
+      { t: 13, n: 'class-rtable-selected', f: [{ t: 2, x: { r: ['~/selections', '.'], s: '~_0.indexOf(_1)' } }] },
+      { t: 70, n: ['click'], f: { r: ['~/rows', '~/visibleRows', '.'], s: `[['selected',_2,_0.indexOf(_2),_1.indexOf(_2)]]` } }
+    ]}];
+
+    // select
+    row[0].f.unshift({
+      t: 4, n: 50, r: '~/allowSelect', f: [{ t: 7, e: 'th', m: [{ t: 13, n: 'class-rtable-select-row' }], f: [{ t: 7, e: 'input', m: [{ t: 73, v: 't', f: 'false' }, { t: 13, n: 'type', f: 'checkbox' }, { t: 13, n: 'checked', f: [{ t: 2, x: { r: ['~/selections', '.'], s: '~_0.indexOf(_1)' } }] }, { t: 70, n: ['click'], f: { r: ['@this', '.', '@event'], s: '[_0._select(_1,_2),false]' } }, { t: 13, n: 'class-rtable-select' }] }] }]
+    });
+
+    this._row = row;
+    this._head = header;
+  }
+
+  globalRegister('RMTable', 'components', Table);
+
+  export default Table;
+</script>
+
+<script rel="css">
+  return `
+  .rtable {
+    display: flex;
+    flex-direction: column;
+    overflow: auto;
+    max-width: 100%;
+    max-height: 100%;
+    box-sizing: border-box;
+    flex-grow: 2;
+  }
+
+  .rtable > div > table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  .rtable td {
+    padding: 0.5em;
+  }
+
+  .rtable-header {
+    padding: 0.5em;
+    text-align: left;
+  }
+
+  .rtable-number-column {
+    text-align: right;
+  }
+  .rtable-date-column {
+    text-align: right;
+  }
+
+  .rtable-header {
+    border-bottom: 1px solid ${data('table.divider') || data('table.fg') || data('fg1') || '#999'};
+  }
+
+  .rtable-header > th {
+    padding: 0.3em 0.5em 1em 0.5em;
+  }
+
+  .rtable-row {
+    color: ${data('table.fg') || data('fg1') || '#000'};
+    border-bottom: 1px solid ${data('table.divider') || data('table.fg') || data('fg1') || '#999'};
+    background-color: ${data('table.odd') || data('bg1') || '#fff'};
+    transition: 0.2s ease-in-out;
+    transition-property: background-color, color;
+  }
+  .rtable-row:nth-child(even) {
+    background-color: ${data('table.even') || data('bga1') || '#eee'};
+  }
+  .rtable-row:last-of-type {
+    border-bottom: none;
+  }
+  .rtable-row:hover {
+    background-color: ${data('table.over') || '#eee'};
+  }
+
+  .rtable-row.rtable-selected {
+    background-color: ${data('table.selected.bg') || data('bg2') || '#fe7'};
+    color: ${data('table.selected.fg') || data('fg2') || '#fff'};
+  }
+
+  .rtable-top {
+    flex-grow: 5;
+    flex-shrink: 1;
+    overflow-y: auto;
+    margin: 0.5em 0;
+  }
+
+  .rtable-bottom {
+    display: flex;
+    flex-wrap: wrap;
+    flex-shrink: 0;
+  }
+
+  .rtable-info {
+    min-width: 50%;
+  }
+  .rtable-pages {
+    min-width: 50%;
+    text-align: right;
+  }
+  .rtable-pages span {
+    margin: 0.3em;
+    cursor: pointer;
+    user-select: none;
+  }
+  .rtable-pages span:first-of-type {
+    margin-left: 0;
+  }
+  .rtable-pages input {
+    text-align: center;
+    width: 2.5em;
+    font-size: 1em;
+    background-color: transparent;
+    border: none;
+    padding: 0;
+    font-weight: bold;
+    text-decoration: underline;
+  }
+
+  .rtable-select {
+    width: 0;
+    outline: none;
+    margin-right: 1em;
+  }
+  .rtable-select:before {
+    content: '';
+    display: block;
+    border: 2px solid ${data('fg1') || '#222'};
+    width: 1em;
+    height: 1em;
+    box-sizing: border-box;
+    transition: 0.2s ease-in-out;
+    transition-property: transform, border-color, height, width;
+  }
+  .rtable-select:checked:before {
+    height: 0.7em;
+    width: 1.3em;
+    border-color: ${data('fg2') || '#f9f9f9'};
+    border-top-color: transparent;
+    border-right-color: transparent;
+    transform: rotate(-50deg);
+  }
+  .rtable-select-header {
+    text-align: center;
+  }
+  .rtable-select-header,
+  .rtable-select-row {
+    width: 3em;
+  }
+  .rtable-select-header .rtable-select:checked:before {
+    border-color: ${data('fg1') || '#222'};
+    border-top-color: transparent;
+    border-right-color: transparent;
+  }
+  `;
+</script>

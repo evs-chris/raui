@@ -1,0 +1,402 @@
+<div class-rmenu>
+  {{>items}}
+</div>
+
+<template id="items">
+  {{#each .items}}
+  {{#if .condition === undefined || (typeof .condition === 'boolean' && .condition) || (typeof .condition === 'string' && ~/[.condition]) || (typeof .condition === 'function' && .condition())}}
+    <div
+      class-rmenu-entry
+      {{#if !.type || .type === 'item'}}class-rmenu-item{{elseif .type === 'section'}}class-rmenu-section{{elseif .type === 'container'}}class-rmenu-container{{/if}}
+      class-rmenu-expanded=".open"
+      expand-in-out
+      {{#if .refPartial}}{{>.refPartial}}{{elseif typeof .ref === 'string'}}as-ref=".ref"{{/if}}
+      {{#if .attrsPartial}}{{yield .attrsPartial}}{{/if}}
+    >
+      {{>.type || 'item'}}
+    </div>
+  {{/if}}
+  {{/each}}
+</template>
+
+<template id="item">
+  <div class-rmenu-main
+    {{#if .activeRef}}class-rmenu-active="~/[.activeRef]"{{elseif typeof .active === 'function'}}class-rmenu-active=".active()"{{elseif typeof .active === 'boolean'}}class-rmenu-active=".active"{{/if}}
+  >
+    {{#if .left}}<div class-menu-left>{{{.left}}}</div>{{elseif .leftPartial}}<div class-rmenu-left>{{yield .leftPartial}}</div>{{/if}}
+    {{#if .items && .items.length && @.visibleItems(.items)}}
+    <div class-rmenu-expand on-click="@context.toggle('.open'), false" expand-in-out={ axis: 'x' } />
+    {{/if}}
+    {{#if .right}}<div class-menu-right>{{{.right}}}</div>{{elseif .rightPartial}}<div class-rmenu-right>{{yield .rightPartial}}</div>{{/if}}
+    <div
+      class-rmenu-title
+      {{#if .actionPartial}}{{yield .actionPartial}}{{/if}}
+      {{#if typeof .action === 'function'}}on-click="this.action()"{{/if}}
+      {{#if !.actionPartial && typeof .action !== 'function' && .items.length}}on-click="@context.toggle('.open'), false"{{/if}}
+    >
+      {{#if .title}}{{{.title}}}{{elseif .titlePartial}}{{yield .titlePartial}}{{/if}}
+    </div>
+  </div>
+  {{>children}}
+</template>
+
+<template id="children">
+  {{#if .items.length && (.open || .type === 'section')}}
+  <div class-rmenu-items expand-in-out>
+    {{>items}}
+  </div>
+  {{/if}}
+</template>
+
+<template id="section">
+  <div class-rmenu-main>
+    <div class-rmenu-title>{{#if .title}}{{.title}}{{elseif .titlePartial}}{{yield .titlePartial}}{{/if}}</div>
+  </div>
+  {{>children}}
+</template>
+
+<template id="container">
+  {{#if .content}}{{{.content}}}{{elseif .contentPartial}}{{yield .contentPartial}}{{/if}}
+</template>
+
+<script>
+  import Ractive from 'ractive';
+  import expand from './transition-expand';
+  import globalRegister from './globalRegister';
+
+  class Menu extends Ractive {
+    constructor(opt) { super(opts); }
+
+    addItem(item, idx) {
+      if (typeof idx === 'number') {
+        this.splice('items', idx, 0, item);
+      } else {
+        this.push('items', item);
+      }
+
+      return new Handle(this, null, item);
+    }
+
+    visibleItems(items) {
+      return items.filter(i => i.condition !== false && (typeof i.condition !== 'string' || this.get(i.condition) !== false)).length;
+    }
+
+    getHandle(what) {
+      let ctx;
+      if (typeof what === 'string') {
+        if (this.refs[what]) {
+          ctx = this.refs[what].ctx;
+        } else {
+          const el = this.find(what);
+          if (el) ctx = this.getContext(el);
+        }
+      } else if (what && what.parentNode) {
+        ctx = this.getContext(what);
+      }
+
+      if (ctx) {
+        const path = [ctx.get()];
+        let str = '../../';
+        while (ctx.resolve(str) !== '') {
+          path.unshift(ctx.get(str));
+          str += '../../';
+        }
+
+        return path.reduce((a, c) => {
+          return new Handle(this, a, c);
+        }, null);
+      }
+    }
+  }
+
+  // TODO: api handles, active elements, and ids
+  Ractive.extendWith(Menu, {
+    template: $TEMPLATE,
+    css: $CSS,
+    cssId: 'menu',
+    noCssTransform: true,
+    noIntro: true,
+    nestedTransitions: false,
+    on: {
+      construct,
+      config() {
+        if ( this._items ) this.set('items', (this.get('items') || []).concat(this._items), { shuffle: true });
+      }
+    },
+    transitions: {
+      expand
+    },
+    decorators: {
+      ref(node, name) {
+        const r = this;
+        let nm = name;
+        if (!r.refs) r.refs = {};
+
+        const handle = {
+          update(name) {
+            if (r.refs[nm] === handle) delete r.refs[nm];
+            nm = name;
+            r.refs[nm] = handle;
+          },
+          teardown() {
+            if (r.refs[nm] === handle) delete r.refs[nm];
+          }
+        };
+
+        handle.ctx = r.getContext(node);
+
+        r.refs[nm] = handle;
+
+        return handle;
+      }
+    }
+  });
+
+  function construct() {
+    const cmp = this.component;
+    if ( !cmp ) return;
+
+    const tpl = cmp.template.f || [];
+    const attrs = cmp.template.m ? cmp.template.m.slice() : [];
+    const t = cmp.template;
+    cmp.template = { e: t.e, f: t.f, t: t.t, m: attrs };
+
+    function item(el) {
+      if (el.e !== 'item' && el.e !== 'section' && el.e !== 'container') return;
+
+      const res = {};
+      let as = [];
+
+      if (el.e !== 'item') res.type = el.e;
+
+      el.m && el.m.forEach(a => {
+        if (a.n === 'title') {
+          if (typeof a.f === 'string') res.title = a.f;
+          else res.titlePartial = { t: a.f };
+        } else if (a.t === 70 && a.n[0] === 'action') { // events
+          res.actionPartial = { t: [{ n: ['click'], f: a.f, t: a.t }] };
+        } else if (a.n === 'guard' && a.f && a.f.length === 1 && a.f[0].t === 2) {
+          const cnd = `_cnd${attrs.length}`;
+          res.condition = cnd;
+          attrs.push({ t: 13, n: cnd, f: a.f });
+        } else if (a.n === 'ref') {
+          if (typeof a.f === 'string') {
+            res.ref = a.f;
+          } else if (a.f && a.f.length === 1 && a.f[0].t === 2) {
+            const cnd = `_cnd${attrs.length}`;
+            attrs.push({ t: 13, n: cnd, f: a.f });
+            res.refPartials = { t:[{ t: 71, n: 'ref', f: { r: cnd, s: '[_0]' } }] };
+          }
+        } else if (a.n === 'active') {
+          if (a.f && a.f.length === 1 && a.f[0].t === 2) {
+            const cnd = `_cnd${attrs.length}`;
+            res.activeRef = cnd;
+            attrs.push({ t: 13, n: cnd, f: a.f });
+          }
+        } else {
+          as.push(a);
+        }
+      });
+
+      if (as.length) res.attrsPartial = { t: as };
+
+      if (el.e === 'container') {
+        res.contentPartial = { t: el.f };
+        return res;
+      }
+
+      el.f && el.f.forEach(e => {
+        if (e.e === 'title') {
+          if (e.f.length === 1 && typeof e.f[0] === 'string') res.title = e.f[0];
+          else res.titlePartial = { t: e.f };
+        }
+        else if (e.e === 'item' || e.e === 'section' || e.e === 'container') {
+          const i = item(e);
+          if (i) (res.items || (res.items = [])).push(i);
+        }
+        else if (e.e === 'left') {
+          res.leftPartial = { t: e.f };
+        }
+        else if (e.e === 'right') {
+          res.rightPartial = { t: e.f };
+        }
+      });
+
+      return res;
+    }
+
+    const list = [];
+    tpl.forEach(e => {
+      const i = item(e);
+      if (i) list.push(i);
+    });
+
+    this._items = list;
+  }
+
+  class Handle {
+    constructor(menu, parent, item) {
+      this.menu = menu;
+      this.parent = parent;
+      this.item = item;
+    }
+
+    get keypath() {
+      if (this.removed) return;
+      if (!this.parent) return `items.${this.menu.get('items').indexOf(this.item)}`;
+      const path = this.parent.keypath + '.items';
+      const parent = this.menu.get(path);
+      return `${path}.${parent.indexOf(this.item)}`;
+    }
+
+    get active() {
+      if (this.removed) return;
+      const item = this.item;
+      if (item.activeRef) return this.menu.get(item.activeRef);
+      else if (typeof item.active === 'function') return item.active();
+      else return item.active;
+    }
+
+    set active(v) {
+      if (this.removed) return;
+      const item = this.item;
+      if (item.activeRef) return this.menu.set(item.activeRef, v);
+      else return this.set(`.active`, v);
+    }
+
+    addItem(item, idx) {
+      if (this.removed) return false;
+      const items = `${this.keypath}.items`;
+      if (typeof idx === 'number') {
+        this.menu.splice(items, 0, idx, item);
+      } else {
+        this.menu.push(items, item);
+      }
+      return new Handle(this.menu, this, item);
+    }
+
+    open() {
+      if (this.removed) return false;
+      this.menu.set(`${this.keypath}.open`, true);
+    }
+
+    close() {
+      if (this.removed) return false;
+      this.menu.set(`${this.keypath}.open`, false);
+    }
+
+    remove() {
+      if (this.removed) return false;
+      const parentPath = `${this.parent ? this.parent.keypath + '.' : ''}items`;
+      const parent = this.menu.get(parentPath);
+      this.menu.splice(parentPath, parent.indexOf(this.item), 1);
+      this.removed = true;
+      return true;
+    }
+
+    get(keypath) {
+      if (this.removed) return false;
+      const key = keypath.replace(/^[\.\/]*/, '');
+      return this.menu.get(`${this.keypath}.${key}`);
+    }
+
+    set(keypath, value) {
+      if (this.removed) return false;
+      const key = keypath.replace(/^[\.\/]*/, '');
+      return this.menu.set(`${this.keypath}.${key}`, value);
+    }
+  }
+
+  globalRegister('RMMenu', 'components', Menu);
+
+  export default Menu;
+</script>
+
+<script rel="css">
+  const base = `
+  .rmenu {
+    font-family: ${data('menu.font') || 'sans-serif'};
+    color: ${data('menu.fg') || '#fefefe'};
+    background-color: ${data('menu.bg') || '#444'};
+    min-height: 100%;
+  }
+  .rmenu-item {
+    border-top: 1px solid transparent;
+    border-bottom: 1px solid transparent;
+    transition: border 0.2s ease-in-out;
+  }
+  .rmenu-expanded {
+    border-top: 1.5px solid ${data('menu.fgdim') || data('fgdim') || 'rgba(255, 255, 255, 0.3)'};
+    border-bottom: 1.5px solid ${data('menu.fgdim') || data('fgdim') || 'rgba(255, 255, 255, 0.3)'};
+  }
+  .rmenu-main {
+    width: 100%;
+    box-sizing: border-box;
+    user-select: none;
+    transition: 0.3s ease-in-out;
+    transition-property: color, background-color;
+  }
+  .rmenu-main.rmenu-active {
+    color: ${data('menu.fgActive') || data('fga1') || '#07e'};
+    background-color: ${data('menu.bgActive') || data('bg1') || '#dfdfdf'};
+  }
+  .rmenu-left {
+    float: left;
+    margin: 0 0 0 0.5em;
+  }
+  .rmenu-right {
+    float: right;
+    margin: 0 0.5em 0 0;
+  }
+  .rmenu-items {
+    display: block;
+  }
+  .rmenu-expand {
+    width: 1.5em;
+    height: 2em;
+    float: right;
+    padding-left: 0.5em;
+  }
+  .rmenu-expand:before {
+    position: relative;
+    display: inline-block;
+    font-size: 0.5em;
+    top: 1em;
+    padding: 0 0.5em 0.5em 0;
+    content: '\u25e2';
+    transform: rotate(45deg);
+    transition: transform 0.2s ease-in-out;
+    box-sizing: border-box;
+  }
+
+  .rmenu-title {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    cursor: pointer;
+    padding: 0.4em 0.5em;
+  }
+
+  .rmenu-section {
+    padding: 0.75em 0;
+  }
+  .rmenu-section > .rmenu-main {
+    cursor: default;
+    font-size: 0.75em;
+    opacity: 0.7;
+    margin-bottom: 0.25em;
+  }
+
+  .rmenu-container {
+    padding: 0.3em;
+    box-sizing: border-box;
+    margin-bottom: 0.5em;
+  }
+
+  .rmenu-expanded > .rmenu-main > .rmenu-expand:before {
+    transform: rotate(-135deg);
+  }
+  `;
+
+  return base; //return base + '\n' + [1, 2, 3, 4].map(d => Array.apply(null, { length: d }).map(() => '.rmenu-items').join(' ') + ' .rmenu-main { padding-left: ' + ((d * 0.5) + 0.3) + 'em; }').join('\n');
+</script>

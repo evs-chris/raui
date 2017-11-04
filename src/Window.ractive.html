@@ -1,0 +1,1153 @@
+<div class-rwhost as-tracked=`host`>
+  {{#if ~/currentMax && ~/_maxP}}
+  <div class-rwindow-max-top {{#if ~/_maxAttrsP}}{{yield ~/_maxAttrsP}}{{/if}}>{{yield ~/_maxP with ~/current as window, { t: @this.partials.windowControls } as windowControls, @this as host }}</div>
+  {{/if}}
+  <div class-rwhost-pane>
+    <div class-rwhost-pane-content>
+      {{yield}}
+    </div>
+    {{#each @.children.byName.window}}
+    <#window control="{{~/windows[.instance.id]}}" bind-root="~/" />
+    {{/each}}
+    <div class-rwhost-modal {{#if ~/blocked}}class-rwhost-modal-active style-z-index="{{~/blocked}}"{{/if}} />
+  </div>
+  {{>toast}}
+  <div class-rwhost-sizer as-tracked=`sizer` />
+</div>
+
+<template id="window">
+  {{#if ~/control.show}}
+  <div class-rwindow-wrapper as-tracked=`wrapper`
+    {{#if ~/root.max || ~/root.userMax || ~/control.max}}
+      {{#unless ~/control.autosize || ~/control.dialog}}style-top="0" style-left="0" style-width="100%" style-height="100%"{{/unless}}
+      class-rwindow-max="!~/control.dialog"
+      window-out
+    {{else}}
+      {{#if ~/control.resizable}}
+        class-rwindow-resizable
+        on-mousedown-touchstart="@._startResize(@event)"
+        on-mousemove-mouseout="@._sizeHandle(@event)"
+      {{/if}}
+      {{#if ~/control.resizing}}class-rwindow-resizing{{/if}}
+      modal-in-out
+      style-top="{{~/control.top}}px" style-left="{{~/control.left}}px"
+      {{#unless ~/control.autosize}}style-width="{{~/control.width}}em" style-height="{{~/control.height}}em"{{/unless}}
+    {{/if}}
+    style-z-index="{{~/control.index}}"
+    class-rwindow-topmost="~/control.topmost"
+  >
+    <div class-rwindow
+      {{#if !(~/control.movable === false || ~/root.max || ~/root.userMax || ~/control.max) && !~/control.dialog}}
+        on-mousedown-touchstart="@._startMove(@event)"
+      {{elseif !~/control.topmost}}
+        on-mousedown-touchstart="@.raise()"
+      {{/if}}
+    >
+      <div class-rwindow-modal class-rwindow-blocked="~/control.blockers.length"></div>
+      <div class-rwindow-pane as-tracked=`pane` {{#if ~/control.autosize}}class-rwindow-autosizing{{/if}}>
+        {{>pane}}
+      </div>
+    </div>
+  </div>
+  {{/if}}
+</template>
+
+<template id="pane">
+  {{#unless (~/control.max || ~/root.userMax || ~/root.max) && ~/root.hideTitleMax && !~/control.dialog}}
+  <div class-rwindow-pane-top as-tracked=`top`>
+    {{>title}}
+    <div class-rwindow-controls>
+      {{#if ~/control.minimize}}<div class-rwindow-minimize on-click="@.hide()"></div>{{/if}}
+      {{#if !~/control.dialog && ~/control.maximize}}<div class-rwindow-maximize on-click="@.maximize()"></div>{{/if}}
+      {{#if ~/control.close}}<div class-rwindow-close on-click="@.close()"></div>{{/if}}
+    </div>
+  </div>
+  {{/unless}}
+  <div class-rwindow-content as-tracked=`content` class-rwindow-pad="~/control.pad" class-rwindow-flex="~/control.flex" {{#if ~/control.autosize}}style-overflow=visible{{/if}}>{{>contents}}</div>
+  {{#if ~/buttons}}
+    <div class-rwindow-buttons style-display="{{ ~/visibleButtons ? 'block' : 'none'}}">
+      <div class-rwindow-left-buttons>{{#each ~/leftButtons}}{{#if .partial}}{{>.partial}}{{else}}<button on-click=".action()" {{#if .class}}class="{{.class}}"{{/if}}>{{.label}}</button>{{/if}}{{/each}}</div>
+      <div class-rwindow-center-buttons>{{#each ~/centerButtons}}{{#if .partial}}{{>.partial}}{{else}}<button on-click=".action()" {{#if .class}}class="{{.class}}"{{/if}}>{{.label}}</button>{{/if}}{{/each}}</div>
+      <div class-rwindow-right-buttons>{{#each ~/rightButtons}}{{#if .partial}}{{>.partial}}{{else}}<button on-click=".action()" {{#if .class}}class="{{.class}}"{{/if}}>{{.label}}</button>{{/if}}{{/each}}</div>
+    </div>
+  {{/if}}
+  <div class-rwindow-pane-bottom>
+    {{>status}}
+  </div>
+</template>
+
+<template id="windowControls">
+  <div class-rwindow-controls>
+    {{#if window.minimize}}<div class-rwindow-minimize on-click="host.getWindow(window.id).hide()"></div>{{/if}}
+    {{#if !~/window.dialog && window.maximize && host.data.userMax}}<div class-rwindow-maximize on-click="host.getWindow(window.id).maximize()"></div>{{/if}}
+    {{#if window.close}}<div class-rwindow-close on-click="host.getWindow(window.id).close()"></div>{{/if}}
+  </div>
+</template>
+
+<template id="title">
+  {{#if ~/control.title}}<div class-rwindow-title>{{~/control.title}}</div>{{/if}}
+</template>
+
+<template id="contents"></template>
+<template id="status"></template>
+
+<script>
+  import Ractive from 'ractive';
+  import expand from './transition-expand';
+  import Toast from './Toast.ractive.html';
+  import globalRegister from './globalRegister';
+
+  const escape = Ractive.escapeKey;
+  let windowTrans;
+
+  export class Base extends Ractive {
+    constructor(opts) { super(opts); }
+  }
+
+  Ractive.extendWith(Base, {
+    css: $CSS,
+    cssId: 'rwindow',
+    noCssTransform: true,
+    decorators: {
+      tracked(node, id) {
+        this[id] = node;
+        return {
+          teardown() { if (this[id] === node) this[id] = null; }
+        };
+      }
+    },
+    transitions: {
+      window(t, params) {
+        if (windowTrans) return t.complete();
+
+        windowTrans = t;
+
+        const p = t.processParams(params, { duration: 400, easing: 'easeInOut' });
+        const parent = t.node.parentNode;
+        const overflow = parent.style ? parent.style.overflow : '';
+
+        if (parent.style) parent.style.overflow = 'hidden';
+
+        if (t.isIntro || p.intro) {
+          t.setStyle({
+            transform: 'translate(30%, 0px) scale(1.1, 1.1)',
+            opacity: 0
+          });
+          t.animateStyle({
+            transform: 'none',
+            opacity: 1
+          }, p).then(() => {
+            windowTrans = false;
+            t.complete();
+            if (parent.style) parent.style.overflow = overflow;
+          });
+        } else {
+          t.setStyle({
+            transform: 'none',
+            opacity: 1
+          });
+          t.animateStyle({
+            transform: 'translate(30%, 0px) scale(1.1, 1.1)',
+            opacity: 0
+          }, p).then(() => {
+            windowTrans = false;
+            t.complete();
+            if (parent.style) parent.style.overflow = overflow;
+          });;
+        }
+      }
+    }
+  });
+
+  let id = 0;
+  export class Host extends Base {
+    constructor(opts) { super(opts); }
+
+    get current() {
+      const top = this.get('topLevel');
+      return this.getWindow(this.get('windows')[top].id);
+    }
+
+    get currentId() {
+      const top = this.get('topLevel');
+      return this.get(`windows.${escape(top)}.id`);
+    }
+
+    addWindow(window, opts) {
+      const options = Object.assign({}, window.options, window.get('options'), opts);
+
+      if (!(window instanceof Window)) {
+        throw new Error('Windows must be instances of Window');
+      }
+
+      if (!window.id) window.set('@.id', options.id || `window${id++}`);
+      if (!this.get(`windows.${escape(window.id)}`)) {
+        this.set(`windows.${escape(window.id)}`, Object.assign({ show: options.show !== false, autosize: true, id: window.id, blockers: [], close: true, minimize: true, maximize: true }, options, { id: window.id }));
+      }
+
+      window.host = this;
+      const promise = this.attachChild(window, { target: 'window' });
+
+      if (options.width && options.height) {
+        window.size(options.width, options.height);
+      } else {
+        window.size('auto');
+      }
+
+      if (options.block) {
+        const parent = options.block.id || options.block;
+        if (typeof parent === 'string' && parent in this.get('windows')) {
+          this.push(`windows.${escape(parent)}.blockers`, window.id);
+          window.set('control.blocking', parent);
+        }
+      }
+
+      if (options.top && options.left) {
+        window.move(options.top, options.left);
+      } else {
+        this.place(window);
+      }
+
+      this.raise(window, options.show !== false);
+
+      window.on('close', () => {
+        const blocking = window.get('control.blocking');
+        if (blocking) {
+          const blockers = this.windowGet(blocking, 'blockers');
+          this.splice(`windows.${escape(blocking)}.blockers`, blockers.indexOf(window.id), 1);
+        }
+        this.detachChild(window).then(() => window.teardown());
+        this.set(`windows.${escape(window.id)}`, undefined);
+        delete this.get('windows')[window.id];
+        this.raise();
+      });
+
+      this.update(`windows.${escape(window.id)}.id`, { force: true });
+
+      return promise;
+    }
+
+    getWindow(id) {
+      return this.children.byName.window && this.children.byName.window.filter(w => w.instance.id === id).map(w => w.instance)[0];
+    }
+
+    windowGet(id, path) {
+      return this.get(`windows.${escape(id)}.${path}`);
+    }
+    windowSet(id, path, val) {
+      return this.set(`windows.${escape(id)}.${path}`, val);
+    }
+
+    raise(window, show) {
+      let wnd = window instanceof Window ? window : this.children.byName.window.filter(a => a.instance.id === window).map(a => a.instance)[0];
+      const object = this.get('windows');
+      const host = this;
+      const wnds = Object.keys(object).map(k => object[k]);
+      let top = wnds.length + 1;
+      const last = this.get('topLevel');
+      const wasBlocked = this.get('blocked');
+
+      function blocks(id) {
+        const bs = host.get(`windows.${escape(id)}.blockers`);
+        if (!bs) return;
+        bs.forEach(b => host.add(`windows.${escape(b)}.index`, top++));
+        bs.forEach(b => blocks(b));
+      }
+
+      if (wnd) {
+        wnd.set('control.index', show === false ? -1 : top++);
+        if (show !== false && !wnd.visible) wnd.show();
+
+        blocks(wnd.id);
+      }
+
+      wnds.filter(w => w.show !== false && w.block === true).forEach(w => {
+        this.set(`windows.${escape(w.id)}.index`, (w.index || 0) + top);
+        blocks(w.id);
+      });
+
+      const ordered = wnds.sort((l, r) => !l.show ? -1 : !r.show ? 1 : l.index < r.index ? -1 : 1);
+      const visible = ordered.filter(w => w.show);
+      top = ordered.indexOf(visible[visible.length - 1]);
+      const sets = {};
+
+      let modalIdx = null;
+      ordered.forEach((w, i) => {
+        const key = escape(w.id);
+        if (w.block === true && modalIdx === null) modalIdx = i;
+        sets[`windows.${key}.index`] = modalIdx !== null ? i + 2 : i;
+        sets[`windows.${key}.topmost`] = i === top;
+        sets[`windows.${key}.stack`] = ordered.length - i;
+      });
+
+      if (modalIdx !== null) {
+        sets['blocked'] = modalIdx + 1;
+      } else {
+        sets['blocked'] = 0;
+      }
+
+      if (~top && ordered.length) sets[`topLevel`] = ordered[top].id;
+      else sets[`topLevel`] = null;
+
+      this.set(sets);
+
+      top = sets['topLevel'];
+      if (top && top !== last && this.get('currentMax')) {
+        wnd = this.getWindow(top);
+        wnd.transition('window', wnd.find('div'), { intro: true });
+      }
+    }
+
+    place(wnd) {
+      if (!wnd.get('control.show')) return;
+      const local = wnd.get('control');
+      if (local.width === undefined) wnd.size('auto');
+      let left = 0;
+      let top = 0;
+
+      const host = this.find('.rwhost');
+      const maxw = host.clientWidth;
+      const maxh = host.clientHeight;
+
+      // if it's blocking, center on blocked
+      const blocking = wnd.get('control.blocking');
+      if (blocking) {
+        const key = `windows.${escape(blocking)}`;
+        const blocked = this.get(key);
+        const max = (this.get('max') || blocked.max) && !blocked.dialog;
+
+        left = ((max ? maxw : this.sizeInPx(blocked.width + 'em')) / 2) + (max ? 0 : blocked.left) - (this.sizeInPx(local.width + 'em') / 2);
+        top = ((max ? maxh : this.sizeInPx(blocked.height + 'em')) / 2) + (max ? 0 : blocked.top) - (this.sizeInPx(local.height + 'em') / 2);
+      }
+
+      // place in 3x3 grid
+      else {
+        //if (this._grid1 > 8) this._grid2 > 8 ? this._grid2 = 0 : ++this._grid2;
+        const grid1 = this._grid1 === undefined ? (this._grid1 = 0) : this._grid1 > 7 ? (this._grid1 = 0) : ++this._grid1;
+        // ignoring, for now
+        //const grid2 = this._grid2 || (this._grid2 = 0);
+
+        const width = Math.floor(maxw / 3);
+        const height = Math.floor(maxh / 3);
+        const localWidth = this.sizeInPx(local.width + 'em');
+        const localHeight = this.sizeInPx(local.height + 'em');
+
+        switch (grid1) {
+          case 5: case 7: case 8:
+            top = maxh - localHeight - 10;
+            break;
+          case 2: case 4: case 6:
+            top = height + Math.floor((height - localHeight) / 2);
+            break;
+          case 0: case 1: case 3:
+            top = 10;
+            break;
+        }
+
+        switch (grid1) {
+          case 3: case 6: case 8:
+            left = maxw - localWidth - 10;
+            break;
+          case 1: case 4: case 7:
+            left = width + Math.floor((width - localWidth) / 2);
+            break;
+          case 0: case 2: case 5:
+            left = 10;
+            break;
+
+        }
+
+        if (left + localWidth > maxw) left = maxw - localWidth - 10;
+        if (top + localHeight > maxh) top = maxh - localHeight - 10;
+      }
+
+      if (isNaN(left) || left < 0) left = 10;
+      if (isNaN(top) || top < 0) top = 10;
+
+      wnd.set({
+        'control.top': top,
+        'control.left': left
+      });
+    }
+
+    sizeInPx(size) {
+      this.sizer.style.width = typeof size === 'number' ? `${size}px` : size;
+      return this.sizer.clientWidth;
+    }
+
+    sizeInEm(size) {
+      const px = this.sizeInPx(size);
+      return px / this.sizeInPx('1em');
+    }
+  }
+
+  Base.extendWith(Host, Toast.apply({
+    template: $TEMPLATE,
+    cssId: 'window-host',
+    noIntro: true,
+    observe: {
+      '@style'() {
+        initMediaListener(this);
+      },
+      topLevel(v) {
+        if (v) {
+          this.link(`windows.${escape(v)}`, 'current');
+        } else {
+          this.unlink('current');
+        }
+      },
+      currentMax: {
+        handler(v) {
+          (this.children.byName.window || []).forEach(w => w.instance.fire('resize'));
+        },
+        defer: true
+      }
+    },
+    computed: {
+      currentMax() {
+        const top = this.get('topLevel');
+        const max = this.get(`windows.${escape(top)}.max`);
+        const user = this.get('userMax');
+        return user || this.get('max') || max;
+      }
+    },
+    transitions: { expand },
+    on: {
+      config() {
+        let content = this.partials.content;
+        if (content && Array.isArray(content)) {
+          content = this.partials.content = content.slice();
+          let i = content.length;
+          while (i--) {
+            const e = content[i];
+            if (e.e === 'max-top') {
+              content.splice(i, 1);
+              this.set({
+                _maxP: { t: e.f },
+                hideTitleMax: true
+              });
+              if (e.m) {
+                this.set({
+                  _maxAttrsP: { t: e.m }
+                });
+              }
+            }
+          }
+        }
+
+        if (typeof window !== 'undefined') {
+          let tm;
+          this._resizeListener = () => {
+            if (tm) return;
+            tm = setTimeout(() => {
+              tm = null;
+              this.fire('resize');
+            }, 300);
+          }
+          window.addEventListener('resize', this._resizeListener);
+        }
+      },
+      teardown() {
+        if (this._resizeListener) {
+          window.removeEventListener('resize', this._resizeListener);
+        }
+      }
+    }
+  }));
+
+  function initMediaListener(r) {
+    if (r._media) {
+      r._media.fn();
+    } else if (r.get('@style.window.maxFrom')) {
+      r._media = {};
+      r._media.fn = () => {
+        const max = r.sizeInPx(r.get('@style.window.maxFrom'));
+        const first = r.get('max') === undefined;
+        const trans = r.transitionsEnabled;
+        if (first) r.transitionsEnabled = false;
+        r.set('max', r.host.clientWidth <= max);
+        if (first) r.transitionsEnabled = trans;
+      };
+      r._media.handle = r.root.on('*.resize', r._media.fn);
+      setTimeout(r._media.fn, 0);
+    }
+  }
+
+  function findEvent(instance) {
+    let i = instance;
+    while (i) {
+      if (i.event && i.event) return i.event.event;
+      i = i.parent;
+    }
+  }
+
+  function getEventCoords(event) {
+    const node = event.target;
+    if (!node) return { x: 0, y: 0 };
+    const rect = node.getBoundingClientRect();
+    return { x: Math.round(rect.left + (rect.right - rect.left) / 2), y: Math.round(rect.top + (rect.bottom - rect.top) / 2) };
+  }
+
+  Ractive.transitions.modal = function(t, parms) {
+    const params = t.processParams(parms, { duration: 400, easing: 'easeOut', x: 0, y: -50, event: true });
+    const event = null;//params.event ? findEvent(this) : null;
+
+    const current = { x: t.node.offsetLeft, y: t.node.offsetTop };
+
+    let styles;
+    const overflow = t.node.parentNode.style ? t.node.parentNode.style.overflow : 'hidden';
+
+    if (!event && !t.node._modalSrc) {
+      if (t.isIntro) {
+        styles = { transform: 'translate(0, 0) scale(1, 1)', opacity: 1 };
+        t.setStyle({ transform: `translate(${params.x}px, ${params.y}px) scale(0.5, 0.5)`, opacity: 0 });
+      } else {
+        styles = { transform: `translate(${params.x}px, ${params.y}px) scale(0.5, 0.5)`, opacity: 0 };
+      }
+    } else {
+      const click = t.node._modalSrc || (event ? getEventCoords(event) : { x: current.x + params.x, y: current.y + params.y });
+
+      const target = { x: click.x - Math.round(t.node.clientWidth / 2) - current.x, y: click.y - Math.round(t.node.clientHeight / 2) - current.y };
+
+      if (t.node.parentNode.style) t.node.parentNode.style.overflow = 'hidden';
+
+      if (t.isIntro) {
+        t.node._modalSrc = click;
+        styles = { transform: 'translate(0, 0) scale(1, 1)', opacity: 1 };
+        t.setStyle({ transform: `translate(${target.x}px, ${target.y}px) scale(0.5, 0.5)`, opacity: 0 });
+      } else {
+        styles = { transform: `translate(${target.x}px, ${target.y}px) scale(0.5, 0.5)`, opacity: 0 };
+      }
+    }
+
+    t.animateStyle(styles, params).then(() => {
+      if (t.node.parentNode.style) t.node.parentNode.style.overflow = overflow;
+      t.complete()
+    });
+  };
+
+  const moveEvents = ['mousemove', 'mouseup', 'touchmove', 'touchend'];
+  const handleSize = 7;
+
+  export class Window extends Base {
+    constructor(opts) { super(opts); }
+
+    get resizable () { return this.get('control.resizable'); }
+    set resizable (v) { return this.set('control.resizable', v); }
+    get title () { return this.get('control.title'); }
+    set title (v) { return this.set('control.title', v); }
+    get visible () { return this.get('control.show'); }
+    set visible (v) {
+      if (v) this.show();
+      else this.set('control.show', v, { keep: true });
+      this.host.raise(this, v);
+    }
+    get pad () { return this.get('pad'); }
+    set pad (v) { this.set('pad', v); }
+
+    close(force) {
+      if (force !== true) {
+        if (!this.parent) return false;
+        if (this.get('control.blockers.length')) return false;
+        if (typeof this.beforeClose === 'function' && this.beforeClose() === false) return false;
+        if (this.fire('beforeClose') === false) return false;
+      }
+
+      this.fire('close');
+    }
+
+    maximize() {
+      this.toggle('root.userMax');
+    }
+
+    hide() { this.visible = false; }
+
+    raise(show) {
+      this.host.raise(this, show);
+    }
+
+    show() {
+      this.set('control.show', true);
+      if (this.get('control.top') === undefined) {
+        this.host.place(this);
+      }
+    }
+
+    size(w, h) {
+      if (!this.visible) {
+        if (typeof w === 'number' && typeof h === 'number') {
+          this.set({
+            'control.width': this.host.sizeInEm(w),
+            'control.height': this.host.sizeInEm(h),
+            'control.naturalWidth': this.host.sizeInEm(w),
+            'control.naturalHeight': this.host.sizeInEm(h),
+            'control.autosize': false
+          });
+        }
+        return;
+      }
+
+      const el = this.wrapper;
+      if (!el) return;
+
+      if (w === 'auto') {
+        this.set('control.autosize', true);
+        const nw = this.host.sizeInEm(el.clientWidth + 16);
+        const nh = this.host.sizeInEm(el.clientHeight);
+        this.set({
+          'control.width': nw,
+          'control.height': nh,
+          'control.naturalWidth': nw,
+          'control.naturalHeight': nh,
+          'control.autosize': false
+        });
+      }
+
+      else if (typeof w === 'number' && typeof h === 'number') {
+        this.set({
+          'control.width': this.host.sizeInEm(w),
+          'control.height': this.host.sizeInEm(h),
+          'control.naturalWidth': this.host.sizeInEm(w),
+          'control.naturalHeight': this.host.sizeInEm(h),
+          'control.autosize': false
+        });
+      }
+
+      else if (typeof w === 'string' && typeof h === 'string') {
+        const ow = el.style.width;
+        const oh = el.style.height;
+        el.style.width = w;
+        el.style.height = h;
+        const nw = el.clientWidth;
+        const nh = el.clientHeight;
+        el.style.width = ow;
+        el.style.height = oh;
+
+        this.set({
+          'control.width': this.host.sizeInEm(nw),
+          'control.height': this.host.sizeInEm(nh),
+          'control.naturalWidth': this.host.sizeInEm(nw),
+          'control.naturalHeight': this.host.sizeInEm(nh),
+          'control.autosize': false
+        });
+      }
+
+      this.fire('resize');
+    }
+
+    move(top, left) {
+      if (typeof top === 'string') top = this.host.sizeInEm(top);
+      if (typeof left === 'string') top = this.host.sizeInEm(left);
+
+      const set = {};
+
+      if (typeof top === 'number') set['control.top'] = top;
+      if (typeof left === 'number') set['control.left'] = left;
+
+      this.set(set);
+    }
+
+    _startMove(event) {
+      if (event.type === 'mousedown' && event.button !== 0) return;
+      if (!this.get('control.topmost')) this.raise();
+      if (~event.type.indexOf('mouse')) {
+        if (!event.ctrlKey && event.target !== this.content && event.target !== this.top && !this.top.contains(event.target)) return;
+      } else {
+        if (event.targetTouches && event.targetTouches.length === 1 && event.target !== this.content && event.target !== this.top && !this.top.contains(event.target)) return;
+      }
+
+      const wnd = this.pane;
+      const cursor = wnd.style.cursor;
+      wnd.style.cursor = 'move';
+      wnd.style.userSelect = 'none';
+
+      let sx = event.x || event.clientX || (event.targetTouches && event.targetTouches[0].clientX) || 0;
+      let sy = event.y || event.clientY || (event.targetTouches && event.targetTouches[0].clientY) || 0;
+      const ox = this.get('control.left') || 0;
+      const oy = this.get('control.top') || 0;
+      const ow = wnd.clientWidth;
+      const oh = wnd.clientHeight;
+
+      const _move = (ev) => {
+        const x = ev.x || ev.clientX || (ev.targetTouches && ev.targetTouches[0] && ev.targetTouches[0].clientX) || (ev.changedTouches && ev.changedTouches[0].clientX) || 0;
+        const y = ev.y || ev.clientY || (ev.targetTouches && ev.targetTouches[0] && ev.targetTouches[0].clientY) || (ev.changedTouches && ev.changedTouches[0].clientY) || 0;
+
+        let nx = ox + (x - sx);
+        let ny = oy + (y - sy);
+        if (nx < (ow < 30 ? 0 : 30 - ow)) nx = ow < 30 ? 0 : 30 - ow;
+        if (ny < (oh < 30 ? 0 : 30 - oh)) ny = oh < 30 ? 0 : 30 - oh;
+        if (nx < 0) nx = 0;
+        if (ny < 0) ny = 0;
+
+        this.set({
+          'control.top': ny,
+          'control.left': nx
+        });
+
+        if (ev.type === 'touchend' || ev.type === 'mouseup') {
+          moveEvents.forEach(e => document.removeEventListener(e, _move, { passive: false }));
+          wnd.style.cursor = cursor;
+          wnd.style.userSelect = '';
+        } else {
+          ev.preventDefault();
+        }
+      }
+
+      moveEvents.forEach(e => document.addEventListener(e, _move, { passive: false }));
+
+      if (event.type.indexOf('mouse') === 0) return false;
+    }
+
+    _startResize(event) {
+      if (event.target !== this.wrapper) return;
+      if (event.type === 'mousedown' && event.button !== 0) return;
+
+      if (this.get('control.autosize')) {
+        this.size('auto');
+      }
+
+      if (!this.get('control.topmost')) this.raise();
+
+      this.set('control.resizing', true);
+
+      const el = this.wrapper;
+      const ix = event.offsetX || (event.targetTouches && (event.targetTouches[0].pageX - el.getBoundingClientRect().left));
+      const iy = event.offsetY || (event.targetTouches && (event.targetTouches[0].pageY - el.getBoundingClientRect().top));
+      const size = this.get('@style.window.handleSize') || handleSize;
+      const right = el.clientWidth - size * 2, bottom = el.clientHeight - size * 2;
+      const min = 2 * size;
+
+      const l = ix <= min || ix >= right;
+      const t = iy <= min || iy >= bottom;
+
+      const sx = event.x || event.clientX || (event.targetTouches && event.targetTouches[0].clientX) || 0;
+      const sy = event.y || event.clientY || (event.targetTouches && event.targetTouches[0].clientY) || 0;
+
+      const ox = this.get('control.left') || 0;
+      const oy = this.get('control.top') || 0;
+      const ow = this.host.sizeInPx(this.get('control.width') + 'em');
+      const oh = this.host.sizeInPx(this.get('control.height') + 'em');
+      const nh = this.host.sizeInPx(this.get('control.naturalHeight') + 'em');
+      const nw = this.host.sizeInPx(this.get('control.naturalWidth') + 'em');
+
+      let tm;
+      const _resize = (ev) => {
+        ev.preventDefault();
+
+        const x = ev.x || ev.clientX || (ev.targetTouches && ev.targetTouches[0] && ev.targetTouches[0].clientX) || (ev.changedTouches && ev.changedTouches[0].clientX) || 0;
+        const y = ev.y || ev.clientY || (ev.targetTouches && ev.targetTouches[0] && ev.targetTouches[0].clientY) || (ev.changedTouches && ev.changedTouches[0].clientY) || 0;
+
+        let dx = l ? x - sx : 0;
+        let dy = t ? y - sy : 0;
+
+        // resizing from top/left requires top/left/width/height adjustments
+        const set = {};
+
+        if (iy <= size) {
+          set['control.top'] = oy + dy;
+          set['control.height'] = oh - dy;
+        } else {
+          set['control.height'] = oh + dy;
+        }
+
+        if (ix <= size) {
+          set['control.left'] = ox + dx;
+          set['control.width'] = ow - dx;
+        } else {
+          set['control.width'] = ow + dx;
+        }
+
+        if (set['control.width'] < nw) {
+          delete set['control.width'];
+          delete set['control.left'];
+        }
+
+        if (set['control.height'] < nh) {
+          delete set['control.height'];
+          delete set['control.top'];
+        }
+
+        if (set['control.left'] < 0) set['control.left'] = 0;
+        if (set['control.top'] < 0) set['control.top'] = 0;
+
+        if (set['control.width']) set['control.width'] = this.host.sizeInEm(set['control.width']);
+        if (set['control.height']) set['control.height'] = this.host.sizeInEm(set['control.height']);
+
+        this.set(set);
+
+        if (ev.type === 'touchend' || ev.type === 'mouseup') {
+          moveEvents.forEach(e => document.removeEventListener(e, _resize, { passive: false }));
+          this.set('control.resizing', false);
+          if (ow !== this.get('control.width') || oh !== this.get('control.height')) {
+            if (tm) clearTimeout(tm);
+            tm = null;
+            this.fire('resize');
+          }
+        } else {
+          if (!tm) {
+            tm = setTimeout(() => {
+              this.fire('resize')
+              tm = null;
+            }, 200);
+          }
+        }
+      };
+
+      moveEvents.forEach(e => document.addEventListener(e, _resize, { passive: false }));
+
+      return false;
+    }
+
+    _sizeHandle(event) {
+      if (event.target !== this.wrapper) return;
+      const el = this.wrapper;
+
+      if (event.type === 'mouseout') return el.style.cursor = 'auto';
+
+      const x = event.offsetX, y = event.offsetY;
+      const size = this.get('@style.window.handleSize') || handleSize;
+      const right = el.clientWidth - size, bottom = el.clientHeight - size;
+
+      const style = el.style;
+      if ((x <= size + size && y <= size + size) || (x >= right - size && y >= bottom - size)) {
+        style.cursor = 'nwse-resize';
+      } else if ((x >= right - size && y <= size + size) || (x <= size + size && y >= bottom - size)) {
+        style.cursor = 'nesw-resize';
+      } else if ((x <= size || x >= right) && (y < bottom || y > size)) {
+        style.cursor = 'ew-resize';
+      } else if ((y <= size || y >= bottom) && (x < right || x > size)) {
+        style.cursor = 'ns-resize';
+      } else {
+        style.cursor = 'auto';
+      }
+    }
+  }
+
+  const buttonAttrs = [ 'left', 'right', 'center', 'condition' ];
+  Base.extendWith(Window, {
+    template: $PARTIALS['window'],
+    cssId: 'window',
+    partials: {
+      pane: $PARTIALS['pane'].t,
+      title: $PARTIALS['title'].t,
+      contents: $PARTIALS['contents'].t,
+      status: $PARTIALS['status'].t
+    },
+    data() {
+      return {
+        buttons: [],
+        visibleButtons: 0
+      }
+    },
+    computed: {
+      leftButtons() {
+        return (this.get('buttons') || []).filter(b => b.where === 'left');
+      },
+      centerButtons() {
+        return (this.get('buttons') || []).filter(b => b.where === 'center');
+      },
+      rightButtons() {
+        return (this.get('buttons') || []).filter(b => !b.where || b.where === 'right');
+      }
+    },
+    decorators: {
+      button(node) {
+        const ctx = this.getContext(node);
+
+        ctx.add('visibleButtons');
+
+        return {
+          update() {},
+          teardown() { ctx.subtract('visibleButtons'); }
+        };
+      }
+    },
+    on: {
+      config() {
+        let parent = Window.prototype.template;
+        let child = this.template;
+        if (typeof parent !== 'string' && !Array.isArray(parent) && parent.t) parent = parent.t;
+        if (typeof child !== 'string' && !Array.isArray(child) && child.t) child = child.t;
+
+        if (parent !== child) {
+          if (!this.partials.hasOwnProperty('contents')) this.partials.contents = child;
+          this.template = parent;
+        }
+      },
+      construct() {
+        const wnd = this.constructor;
+        if (!wnd._constructed) {
+          wnd._constructed = 1;
+          const tpl = wnd.prototype.template.t.slice();
+          const btns = tpl.find(e => e.e === 'buttons');
+          wnd.prototype.template.t = tpl.filter(e => e.e !== 'buttons');
+
+          function mapButton(b) {
+            const attrs = b.m || [];
+            const res = {
+              partial: { t: [{ t: b.t, e: b.e, f: b.f, m: attrs.filter(a => !~buttonAttrs.indexOf(a.n)) }] },
+              where: attrs.find(a => a.n === 'left') ? 'left' : attrs.find(a => a.n === 'center') ? 'center' : 'right'
+            }
+            res.partial.t[0].m.push({ t: 71, n: 'button' });
+            return res;
+          }
+
+          if (btns) {
+            wnd._btns = btns.f.filter(e => e.e === 'button' || (e.t === 4 && (e.n === 50 || e.n === 51) && e.f.find(e => e.e === 'button'))).map(n => {
+              if (n.t === 4) {
+                const b = mapButton(n.f.find(e => e.e === 'button'));
+                b.partial = { t: [{ t: n.t, n: n.n, r: n.r, rx: n.rx, x: n.x, f: [b.partial.t[0]] }] };
+                return b;
+              } else {
+                const b = mapButton(n);
+                return b;
+              }
+            });
+          }
+        }
+      },
+      init() {
+        const wnd = this.constructor;
+        if (wnd._btns && !this.get('buttons.length')) this.set('buttons', wnd._btns);
+      }
+    }
+  });
+
+  globalRegister('RMWindowHost', 'components', Host);
+  globalRegister('RMWindow', 'components', Window);
+</script>
+
+<script rel="css">
+  return `
+  .rwhost {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+  }
+
+  .rwhost-sizer {
+    position: absolute;
+  }
+
+  .rwhost-pane {
+    display: flex;
+    position: relative;
+    width: 100%;
+    box-sizing: border-box;
+    flex-grow: 2;
+    overflow: auto;
+    background-color: ${data('window.host.bg') || data('bg1') || '#fff'};
+  }
+
+  .rwhost-pane-content {
+    flex-grow: 1;
+  }
+
+  .rwhost-modal {
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+    z-index: -1;
+    opacity: 0;
+    transition: opacity 0.2s ease-in-out, z-index 0s linear 0.2s;
+    background-color: #000;
+  }
+  .rwhost-modal-active {
+    opacity: 0.5;
+    z-index: 1;
+    transition: opacity 0.2s ease-in-out, z-index 0s linear;
+  }
+
+  .rwindow-wrapper {
+    display: inline-block;
+    box-sizing: border-box;
+    position: absolute;
+  }
+  .rwindow-wrapper.rwindow-resizing {
+    transition: none;
+  }
+
+  .rwindow-wrapper.rwindow-resizable {
+    padding: ${data('window.handleSize') || 7}px;
+  }
+
+  .rwindow-topmost > .rwindow {
+    box-shadow: 0 6px 10px 0 rgba(0, 0, 0, 0.14), 0 1px 18px 0 rgba(0, 0, 0, 0.12), 0 3px 5px -1px rgba(0, 0, 0, 0.3);
+    opacity: 1;
+  }
+
+  .rwindow-modal {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    opacity: 0;
+    z-index: -1;
+    transition: opacity 0.4s ease-in-out, z-index 0s linear 0.4s;
+  }
+  .rwindow-modal.rwindow-blocked {
+    opacity: 1;
+    z-index: 10;
+    transition: opacity 0.4s ease-in-out, z-index 0s linear;
+  }
+
+  .rwindow {
+    position: relative;
+    box-sizing: border-box;
+    background-color: ${data('window.bg') || data('bg1') || '#fff'};
+    color: ${data('window.fg') || data('fg1') || '#222'};
+    box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.14), 0 1px 5px 0 rgba(0, 0, 0, 0.12), 0 3px 1px -2px rgba(0, 0, 0, 0.2);
+    border-radius: 2px;
+    overflow: hidden;
+    width: 100%;
+    height: 100%;
+    opacity: 0.8;
+    min-width: ${data('window.minWidth') || '2em'};
+    min-height: ${data('window.minHeight') || '2em'};
+    transition: box-shadow 0.4s ease-in-out, opacity 0.4s ease-in-out;
+  }
+  .rwindow-max > .rwindow {
+   border-radius: 0;
+   box-shadow: none;
+  }
+
+  .rwindow-pane-top,
+  .rwindow-max-top {
+    background-color: ${data('window.title.bg') || data('bg2') || '#07e'};
+    color: ${data('window.title.fg') || data('fg2') || '#fff'};
+    flex-shrink: 0;
+  }
+
+  .rwindow-max-top {
+    flex-shrink: 2;
+  }
+
+  .rwindow-pane-top {
+    display: flex;
+    align-items: center;
+  }
+
+  .rwindow-pane {
+    display: flex;
+    flex-direction: column;
+    table-layout: fixed;
+    width: 100%;
+    height: 100%;
+  }
+  .rwindow-autosizing {
+    display: block;
+    box-sizing: border-box;
+  }
+  .rwindow-content {
+    overflow: auto;
+    flex-grow: 2;
+    position: relative;
+    box-sizing: border-box;
+  }
+  .rwindow-content.rwindow-pad {
+    padding: 1em;
+  }
+  .rwindow-content.rwindow-flex {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .rwindow-buttons {
+    display: flex;
+    flex-shrink: 0;
+    padding: 0.5em;
+    border-top: 1px solid ${data('window.title.bg') || data('bg2') || '#07e'};
+  }
+  .rwindow-left-buttons {
+    text-align: left;
+    flex-grow: 2;
+  }
+  .rwindow-left-buttons button {
+    margin-right: 0.5em;
+  }
+  .rwindow-center-buttons {
+    text-align: center;
+    flex-shrink: 2;
+  }
+  .rwindow-center-buttons button {
+    margin: 0 0.25em;
+  }
+  .rwindow-right-buttons {
+    text-align: right;
+    flex-grow: 2;
+  }
+  .rwindow-right-buttons button {
+    margin-left: 0.5em;
+  }
+
+  .rwindow-title {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    padding: 0.5em;
+    white-space: nowrap;
+    box-sizing: border-box;
+    flex-grow: 1;
+  }
+
+  .rwindow-controls {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    flex-grow: 1;
+  }
+  .rwindow-controls > div {
+    margin: 0 1em 0 0;
+    width: 0.7em;
+    height: 0.7em;
+    cursor: pointer;
+  }
+  .rwindow-minimize {
+    border-bottom: 2px solid;
+  }
+  .rwindow-maximize {
+    border: 2px solid;
+  }
+  .rwindow-controls > .rwindow-close {
+    width: 0.5em;
+    height: 1em;
+    border-right: 2px solid;
+    transform: rotate(45deg);
+    transform-origin: center right;
+    position: relative;
+    margin-right: 1.5em;
+  }
+  .rwindow-close:before {
+    cursor: pointer;
+    height: 1.2em;
+    width: 1.2em;
+    top: 0.3em;
+    left: 0.1em;
+    content: ' ';
+    transform: rotate(-45deg);
+    transform-origin: center left;
+    position: absolute;
+  }
+  .rwindow-close:after {
+    cursor: pointer;
+    height: 100%;
+    width: 100%;
+    top: 1px;
+    left: calc(100% + 1px);
+    content: ' ';
+    border-left: 2px solid;
+    transform: rotate(-90deg);
+    transform-origin: center left;
+    position: absolute;
+  }
+  ${typeof data('extra-window') === 'function' ? data('extra-window').call(this, data) : ''}
+  `;
+</script>

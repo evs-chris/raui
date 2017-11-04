@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Ractive Materialish Demo</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="https://cdn.jsdelivr.net/npm/ractive@0.9/ractive.js"></script>
+    <script src="../umd/Shell.js" data-alias="RMShell=shell"></script>
+    <script src="../umd/AppBar.js" data-alias="RMAppBar=appbar"></script>
+    <script src="../umd/Menu.js" data-alias="RMMenu=menu"></script>
+    <script src="../umd/Window.js" data-alias="RMWindow=window&RMWindowHost=host"></script>
+    <script src="../umd/Tabs.js" data-alias="RMTabs=tabs"></script>
+    <script src="../umd/masked-input.js"></script>
+    <script src="../umd/scroll-spy.js"></script>
+    <style>
+      body { margin: 0; font-family: sans-serif; }
+      .app-center {
+        display: flex;
+        flex-direction: column;
+      }
+      .rappbar-right .rwindow-controls {
+        margin-right: -1em;
+      }
+      .current {
+        background-color: #ddd;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="target"></div>
+    <script type="text/html" id="template">
+      <shell>
+        <left bind-hidden="menu.hidden">
+          <menu>
+            <section title=Main>
+              <item title=Hello on-action="@global.alert('Hello!')"></item>
+            </section>
+          </menu>
+        </left>
+        <center class-app-center>
+          {{#unless win.max}}
+            <appbar>
+              <left><div on-click="@.toggle('menu.hidden')">&#9776;</div></left>
+            </appbar>
+          {{/unless}}
+          <host>
+            <max-top>
+              <appbar>
+                <left><div on-click="@.toggle('menu.hidden')">&#9776;</div></left>
+                <center>{{window.title}}</center>
+                <right>{{>windowControls}}</right>
+              </appbar>
+            </max-top>
+          </host>
+        </center>
+        <right>Right</right>
+      </shell>
+    </script>
+    <script type="text/html" id="hello-template">
+      <tabs pad flat class-secondary transition=fade>
+        <tab title="First">
+          Hello from the hello template.
+        </tab>
+        <tab title="Second">
+          Another tab.
+          <input as-masked=`##/##/####` />
+        </tab>
+      </tabs>
+    </script>
+    <script>
+      Ractive.styleSet('window.maxFrom', '60em');
+
+      var app = window.app = new Ractive({
+        template: '#template',
+        target: '#target',
+        on: {
+          init() {
+            this.shell = this.findComponent('shell');
+            this.host = this.findComponent('host');
+            this.link('currentMax', 'win.max', { instance: this.host });
+          }
+        }
+      });
+
+      var HelloWin = new RMWindow.Window({
+        template: '#hello-template',
+        options: {
+          title: 'Hello',
+          resizable: true
+        }
+      });
+
+      app.host.addWindow(HelloWin);
+    </script>
+  </body>
+</html>
