@@ -915,6 +915,8 @@
 
   globalRegister('RMWindowHost', 'components', Host);
   globalRegister('RMWindow', 'components', Window);
+
+  Host.prototype.Window = Window;
 </script>
 
 <script rel="css">
