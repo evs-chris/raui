@@ -162,6 +162,10 @@ Ractive$1.extendWith(Table, {
 }).call(this, data)].join(' '); },
   cssId: 'rtable',
   attributes: [ 'paginate', 'items', 'filter', 'sort' ],
+  components: {
+    table: false,
+    Table: false
+  },
   on: {
     construct: construct,
     config: function config() {
@@ -244,7 +248,7 @@ Ractive$1.extendWith(Table, {
           if (!Array.isArray(v)) { return; }
           return v;
         }).filter(function (c) { return c; });
-        var list = this.get('items');
+        var list = this.get('items') || [];
         var src = list;
         var filter = this.get('filter');
         var sort = this.get('sort');
