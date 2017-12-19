@@ -173,6 +173,9 @@
       return this.get(`windows.${escape(top)}.id`);
     }
 
+    get placement () { return this.get('placement'); }
+    set placement (v) { return this.set('placement', v); }
+
     addWindow(window, opts) {
       const options = Object.assign({}, window.options, window.get('options'), opts);
 
@@ -322,43 +325,28 @@
 
       // place in 3x3 grid
       else {
-        //if (this._grid1 > 8) this._grid2 > 8 ? this._grid2 = 0 : ++this._grid2;
-        const grid1 = this._grid1 === undefined ? (this._grid1 = 0) : this._grid1 > 7 ? (this._grid1 = 0) : ++this._grid1;
-        // ignoring, for now
-        //const grid2 = this._grid2 || (this._grid2 = 0);
-
-        const width = Math.floor(maxw / 3);
-        const height = Math.floor(maxh / 3);
-        const localWidth = this.sizeInPx(local.width + 'em');
-        const localHeight = this.sizeInPx(local.height + 'em');
-
-        switch (grid1) {
-          case 5: case 7: case 8:
-            top = maxh - localHeight - 10;
-            break;
-          case 2: case 4: case 6:
-            top = height + Math.floor((height - localHeight) / 2);
-            break;
-          case 0: case 1: case 3:
-            top = 10;
-            break;
+        const place = this.get('placement');
+        let pos;
+        if (typeof place === 'function') {
+          try {
+            pos = place(this, host, local);
+          } catch (e) {
+            pos = placeGrid(this, host, local);
+          }
+        } else if (typeof place === 'string') {
+          switch (place) {
+            case 'smart':
+              pos = placeSmart(this, host, local);
+              break;
+            default:
+              pos = placeGrid(this, host, local);
+              break;
+          }
+        } else {
+          pos = placeGrid(this, host, local);
         }
-
-        switch (grid1) {
-          case 3: case 6: case 8:
-            left = maxw - localWidth - 10;
-            break;
-          case 1: case 4: case 7:
-            left = width + Math.floor((width - localWidth) / 2);
-            break;
-          case 0: case 2: case 5:
-            left = 10;
-            break;
-
-        }
-
-        if (left + localWidth > maxw) left = maxw - localWidth - 10;
-        if (top + localHeight > maxh) top = maxh - localHeight - 10;
+        top = pos.top;
+        left = pos.left;
       }
 
       if (isNaN(left) || left < 0) left = 10;
@@ -379,6 +367,111 @@
       const px = this.sizeInPx(size);
       return px / this.sizeInPx('1em');
     }
+  }
+
+  function placeGrid(host, target, node) {
+    const maxw = target.clientWidth;
+    const maxh = target.clientHeight;
+    let top = 0, left = 0;
+    //if (host._grid1 > 8) host._grid2 > 8 ? host._grid2 = 0 : ++host._grid2;
+    const grid1 = host._grid1 === undefined ? (host._grid1 = 0) : host._grid1 > 7 ? (host._grid1 = 0) : ++host._grid1;
+    // ignoring, for now
+    //const grid2 = host._grid2 || (host._grid2 = 0);
+
+    const width = Math.floor(maxw / 3);
+    const height = Math.floor(maxh / 3);
+    const localWidth = host.sizeInPx(node.width + 'em');
+    const localHeight = host.sizeInPx(node.height + 'em');
+
+    switch (grid1) {
+      case 5: case 7: case 8:
+        top = maxh - localHeight - 10;
+        break;
+      case 2: case 4: case 6:
+        top = height + Math.floor((height - localHeight) / 2);
+        break;
+      case 0: case 1: case 3:
+        top = 10;
+        break;
+    }
+
+    switch (grid1) {
+      case 3: case 6: case 8:
+        left = maxw - localWidth - 10;
+        break;
+      case 1: case 4: case 7:
+        left = width + Math.floor((width - localWidth) / 2);
+        break;
+      case 0: case 2: case 5:
+        left = 10;
+        break;
+    }
+
+    if (left + localWidth > maxw) left = maxw - localWidth - 10;
+    if (top + localHeight > maxh) top = maxh - localHeight - 10;
+
+    return { top, left };
+  }
+
+  function placeSmart(host, target, node) {
+    const maxw = target.clientWidth - 10;
+    const maxh = target.clientHeight - 10;
+    let i, j;
+    const cell = 16;
+    const mh = Math.floor(maxh / cell), mw = Math.floor(maxw / cell);
+    const grid = new Array(mh * mw);
+    const dest = new Array(mh * mw);
+
+    // init grid
+    for (i = 0; i < grid.length; i++) {
+      grid[i] = 0;
+    }
+
+    // fill in grid with window coords
+    let win, t, l, w, h, wins = 0;
+    const windows = host.get('windows');
+    for (const k in windows) {
+      wins++;
+      win = windows[k];
+      t = Math.floor(win.top / cell); l = Math.floor(win.left / cell); h = Math.ceil(host.sizeInPx(win.height + 'em') / cell); w = Math.ceil(host.sizeInPx(win.width + 'em') / cell);
+      for (i = t; i < t + h && i < mh; i++) {
+        for (j = l; j < l + w && j < mw; j++) {
+          grid[i * mw + j]++;
+        }
+      }
+    }
+
+    // compute each cell
+    let c, ii, jj;
+    w = Math.ceil(host.sizeInPx(node.width + 'em') / cell);
+    h = Math.ceil(host.sizeInPx(node.height + 'em') / cell);
+    for (i = 0; i < mh; i++) {
+      for (j = 0; j < mw; j++) {
+        if (i + h > mh || j + w > mw) c = wins * w * h;
+        else {
+          c = 0;
+          for (ii = 0; ii < h; ii++) {
+            for (jj = 0; jj < w; jj++) {
+              c += grid[(i + ii) * mw + j + jj];
+            }
+          }
+        }
+        if (c === 0) return { top: i * cell + 5, left: j * cell + 5 };
+        dest[i * mw + j] = c;
+      }
+    }
+
+    // if there were no blanks, find the smallest overlap
+    c = wins * w * h;
+    ii = 0;
+    for (i = 0; i < dest.length; i++) {
+      if (dest[i] < c) {
+        c = dest[i];
+        ii = i;
+      }
+    }
+
+    return { top: Math.floor(ii / mw) * cell + 5, left: (ii % mw) * cell + 5 };
   }
 
   Base.extendWith(Host, Toast.apply({
