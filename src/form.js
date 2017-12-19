@@ -15,7 +15,7 @@ export function style(data) {
   }
 
   label.field.textarea {
-    width: 100%;
+    display: block;
     border: 1px solid ${data('form.color.accent') || data('fg1') || '#222'};
     padding: 0.5em 0.8em 0.8em 0.8em;
     border-radius: 2px;
