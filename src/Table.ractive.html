@@ -173,6 +173,10 @@
     css: $CSS,
     cssId: 'rtable',
     attributes: [ 'paginate', 'items', 'filter', 'sort' ],
+    components: {
+      table: false,
+      Table: false
+    },
     on: {
       construct,
       config() {
@@ -251,7 +255,7 @@
             if (!Array.isArray(v)) return;
             return v;
           }).filter(c => c);
-          let list = this.get('items');
+          let list = this.get('items') || [];
           const src = list;
           let filter = this.get('filter');
           let sort = this.get('sort');
