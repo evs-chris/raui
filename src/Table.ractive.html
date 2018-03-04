@@ -1,25 +1,47 @@
-<div class-rtable class-rtable-virtual="~/paginate === 'virtual'" class-rtable-auto="~/paginate === 'auto'">
+<div class-rtable class-rtable-virtual="~/paginate === 'virtual'" class-rtable-auto="~/paginate === 'auto'" class-rtable-fixed="~/fixed">
   <div class-rtable-top>
-    <table {{yield extra-attributes}}>
-      {{>head}}
-      {{>body}}
-      {{#if !~/rows.length}}<tr class-rtable-row><td colspan="{{~/columns.length + (~/allowSelect ? 1 : 0)}}">{{yield empty}}</td></tr>{{/if}}
-    </table>
+    {{#if ~/display === 'grid'}}
+      {{>grid}}
+    {{else}}
+      {{>table}}
+    {{/if}}
   </div>
   {{>pagination}}
 </div>
 
-<template id="body">
-  {{#each ~/visibleRows}}
-  {{>row}}
-  {{/each}}
+<template id="table">
+  <table {{yield extra-attributes}}>
+    {{>table-head}}
+    {{#each ~/visibleRows}}
+      {{>table-row}}
+    {{/each}}
+    {{#if !~/rows.length}}<tr class-rtable-row><td colspan="{{~/columns.length + (~/allowSelect ? 1 : 0)}}">{{yield empty}}</td></tr>{{/if}}
+  </table>
+</template>
+
+<template id="table-body">
+</template>
+
+<template id="grid">
+  <div {{yield extra-attributes}} as-grid>
+    {{>grid-head}}
+    {{#each ~/visibleRows}}
+      {{>grid-row}}
+    {{/each}}
+    {{#if !~/rows.length}}<div class-rtable-row class-row class-t1>{{yield empty}}</div>{{/if}}
+  </div>
 </template>
 
 <template id="pagination">
   <div class-rtable-bottom>
     <div class-rtable-info>
       {{#if pagination && rows.length}}{{~/page * ~/pagination.per + 1}} - {{~/page + 1 === ~/pagination.total ? ~/rows.length : (~/page + 1) * ~/pagination.per}} of {{~/rows.length}}{{#if ~/isFiltered}} ({{~/items.length}} total){{/if}}{{/if}}
-      {{#if _paginate === 1}}&nbsp;{{/if}}
+      {{#if _paginate === 1}}&#x200b;{{/if}}
+    </div>
+    <div class-rtable-select-all-all>
+      {{#if selections.length > 0}}
+        {{selections.length}} of {{rows.length}} selected{{#if @this.allSelected() && selections.length < rows.length}} - <a href="#" on-click="selectAllAll">Select All</a>{{/if}}
+      {{/if}}
     </div>
     <div class-rtable-pages>
     {{#if ~/page > 0}}<span on-click="@.set('page', ~/page - 1)">Previous</span>{{/if}}
@@ -45,12 +67,17 @@
     on-click="@this._setSort(.index, @event)"
     on-click="@this._select(., @event), false"
     on-click="['select', ., ~/rows.indexOf(.), ~/visibleRows.indexOf(.)]"
+    on-click="@this._expand(@index)"
   />
-  {{#if ~~/selections.indexOf(.)}}...{{/if}}
+  {{#if ~/selections.indexOf(.)}}...{{/if}}
+  {{#if . === ~/expanded}}...{{/if}}
 </template>
 
 <script>
   import Ractive from 'ractive';
+  import { grid, style as gridStyle } from './grid';
+  import click from './event-click';
+  import expand from './transition-expand';
   import globalRegister from './globalRegister';
 
   const sortRE = /^([-+])?([^\s]+)$/;
@@ -66,10 +93,16 @@
         if (!~sel.indexOf(visible[i])) return false;
       }
 
-      return true;
+      return visible.length && true;
     }
 
     nodeSet(node, prop, value) { node[prop] = value; }
+
+    _expand(idx) {
+      const which = this.get('visibleRows')[idx];
+      if (this.get('expanded') === which) this.set('expanded', null);
+      else this.set('expanded', which);
+    }
 
     _setSort(idx, ev) {
       const col = this.get(`columns.${idx}`);
@@ -172,17 +205,23 @@
     template: $TEMPLATE,
     css: $CSS,
     cssId: 'rtable',
-    attributes: [ 'paginate', 'items', 'filter', 'sort' ],
+    noCssTransform: true,
+    attributes: [ 'paginate', 'items', 'filter', 'sort', 'helpers', 'fixed', 'display', 'allowSelect', 'allowSelectAll' ],
     components: {
       table: false,
       Table: false
     },
+    syncComputedChildren: true,
+    decorators: { grid },
+    use: [click('clickd', 1), click('dblclickd', 2)],
     on: {
       construct,
       config() {
         if (this._items) this.set(this._items);
-        if (this._row) this.partials.row = this._row;
-        if (this._head) this.partials.head = this._head;
+        if (this._table_row) this.partials['table-row'] = this._table_row;
+        if (this._table_head) this.partials['table-head'] = this._table_head;
+        if (this._grid_row) this.partials['grid-row'] = this._grid_row;
+        if (this._grid_head) this.partials['grid-head'] = this._grid_head;
       },
       render() {
         if (this._autoObserver) this._autoObserver.fire();
@@ -206,43 +245,84 @@
         }
 
         this.fire('selection', {}, { item, items: sel });
+      },
+      selectAllAll() {
+        const item = null;
+        const sel = this.get('rows').slice();
+        this.set({
+          selections: sel,
+          selected: item
+        });
+        this.fire('selection', {}, { item, items: sel });
+        return false;
       }
     },
     observe: {
-      paginate(v) {
-        if (v === 'auto' || v instanceof Ractive) {
-          if (this._autoObserver) this._autoObserver.cancel(); // may be changing instances
+      paginate: {
+        handler(v) {
+          if (v === 'auto' || v instanceof Ractive) {
+            if (this._autoObserver) this._autoObserver.cancel(); // may be changing instances
 
-          const root = v === 'auto' ? this.root : v;
+            const root = v === 'auto' ? this.root : v;
 
-          const fn = () => {
-            if (!this.fragment.rendered) return;
-            const top = this.find('.rtable-top');
-            if (!top) return;
+            const fn = () => {
+              if (!this.fragment.rendered) return;
+              const top = this.find('.rtable-top');
+              if (!top) return;
+              if (!this.get('items.length')) {
+                if (!this._autoLenObserver) {
+                  this._autoLenObserver = this.observeOnce('items', () => {
+                    this._autoLenObserver = 0;
+                    setTimeout(fn);
+                  });
+                }
+                return;
+              }
 
-            if (fn.last === top.clientHeight) return;
+              const size = `${top.clientHeight},${top.clientWidth}`;
+              if (fn.last === size) return;
 
-            this.set('_paginate', 1);
-            const rows = this.findAll('tr');
+              const header = this.find('.rtable-header');
+              if (!header) return;
 
-            this.set('_paginate', Math.floor((top.clientHeight - rows[0].offsetHeight) / rows[1].offsetHeight));
+              let rows = Array.apply(null, this.findAll('.rtable-row')).map(r => r.offsetHeight);
+              if (rows.length < 2) {
+                this.set('_paginate', Math.floor(top.clientHeight / header.offsetHeight));
+                rows = Array.apply(null, this.findAll('.rtable-row')).map(r => r.offsetHeight);
+              }
+              const avg = Math.ceil(rows.reduce((a, c) => a + c, 0) / rows.length);
 
-            fn.last = top.clientHeight;
-          };
+              this.set('_paginate', Math.floor((top.clientHeight - header.offsetHeight) / avg));
 
-          this._autoObserver = root.on('*.resize', fn);
-          this._autoObserver.fire = fn;
-        } else if (this._autoObserver) {
-          this._autoObserver.cancel();
-        }
+              fn.last = size;
+            };
+
+            let tm;
+            const fnd = () => {
+              if (tm) clearTimeout(tm);
+              tm = setTimeout(() => {
+                fn();
+                tm = null;
+              }, 300);
+            }
+
+            this._autoObserver = root.on('*.resize', fnd);
+            this._autoObserver.fire = fnd;
+          } else if (this._autoObserver) {
+            this._autoObserver.cancel();
+          }
+        },
+        defer: true
       }
     },
     data() {
       return {
+        display: 'grid',
         page: 0,
         selections: [],
         allowSelect: true,
-        allowSelectAll: true
+        allowSelectAll: true,
+        expanded: null
       }
     },
     computed: {
@@ -330,7 +410,7 @@
       },
       pagination: {
         get() {
-          const items = this.get('items');
+          const items = this.get('items') || empty;
           const rows = this.get('rows');
           let per = this.get('paginate');
           const offset = this.get('page') || 0;
@@ -387,9 +467,14 @@
   }
 
   const colAttrs = ['label', 'type', 'filter', 'hidden', 'sort'];
+  const cell = /^[a-z]{1,3}[0-9]+(?:-[0-9]+)?$/;
+  const empty = [];
   function construct() {
+    // TODO: editable, selection, etc
     const cmp = this.component;
     if ( !cmp ) return;
+
+    let rowEl;
 
     const tpl = cmp.template.f || [];
     const attrs = cmp.template.m ? cmp.template.m.slice() : [];
@@ -413,86 +498,156 @@
     tpl.forEach(e => {
       if (e.e === 'column') {
         const col = {};
+        const attrs = e.m || empty;
         col.index = columns.length;
         columns.push(col);
 
         col.content = (e.f || []).filter(e => e.e !== 'edit');
 
-        col.label = e.m.find(a => a.n === 'label');
+        col.label = attrs.find(a => a.n === 'label');
         if (col.label && col.label.f) col.label = map(col.label);
         if (!col.label) col.label = '';
         if (!Array.isArray(col.label)) col.label = [col.label];
 
-        col.type = e.m.find(a => a.n === 'type');
+        col.type = attrs.find(a => a.n === 'type');
         if (col.type && col.type.f) col.type = col.type.f;
         if (!col.type) col.type = 'string';
 
-        col.filter = e.m.find(a => a.n === 'filter');
+        col.filter = attrs.find(a => a.n === 'filter');
         if (col.filter && col.filter.f) {
           col.filter = map(col.filter);
           if (col.filter.r) col.filter = col.filter.r;
         }
 
-        col.sort = e.m.find(a => a.n === 'sort');
+        col.sort = attrs.find(a => a.n === 'sort');
         if (col.sort && col.sort.f) {
           col.sort = map(col.sort);
           if (col.sort.r) col.sort = col.sort.r;
         }
 
-        col.hidden = e.m.find(a => a.n === 'hidden');
+        col.hidden = attrs.find(a => a.n === 'hidden');
         if (col.hidden && col.hidden.f === 0) col.hidden = true;
         else if (col.hidden && typeof col.hidden.f === 'object') col.hidden = map(col.hidden);
         else col.hidden = false;
         if (typeof col.hidden === 'string') col.hidden = false;
 
-        col.attrs = e.m.filter(a => !~colAttrs.indexOf(a.n));
+        col.attrs = attrs.filter(a => !~colAttrs.indexOf(a.n));
+
+        // handle inline grid sizes without requiring the class prefix
+        col.attrs.forEach((a, i) => {
+          if (cell.test(a.n)) {
+            col.attrs[i] = { t: 13, n: `class-${a.n}` };
+          }
+        })
+      } else if (e.e === 'row') {
+        rowEl = e;
       }
     });
 
     this._items = { columns };
 
     const sortKey = '[_0._setSort(_1,_2)]';
-    const header = [{ t: 7, e: 'tr', m: [{ t: 13, n: 'class-rtable-header' }], f: columns.filter(c => c.hidden !== true).map(c => {
-      const th = { t: 7, e: 'th', f: c.label, m: [{ t: 13, n: 'class-rtable-header' }, { t: 4, n: 53, r: `~/columns.${c.index}`, f: [{ t: 70, n: ['click'], f: { r: ['@this', '.index', '@event'], s: sortKey} }] }] };
-      if (c.type) th.m.push({ t: 13, n: `class-rtable-${c.type}-column` });
-      let res = th;
+    
+    // table
+    {
+      const header = [{ t: 7, e: 'tr', m: [{ t: 13, n: 'class-rtable-header' }], f: columns.filter(c => c.hidden !== true).map(c => {
+        const th = { t: 7, e: 'th', f: c.label, m: [{ t: 13, n: 'class-rtable-header' }, { t: 4, n: 53, r: `~/columns.${c.index}`, f: [{ t: 70, n: ['click'], f: { r: ['@this', '.index', '@event'], s: sortKey } }] }].concat(c.attrs) };
+        if (c.type) th.m.push({ t: 13, n: `class-rtable-${c.type}-column` });
+        let res = th;
 
-      if (c.hidden && c.hidden.r) {
-        res = { t: 4, n: 51, r: c.hidden.r, f: [th] };
+        if (c.hidden && c.hidden.r) {
+          res = { t: 4, n: 51, r: c.hidden.r, f: [th] };
+        }
+
+        return res;
+      }) }];
+
+      // selectall
+      header[0].f.unshift({
+        t: 4, n: 50, r: '~/allowSelect', f: [{ t: 7, e: 'th', m: [{ t: 13, n: 'class-rtable-select-header' }, { t: 13, n: 'title', f: [{ t: 2, r: 'selections.length' }, ' items selected']}], f: [{ t: 4, n: 50, r: '~/allowSelectAll', f: [{ t: 7, e: 'input', m: [{ t: 73, v: 't', f: 'false' }, { t: 13, n: 'type', f: 'checkbox' }, { t: 13, n: 'checked', f: [{ t: 2, x: { r: ['@this'], s: '_0.allSelected()' } }] }, { t: 70, n: ['click'], f: 'selectAll' }, { t: 13, n: 'class-rtable-select' }] }] }] }]
+      });
+
+      const row = [{ t: 7, e: 'tr', f: columns.filter(c => c.hidden !== true).map(c => {
+        const td = { t: 7, e: 'td', f: c.content, m: c.attrs };
+        if (c.type) td.m.unshift({ t: 13, n: `class-rtable-${c.type}-column` });
+        if (!td.m.find(a => a.n === 'title')) td.m.unshift({ t: 13, n: 'title', f: c.content });
+        let res = td;
+
+        if (c.hidden && c.hidden.r) {
+          res = { t: 4, n: 51, r: c.hidden.r, f: [td] };
+        }
+
+        return res;
+      }), m: [
+        { t: 13, n: 'class-rtable-row' },
+        { t: 13, n: 'class-rtable-selected', f: [{ t: 2, x: { r: ['~/selections', '.'], s: '~_0.indexOf(_1)' } }] },
+        { t: 70, n: ['click'], f: { r: ['~/rows', '~/visibleRows', '.'], s: `[['selected',_2,_0.indexOf(_2),_1.indexOf(_2)]]` } }
+      ].concat((rowEl && rowEl.m) || empty)}];
+
+      // select
+      row[0].f.unshift({
+        t: 4, n: 50, r: '~/allowSelect', f: [{ t: 7, e: 'th', m: [{ t: 13, n: 'class-rtable-select-row' }], f: [{ t: 7, e: 'input', m: [{ t: 73, v: 't', f: 'false' }, { t: 13, n: 'type', f: 'checkbox' }, { t: 13, n: 'checked', f: [{ t: 2, x: { r: ['~/selections', '.'], s: '~_0.indexOf(_1)' } }] }, { t: 70, n: ['click'], f: { r: ['@this', '.', '@event'], s: '[_0._select(_1,_2),false]' } }, { t: 13, n: 'class-rtable-select' }] }] }]
+      });
+
+      this._table_row = row;
+      this._table_head = header;
+    }
+
+    // grid
+    {
+      const header = [{ t: 7, e: 'div', f: columns.filter(c => c.hidden !== true).map(c => {
+        const div = { t: 7, e: 'div', f: [{ t: 7, e: 'div', f: c.label }], m: [{ t: 4, n: 53, r: `~/columns.${c.index}`, f: [{ t: 70, n: ['click'], f: { r: ['@this', '.index', '@event'], s: sortKey } }] }, { t: 13, n: 'title', f: c.label }].concat(c.attrs.filter(a => a.n !== 'title')) };
+        if (c.type) div.m.push({ t: 13, n: `class-rtable-${c.type}-column` });
+        let res = div;
+
+        if (c.hidden && c.hidden.r) {
+          res = { t: 4, n: 51, r: c.hidden.r, f: [div] };
+        }
+
+        return res;
+      }), 
+      m: [
+        { t: 13, n: 'class-row' }, { t: 13, n: 'class-rtable-header' }
+      ] }];
+
+      // selectall
+      header[0].f.unshift({
+        t: 4, n: 50, r: '~/allowSelect', f: [{ t: 7, e: 'div', m: [{ t: 13, n: 'class-rtable-select-header' }, { t: 13, n: 'title', f: [{ t: 2, r: 'selections.length' }, ' items selected']}], f: [{ t: 7, e: 'div', f: [{ t: 4, n: 50, r: '~/allowSelectAll', f: [{ t: 7, e: 'input', m: [{ t: 73, v: 't', f: 'false' }, { t: 13, n: 'type', f: 'checkbox' }, { t: 13, n: 'checked', f: [{ t: 2, x: { r: ['@this'], s: '_0.allSelected()' } }] }, { t: 70, n: ['click'], f: 'selectAll' }, { t: 13, n: 'class-rtable-select' }] }] }] }] }]
+      });
+
+      const row = [{ t: 7, e: 'div', f: columns.filter(c => c.hidden !== true).map(c => {
+        const div = { t: 7, e: 'div', f: [{ t: 7, e: 'div', f: c.content }], m: c.attrs };
+        if (c.type) div.m.unshift({ t: 13, n: `class-rtable-${c.type}-column` });
+        if (!div.m.find(a => a.n === 'title')) div.m.unshift({ t: 13, n: 'title', f: c.content });
+        let res = div;
+
+        if (c.hidden && c.hidden.r) {
+          res = { t: 4, n: 51, r: c.hidden.r, f: [div] };
+        }
+
+        return res;
+      }), m: [
+        { t: 13, n: 'class-row' }, { t: 13, n: 'class-rtable-row' },
+        { t: 13, n: 'class-rtable-selected', f: [{ t: 2, x: { r: ['~/selections', '.'], s: '~_0.indexOf(_1)' } }] },
+        { t: 70, n: (rowEl && rowEl.f ? ['dblclickd'] : ['click', 'dblclick']), f: { r: ['~/rows', '~/visibleRows', '.'], s: `[['selected',_2,_0.indexOf(_2),_1.indexOf(_2)]]` } }
+      ].concat((rowEl && rowEl.m) || empty) }];
+
+      // select
+      row[0].f.unshift({
+        t: 4, n: 50, r: '~/allowSelect', f: [{ t: 7, e: 'div', m: [{ t: 13, n: 'class-rtable-select-row' }], f: [{ t: 7, e: 'div', f: [{ t: 7, e: 'input', m: [{ t: 73, v: 't', f: 'false' }, { t: 13, n: 'type', f: 'checkbox' }, { t: 13, n: 'checked', f: [{ t: 2, x: { r: ['~/selections', '.'], s: '~_0.indexOf(_1)' } }] }, { t: 70, n: ['click'], f: { r: ['@this', '.', '@event'], s: '[_0._select(_1,_2),false]' } }, { t: 13, n: 'class-rtable-select' }] }] }] }]
+      });
+
+      // expando rows
+      if (rowEl && rowEl.f) {
+        row[0].f.push({ t: 4, n: 50, x: { r: ['.', '~/expanded'], s: '_0===_1' }, f: [
+          { t: 7, e: 'div', f: [{ t: 7, e: 'div', f: rowEl.f }], m: [{ t: 13, n: 'class-t1' }, { t: 13, n: 'class-rtable-row-expand' }, { t: 72, n: 'expand', v: 't0' }] }
+        ] });
+        row[0].m.push({ t: 70, n: ['clickd'], f: { r: ['@this', '@index'], s: '[_0._expand(_1)]' } });
       }
 
-      return res;
-    }) }];
-
-    // selectall
-    header[0].f.unshift({
-      t: 4, n: 50, r: '~/allowSelect', f: [{ t: 7, e: 'th', m: [{ t: 13, n: 'class-rtable-select-header' }], f: [{ t: 4, n: 50, r: '~/allowSelectAll', f: [{ t: 7, e: 'input', m: [{ t: 73, v: 't', f: 'false' }, { t: 13, n: 'type', f: 'checkbox' }, { t: 13, n: 'checked', f: [{ t: 2, x: { r: ['@this'], s: '_0.allSelected()' } }] }, { t: 70, n: ['click'], f: 'selectAll' }, { t: 13, n: 'class-rtable-select' }] }] }] }]
-    });
-
-    const row = [{ t: 7, e: 'tr', f: columns.filter(c => c.hidden !== true).map(c => {
-      // TODO: editable, selection, etc
-      const td = { t: 7, e: 'td', f: c.content, m: c.attrs };
-      if (c.type) td.m = [{ t: 13, n: `class-rtable-${c.type}-column` }];
-      let res = td;
-
-      if (c.hidden && c.hidden.r) {
-        res = { t: 4, n: 51, r: c.hidden.r, f: [td] };
-      }
-
-      return res;
-    }), m: [
-      { t: 13, n: 'class-rtable-row' },
-      { t: 13, n: 'class-rtable-selected', f: [{ t: 2, x: { r: ['~/selections', '.'], s: '~_0.indexOf(_1)' } }] },
-      { t: 70, n: ['click'], f: { r: ['~/rows', '~/visibleRows', '.'], s: `[['selected',_2,_0.indexOf(_2),_1.indexOf(_2)]]` } }
-    ]}];
-
-    // select
-    row[0].f.unshift({
-      t: 4, n: 50, r: '~/allowSelect', f: [{ t: 7, e: 'th', m: [{ t: 13, n: 'class-rtable-select-row' }], f: [{ t: 7, e: 'input', m: [{ t: 73, v: 't', f: 'false' }, { t: 13, n: 'type', f: 'checkbox' }, { t: 13, n: 'checked', f: [{ t: 2, x: { r: ['~/selections', '.'], s: '~_0.indexOf(_1)' } }] }, { t: 70, n: ['click'], f: { r: ['@this', '.', '@event'], s: '[_0._select(_1,_2),false]' } }, { t: 13, n: 'class-rtable-select' }] }] }]
-    });
-
-    this._row = row;
-    this._head = header;
+      this._grid_row = row;
+      this._grid_head = header;
+    }
   }
 
   globalRegister('RMTable', 'components', Table);
@@ -515,15 +670,36 @@
   .rtable > div > table {
     width: 100%;
     border-collapse: collapse;
+    display: table;
+  }
+
+  .rtable-auto > div > table,
+  .rtable-fixed > div > table {
+    table-layout: fixed;
   }
 
   .rtable td {
     padding: 0.5em;
   }
-
-  .rtable-header {
+  .rtable-header > div > div,
+  .rtable-row > div > div {
     padding: 0.5em;
-    text-align: left;
+    overflow: inherit;
+    text-overflow: inherit;
+  }
+
+  .rtable-auto td,
+  .rtable-auto .row > *,
+  .rtable-fixed td,
+  .rtable-fixed .row > *
+  {
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+  }
+
+  .rtable-header > div {
+    font-weight: bold;
   }
 
   .rtable-number-column {
@@ -534,7 +710,8 @@
   }
 
   .rtable-header {
-    border-bottom: 1px solid ${data('table.divider') || data('table.fg') || data('fg1') || '#999'};
+    border-bottom: 1px solid ${data('table.divider') || data('table.fg') || data('fg1') || '#ddd'};
+    text-align: left;
   }
 
   .rtable-header > th {
@@ -543,13 +720,13 @@
 
   .rtable-row {
     color: ${data('table.fg') || data('fg1') || '#000'};
-    border-bottom: 1px solid ${data('table.divider') || data('table.fg') || data('fg1') || '#999'};
-    background-color: ${data('table.odd') || data('bg1') || '#fff'};
+    border-bottom: 1px solid ${data('table.divider') || data('table.fg') || data('fg1') || '#ddd'};
+    background-color: ${data('table.odd') || data('bg1') || '#f9f9f9'};
     transition: 0.2s ease-in-out;
     transition-property: background-color, color;
   }
   .rtable-row:nth-child(even) {
-    background-color: ${data('table.even') || data('bga1') || '#eee'};
+    background-color: ${data('table.even') || data('bga1') || '#fefefe'};
   }
   .rtable-row:last-of-type {
     border-bottom: none;
@@ -559,8 +736,11 @@
   }
 
   .rtable-row.rtable-selected {
-    background-color: ${data('table.selected.bg') || data('bg2') || '#fe7'};
-    color: ${data('table.selected.fg') || data('fg2') || '#fff'};
+    background-color: ${data('table.selected.bg') || data('bg2') || 'rgba(0, 119, 238, 0.35)'};
+    color: ${data('table.selected.fg') || data('fg2') || '#000'};
+  }
+  .rtable-row.rtable-selected:nth-child(even) {
+    background-color: ${data('table.selected.even') || data('bga2') || 'rgba(0, 119, 238, 0.3)'};
   }
 
   .rtable-top {
@@ -574,15 +754,10 @@
     display: flex;
     flex-wrap: wrap;
     flex-shrink: 0;
+    padding: 0 0.5em 0.5em 0.5em;
+    justify-content: space-between;
   }
 
-  .rtable-info {
-    min-width: 50%;
-  }
-  .rtable-pages {
-    min-width: 50%;
-    text-align: right;
-  }
   .rtable-pages span {
     margin: 0.3em;
     cursor: pointer;
@@ -605,7 +780,7 @@
   .rtable-select {
     width: 0;
     outline: none;
-    margin-right: 1em;
+    margin-left: -1em;
   }
   .rtable-select:before {
     content: '';
@@ -620,22 +795,20 @@
   .rtable-select:checked:before {
     height: 0.7em;
     width: 1.3em;
-    border-color: ${data('fg2') || '#f9f9f9'};
+    border-color: ${data('table.selected.fg') || data('fg2') || '#000'};
     border-top-color: transparent;
     border-right-color: transparent;
     transform: rotate(-50deg);
   }
-  .rtable-select-header {
+  .row > .rtable-select-header,
+  .row > .rtable-select-row {
     text-align: center;
-  }
-  .rtable-select-header,
-  .rtable-select-row {
-    width: 3em;
+    width: 2.5em;
   }
   .rtable-select-header .rtable-select:checked:before {
     border-color: ${data('fg1') || '#222'};
     border-top-color: transparent;
     border-right-color: transparent;
   }
-  `;
+  ` + (data('table.includeGrid') !== false ? gridStyle(data) : '');
 </script>
