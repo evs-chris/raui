@@ -22,6 +22,7 @@ export function style(data) {
     box-shadow: none;
     transition-property: color, border-color, box-shadow;
     margin: 0.8em 0.2em;
+    min-height: auto;
   }
 
   label.field.inline {
@@ -255,4 +256,10 @@ export function field(node) {
 
 field.style = style;
 
+export function autofocus(node) {
+  if (typeof node.focus === 'function') node.focus();
+  return { teardown: noop };
+}
+
 globalRegister('field', 'decorators', field);
+globalRegister('autofocus', 'decorators', autofocus);
