@@ -47,6 +47,7 @@
       class-rtabs-not-selected="~/selectedContent !== @index"
       {{#if .extra}}{{yield .extra}}{{/if}}
       {{#if .pad === false}}class-rtabs-no-pad{{elseif .padRef}}class-rtabs-no-pad="~/[.padRef]"{{/if}}
+      on-focus="@.checkSelection(@context, @index)"
     >
       {{yield .template}}
     </div>{{else}}<div class-rtabs-placeholder />{{/if}}
@@ -90,6 +91,14 @@
           selectedRight: this.find('.tabs').offsetWidth
         });
       }
+    }
+
+    checkSelection(ctx, idx) {
+      if (this.get('selected') !== idx) select.call(this, ctx, idx);
+    }
+
+    select(idx) {
+      this.fire('select', {}, idx);
     }
   }
 
@@ -217,30 +226,41 @@
     const trans = this.get('transition');
 
     if (current !== idx) {
+      const cur = this.getContext(this.find('.rtabs-selected'));
+      if (cur.hasListener('leave')) cur.raise('leave');
       if (trans === 'fade') {
         this.set({
           opacity: 0,
           selected: idx
         });
         this.updateIndicator();
+        const ctx = this.getContext(this.find('.rtabs-selected'));
 
         setTimeout(() => {
           this.set({
             selectedContent: idx,
             opacity: 1
           });
+          if (ctx.hasListener('enter')) ctx.raise('enter');
         }, 150);
       } else if (trans === 'slide') {
         this.set('selected', idx);
         this.set('selectedContent', idx);
         this.updateIndicator();
+        const ctx = this.getContext(this.find('.rtabs-selected'));
+        if (ctx.hasListener('enter')) ctx.raise('enter');
       } else {
         this.set({
           selected: idx,
           selectedContent: idx
         });
         this.updateIndicator();
+        const ctx = this.getContext(this.find('.rtabs-selected'));
+        if (ctx.hasListener('enter')) ctx.raise('enter');
       }
+
+      const content = this.find('.rtabs-content-window');
+      if (content && content.scrollLeft) content.scrollLeft = 0;
     }
   }
 
