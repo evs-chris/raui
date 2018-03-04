@@ -1,4 +1,4 @@
-<div class-rmenu>
+<div class-rmenu {{yield extra-attributes}}>
   {{>items}}
 </div>
 
@@ -30,9 +30,9 @@
     {{#if .right}}<div class-menu-right>{{{.right}}}</div>{{elseif .rightPartial}}<div class-rmenu-right>{{yield .rightPartial}}</div>{{/if}}
     <div
       class-rmenu-title
-      {{#if .actionPartial}}{{yield .actionPartial}}{{/if}}
-      {{#if typeof .action === 'function'}}on-click="this.action()"{{/if}}
-      {{#if !.actionPartial && typeof .action !== 'function' && .items.length}}on-click="@context.toggle('.open'), false"{{/if}}
+      {{#if typeof .action === 'function'}}on-click="this.action()"
+      {{elseif .actionPartial}}{{yield .actionPartial}}
+      {{elseif .items.length}}on-click="@context.toggle('.open'), false"{{/if}}
     >
       {{#if .title}}{{{.title}}}{{elseif .titlePartial}}{{yield .titlePartial}}{{/if}}
     </div>
@@ -65,7 +65,10 @@
   import globalRegister from './globalRegister';
 
   class Menu extends Ractive {
-    constructor(opt) { super(opts); }
+    constructor(opt) {
+      super(opts);
+      this.refs = {};
+    }
 
     addItem(item, idx) {
       if (typeof idx === 'number') {
@@ -123,6 +126,7 @@
         if ( this._items ) this.set('items', (this.get('items') || []).concat(this._items), { shuffle: true });
       }
     },
+    attributes: [],
     transitions: {
       expand
     },
@@ -166,6 +170,7 @@
 
       const res = {};
       let as = [];
+      let title;
 
       if (el.e !== 'item') res.type = el.e;
 
@@ -193,6 +198,8 @@
             res.activeRef = cnd;
             attrs.push({ t: 13, n: cnd, f: a.f });
           }
+        } else if (a.n === 'open') {
+          res.open = true;
         } else {
           as.push(a);
         }
@@ -220,7 +227,14 @@
         else if (e.e === 'right') {
           res.rightPartial = { t: e.f };
         }
+        else {
+          if (!title) title = [];
+          title.push(e);
+        }
       });
+
+        if (!res.titlePartial && title) res.titlePartial = { t: title };
+        title = null;
 
       return res;
     }
@@ -247,6 +261,15 @@
       const path = this.parent.keypath + '.items';
       const parent = this.menu.get(path);
       return `${path}.${parent.indexOf(this.item)}`;
+    }
+
+    get action() {
+      if (this.removed) return;
+      return this.item.action;
+    }
+
+    set action(v) {
+      return this.set('.action', v);
     }
 
     get active() {
@@ -376,6 +399,9 @@
     cursor: pointer;
     padding: 0.4em 0.5em;
   }
+  .rmenu-title h1, .rmenu-title h2, .rmenu-title h3, .rmenu-title h4 {
+    margin: 0;
+  }
 
   .rmenu-section {
     padding: 0.75em 0;
@@ -398,5 +424,5 @@
   }
   `;
 
-  return base; //return base + '\n' + [1, 2, 3, 4].map(d => Array.apply(null, { length: d }).map(() => '.rmenu-items').join(' ') + ' .rmenu-main { padding-left: ' + ((d * 0.5) + 0.3) + 'em; }').join('\n');
+  return base;
 </script>
