@@ -28,7 +28,7 @@
   <div class-obj class-open="~/toggles[@keypath]"><span on-click="@.toggle('toggles.' + ~/escapeKey(@keypath)), false">&#x007b;{{#if !~/toggles[@keypath]}}<span class="ellipsis">&hellip;</span>{{/if}}</span>{{#if ~/toggles[@keypath]}}
     {{#each .}}
     <div class="entry">
-      <span class="key" on-click="@.set('keys.' + ~/escapeKey(@keypath), @key), @.deferFocus(@node)">
+      <span class="key" {{#if ~/editable}}on-click="@.set('keys.' + ~/escapeKey(@keypath), @key), @.deferFocus(@node)"{{else}}on-click="@.toClipboard(@keypath.substr(5))"{{/if}}>
         <span>
           {{#if typeof ~/keys[@keypath] === 'string'}}
             <textarea rows="{{#if @key.indexOf('\n') !== -1 || ~/keys[@keypath].indexOf('\n') !== -1}}5{{else}}1{{/if}}" on-keyup="@event.which === 27 && @.renameKey(@keypath, ~/keys[@keypath])">{{~/keys[@keypath]}}</textarea>
@@ -46,7 +46,7 @@
     <div class="value">{{>value}}</div>
     </div>
     {{/each}}
-    {{/if}}<span class="close" on-click="@.toggle('toggles.' + ~/escapeKey(@keypath)), false">&#x007d;</span>{{#if ~/toggles[@keypath]}}
+    {{/if}}<span class="close" on-click="@.toggle('toggles.' + ~/escapeKey(@keypath)), false">&#x007d;</span>{{#if ~/editable && ~/toggles[@keypath]}}
     <button title="more actions" class="icon" on-click="@.toggle('extras.' + ~/escapeKey(@keypath)), false">&#8943;</button>
     {{#if ~/extras[@keypath]}}
       <input value="{{~/values[@keypath].name}}" on-keyup="@event.which === 13 && @.addKey(@keypath)" /><button title="add key" class="icon ok" on-click="@.addKey(@keypath)">+</button>
@@ -62,7 +62,7 @@
   <div class="entry">
     <span class="idx">
       <span on-click="@.toggle('indexes.' + ~/escapeKey(array)), false">{{@index}}</span>
-      {{#if ~/indexes[array]}}
+      {{#if ~/editable && ~/indexes[array]}}
         <button class="icon" style-margin-left="1em" title="remove" on-click="@.splice(array, @index, 1), false">&#8722;</button>
         <button class="icon" title="move up" on-click="@.splice(array, @index - 1, 0, @.splice(array, @index, 1).result[0]), false" {{#if !@index}}disabled{{/if}}>^</button>
         <button class="icon" title="move down" on-click="@.splice(array, @index + 1, 0, @.splice(array, @index, 1).result[0]), false" {{#if @index === ../length - 1}}disabled{{/if}}>v</button>
@@ -72,7 +72,7 @@
     <div class="value">{{>value}}</div>
   </div>
   {{/each}}{{/with}}
-  {{/if}}<span class="close" on-click="@.toggle('toggles.' + ~/escapeKey(@keypath)), false">]</span>{{#if ~/toggles[@keypath]}}
+  {{/if}}<span class="close" on-click="@.toggle('toggles.' + ~/escapeKey(@keypath)), false">]</span>{{#if ~/editable && ~/toggles[@keypath]}}
   <button title="more actions" class="icon" on-click="@.toggle('extras.' + ~/escapeKey(@keypath)), false">&#8943;</button>
   {{#if ~/extras[@keypath]}}
     <button title="push" class="icon" on-click="@.push(@keypath, ''), false">&#707;+</button>
