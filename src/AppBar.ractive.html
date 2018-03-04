@@ -2,6 +2,7 @@
   <div class-rappbar-left>{{#if ._leftP}}{{yield ._leftP}}{{/if}}</div>
   <div class-rappbar-center>{{#if ._centerP}}{{yield ._centerP}}{{/if}}</div>
   <div class-rappbar-right>{{#if ._rightP}}{{yield ._rightP}}{{/if}}</div>
+  <div class-rappbar-wait class-waiting="waiting"></div>
 </div>
 
 <script>
@@ -10,13 +11,18 @@
 
   class AppBar extends Ractive {
     constructor(opts) { super(opts); }
+
+    get waiting() { return this.get('waiting'); }
+    set waiting(show) { this.add('waiting', show ? 1 : -1); }
+    wait(show) { this.waiting = show; }
   }
 
   Ractive.extendWith(AppBar, {
     template: $TEMPLATE,
     css: $CSS,
     cssId: 'appbar',
-    attributes: [],
+    attributes: ['waiting'],
+    data() { return { waiting: 0 }; },
     on: {
       config() {
         const tpl = this.partials.content;
@@ -43,6 +49,7 @@
     padding: 1em;
     background-color: ${data('appbar.bg') || data('bg2') || '#07e'};
     color: ${data('appbar.fg') || data('fg2') || '#f9f9f9'};
+    position: relative;
   }
 
   .rappbar-left {
@@ -59,6 +66,31 @@
 
   .rappbar-center {
     flex-shrink: 1;
+  }
+
+  .rappbar-wait {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 0.5em;
+    opacity: 0;
+    transition: opacity 0.3s ease-in-out;
+    background: linear-gradient(to left, ${data('appbar.wait.color1') || 'rgba(255, 255, 255, 0.7)'}, ${data('appbar.wait.color2') || 'rgba(0, 0, 0, 0.1)'}, ${data('appbar.wait.color1') || 'rgba(255, 255, 255, 0.7)'});
+    background-size: 600% 600%;
+    animation: rappbar-roll 10s linear infinite;
+    animation-play-state: paused;
+  }
+
+  .rappbar-wait.waiting {
+    opacity: 1;
+    animation-play-state: running;
+  }
+
+  @keyframes rappbar-roll {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
   }
   `;
 </script>
