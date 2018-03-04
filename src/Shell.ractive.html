@@ -1,12 +1,39 @@
 <div class-rshell {{yield extra-attributes}}>
   <div class-rshell-main>
     {{#if ._top}}<div class-rshell-top {{#if ._topA}}{{yield ._topA}}{{/if}}>{{yield ._top}}</div>{{/if}}
-      <div class-rshell-has-left="._left && !._leftOver && !.leftOver" class-rshell-has-right="._right && !._rightOver && !.rightOver" class-rshell-left-hidden=".leftHidden" class-rshell-right-hidden=".rightHidden">
-        <div class-rshell-modal class-rshell-blocked=".blocked" on-click="@.set({ leftHidden: leftOver || _leftOver ? true : leftHidden, rightHidden: rightOver || _rightOver ? true : rightHidden })" />
-        {{#if ._left}}<div class-rshell-left {{#if ._leftA}}{{yield ._leftA}}{{/if}} on-click="(._leftOver || leftOver) && @.toggle('leftHidden')">{{yield ._left}}</div>{{/if}}
-        {{#if ._center}}<div class-rshell-center {{#if ._centerA}}{{yield ._centerA}}{{/if}}>{{yield ._center}}</div>{{/if}}
-        {{#if ._right}}<div class-rshell-right {{#if ._rightA}}{{yield ._rightA}}{{/if}} on-click="(._rightOver || .rightOver) && @.toggle('rightHidden')">{{yield ._right}}</div>{{/if}}
-      </div>
+    <div class-rshell-has-left="._left && !._leftOver && !.leftOver" class-rshell-has-right="._right && !._rightOver && !.rightOver" class-rshell-left-hidden=".leftHidden" class-rshell-right-hidden=".rightHidden">
+      <div class-rshell-modal class-rshell-blocked=".blocked || (.blockableLeft && .leftPull) || (.blockableRight && .rightPull)"
+        on-click="@.set({ leftHidden: leftOver || _leftOver ? true : leftHidden, rightHidden: rightOver || _rightOver ? true : rightHidden })"
+        on-swipeleft({bind:'.leftPush'})="@.set('leftHidden', true)"
+        on-swiperight({bind:'.rightPush'})="@.set('rightHidden', true)"
+        {{#if .leftPull || .rightPull}}style-transition=none style-opacity="{{Math.min(.leftPull || .rightPull, 100) / 200}}"{{/if}}
+       />
+      {{#if ._left}}
+        <div class-rshell-left
+          {{#if ._leftA}}{{yield ._leftA}}{{/if}}
+          on-click="(._leftOver || leftOver) && @.toggle('leftHidden')"
+          on-swipeleft({bind:'.leftPush'})="@.set('leftHidden', true)"
+          {{#if .leftPull}}style-transition=none style-transform="translate(-{{100 - (.leftPull > 100 ? 100 : .leftPull)}}%)"{{/if}}
+          {{#if .leftPush}}style-transition=none style-transform="translate(-{{.leftPush > 100 ? 100 : .leftPush}}%)"{{/if}}
+        >{{yield ._left}}</div>
+      {{/if}}
+      {{#if ._center}}
+        <div class-rshell-center
+          {{#if ._centerA}}{{yield ._centerA}}{{/if}}
+          {{#if ._left}}on-swiperight({maxX:80,bind:'.leftPull'})="@.set('leftHidden', false)"{{/if}}
+          {{#if ._right}}on-swipeleft({minX:-80,bind:'.rightPull'})="@.set('rightHidden', false)"{{/if}}
+        >{{yield ._center}}</div>
+      {{/if}}
+      {{#if ._right}}
+        <div class-rshell-right
+          {{#if ._rightA}}{{yield ._rightA}}{{/if}}
+          on-click="(._rightOver || .rightOver) && @.toggle('rightHidden')"
+          on-swiperight({bind:'.rightPush'})="@.set('rightHidden', true)"
+          {{#if .rightPull}}style-transition=none style-transform="translate({{ 100 - (.rightPull > 100 ? 100 : .rightPull)}}%)"{{/if}}
+          {{#if .rightPush}}style-transition=none style-transform="translate({{.rightPush > 100 ? 100 : .rightPush}}%)"{{/if}}
+        >{{yield ._right}}</div>
+      {{/if}}
+    </div>
     {{#if ._bottom}}<div class-rshell-bottom {{#if ._bottomA}}{{yield ._bottomA}}{{/if}}>{{yield ._bottom}}</div>{{/if}}
   </div>
   {{#if ._leftP}}<div class-rshell-left-pop {{#if ._leftPA}}{{yield ._leftPA}}{{/if}}>{{yield ._leftP}}</div>{{/if}}
@@ -15,6 +42,7 @@
 
 <script>
   import Ractive from 'ractive';
+  import { left as swipeleft, right as swiperight } from './event-swipe';
   import globalRegister from './globalRegister';
 
   class Shell extends Ractive {
@@ -24,12 +52,19 @@
   Ractive.extendWith(Shell, {
     template: $TEMPLATE,
     attributes: [],
+    use: [ swipeleft, swiperight ],
     css: $CSS,
     cssId: 'rshell',
     noCssTransform: true,
     computed: {
-      blocked: {
-        get() { return ((this.get('leftOver') || this.get('_leftOver')) && !this.get('leftHidden')) || ((this.get('rightOver') || this.get('_rightOver')) && !this.get('rightHidden')); }
+      blockableLeft() {
+        return this.get('_left') && (this.get('leftOver') || this.get('_leftOver'));
+      },
+      blockableRight() {
+        return this.get('_right') && (this.get('rightOver') || this.get('_rightOver'));
+      },
+      blocked() {
+        return (this.get('blockableLeft') && !(this.get('leftHidden')) || (this.get('blockableRight') && !this.get('rightHidden')));
       }
     },
     on: {
@@ -222,7 +257,7 @@
   }
   .rshell-has-right > .rshell-right,
   .rshell-has-left > .rshell-left {
-    z-index: 1;
+    z-index: 2;
   }
 
   .rshell-center {
