@@ -1,4 +1,5 @@
 <div class-rwhost as-tracked=`host`>
+  <div class-rwhost-sizer as-tracked=`sizer` />
   {{#if ~/currentMax && ~/_maxP}}
   <div class-rwindow-max-top {{#if ~/_maxAttrsP}}{{yield ~/_maxAttrsP}}{{/if}}>{{yield ~/_maxP with ~/current as window, { t: @this.partials.windowControls } as windowControls, @this as host }}</div>
   {{/if}}
@@ -12,7 +13,6 @@
     <div class-rwhost-modal {{#if ~/blocked}}class-rwhost-modal-active style-z-index="{{~/blocked}}"{{/if}} />
   </div>
   {{>toast}}
-  <div class-rwhost-sizer as-tracked=`sizer` />
 </div>
 
 <template id="window">
@@ -65,7 +65,7 @@
   {{/unless}}
   <div class-rwindow-content as-tracked=`content` class-rwindow-pad="~/control.pad" class-rwindow-flex="~/control.flex" {{#if ~/control.autosize}}style-overflow=visible{{/if}}>{{>contents}}</div>
   {{#if ~/buttons}}
-    <div class-rwindow-buttons style-display="{{ ~/visibleButtons ? 'block' : 'none'}}">
+    <div class-rwindow-buttons class-no-buttons="!~/visibleButtons">
       <div class-rwindow-left-buttons>{{#each ~/leftButtons}}{{#if .partial}}{{>.partial}}{{else}}<button on-click=".action()" {{#if .class}}class="{{.class}}"{{/if}}>{{.label}}</button>{{/if}}{{/each}}</div>
       <div class-rwindow-center-buttons>{{#each ~/centerButtons}}{{#if .partial}}{{>.partial}}{{else}}<button on-click=".action()" {{#if .class}}class="{{.class}}"{{/if}}>{{.label}}</button>{{/if}}{{/each}}</div>
       <div class-rwindow-right-buttons>{{#each ~/rightButtons}}{{#if .partial}}{{>.partial}}{{else}}<button on-click=".action()" {{#if .class}}class="{{.class}}"{{/if}}>{{.label}}</button>{{/if}}{{/each}}</div>
@@ -161,7 +161,7 @@
 
   let id = 0;
   export class Host extends Base {
-    constructor(opts) { super(opts); }
+    constructor(opts) { super(opts); this.defaults = {}; }
 
     get current() {
       const top = this.get('topLevel');
@@ -177,7 +177,7 @@
     set placement (v) { return this.set('placement', v); }
 
     addWindow(window, opts) {
-      const options = Object.assign({}, window.options, window.get('options'), opts);
+      const options = Object.assign({}, this.defaults, window.options, window.get('options'), opts);
 
       if (!(window instanceof Window)) {
         throw new Error('Windows must be instances of Window');
@@ -191,18 +191,31 @@
       window.host = this;
       const promise = this.attachChild(window, { target: 'window' });
 
-      if (options.width && options.height) {
-        window.size(options.width, options.height);
-      } else {
-        window.size('auto');
-      }
-
+      let parent;
       if (options.block) {
-        const parent = options.block.id || options.block;
+        parent = options.block.id || options.block;
         if (typeof parent === 'string' && parent in this.get('windows')) {
           this.push(`windows.${escape(parent)}.blockers`, window.id);
           window.set('control.blocking', parent);
+        } else parent = false;
+      }
+
+      if (options.size === 'fill' && (parent || options.block)) {
+        let wnd;
+
+        if (options.block === true) wnd = this.find('.rwhost-pane');
+        else if (wnd = this.getWindow(parent)) wnd = wnd.find('.rwindow');
+
+        if (wnd) {
+          window.size(wnd.clientWidth - (options.fillPad || 20), wnd.clientHeight - (options.fillPad || 20));
+          if (options.block === true && !(options.top || options.left)) {
+            options.top = options.left = Math.floor((options.fillPad || 20) / 2);
+          }
         }
+      } else if (options.width && options.height) {
+        window.size(options.width, options.height);
+      } else {
+        window.size('auto');
       }
 
       if (options.top && options.left) {
@@ -295,7 +308,7 @@
       this.set(sets);
 
       top = sets['topLevel'];
-      if (top && top !== last && this.get('currentMax')) {
+      if (top && top !== last && this.get('currentMax') && this.rendered) {
         wnd = this.getWindow(top);
         wnd.transition('window', wnd.find('div'), { intro: true });
       }
@@ -307,6 +320,8 @@
       if (local.width === undefined) wnd.size('auto');
       let left = 0;
       let top = 0;
+
+      if (!(this.fragment && this.fragment.rendered)) return;
 
       const host = this.find('.rwhost');
       const maxw = host.clientWidth;
@@ -989,7 +1004,11 @@
             wnd._btns = btns.f.filter(e => e.e === 'button' || (e.t === 4 && (e.n === 50 || e.n === 51) && e.f.find(e => e.e === 'button'))).map(n => {
               if (n.t === 4) {
                 const b = mapButton(n.f.find(e => e.e === 'button'));
-                b.partial = { t: [{ t: n.t, n: n.n, r: n.r, rx: n.rx, x: n.x, f: [b.partial.t[0]] }] };
+                const f = { t: n.t, n: n.n, f: [b.partial.t[0]] };
+                if (n.r) f.r = n.r;
+                if (n.rx) f.rx = n.rx;
+                if (n.x) f.x = n.x;
+                b.partial = { t: [f] };
                 return b;
               } else {
                 const b = mapButton(n);
@@ -1037,6 +1056,7 @@
     flex-grow: 2;
     overflow: auto;
     background-color: ${data('window.host.bg') || data('bg1') || '#fff'};
+    z-index: 1;
   }
 
   .rwhost-pane-content {
@@ -1098,7 +1118,7 @@
   .rwindow {
     position: relative;
     box-sizing: border-box;
-    background-color: ${data('window.bg') || data('bg1') || '#fff'};
+    background-color: ${data('window.bg') || data('bg1') || '#f9f9f9'};
     color: ${data('window.fg') || data('fg1') || '#222'};
     box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.14), 0 1px 5px 0 rgba(0, 0, 0, 0.12), 0 3px 1px -2px rgba(0, 0, 0, 0.2);
     border-radius: 2px;
@@ -1161,6 +1181,9 @@
     flex-shrink: 0;
     padding: 0.5em;
     border-top: 1px solid ${data('window.title.bg') || data('bg2') || '#07e'};
+  }
+  .rwindow-buttons.no-buttons {
+    display: none;
   }
   .rwindow-left-buttons {
     text-align: left;
