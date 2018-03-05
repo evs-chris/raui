@@ -56,7 +56,7 @@
 </template>
 
 <template id="container">
-  {{#if .content}}{{{.content}}}{{elseif .contentPartial}}{{yield .contentPartial}}{{/if}}
+  {{#if .content}}{{#if .pad}}<div class-rmenu-container-pad>{{{.content}}}</div>{{else}}{{{.content}}}{{/if}}{{elseif .contentPartial}}{{#if .pad}}<div class-rmenu-container-pad>{{yield .contentPartial}}</div>{{else}}{{yield .contentPartial}}{{/if}}{{/if}}
 </template>
 
 <script>
@@ -200,6 +200,8 @@
           }
         } else if (a.n === 'open') {
           res.open = true;
+        } else if (el.e === 'container' && a.n === 'pad') {
+          res.pad = true;
         } else {
           as.push(a);
         }
@@ -383,13 +385,15 @@
   .rmenu-expand:before {
     position: relative;
     display: inline-block;
-    font-size: 0.5em;
-    top: 1em;
-    padding: 0 0.5em 0.5em 0;
-    content: '\u25e2';
+    top: 0.25em;
+    content: ' ';
     transform: rotate(45deg);
-    transition: transform 0.2s ease-in-out;
+    transition: transform 0.2s ease-in-out, top 0.2s ease-in-out;
     box-sizing: border-box;
+    border-width: 0.25em;
+    border-style: solid;
+    border-left-color: transparent;
+    border-top-color: transparent;
   }
 
   .rmenu-title {
@@ -414,13 +418,16 @@
   }
 
   .rmenu-container {
-    padding: 0.3em;
     box-sizing: border-box;
-    margin-bottom: 0.5em;
+  }
+
+  .rmenu-container-pad {
+    padding: 0.3em 0.3em 0.8em 0.3em;
   }
 
   .rmenu-expanded > .rmenu-main > .rmenu-expand:before {
     transform: rotate(-135deg);
+    top: 0.5em;
   }
   `;
 
