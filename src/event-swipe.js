@@ -1,16 +1,20 @@
-
 // based on ractive-event-tap
 
-export default function makeSwipe(name, direction, distance = 150, flick = 200) {
+const abs = Math.abs;
+
+export default function makeSwipe(name, direction = 'right', distance = 150, flick = 200, threshold = 0.2) {
+  const init = { direction, distance, flick, threshold };
   return function setup({ Ractive, instance }) {
-    instance.events[name] = function swipe(node, fire, opts = {}) {
+    instance.events[name] = function swipe(node, fire, options = {}) {
       let handler;
+      const opts = Object.assign({}, init, options);
+      opts.fire = fire;
       if (handler = node.__r_swipes__) {
-        handler.subscribe(direction, opts.distance || distance, opts.flick || flick, opts, fire);
+        handler.subscribe(opts);
       } else {
         handler = new Handler(Ractive.getContext(node));
         node.__r_swipes__ = handler;
-        handler.subscribe(direction, opts.distance || distance, opts.flick || flick, opts, fire);
+        handler.subscribe(opts);
       }
 
       return { teardown() { handler.unsubscribe(fire); } };
@@ -32,17 +36,17 @@ class Handler {
     this.bind();
   }
 
-  subscribe(direction, distance, flick, opts, fire) {
-    this.fires.push({ direction, distance, flick, opts, fire });
-    this.hasBinding = !!this.fires.find(f => f.opts.bindPx || f.opts.bind);
-    this.hasBounds = !!this.fires.find(f => f.opts.maxX != null || f.opts.maxY != null || f.opts.minX != null || f.opts.minY != null);
+  subscribe(opts) {
+    this.fires.push(opts);
+    this.hasBinding = !!this.fires.find(f => f.bindPx || f.bind);
+    this.hasBounds = !!this.fires.find(f => f.maxX != null || f.maxY != null || f.minX != null || f.minY != null);
   }
 
   unsubscribe(fire) {
     this.fires = this.fires.filter(f => f.fire !== fire);
     if (!this.fires.length) this.teardown();
-    this.hasBinding = !!this.fires.find(f => f.opts.bindPx || f.opts.bind);
-    this.hasBounds = !!this.fires.find(f => f.opts.maxX != null || f.opts.maxY != null || f.opts.minX != null || f.opts.minY != null);
+    this.hasBinding = !!this.fires.find(f => f.bindPx || f.bind);
+    this.hasBounds = !!this.fires.find(f => f.maxX != null || f.maxY != null || f.minX != null || f.minY != null);
   }
 
   bind() {
@@ -69,21 +73,22 @@ class Handler {
 
       const distx = duration < f.flick ? endx - startx + ((f.flick / duration) * (endx - startx)) : endx - startx;
       const disty = duration < f.flick ? endy - starty + ((f.flick / duration) * (endy - starty)) : endy - starty;
-      const dist = f.opts.bindPx;
-      const pct = f.opts.bind;
+      const threshold = abs(f.threshold <= 0 ? Math.max(distx, disty) : f.threshold < 1 ? f.direction === 'right' || f.direction === 'left' ? f.threshold * distx : f.threshold * disty : f.threshold);
+      const dist = f.bindPx;
+      const pct = f.bind;
 
-      if (distx > 0 && f.direction === 'right' && distx >= f.distance) {
+      if (distx > 0 && f.direction === 'right' && distx >= f.distance && abs(disty) <= threshold) {
         f.fire({ node, event });
         fired = true;
-      } else if (distx < 0 && f.direction === 'left' && -distx >= f.distance) {
+      } else if (distx < 0 && f.direction === 'left' && -distx >= f.distance && abs(disty) <= threshold) {
         f.fire({ node, event });
         fired = true;
       }
 
-      if (disty > 0 && f.direction === 'down' && disty >= f.distance) {
+      if (disty > 0 && f.direction === 'down' && disty >= f.distance && abs(distx) <= threshold) {
         f.fire({ node, event });
         fired = true;
-      } else if (disty < 0 && f.direction === 'up' && -disty >= f.distance) {
+      } else if (disty < 0 && f.direction === 'up' && -disty >= f.distance && abs(distx) <= threshold) {
         f.fire({ node, event });
         fired = true;
       }
@@ -100,7 +105,7 @@ class Handler {
     const x = startx - rect.x, y = starty - rect.y;
 
     this.fires.forEach(f => {
-      const { maxX, maxY, minX, minY } = f.opts;
+      const { maxX, maxY, minX, minY } = f;
       if (maxX > 0 && x > maxX) { f.active = false; return; }
       if (maxX < 0 && x > rect.width + maxX) { f.active = false; return; }
       if (maxY > 0 && y > maxY) { f.active = false; return; }
@@ -119,25 +124,26 @@ class Handler {
     this.fires.forEach(f => {
       if (!f.active) return;
 
-      if (!f.opts.bindPx && !f.opts.bind) return;
+      if (!f.bindPx && !f.bind) return;
 
-      const dist = f.opts.bindPx;
-      const pct = f.opts.bind;
+      const dist = f.bindPx;
+      const pct = f.bind;
       const distx = endx - startx;
       const disty = endy - starty;
+      const threshold = abs(f.threshold <= 0 ? Math.max(distx, disty) : f.threshold < 1 ? f.direction === 'right' || f.direction === 'left' ? f.threshold * distx : f.threshold * disty : f.threshold);
 
       if (dist) {
-        if (f.direction === 'left') this.context.set(dist, distx < 0 ? -distx : 0);
-        else if (f.direction === 'right') this.context.set(dist, distx > 0 ? distx : 0);
-        else if (f.direction === 'up') this.context.set(dist, disty < 0 ? -disty : 0);
-        else if (f.direction === 'down') this.context.set(dist, disty > 0 ? disty : 0);
+        if (f.direction === 'left') this.context.set(dist, distx < 0 && abs(disty) <= threshold ? -distx : 0);
+        else if (f.direction === 'right') this.context.set(dist, distx > 0 && abs(disty) <= threshold ? distx : 0);
+        else if (f.direction === 'up') this.context.set(dist, disty < 0 && abs(distx) <= threshold ? -disty : 0);
+        else if (f.direction === 'down') this.context.set(dist, disty > 0 && abs(distx) <= threshold ? disty : 0);
       }
 
       if (pct) {
-        if (f.direction === 'left') this.context.set(pct, distx < 0 ? (-distx / f.distance) * 100 : 0);
-        else if (f.direction === 'right') this.context.set(pct, distx > 0 ? (distx / f.distance) * 100 : 0);
-        else if (f.direction === 'up') this.context.set(pct, disty < 0 ? (-disty / f.distance) * 100 : 0);
-        else if (f.direction === 'down') this.context.set(pct, disty > 0 ? (disty / f.distance) * 100 : 0);
+        if (f.direction === 'left') this.context.set(pct, distx < 0 && abs(disty) <= threshold ? (-distx / f.distance) * 100 : 0);
+        else if (f.direction === 'right') this.context.set(pct, distx > 0 && abs(disty) <= threshold ? (distx / f.distance) * 100 : 0);
+        else if (f.direction === 'up') this.context.set(pct, disty < 0 && abs(distx) <= threshold ? (-disty / f.distance) * 100 : 0);
+        else if (f.direction === 'down') this.context.set(pct, disty > 0 && abs(distx) <= threshold ? (disty / f.distance) * 100 : 0);
       }
     });
   }
