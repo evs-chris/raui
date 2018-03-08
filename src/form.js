@@ -11,7 +11,7 @@ export function style(data) {
     transition-property: color;
     vertical-align: middle;
     box-sizing: border-box;
-    padding: 0.8em 0.5em;
+    padding: ${data('form.boxy') ? '0.8em 1em' : '0.8em 0.5em'};
   }
 
   label.field.textarea {
@@ -36,10 +36,10 @@ export function style(data) {
 
   label.field.textarea.focus {
     border-color: ${data('form.color.accentActive') || data('fga1') || '#07e'};
-    box-shadow: 1px 1px ${data('form.color.accentActive') || data('fga1') || '#07e'},
+    ${!data('form.boxy') ? `box-shadow: 1px 1px ${data('form.color.accentActive') || data('fga1') || '#07e'},
       -1px 1px ${data('form.color.accentActive') || data('fga1') || '#07e'},
       1px -1px ${data('form.color.accentActive') || data('fga1') || '#07e'},
-      -1px -1px ${data('form.color.accentActive') || data('fga1') || '#07e'};
+      -1px -1px ${data('form.color.accentActive') || data('fga1') || '#07e'};` : ''}
   }
 
   label.field > input,
@@ -47,25 +47,25 @@ export function style(data) {
   label.field > textarea
   {
     display: block;
-    border-width: 0 0 0.0625em 0;
+    border-width: ${data('form.boxy') ? '0.0625em' : '0 0 0.0625em 0'};
     border-color: ${data('form.color.accent') || data('fg1') || '#222'};
     border-style: solid;
+    box-sizing: border-box;
     background-color: transparent;
     transition: 0.2s ease-in-out;
     transition-property: box-shadow, color;
     outline: none;
-    padding: 0.5em 0;
+    padding: ${data('form.boxy') ? '0.7em 1.5em 0.7em 0.7em' : '0.5em 0'};
     box-shadow: none;
     width: 100%;
     margin-bottom: 0.8em;
-    font-size: 1.2em;
+    font-size: 1.2em;${data('form.boxy') ? '\n  border-radius: 0.2em;' : ''}
   }
-  label.field > select {
-    height: 2.22em;
-    box-sizing: border-box;
-  }
+  ${!data('form.boxy') ? `label.field > select {
+    height: 2.25em;
+  }` : ''}
 
-  label.field:hover > input,
+  ${!data('form.boxy') ? `label.field:hover > input,
   label.field:hover > select,
   label.field.file:hover:after {
     box-shadow: 0 1px 0 0 ${data('form.color.accent') || data('fg1') || '#222'};
@@ -90,7 +90,7 @@ export function style(data) {
   label.field.inline.focus:hover > input:checked:before {
     box-shadow: 0px 1px ${data('form.color.accentActive') || data('fga1') || '#07e'},
       -1px 0px ${data('form.color.accentActive') || data('fga1') || '#07e'};
-  }
+  }` : ''}
 
   label.field > textarea {
     font-size: 1.4em;
@@ -107,7 +107,7 @@ export function style(data) {
   label.field.inline > input:before {
     content: '';
     display: block;
-    border: 1px solid ${data('fg1')};
+    border: 1px solid ${data('form.color.accent') || data('fg1') || '#222'};
     width: 1em;
     height: 1em;
     box-sizing: border-box;
@@ -134,7 +134,7 @@ export function style(data) {
   label.field.file.focus:after
   {
     border-color: ${data('form.color.accentActive') || data('fga1') || '#07e'};
-    box-shadow: 0 1px 0 0 ${data('form.color.accentActive') || data('fga1') || '#07e'};
+    ${!data('form.boxy') ? `box-shadow: 0 1px 0 0 ${data('form.color.accentActive') || data('fga1') || '#07e'};` : ''}
   }
 
   label.field.file.focus:after {
