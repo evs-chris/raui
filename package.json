@@ -13,17 +13,23 @@
     "url": "https://github.com/evs-chris/ractive-materialish.git"
   },
   "devDependencies": {
+    "buble-loader": "^0.4",
+    "ractive": "edge",
+    "ractive-bin-loader": "^1",
     "rollup": "^0.50",
-    "ractive": "^0.9.7",
-    "rollup-plugin-ractive-bin": "^1",
     "rollup-plugin-buble": "^0.16",
-    "rollup-plugin-uglify": "^2"
+    "rollup-plugin-ractive-bin": "^1.0.0",
+    "rollup-plugin-uglify": "^3",
+    "webpack": "^2"
   },
   "peerDependencies": {
     "ractive": ">= 0.9.7"
   },
   "scripts": {
     "build": "rollup -c rollup.config.js",
-    "watch": "rollup -w -c rollup.config.js"
+    "watch": "rollup -w -c rollup.config.js",
+    "build:demo": "webpack",
+    "dev": "webpack --watch",
+    "clean": "scripts/clean.sh"
   }
 }
