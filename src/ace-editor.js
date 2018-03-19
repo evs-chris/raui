@@ -88,5 +88,8 @@ export default function makeAceEditor(opts = {}) {
     instance.decorators[opts.name || 'ace-editor'] = aceEditor;
   }
 
-  return { plugin, aceEditor };
+  plugin.plugin = plugin;
+  plugin.aceEditor = aceEditor;
+
+  return plugin;
 }

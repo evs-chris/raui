@@ -112,5 +112,8 @@ export default function init(initOpts = {}) {
     instance.decorators[initOpts.name || 'codemirror'] = codemirror;
   }
 
-  return { codemirror, plugin };
+  plugin.plugin = plugin;
+  plugin.codemirror = codemirror;
+
+  return plugin;
 }
