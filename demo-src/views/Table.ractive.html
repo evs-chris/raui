@@ -1,0 +1,57 @@
+<tabs fill transition=fade class-secondary>
+  <tab title="Intro"><marked>
+    The RaUI table.
+  </marked></tab>
+  <tab title="Usage"><marked>
+
+  </marked></tab>
+  <tab title="Example">
+    <div>
+      <label as-field>Filter<input value="{{filter}}" lazy=300 ></label>
+    </div>
+    <data-table bind-items bind-filter paginate=auto on-selected="console.log($1)">
+      <row fade-in-out>
+        <h3>Extra stuff goes here</h3>
+        <p>I have a {{.foo}} that is {{.bar}}.</p>
+      </row>
+      <column t7-8 s3-8 m1-3 label="Foo" filter=foo>{{.foo}}</column>
+      <column t0 s3-8 m1-3 label="Bar" filter=bar>{{.bar}}</column>
+      <column t0 m1-5 label="???">{{.bat ? 'Yep' : 'Nope'}}</column>
+    </data-table>
+  </tab>
+</tabs>
+
+<script>
+  import { Window } from 'cmp/Window';
+  import Table from 'cmp/Table';
+
+  const data = [];
+  const src = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  for (let i = 0; i < 500; i++) {
+    const d = {};
+    data.push(d);
+    ['foo', 'bar'].forEach(prop => {
+      const len = Math.ceil(Math.random() * 20);
+      let str = '';
+      for (let c = 0; c < len; c++) {
+        str += src[Math.ceil(Math.random() * (src.length - 1))];
+      }
+      d[prop] = str;
+    });
+    d.bat = Math.random() > 0.5;
+  }
+
+  export default Window.extend({
+    template: $TEMPLATE,
+    use: [Table({ includeGrid: true })],
+    options: {
+      title: 'Component :: Table',
+      resizable: true, flex: true,
+      width: '48em', height: '30em'
+    },
+    data() {
+      return { items: data, filter: '' };
+    }
+  });
+</script>
+

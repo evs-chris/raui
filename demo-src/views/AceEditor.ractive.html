@@ -1,0 +1,32 @@
+<tabs flat pad class-secondary height=dynamic>
+  <tab title=Intro><marked>
+    TODO
+  </marked></tab>
+  <tab title=Usage><marked>
+
+  </marked></tab>
+  <tab title=Example>
+
+  </tab>
+</tabs>
+
+<script>
+  import { Window } from 'cmp/Window';
+
+  export default class AceEditor extends Window {
+    constructor(opts) { super(opts); }
+  }
+
+  Window.extendWith(AceEditor, {
+    template: $TEMPLATE, css: $CSS,
+    options: {
+      id: 'Ace',
+      title: 'Decorators :: Ace Editor',
+      width: '40em', height: '30em',
+      flex: true
+    }
+  });
+</script>
+
+
+

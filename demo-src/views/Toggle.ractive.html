@@ -1,0 +1,30 @@
+<tabs flat pad class-secondary height=dynamic>
+  <tab title=Intro><marked>
+    TODO
+
+    Your standard boolean toggle that looks like an on/off switch. This is actually a macro partial rather than a component, so it's fairly light weight. It also supports `null` or `undefined` states with an intermediate position for all of your parties with three-state booleans.
+  </marked></tab>
+  <tab title=Usage><marked>
+
+  </marked></tab>
+  <tab title=Example>
+    <toggle value=".foo" />
+    <input type="checkbox" checked="{{.foo}}" />
+  </tab>
+</tabs>
+
+<script>
+  import { Window } from 'cmp/Window';
+  import Toggle from 'cmp/Toggle';
+
+  export default Window.extend({
+    template: $TEMPLATE,
+    use: [Toggle()],
+    options: {
+      title: 'Component :: Toggle',
+      resizable: true, flex: true,
+      width: '48em', height: '30em'
+    }
+  });
+</script>
+

@@ -1,0 +1,45 @@
+<tabs flat pad class-secondary height=dynamic>
+  <tab title=Intro><marked>
+    TODO
+
+    A two or more -sided splitter - either vertical or horizontal.
+  </marked></tab>
+  <tab title=Usage><marked>
+
+  </marked></tab>
+  <tab title=Example>
+    <split>
+        <split vertical>
+          <menu></menu>
+          <div>right</div>
+        </split>
+        <div>middle</div>
+        <tabs flex fill class-secondary flat transition=fade height=dynamic pad>
+          <tab title="Demo">
+            Tab content
+          </tab>
+        </tabs>
+      </split>
+  </tab>
+</tabs>
+
+<script>
+  import Split from 'cmp/Split';
+  import { Window } from 'cmp/Window';
+  import Menu from 'cmp/Menu';
+
+  export default class SplitDemo extends Window {
+    constructor(opts) { super(opts); }
+  }
+
+  Window.extendWith(SplitDemo, {
+    template: $TEMPLATE, css: $CSS,
+    use: [Split(), Menu()],
+    options: {
+      id: 'split',
+      title: 'Component :: Split',
+      width: '40em', height: '30em',
+      flex: true
+    }
+  });
+</script>

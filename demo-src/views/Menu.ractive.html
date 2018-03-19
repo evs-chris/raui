@@ -1,0 +1,27 @@
+<tabs flat pad class-secondary height=dynamic>
+  <tab title=Intro><marked>
+    TODO
+
+    This is a vertical menu that supports items with nested children, sections, and containers with any old content. Horizontal menus tend not to scale well at all below a certain width, and nobody likes horizontal scrolling.
+  </marked></tab>
+  <tab title=Usage><marked>
+
+  </marked></tab>
+  <tab title=Example>
+    
+  </tab>
+</tabs>
+
+<script>
+  import { Window } from 'cmp/Window';
+
+  export default Window.extend({
+    template: $TEMPLATE,
+    options: {
+      title: 'Component :: Menu',
+      resizable: true, flex: true,
+      width: '48em', height: '30em'
+    }
+  });
+</script>
+    

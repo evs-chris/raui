@@ -1,0 +1,197 @@
+<shell>
+  <left bind-hidden="menu.hidden">
+    <menu>
+      <container pad class-logo><h1 style-text-align=center><img src="/raui.svg" alt="raui logo" />RaUI</h1></container>
+      <item ref=Hello><h3>Welcome</h3></item>
+      <item open><h3>Components</h3>
+        <item ref=AppBar>AppBar</item>
+        <item ref=Card>Card</item>
+        <item ref=JSONEditor>JSON Editor</item>
+        <item ref=Marked>Marked</item>
+        <item ref=Menu>Menu</item>
+        <item ref=Shell>Shell</item>
+        <item ref=Split>Split</item>
+        <item ref=Table>Table</item>
+        <item ref=Tabs>Tabs</item>
+        <item ref=Toggle>Toggle</item>
+        <item ref=Window>Window</item>
+      </item>
+      <item open><h3>Decorators</h3>
+        <item ref=AceEditor>Ace Editor</item>
+        <item ref=CodeMirror>CodeMirror</item>
+        <item ref=Form>Form</item>
+        <item ref=Grid>Grid</item>
+        <item ref=MaskedInput>Masked Input</item>
+        <item ref=ScrollSpy>Scroll Spy</item>
+      </item>
+      <item open><h3>Events</h3>
+        <item ref=Click>Click</item>
+        <item ref=Keys>Keys</item>
+        <item ref=Swipe>Swipe</item>
+      </item>
+      <item open><h3>Transitions</h3>
+        <item ref="Expand">Expand</item>
+        <item ref="Fade">Fade</item>
+      </item>
+      <item open><h3>Helpers</h3>
+        <item ref=Button>Button</item>
+        <item ref=Toast>Toast</item>
+      </item>
+    </menu>
+  </left>
+  <center class-app-center>
+    {{#unless win.max}}
+      <app-bar>
+        <left><div class-hamburger on-click="@.toggle('menu.hidden')">&#9776;</div></left>
+      </app-bar>
+    {{/unless}}
+    <host bind-windows placement=smart>
+      <max-top>
+        <app-bar>
+          <left><div class-hamburger on-click="@.toggle('menu.hidden')">&#9776;</div></left>
+          <center>{{window.title}}</center>
+          <right>{{>windowControls}}</right>
+        </app-bar>
+      </max-top>
+    </host>
+  </center>
+</shell>
+
+<script>
+  import Shell from 'cmp/Shell';
+  import AppBar from 'cmp/AppBar';
+  import Menu from 'cmp/Menu';
+  import Host from 'cmp/Window';
+  import { style as gridStyle } from 'cmp/grid';
+
+  import Hello from './views/Hello';
+
+  Ractive.styleSet('window.maxFrom', '60em');
+
+  const App = Ractive.extend({
+    template: $TEMPLATE,
+    use: [AppBar(), Host(), Menu(), Shell()],
+    on: {
+      init() {
+        this.shell = this.findComponent('shell');
+        const menu = this.menu = this.findComponent('menu');
+        const host = this.host = this.findComponent('host');
+        this.update('@.active', { force: true });
+        this.link('currentMax', 'win.max', { instance: this.host });
+
+        host.set('userMax', true);
+
+        const builtins = ['Hello', 'AceEditor', 'AppBar', 'Button', 'Card', 'Click', 'CodeMirror', 'Expand', 'Fade', 'Form', 'Grid', 'JSONEditor', 'Keys', 'Marked', 'MaskedInput', 'Menu', 'ScrollSpy', 'Shell', 'Split', 'Swipe', 'Table', 'Tabs', 'Toast', 'Toggle', 'Window'];
+
+        menu.once('complete', () => {
+          builtins.forEach(r => {
+            const item = menu.getHandle(r);
+            item.active = () => host.currentId === r;
+            item.action = () => this.fire('launch', {}, r);
+          });
+        });
+
+        const wins = this.winMenu = this.menu.addItem({ title: 'Open Windows', type: 'section', condition: false });
+        const items = this.winMenuItems = [];
+        this.windowObserver = this.observe('windows.*', (n, o, k, id) => {
+          if (~builtins.indexOf(id)) return;
+          setTimeout(() => {
+            const wnd = host.getWindow(id);
+            if (n) {
+              if (wnd && wnd.get('control.title')) {
+                const item = { id, menu: {
+                  action() { host.getWindow(id).raise(); },
+                  active() { return host.currentId && (host.currentId === id || this.ref === id); }
+                } };
+                item.entry = wins.addItem(item.menu);
+                items.push(item);
+              }
+            } else {
+              const item = items.find(i => i.id === id);
+              if (item) {
+                items.splice(items.indexOf(item), 1);
+                item.entry.remove();
+              }
+            }
+
+            // meh
+            items.forEach( m => {
+              menu.link(`windows.${m.id}.title`, `${m.entry.keypath}.title`, { instance: this });
+            });
+
+            menu.set(`${wins.keypath}.condition`, items.length > 0);
+          });
+        }, { strict: true, defer: true });
+      },
+      complete: {
+        handler() {
+          let hello = new Hello();
+          this.host.addWindow(hello, { id: 'Hello' });
+        },
+        once: true
+      },
+      launch(ctx, name) {
+        const wnd = this.host.getWindow(name);
+        if (wnd) {
+          wnd.raise();
+        } else {
+          if (name === 'Hello') {
+            const v = new Hello();
+            this.host.addWindow(v, { id: name });
+          } else {
+            const mod = import(`./${name}.ractive.html.js`);
+            mod && mod.then(m => {
+              const v = new m.default();
+              this.host.addWindow(v, { id: name });
+            })
+          }
+        }
+      }
+    },
+    cssId: 'app',
+    css: $CSS,
+    noCssTransform: true,
+    data: function() {
+      return {
+        right: { hidden: true }
+      };
+    },
+    active(id) {
+      return this.host && this.host.currentId === id;
+    }
+  });
+
+  export default App;
+</script>
+
+<style>
+  body {
+    overscroll-behavior-y: contain;
+  }
+  p {
+    text-indent: 1em;
+  }
+  .hamburger {
+    cursor: pointer;
+    user-select: none;
+    margin: -1em;
+    padding: 1em;
+  }
+  .logo {
+    background-color: #f9f9f9;
+    color: #222;
+    border-style: solid;
+    border-width: 1px;
+    box-sizing: border-box;
+  }
+  .logo img {
+    width: 50px;
+    margin-right: 0.5em;
+    margin-left: calc(-0.5em - 50px);
+    vertical-align: middle;
+  }
+</style>
+
+<script rel="css">
+  return gridStyle(data);
+</script>

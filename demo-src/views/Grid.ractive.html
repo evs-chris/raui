@@ -1,0 +1,90 @@
+<tabs flat pad class-secondary height=dynamic>
+  <tab title=Intro><marked>
+    TODO
+
+    The grid decorator takes your usual CSS grid (no, not `display: grid`) and makes it container-aware, meaning that it will respond to its container changing sizes rather than just the window. It does so by listening to both window resize events and any Ractive resize events that happen to bubble up to its root instance.
+
+    You can also customize the breakpoints and sizes available in the grid fairly easily, as it provides a CSS function to be included in your main instance that handles the breakpoints and their corresponding sizes. The defaults cover a range from tiny (t at 0 to 20em) to ginormous (g at 150em+) and halves, thirds, quarters, fifths, and eighths for the smaller breakpoints up to tenths, twelfths, twentieths, twenty-fourths, thirty-seconds, and sixty-fourths for the largest.
+  </marked></tab>
+  <tab title=Usage><marked>
+
+  </marked></tab>
+  <tab title=Example>
+    <div as-grid>
+        <div class-row class-row-t1-2 class-row-m1-3 class-row-l1-4>
+          <div class="thing">Thing 1</div>
+          <div class="thing">Thing 2</div>
+          <div class="thing">Thing 3</div>
+          <div class="pad m1-2"><div class="thing" class-m1-2>Thing 4</div></div>
+          <div class="thing">Thing 5</div>
+          <div class="thing">Thing 6</div>
+          <div class-t1-2>
+            <div class-row class-row-t1-3 class-row-pad>
+              <div><div class="thing">Thing 7.1</div></div>
+              <div><div class="thing">Thing 7.2</div></div>
+              <div><div class="thing">Thing 7.3</div></div>
+              <div><div class="thing">Thing 7.4</div></div>
+            </div>
+          </div>
+        </div>
+        <div class-row>
+          <div class-t4-5>
+            <div class-row class-row-t1-4>
+              <div class="thing">Thing 10</div>
+              <div class="thing">Thing 11</div>
+              <div class="thing">Thing 12</div>
+              <div class="thing">Thing 13</div>
+              <div class="thing">Thing 14</div>
+              <div class="thing">Thing 15</div>
+              <div class="thing">Thing 16</div>
+              <div class="thing">Thing 17</div>
+              <div class="thing">Thing 18</div>
+              <div class="thing">Thing 19</div>
+            </div>
+          </div>
+          <div class-t1-5>
+            <div class-row>
+              <div class="thing">Thing 20</div>
+              <div class="thing">Thing 21</div>
+              <div class="thing">Thing 22</div>
+              <div class="thing">Thing 23</div>
+              <div class="thing">Thing 24</div>
+              <div class="thing">Thing 25</div>
+              <div class="thing">Thing 26</div>
+              <div class="thing">Thing 27</div>
+              <div class="thing">Thing 28</div>
+              <div class="thing">Thing 29</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </tab>
+  </tabs>
+
+<script>
+  import { Window } from 'cmp/Window';
+  import { grid } from 'cmp/grid';
+
+  export default class Grid extends Window {
+    constructor(opts) { super(opts); }
+  }
+
+  Window.extendWith(Grid, {
+    template: $TEMPLATE, css: $CSS,
+    decorators: { grid },
+    options: {
+      id: 'grid',
+      title: 'Decorators :: Grid',
+      width: '40em', height: '30em',
+      flex: true,
+      resizable: true
+    }
+  });
+</script>
+
+<style>
+  div.thing {
+    padding: 1.5em;
+    border: 1px solid black;
+  }
+</style>

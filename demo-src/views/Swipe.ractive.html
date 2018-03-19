@@ -1,0 +1,51 @@
+<tabs fill flat pad class-secondary height=dynamic>
+  <tab title=Intro><marked>
+    TODO
+  </marked></tab>
+  <tab title=Usage><marked>
+
+  </marked></tab>
+  <tab title=Example>
+    <div style-flex-grow=1
+      on-swipeleft({ bind: '.leftpct', bindPx: '.leftdist' })="@.log('swipe left')"
+      on-swiperight({ bind: '.rightpct', bindPx: '.rightdist' })="@.log('swipe right')"
+      on-swipeup({ bind: '.uppct', bindPx: '.updist' })="@.log('swipe up')"
+      on-swipedown({ bind: '.downpct', bindPx: '.downdist' })="@.log('swipe down')"
+    >
+      <div class-vars>
+        left: {{leftdist}}px {{Math.round(leftpct)}}%<br/>
+        right: {{rightdist}}px {{Math.round(rightpct)}}%<br/>
+        up: {{updist}}px {{Math.round(uppct)}}%<br/>
+        down: {{downdist}}px {{Math.round(downpct)}}%<br/>
+      </div>
+      {{#each ~/logs}}<div>{{.}}</div>{{/each}}
+    </div>
+  </tab>
+</tabs>
+
+<script>
+  import { Window } from 'cmp/Window';
+  import { left, right, up, down } from 'cmp/event-swipe';
+
+  export default Window.extend({
+    template: $TEMPLATE,
+    css: $CSS,
+    use: [ left, right, up, down ],
+    options: {
+      title: 'Event :: Swipe',
+      flex: true,
+      width: '40em', height: '30em'
+    },
+    log(msg) {
+      this.unshift('logs', msg);
+    }
+  });
+</script>
+
+<style>
+  .vars {
+    position: absolute;
+    right: 0;
+    top: 0;
+  }
+</style>

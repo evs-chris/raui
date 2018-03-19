@@ -1,0 +1,27 @@
+<tabs pad height=dynamic flat class-secondary>
+  <tab title="Intro"><marked>
+    Every app needs a good wrapper, and this aims to be it. The Shell provides three sections, `<left>`, `<center>`, and `<right>`, which are managed responsively, so the left and right containers are automatically shown and hidden based on the available width of the window, whereas the center is always rendered. The Shell also exposes hooks to dynamically show and hide the left and right sides.
+
+    Shell also contains support for toasting, because most apps also need a convenient way to give the user feedback.
+  </marked></tab>
+  <tab title="Usage"><marked>
+
+  </marked></tab>
+  <tab title="Example">
+
+  </tab>
+</tabs>
+
+<script>
+  import { Window } from 'cmp/Window';
+
+  export default Window.extend({
+    template: $TEMPLATE, css: $CSS,
+    use: [],
+    options: {
+      title: 'Components :: Shell',
+      width: '40em', height: '30em',
+      flex: true
+    }
+  });
+</script>

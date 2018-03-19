@@ -1,0 +1,37 @@
+<tabs flat pad class-secondary height=dynamic>
+  <tab title=Intro><marked>
+    TODO
+  </marked></tab>
+  <tab title=Usage><marked>
+
+  </marked></tab>
+  <tab title=Example>
+    <div as-grid>
+        <div class-row>
+          <label as-field class-t1-3>Input Field<input /></label>
+          <label as-field class-t1-3>Select Field<select><option>option1</option><options>option2</options></select></label>
+          <label as-field class-t1-3><input type="checkbox" /> Checkbox</label>
+        </div>
+      </div>
+  </tab>
+</tabs>
+
+<script>
+  import { Window } from 'cmp/Window';
+  import { grid } from 'cmp/grid';
+
+  export default class Form extends Window {
+    constructor(opts) { super(opts); }
+  }
+
+  Window.extendWith(Form, {
+    template: $TEMPLATE, css: $CSS,
+    decorators: { grid },
+    options: {
+      id: 'Form',
+      title: 'Decorators :: Form',
+      width: '40em', height: '30em',
+      flex: true
+    }
+  });
+</script>

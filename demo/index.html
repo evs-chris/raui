@@ -1,12 +1,24 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>Ractive Materialish Demo</title>
+    <title>RaUI Demo</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="shortcut icon" href="./favicon.png" />
+    <link href="https://fonts.googleapis.com/css?family=Hind" rel="stylesheet">
     <!--<script src="https://cdn.jsdelivr.net/npm/ractive@edge/ractive.js"></script>-->
     <script src="./ractive.js"></script>
+    <script src="./codemirror.js"></script>
+
+    <script src="//unpkg.com/systemjs"></script>
+    <!--<script src="https://cdn.jsdelivr.net/npm/codemirror@5/lib/codemirror.min.js"></script>-->
+    <script src="https://cdn.jsdelivr.net/npm/codemirror@5/mode/javascript/javascript.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/codemirror@5/addon/selection/active-line.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/codemirror@5/keymap/vim.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked@0.3/lib/marked.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/codemirror@5.35.0/lib/codemirror.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/codemirror@5.35.0/theme/ambiance.css" />
     <style>
-      body { margin: 0; font-family: sans-serif; }
+      body { margin: 0; font-family: Hind, sans-serif; }
       .app-center {
         display: flex;
         flex-direction: column;
@@ -18,6 +30,12 @@
   </head>
   <body>
     <div id="target"></div>
-    <script src="./bundle.js"></script>
+    <script>
+      System.config({
+        baseURL: '/build'
+      });
+      System.registry.set('ractive', System.newModule({ default: Ractive }));
+      System.import('index.js')
+    </script>
   </body>
 </html>

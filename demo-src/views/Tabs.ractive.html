@@ -1,0 +1,129 @@
+<tabs flat pad class-secondary height=dynamic>
+  <tab title="Intro"><marked>
+    This is a pretty standard tab component that behaves about how you'd expect a tab component to behave. The component is named `tabs` by default, though you can change that when installing it as a plugin or in the components registry. The tabs have a few different switches that make them behave better in certain environments, like a flex box, where the container should fill any available space, or in inline content, where the container should only be as large as the current content requires.
+
+    There are three transitions included for tab switching:
+
+    * none - tabs just appear in place immediately
+    * fade - tabs fade out and in as they change positions
+    * slide - tabs slide across as they change positions
+
+    By default, the tabs have a sliding indicator that shows which tab is currently active. The tabs are also forced to stay in a single row because multiline tabs tend to be confusing and hard to target precisely when switching. As a result, for browsers that don't already use an on-demand scrollbar, as most evergreens and mobile browsers do, you'll get a horizontal scrollbar if you have too many tabs or tabs with long titles.
+  </marked></tab>
+  <tab title="Usage"><marked>
+    ### Container Attributes
+
+    * `center: boolean = false` - when true, align tabs in the center of the tab bar
+    * `fill: boolean = false` - when true, fill the parent container using flex grow
+    * `flat: boolean = false` - controls the style of the tab bar, and when true removes any depth styles. This is useful for embedding tabs into other controls seamlessly.
+    * `height: string` - if `'dynamic'`, each tab body will be shrunk when the tab is hidden and re-expanded when it is selected
+    * `pad: boolean = false` - when true, add a bit of padding to the tab content
+    * `transition: string` - if specified,  `'slide'` or `'fade'`
+
+    ### Tab Attributes
+
+    * `button: boolean = false` - when true, the tab has no content and just behaves as a button
+    * `closable: boolean = false` - when true, add a close button on the tab
+    * `disabled: boolean = false` - when true, the tab is not selectable
+    * `no-pad: boolean = false` - when true and in a container with `pad`, skips padding for the tab
+    * `right: boolean = false` - when true, the tab is kept separately on the right end of the tab bar
+    * `title: string` - the title to display in the tab bar
+
+    ### Events
+
+    * `close` - fires when a tab is about to be closed by user action. If this returns false, the tab will not be closed.
+    * `enter` - fires when a tab is about to become active
+    * `leave` - fires when a tab is about to become inactive
+
+    ### API
+
+    * `select(index: integer)` - causes the given index to become active
+    * `updateIndicator()` - if the size of the container changes in a way that's not observable, call this to refresh the indicator
+
+    ### Styles
+
+    * `tabs.tab.fg` - `fg1`, `#222` - foreground color for tabs
+    * `tabs.tab.bg` - `bg1`, `#fff` - background color for tabs
+    * `tabs.indicator.color` - `fga1`, `#07e` - color for indicator
+  </marked></tab>
+  <tab title="Example">
+    <marked>
+    ### Template:
+    ```handlebars
+    <tabs pad>
+      <tab title="Just">A plain old tab in a padded container.<p>This one is a bit taller.</p></tab>
+      <tab title="Tabs" no-pad>Another plain old tab, but without the padding.</tab>
+    </tabs
+    ```
+    ### Result:
+    </marked>
+
+    <tabs pad>
+      <tab title="Just">A plain old tab in a padded container.<p>This one is a bit taller.</p></tab>
+      <tab title="Tabs" no-pad>Another plain old tab, but without the padding.</tab>
+    </tabs>
+
+    <marked>
+    ***
+    ### Template:
+    ```handlebars
+    <tabs height=dynamic transition=fade>
+      <tab title="Dynamic">
+        <p>This tab has slightly longer content.</p>
+        <p>This tab has slightly longer content.</p>
+        <p>This tab has slightly longer content.</p>
+        <p>This tab has slightly longer content.</p>
+      </tab>
+      <tab title="Content">
+        <p>This tab has shorter content, and the content fades during transitions.</p>
+      </tab>
+    </tabs>
+    ```
+    ### Result:
+    </marked>
+
+    <tabs height=dynamic transition=fade>
+      <tab title="Dynamic">
+        <p>This tab has slightly longer content.</p>
+        <p>This tab has slightly longer content.</p>
+        <p>This tab has slightly longer content.</p>
+        <p>This tab has slightly longer content.</p>
+      </tab>
+      <tab title="Content">
+        <p>This tab has shorter content, and the content fades during transitions.</p>
+      </tab>
+    </tabs>
+
+    <marked>
+    ***
+    ### Template:
+    ```handlebars
+    <tabs center flat transition=slide pad>
+      <tab title=Centered>Centered tabs with the slide transition.</tab>
+      <tab title="Flat Tabs">The content slides by.</tab>
+    </tabs>
+    ```
+    ### Result:
+    </marked>
+
+    <tabs center flat transition=slide pad>
+      <tab title=Centered>Centered tabs with the slide transition.</tab>
+      <tab title="Flat Tabs">The content slides by.</tab>
+    </tabs>
+    <hr/>
+    <p>Fin.</p>>
+  </tab>
+</tabs>
+
+<script>
+  import { Window } from 'cmp/Window';
+
+  export default Window.extend({
+    template: $TEMPLATE, css: $CSS,
+    options: {
+      title: 'Components :: Tabs',
+      width: '40em', height: '30em',
+      flex: true
+    }
+  });
+</script>

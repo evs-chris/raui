@@ -1,0 +1,48 @@
+<tabs flat pad class-secondary height=dynamic>
+  <tab title=Intro><marked>
+    TODO
+  </marked></tab>
+  <tab title=Usage><marked>
+
+  </marked></tab>
+  <tab title=Example>
+    <split>
+      <div>
+        <textarea>{{.text}}</textarea><br/>
+        <input type="checkbox" checked="{{.wrap}}" /> Wrap<br/>
+        <input type="checkbox" checked="{{.num}}" /> Number<br/>
+        <input type="checkbox" checked="{{.hiline}}" /> highlight active<br/>
+        <select value="{{.keys}}">
+          <option value="default">(none)</option>
+          <option>vim</option>
+          <option>emacs</option>
+        </select>
+      </div>
+      <div as-codemirror="{ bind: '.text', lineWrapping: .wrap, lineNumbers: .num, styleActiveLine: .hiline, keyMap: .keys }" style-height="100%" style-overflow=hidden></div>
+    </split>
+  </tab>
+</tabs>
+
+<script>
+  import { Window } from 'cmp/Window';
+  import Split from 'cmp/Split';
+  import cm from 'cmp/codemirror';
+  import JSONEditor from 'cmp/JSONEditor';
+
+  export default class CodeMirrorEditor extends Window {
+    constructor(opts) { super(opts); }
+  }
+
+  Window.extendWith(CodeMirrorEditor, {
+    template: $TEMPLATE, css: $CSS,
+    use: [cm({ tabSize: 2, indentWithTabs: false, inputStyle: 'password' }).plugin, JSONEditor(), Split()],
+    options: {
+      id: 'Codemirror',
+      title: 'Decorators :: CodeMirror',
+      width: '40em', height: '30em',
+      resizable: true
+    }
+  });
+</script>
+
+
