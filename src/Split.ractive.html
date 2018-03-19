@@ -356,28 +356,10 @@
   .rsplit > .rsplit-sep .rsplit-sep-min-btn {
     display: inline-block;
     border-style: solid;
-    border-top-color: transparent;
-    border-left-color: transparent;
     position: relative;
     width: 0;
     height: 0;
     box-sizing: border-box;
-  }
-
-  .rsplit.rsplit-horizontal > .rsplit-sep .rsplit-sep-max-btn {
-    transform: rotate(45deg);
-  }
-
-  .rsplit.rsplit-horizontal > .rsplit-sep .rsplit-sep-min-btn {
-    transform: rotate(-135deg);
-  }
-
-  .rsplit.rsplit-vertical > .rsplit-sep .rsplit-sep-max-btn {
-    transform: rotate(-45deg);
-  }
-
-  .rsplit.rsplit-vertical > .rsplit-sep .rsplit-sep-min-btn {
-    transform: rotate(135deg);
   }
 </style>
 
@@ -404,23 +386,35 @@
 
   .rsplit > .rsplit-sep .rsplit-sep-max-btn,
   .rsplit > .rsplit-sep .rsplit-sep-min-btn {
-    border-width: ${(data('split.handle.width') || 14) / 3}px;
+    border-width: ${(data('split.handle.width') || 14) / 2}px;
   }
 
   .rsplit.rsplit-horizontal > .rsplit-sep .rsplit-sep-max-btn {
-    bottom: ${(data('split.handle.width') || 14) / 3}px;
+    top: ${(data('split.handle.width') || 14) / 4}px;
+    border-right-color: transparent;
+    border-bottom-color: transparent;
+    border-left-color: transparent;
   }
 
   .rsplit.rsplit-horizontal > .rsplit-sep .rsplit-sep-min-btn {
-    top: ${(data('split.handle.width') || 14) / 6}px;
+    bottom: ${(data('split.handle.width') || 14) / 4}px;
+    border-top-color: transparent;
+    border-right-color: transparent;
+    border-left-color: transparent;
   }
 
   .rsplit.rsplit-vertical > .rsplit-sep .rsplit-sep-max-btn {
-    right: ${(data('split.handle.width') || 14) / 6}px;
+    left: ${(data('split.handle.width') || 14) / 4}px;
+    border-top-color: transparent;
+    border-right-color: transparent;
+    border-bottom-color: transparent;
   }
 
   .rsplit.rsplit-vertical > .rsplit-sep .rsplit-sep-min-btn {
-    left: ${(data('split.handle.width') || 14) / 6}px;
+    right: ${(data('split.handle.width') || 14) / 4}px;
+    border-top-color: transparent;
+    border-bottom-color: transparent;
+    border-left-color: transparent;
   }
   `;
 </script>
