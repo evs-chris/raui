@@ -1,20 +1,74 @@
 <tabs flat pad class-secondary height=dynamic>
   <tab title=Intro><marked>
-    TODO
+    An `AppBar` is a pretty simple component. It's designed to go across the top (or bottom if you're feeling funky) of an app and have a little information about the rest of what's on the screen along with whatever interactive elements are needed, like a hamburger to get at a nav menu or a kebab to get at a popup menu. An AppBar can be used at the top of a window host to show the window title and controls when the window is maximized - either via user action or responsive constraint. The AppBar can also show a "wait spinner" in the form of a gradient line across the bottom so you can give the user some visual feedback that _something_ is happening.
+
+    The AppBar consists of three sections, `left`, `center`, and `right` that can hold whatever you need to put in them, including nothing. They are positioned using flexbox, wherein the left and right containers grow as much as possible to keep the center centered.
   </marked></tab>
   <tab title=Usage><marked>
+    ### Plugin Options
 
+    All options are optional.
+
+    * `name: string = 'app-bar'` - the name to use when registering the component as a plugin
+
+    ### Children
+
+    All children are optional.
+
+    Children are simply nodes that are nested immediately within the content of the component tag e.g. `<app-bar><left>...</left></app-bar>`, where `left` is the only child of `app-bar`.
+
+    Children's templates are yielded, so any interpolators or events within their templates happen in the context of the caller. This means that with `<app-bar><center>{{.title}}</center></app-bar><input value="{{.title}}" />` in your template, changing the value of the input will also change the title in the AppBar.
+
+    * `<left>` - content to go on the left side of the AppBar
+    * `<center>` - content to go in the center of the AppBar
+    * `<right>` - content to go on the right side of the AppBar
+
+    ### API
+
+    * `wait(wait: boolean)` - show or hide the wait spinner
+    * `waiting: boolean` - gets/sets whether the wait spinner is showing
   </marked></tab>
   <tab title=Example>
-    
+    <marked>
+      ### Template:
+      ```
+      <app-bar>
+        <left>Left</left>
+        <center>Center</center>
+        <right>Right</right>
+      </app-bar>
+      ```
+      ### Result
+    </marked>
+    <app-bar>
+      <left>Left</left>
+      <center>Center</center>
+      <right>Right</right>
+    </app-bar>
+
+    <marked>
+      ***
+      ### Template:
+      ```
+      <app-bar waiting>
+        <center>Something is happening...</center>
+      </app-bar>
+      ```
+      ### Result
+    </marked>
+    <app-bar waiting>
+      <center>Something is happening...</center>
+    </app-bar>
   </tab>
 </tabs>
 
 <script>
   import { Window } from 'cmp/Window';
+  import appbar from 'cmp/AppBar';
 
   export default Window.extend({
     template: $TEMPLATE,
+    use: [appbar()],
     options: {
       title: 'Component :: AppBar',
       resizable: true, flex: true,

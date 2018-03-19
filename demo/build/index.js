@@ -1,6 +1,6 @@
-System.register(['ractive', './chunk1.js', './chunk2.js', './chunk3.js', './chunk4.js', './Hello.ractive.html.js'], function (exports, module) {
+System.register(['ractive', './chunk1.js', './chunk2.js', './chunk3.js', './chunk4.js', './chunk5.js', './Hello.ractive.html.js'], function (exports, module) {
   'use strict';
-  var Ractive$1, left, right, globalRegister, Host, Menu, style, Hello;
+  var Ractive$1, left, right, globalRegister, Host, AppBar, Menu, style, Hello;
   return {
     setters: [function (module) {
       Ractive$1 = module.default;
@@ -10,6 +10,8 @@ System.register(['ractive', './chunk1.js', './chunk2.js', './chunk3.js', './chun
     }, function (module) {
       globalRegister = module.default;
       Host = module.default$1;
+    }, function (module) {
+      AppBar = module.default;
     }, function (module) {
       Menu = module.default;
     }, function (module) {
@@ -198,70 +200,11 @@ System.register(['ractive', './chunk1.js', './chunk2.js', './chunk3.js', './chun
 
         globalRegister('RMShell', 'components', Shell);
 
-      var AppBar = (function (Ractive) {
-          function AppBar(opts) { Ractive.call(this, opts); }
-
-          if ( Ractive ) AppBar.__proto__ = Ractive;
-          AppBar.prototype = Object.create( Ractive && Ractive.prototype );
-          AppBar.prototype.constructor = AppBar;
-
-          var prototypeAccessors = { waiting: { configurable: true } };
-
-          prototypeAccessors.waiting.get = function () { return this.get('waiting'); };
-          prototypeAccessors.waiting.set = function (show) { this.add('waiting', show ? 1 : -1); };
-          AppBar.prototype.wait = function wait (show) { this.waiting = show; };
-
-          Object.defineProperties( AppBar.prototype, prototypeAccessors );
-
-          return AppBar;
-        }(Ractive$1));
-
-        Ractive$1.extendWith(AppBar, {
-          template: {v:4,t:[{t:7,e:"div",m:[{n:"class-rappbar",t:13},{t:16,r:"extra-attributes"}],f:["\n  ",{t:7,e:"div",m:[{n:"class-rappbar-left",t:13}],f:[{t:4,f:[{t:16,r:"._leftP"}],n:50,r:"._leftP"}]},"\n  ",{t:7,e:"div",m:[{n:"class-rappbar-center",t:13}],f:[{t:4,f:[{t:16,r:"._centerP"}],n:50,r:"._centerP"}]},"\n  ",{t:7,e:"div",m:[{n:"class-rappbar-right",t:13}],f:[{t:4,f:[{t:16,r:"._rightP"}],n:50,r:"._rightP"}]},"\n  ",{t:7,e:"div",m:[{n:"class-rappbar-wait",t:13},{n:"class-waiting",t:13,f:[{t:2,r:"waiting"}]}]},"\n"]}]},
-          css: function(data) { return [(function(data) {
-
-
-
-        return ("\n\n  .rappbar {\n\n    display: flex;\n\n    padding: 1em;\n\n    background-color: " + (data('appbar.bg') || data('bg2') || '#07e') + ";\n\n    color: " + (data('appbar.fg') || data('fg2') || '#f9f9f9') + ";\n\n    position: relative;\n\n  }\n\n\n\n  .rappbar-left {\n\n    flex-grow: 3;\n\n    display: flex;\n\n    justify-content: flex-start;\n\n  }\n\n\n\n  .rappbar-right {\n\n    flex-grow: 3;\n\n    display: flex;\n\n    justify-content: flex-start;\n\n  }\n\n\n\n  .rappbar-center {\n\n    flex-shrink: 1;\n\n  }\n\n\n\n  .rappbar-wait {\n\n    position: absolute;\n\n    bottom: 0;\n\n    left: 0;\n\n    width: 100%;\n\n    height: 0.5em;\n\n    opacity: 0;\n\n    transition: opacity 0.3s ease-in-out;\n\n    background: linear-gradient(to left, " + (data('appbar.wait.color1') || 'rgba(255, 255, 255, 0.7)') + ", " + (data('appbar.wait.color2') || 'rgba(0, 0, 0, 0.1)') + ", " + (data('appbar.wait.color1') || 'rgba(255, 255, 255, 0.7)') + ");\n\n    background-size: 600% 600%;\n\n    animation: rappbar-roll 10s linear infinite;\n\n    animation-play-state: paused;\n\n  }\n\n\n\n  .rappbar-wait.waiting {\n\n    opacity: 1;\n\n    animation-play-state: running;\n\n  }\n\n\n\n  @keyframes rappbar-roll {\n\n    0% { background-position: 0% 50%; }\n\n    50% { background-position: 100% 50%; }\n\n    100% { background-position: 0% 50%; }\n\n  }\n\n  ");
-
-
-      }).call(this, data)].join(' '); },
-          cssId: 'appbar',
-          attributes: ['waiting'],
-          data: function data() { return { waiting: 0 }; },
-          on: {
-            config: function config() {
-              var this$1 = this;
-
-              var tpl = this.partials.content;
-              if (tpl) {
-                tpl.forEach(function (e) {
-                  if (e.e === 'left') { this$1.set('_leftP', { t: e.f }); }
-                  if (e.e === 'center') { this$1.set('_centerP', { t: e.f }); }
-                  if (e.e === 'right') { this$1.set('_rightP', { t: e.f }); }
-                });
-              }
-            }
-          }
-        });
-
-        globalRegister('RMAppBar', 'components', AppBar);
-
-        function plugin$1(opts) {
-          if ( opts === void 0 ) opts = {};
-
-          return function(ref) {
-            var instance = ref.instance;
-
-            instance.components[opts.name || 'app-bar'] = AppBar;
-          }
-        }
-
       Ractive.styleSet('window.maxFrom', '60em');
 
         var App = Ractive.extend({
           template: {v:4,t:[{t:7,e:"shell",f:["\n  ",{t:7,e:"left",m:[{n:"hidden",t:13,f:[{t:2,r:"menu.hidden"}]}],f:["\n    ",{t:7,e:"menu",f:["\n      ",{t:7,e:"container",m:[{n:"pad",f:0,t:13},{n:"class-logo",t:13}],f:[{t:7,e:"h1",m:[{n:"style-text-align",f:"center",t:13}],f:[{t:7,e:"img",m:[{n:"src",f:"./raui.svg",t:13},{n:"alt",f:"raui logo",t:13}]},"RaUI"]}]},"\n      ",{t:7,e:"item",m:[{n:"ref",f:"Hello",t:13}],f:[{t:7,e:"h3",f:["Welcome"]}]},"\n      ",{t:7,e:"item",m:[{n:"open",f:0,t:13}],f:[{t:7,e:"h3",f:["Components"]},"\n        ",{t:7,e:"item",m:[{n:"ref",f:"AppBar",t:13}],f:["AppBar"]},"\n        ",{t:7,e:"item",m:[{n:"ref",f:"Card",t:13}],f:["Card"]},"\n        ",{t:7,e:"item",m:[{n:"ref",f:"JSONEditor",t:13}],f:["JSON Editor"]},"\n        ",{t:7,e:"item",m:[{n:"ref",f:"Menu",t:13}],f:["Menu"]},"\n        ",{t:7,e:"item",m:[{n:"ref",f:"Shell",t:13}],f:["Shell"]},"\n        ",{t:7,e:"item",m:[{n:"ref",f:"Split",t:13}],f:["Split"]},"\n        ",{t:7,e:"item",m:[{n:"ref",f:"Table",t:13}],f:["Table"]},"\n        ",{t:7,e:"item",m:[{n:"ref",f:"Tabs",t:13}],f:["Tabs"]},"\n        ",{t:7,e:"item",m:[{n:"ref",f:"Toggle",t:13}],f:["Toggle"]},"\n        ",{t:7,e:"item",m:[{n:"ref",f:"Window",t:13}],f:["Window"]},"\n      "]},"\n      ",{t:7,e:"item",m:[{n:"open",f:0,t:13}],f:[{t:7,e:"h3",f:["Decorators"]},"\n        ",{t:7,e:"item",m:[{n:"ref",f:"AceEditor",t:13}],f:["Ace Editor"]},"\n        ",{t:7,e:"item",m:[{n:"ref",f:"CodeMirror",t:13}],f:["CodeMirror"]},"\n        ",{t:7,e:"item",m:[{n:"ref",f:"Form",t:13}],f:["Form"]},"\n        ",{t:7,e:"item",m:[{n:"ref",f:"Grid",t:13}],f:["Grid"]},"\n        ",{t:7,e:"item",m:[{n:"ref",f:"Marked",t:13}],f:["Marked"]},"\n        ",{t:7,e:"item",m:[{n:"ref",f:"MaskedInput",t:13}],f:["Masked Input"]},"\n        ",{t:7,e:"item",m:[{n:"ref",f:"ScrollSpy",t:13}],f:["Scroll Spy"]},"\n      "]},"\n      ",{t:7,e:"item",m:[{n:"open",f:0,t:13}],f:[{t:7,e:"h3",f:["Events"]},"\n        ",{t:7,e:"item",m:[{n:"ref",f:"Click",t:13}],f:["Click"]},"\n        ",{t:7,e:"item",m:[{n:"ref",f:"Keys",t:13}],f:["Keys"]},"\n        ",{t:7,e:"item",m:[{n:"ref",f:"Swipe",t:13}],f:["Swipe"]},"\n      "]},"\n      ",{t:7,e:"item",m:[{n:"open",f:0,t:13}],f:[{t:7,e:"h3",f:["Transitions"]},"\n        ",{t:7,e:"item",m:[{n:"ref",f:"Expand",t:13}],f:["Expand"]},"\n        ",{t:7,e:"item",m:[{n:"ref",f:"Fade",t:13}],f:["Fade"]},"\n      "]},"\n      ",{t:7,e:"item",m:[{n:"open",f:0,t:13}],f:[{t:7,e:"h3",f:["Helpers"]},"\n        ",{t:7,e:"item",m:[{n:"ref",f:"Button",t:13}],f:["Button"]},"\n        ",{t:7,e:"item",m:[{n:"ref",f:"Toast",t:13}],f:["Toast"]},"\n      "]},"\n    "]},"\n  "]},"\n  ",{t:7,e:"center",m:[{n:"class-app-center",t:13}],f:["\n",{t:4,f:["      ",{t:7,e:"app-bar",f:["\n        ",{t:7,e:"left",f:[{t:7,e:"div",m:[{n:"class-hamburger",t:13},{n:["click"],t:70,f:{r:["@this"],s:"[_0.toggle(\"menu.hidden\")]"}}],f:["☰"]}]},"\n      "]},"\n"],n:51,r:"win.max"},"    ",{t:7,e:"host",m:[{n:"windows",t:13,f:[{t:2,r:"windows"}]},{n:"placement",f:"smart",t:13}],f:["\n      ",{t:7,e:"max-top",f:["\n        ",{t:7,e:"app-bar",f:["\n          ",{t:7,e:"left",f:[{t:7,e:"div",m:[{n:"class-hamburger",t:13},{n:["click"],t:70,f:{r:["@this"],s:"[_0.toggle(\"menu.hidden\")]"}}],f:["☰"]}]},"\n          ",{t:7,e:"center",f:[{t:2,r:"window.title"}]},"\n          ",{t:7,e:"right",f:[{t:8,r:"windowControls"}]},"\n        "]},"\n      "]},"\n    "]},"\n  "]},"\n"]}],e:{"[_0.toggle(\"menu.hidden\")]":function (_0){return([_0.toggle("menu.hidden")]);}}},
-          use: [plugin$1(), Host(), Menu(), plugin()],
+          use: [AppBar(), Host(), Menu(), plugin()],
           on: {
             init: function init() {
               var this$1 = this;
@@ -599,7 +542,7 @@ System.register(['ractive', './chunk1.js', './chunk2.js', './chunk3.js', './chun
           return false;
         }
 
-        function plugin$2(opts) {
+        function plugin$1(opts) {
           if ( opts === void 0 ) opts = {};
 
           return function(ref) {
@@ -611,7 +554,7 @@ System.register(['ractive', './chunk1.js', './chunk2.js', './chunk3.js', './chun
 
         globalRegister('RMTabs', 'components', Tabs);
 
-      function plugin$3(options) {
+      function plugin$2(options) {
         if ( options === void 0 ) options = {};
 
         var lib = options.marked || window.marked;
@@ -742,7 +685,7 @@ System.register(['ractive', './chunk1.js', './chunk2.js', './chunk3.js', './chun
         return { teardown: noop };
       }
 
-      function plugin$4(opts) {
+      function plugin$3(opts) {
         if ( opts === void 0 ) opts = {};
 
         return function(ref) {
@@ -774,9 +717,9 @@ System.register(['ractive', './chunk1.js', './chunk2.js', './chunk3.js', './chun
       globalRegister('autofocus', 'decorators', autofocus);
 
       Ractive$1.use(
-        plugin$3(),
-        plugin$4({ includeStyle: true }),
-        plugin$2()
+        plugin$2(),
+        plugin$3({ includeStyle: true }),
+        plugin$1()
       );
 
       var app = window.app = new App({ target: '#target' });
