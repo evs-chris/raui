@@ -3,26 +3,26 @@ const distance = 5;
 const timeout = 400;
 const between = 250;
 
-export default function makeClick(name, count, hold, delay = between, bubble = false) {
+export default function makeClick(opts = {}) {
   return function setup({ Ractive, instance }) {
-    instance.events[name] = function clicks(node, fire) {
+    instance.events[opts.name || `${opts.count||1}click`] = function clicks(node, fire) {
       let handler;
       if (handler = node.__r_clicks__) {
-        handler.subscribe(count, !!hold, fire);
+        handler.subscribe(opts.count, !!opts.hold, fire);
       } else {
-        handler = new Handler(Ractive.getContext(node), delay, bubble);
+        handler = new Handler(Ractive.getContext(node), opts.delay || between, opts.bubble || false);
         node.__r_clicks__ = handler;
-        handler.subscribe(count, !!hold, fire);
+        handler.subscribe(opts.count, !!opts.hold, fire);
       }
 
-      return { teardown() { handler.unsubscribe(count, !!hold, fire); } };
+      return { teardown() { handler.unsubscribe(opts.count, !!opts.hold, fire); } };
     }
   }
 }
 
-export const click = makeClick('click', 1);
-export const dblclick = makeClick('dblclick', 2);
-export const trpclick = makeClick('trpclick', 3);
+export const click = makeClick({ name: 'click', count: 1 });
+export const dblclick = makeClick({ name: 'dblclick', count: 2 });
+export const trpclick = makeClick({ name: 'trpclick', count: 3 });
 
 class Handler {
   constructor(context, delay, bubble) {

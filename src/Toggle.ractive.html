@@ -17,7 +17,7 @@
 
   const template = $TEMPLATE;
 
-  const Toggle = Ractive.macro(
+  export const Toggle = Ractive.macro(
     ( handle, attrs ) => {
       const obj = {
         observers: [],
@@ -30,20 +30,22 @@
       handle.aliasLocal('__toggle');
 
       let lock = false;
-      obj.observers.push(handle.observe(attrs.value, v => {
-        if (!lock) {
-          lock = true;
-          handle.set('@local._value', v);
-          lock = false;
-        }
-      }));
-      obj.observers.push(handle.observe('@local._value', v => {
-        if (!lock) {
-          lock = true;
-          handle.set(handle.attributes.value, v);
-          lock = false;
-        }
-      }));
+      if (attrs.value) {
+        obj.observers.push(handle.observe(attrs.value, v => {
+          if (!lock) {
+            lock = true;
+            handle.set('@local._value', v);
+            lock = false;
+          }
+        }));
+        obj.observers.push(handle.observe('@local._value', v => {
+          if (!lock) {
+            lock = true;
+            handle.set(handle.attributes.value, v);
+            lock = false;
+          }
+        }));
+      }
 
       handle.set('@local', attrs, { deep: true });
 
@@ -76,9 +78,15 @@
     }
   );
 
+  export function plugin(opts = {}) {
+    return function({ instance }) {
+      instance.partials[opts.name || 'toggle'] = Toggle;
+    }
+  }
+
   globalRegister('RMToggle', 'partials', Toggle);
 
-  export default Toggle;
+  export default plugin;
 </script>
 
 <script rel="css" data-name="d">

@@ -1,6 +1,6 @@
 import globalRegister from './globalRegister';
 
-export default function fade(t, params) {
+export function fade(t, params) {
   const p = t.processParams(params, { duration: 200, easing: 'easeInOut' });
   if (t.isIntro) {
     t.setStyle('opacity', 0);
@@ -11,4 +11,12 @@ export default function fade(t, params) {
   }
 }
 
+export function plugin(opts = {}) {
+  return function({ instance }) {
+    instance.transitions[opts.name || 'fade'] = fade;
+  }
+}
+
 globalRegister('fade', 'transitions', fade);
+
+export default plugin;

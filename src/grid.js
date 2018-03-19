@@ -115,24 +115,29 @@ export function grid(node, options) {
   };
 }
 
-export function style(data) {
-  const defs = data('break') || defaults;
+export function style(data, optDefaults) {
+  const defs = data('break') || optDefaults || defaults;
 
   let out = `.row > * { position: relative; width: 100%; transition-duration: 0.2s; transition-timing-function: ease-in-out; transition-property: width, padding, margin; box-sizing: border-box; }
 .grid { display: block; }
-.grid > .row { display: flex; flex-wrap: wrap; min-height: fit-content; }
-.grid > .row > .pad { display: flex; flex-direction: column; padding: 0.5em; box-sizing: border-box; }`;
+.grid .row { display: flex; flex-wrap: wrap; min-height: fit-content; width: 100%; }
+.grid .row.row-pad > * { padding: ${data('grid.padding') || '0.5em'}; }
+.grid .row > .pad { display: flex; flex-direction: column; padding: ${data('grid.padding') || '0.5em'}; box-sizing: border-box; }`;
 
   let str;
 
   const points = Object.keys(defs).map(k => (defs[k].key = k) && defs[k]);
   points.sort((l, r) => l.value > r.value ? 1 : l.value < r.value ? -1 : 0);
   const greater = {};
+
+
   points.reverse().reduce((a, c) => {
     a.push(c.key);
     greater[c.key] = a.slice();
     return a;
   }, []);
+
+  let rows = '', cols = '';
   points.reverse().forEach(size => {
     const name = size.prefix || size.key[0];
 
@@ -142,14 +147,40 @@ export function style(data) {
       for (let i = 1; i < u; i++) {
         str = '' + ((i / u) * 100);
         str = str.substr(0, str.indexOf('.') + 3);
-        out += `\n${greater[size.key].map(s => `.${s} .${name}${i}-${u}`).join(', ')} { width: ${str}%; }`;
+        rows += `\n${greater[size.key].map(s => `.${s} .row-${name}${i}-${u} > *`).join(', ')} { width: ${str}%; }`;
+        cols += `\n${greater[size.key].map(s => `.${s} .${name}${i}-${u}, .${s} .row > .${name}${i}-${u}`).join(', ')} { width: ${str}%; }`;
       }
     });
   });
+
+  out += rows + cols;
 
   return out;
 }
 
 grid.style = style;
 
+export function plugin(opts = {}) {
+  return function({ Ractive, instance }) {
+    // if an extension, offer to include style
+    if (!Ractive.isInstance(instance)) {
+      if (opts.includeStyle) {
+        if (instance === Ractive) {
+          Ractive.addCSS('grid-decorator', style);
+        } else {
+          const css = instance.css;
+          instance.css = function(data) {
+            const res = typeof css !== "function" ? css || "" : css(data);
+            return res + style(data, opts.defaults);
+          };
+        }
+      }
+    }
+
+    instance.decorators[opts.name || 'grid'] = grid;
+  }
+}
+
 globalRegister('grid', 'decorators', grid);
+
+export default plugin;

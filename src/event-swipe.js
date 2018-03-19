@@ -1,5 +1,4 @@
 // based on ractive-event-tap
-
 const abs = Math.abs;
 
 export default function makeSwipe(name, direction = 'right', distance = 150, flick = 200, threshold = 0.2) {
@@ -216,7 +215,7 @@ class Handler {
     const y = touch.clientY;
 
     if (this.hasBounds && !this.checkBounds(x, y)) return;
-
+    
     const finger = touch.identifier;
 
     const handleTouchup = event => {
@@ -246,6 +245,15 @@ class Handler {
 
       const touch = event.touches[0];
 
+      if (event.cancelable) {
+        const distX = touch.clientX - x;
+        const distY = touch.clientY - y;
+        if (abs(distX) > abs(distY)) {
+          if (distX > 0 && this.fires.find(f => f.direction === 'right')) event.preventDefault();
+          if (distX < 0 && this.fires.find(f => f.direction === 'left')) event.preventDefault();
+        }
+      }
+
       if (this.hasBinding) {
         this.updateBindings(x, y, touch.clientX, touch.clientY);
       }  
@@ -253,12 +261,12 @@ class Handler {
 
     const cancel = () => {
       this.node.removeEventListener('touchend', handleTouchup, false);
-      window.removeEventListener('touchmove', handleTouchmove, false);
+      window.removeEventListener('touchmove', handleTouchmove, { passive: false, capture: false });
       window.removeEventListener('touchcancel', cancel, false);
     };
 
     this.node.addEventListener('touchend', handleTouchup, false);
-    window.addEventListener('touchmove', handleTouchmove, false);
+    window.addEventListener('touchmove', handleTouchmove, { passive: false, capture: false });
     window.addEventListener('touchcancel', cancel, false);
   }
 

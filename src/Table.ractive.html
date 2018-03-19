@@ -59,7 +59,7 @@
 </template>
 
 <template id="empty">
-  No data.
+  <div><div>No data.</div></div>
 </template>
 
 <template id="csp-dummy">
@@ -82,7 +82,7 @@
 
   const sortRE = /^([-+])?([^\s]+)$/;
 
-  class Table extends Ractive {
+  export class Table extends Ractive {
     constructor(opts) { super(opts); }
 
     allSelected() {
@@ -213,7 +213,8 @@
     },
     syncComputedChildren: true,
     decorators: { grid },
-    use: [click('clickd', 1), click('dblclickd', 2)],
+    events: {},
+    use: [click({ name: 'clickd', count: 1 }), click({ name: 'dblclickd', count: 2 }), expand()],
     on: {
       construct,
       config() {
@@ -553,6 +554,7 @@
       const header = [{ t: 7, e: 'tr', m: [{ t: 13, n: 'class-rtable-header' }], f: columns.filter(c => c.hidden !== true).map(c => {
         const th = { t: 7, e: 'th', f: c.label, m: [{ t: 13, n: 'class-rtable-header' }, { t: 4, n: 53, r: `~/columns.${c.index}`, f: [{ t: 70, n: ['click'], f: { r: ['@this', '.index', '@event'], s: sortKey } }] }].concat(c.attrs) };
         if (c.type) th.m.push({ t: 13, n: `class-rtable-${c.type}-column` });
+        if (c.filter || c.sort) th.m.push({ t: 13, n: 'class-rtable-sortable' });
         let res = th;
 
         if (c.hidden && c.hidden.r) {
@@ -586,7 +588,7 @@
 
       // select
       row[0].f.unshift({
-        t: 4, n: 50, r: '~/allowSelect', f: [{ t: 7, e: 'th', m: [{ t: 13, n: 'class-rtable-select-row' }], f: [{ t: 7, e: 'input', m: [{ t: 73, v: 't', f: 'false' }, { t: 13, n: 'type', f: 'checkbox' }, { t: 13, n: 'checked', f: [{ t: 2, x: { r: ['~/selections', '.'], s: '~_0.indexOf(_1)' } }] }, { t: 70, n: ['click'], f: { r: ['@this', '.', '@event'], s: '[_0._select(_1,_2),false]' } }, { t: 13, n: 'class-rtable-select' }] }] }]
+        t: 4, n: 50, r: '~/allowSelect', f: [{ t: 7, e: 'th', m: [{ t: 13, n: 'class-rtable-select-row' }, { t: 70, n: ['click'], f: { r: ['@this', '.', '@event'], s: '[_0._select(_1,_2),false]' } }], f: [{ t: 7, e: 'input', m: [{ t: 73, v: 't', f: 'false' }, { t: 13, n: 'type', f: 'checkbox' }, { t: 13, n: 'checked', f: [{ t: 2, x: { r: ['~/selections', '.'], s: '~_0.indexOf(_1)' } }] }, { t: 13, n: 'class-rtable-select' }] }] }]
       });
 
       this._table_row = row;
@@ -598,6 +600,7 @@
       const header = [{ t: 7, e: 'div', f: columns.filter(c => c.hidden !== true).map(c => {
         const div = { t: 7, e: 'div', f: [{ t: 7, e: 'div', f: c.label }], m: [{ t: 4, n: 53, r: `~/columns.${c.index}`, f: [{ t: 70, n: ['click'], f: { r: ['@this', '.index', '@event'], s: sortKey } }] }, { t: 13, n: 'title', f: c.label }].concat(c.attrs.filter(a => a.n !== 'title')) };
         if (c.type) div.m.push({ t: 13, n: `class-rtable-${c.type}-column` });
+        if (c.filter || c.sort) div.m.push({ t: 13, n: 'class-rtable-sortable' });
         let res = div;
 
         if (c.hidden && c.hidden.r) {
@@ -634,7 +637,7 @@
 
       // select
       row[0].f.unshift({
-        t: 4, n: 50, r: '~/allowSelect', f: [{ t: 7, e: 'div', m: [{ t: 13, n: 'class-rtable-select-row' }], f: [{ t: 7, e: 'div', f: [{ t: 7, e: 'input', m: [{ t: 73, v: 't', f: 'false' }, { t: 13, n: 'type', f: 'checkbox' }, { t: 13, n: 'checked', f: [{ t: 2, x: { r: ['~/selections', '.'], s: '~_0.indexOf(_1)' } }] }, { t: 70, n: ['click'], f: { r: ['@this', '.', '@event'], s: '[_0._select(_1,_2),false]' } }, { t: 13, n: 'class-rtable-select' }] }] }] }]
+        t: 4, n: 50, r: '~/allowSelect', f: [{ t: 7, e: 'div', m: [{ t: 13, n: 'class-rtable-select-row' }, { t: 70, n: ['clickd'], f: { r: ['@this', '.', '@event'], s: '[_0._select(_1,_2),false]' } }], f: [{ t: 7, e: 'div', f: [{ t: 7, e: 'input', m: [{ t: 73, v: 't', f: 'false' }, { t: 13, n: 'type', f: 'checkbox' }, { t: 13, n: 'checked', f: [{ t: 2, x: { r: ['~/selections', '.'], s: '~_0.indexOf(_1)' } }] }, { t: 13, n: 'class-rtable-select' }] }] }] }]
       });
 
       // expando rows
@@ -650,9 +653,16 @@
     }
   }
 
+  export function plugin(opts = {}) {
+    return function({ Ractive, instance }) {
+      if ('includeGrid' in opts) Ractive.styleSet('table.inclideGrid', opts.includeGrid);
+      instance.components[opts.name || 'data-table'] = Table;
+    }
+  }
+
   globalRegister('RMTable', 'components', Table);
 
-  export default Table;
+  export default plugin;
 </script>
 
 <script rel="css">
@@ -718,6 +728,11 @@
     padding: 0.3em 0.5em 1em 0.5em;
   }
 
+  .rtable-sortable {
+    cursor: pointer;
+    user-select: none;
+  }
+
   .rtable-row {
     color: ${data('table.fg') || data('fg1') || '#000'};
     border-bottom: 1px solid ${data('table.divider') || data('table.fg') || data('fg1') || '#ddd'};
@@ -758,6 +773,10 @@
     justify-content: space-between;
   }
 
+  .rtable-bottom > * {
+    padding: 0.5em;
+  }
+
   .rtable-pages span {
     margin: 0.3em;
     cursor: pointer;
@@ -785,7 +804,7 @@
   .rtable-select:before {
     content: '';
     display: block;
-    border: 2px solid ${data('fg1') || '#222'};
+    border: 2px solid ${data('table.fg') || data('fg1') || '#222'};
     width: 1em;
     height: 1em;
     box-sizing: border-box;
@@ -806,7 +825,7 @@
     width: 2.5em;
   }
   .rtable-select-header .rtable-select:checked:before {
-    border-color: ${data('fg1') || '#222'};
+    border-color: ${data('table.fg') || data('fg1') || '#222'};
     border-top-color: transparent;
     border-right-color: transparent;
   }

@@ -18,9 +18,7 @@
         class-rtabs-trans-slide
       {{/if}}
     >
-      <div class-rtabs-contents style-opacity="{{~/opacity}}" style-left="{{.selectedContent * -100}}%" class-rtabs-pad="~/pad">
-        {{#each .tabs}}{{>tab-content}}{{/each}}
-      </div>
+      <div class-rtabs-contents style-opacity="{{~/opacity}}" style-left="{{.selectedContent * -100}}%" class-rtabs-pad="~/pad">{{#each .tabs}}{{>tab-content}}{{/each}}</div>
     </div>
   </div>
 </div>
@@ -39,8 +37,7 @@
   </div>
 </template>
 
-<template id="tab-content">
-  {{#if !.button}}<div
+<template id="tab-content">{{#if !.button}}<div
       class-rtabs-tab-content
       class-rtabs-selected-content="~/selectedContent === @index"
       class-rtabs-dyna="~/height === 'dynamic'"
@@ -50,8 +47,7 @@
       on-focus="@.checkSelection(@context, @index)"
     >
       {{yield .template}}
-    </div>{{else}}<div class-rtabs-placeholder />{{/if}}
-</template>
+    </div>{{else}}<div class-rtabs-placeholder />{{/if}}</template>
 
 <script>
   import Ractive from 'ractive';
@@ -60,7 +56,7 @@
   let resizer;
   const instances = [];
 
-  class Tabs extends Ractive {
+  export class Tabs extends Ractive {
     constructor(opts) {
       super(opts);
     }
@@ -277,9 +273,15 @@
     return false;
   }
 
+  export function plugin(opts = {}) {
+    return function({ instance }) {
+      instance.components[opts.name || 'tabs'] = Tabs;
+    }
+  }
+
   globalRegister('RMTabs', 'components', Tabs);
 
-  export default Tabs;
+  export default plugin;
 </script>
 
 <script rel="css">
@@ -333,7 +335,7 @@
     bottom: 0px;
     width: 100%;
     display: block;
-    background-color: ${data('tabs.tab.fg') || data('bga1') || '#222'};
+    background-color: ${data('tabs.tab.fg') || data('bga1') || '#ccc'};
   }
   .rtabs-flat.secondary > .rtabs-tab-window:after {
     background-color: ${data('tabs.tab.fg') || data('bga2') || '#07e'};
@@ -420,7 +422,7 @@
     position: absolute;
     bottom: 0;
     height: 0.15em;
-    background-color: ${data('tabs.indicator.color') || data('fga1') || 'darkblue'};
+    background-color: ${data('tabs.indicator.color') || data('fga1') || '#07e'};
     z-index: 2;
   }
 
@@ -534,6 +536,10 @@
   }
   .rtabs-pad > .rtabs-tab-content.rtabs-no-pad {
     padding: 0;
+  }
+  .rtabs > .rtabs-tab-content.rtabs-pad {
+    padding: 1em;
+    box-sizing: border-box;
   }
   `
 </script>

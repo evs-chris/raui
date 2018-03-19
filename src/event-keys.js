@@ -43,4 +43,4 @@ export function tab(instance) {
 }
 
 globalRegister('RMKeyEvent', 'events', keys);
-globalRegister('EMTabEvent', 'events', tab);
+globalRegister('RMTabEvent', 'events', tab);

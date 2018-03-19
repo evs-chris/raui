@@ -2,7 +2,7 @@ import globalRegister from './globalRegister';
 
 const observables = ['value', 'masked', 'display'];
 
-function masked(node, opt1, opt2, opt3) {
+export function masked(node, opt1, opt2, opt3) {
 	const ctx = this.getContext(node);
 
 	let opts;
@@ -164,6 +164,12 @@ masked.defaults = {
 	}
 };
 
+export function plugin(opts = {}) {
+	return function({ instance }) {
+		isntance.decorators[opts.name || 'masked'] = masked;
+	}
+}
+
 globalRegister('masked', 'decorators', masked);
 
-export default masked;
+export default plugin;

@@ -1,6 +1,6 @@
 import globalRegister from './globalRegister';
 
-export default function expand(t, params) {
+export function expand(t, params) {
   const p = t.processParams(params, { duration: 200, easing: 'easeInOut' });
   t.setStyle('overflow', 'hidden');
   const axis = p.axis === 'x' ? 'width' : 'height';
@@ -16,4 +16,12 @@ export default function expand(t, params) {
   }
 }
 
+export function plugin(opts = {}) {
+  return function({ instance }) {
+    instance.transitions[opts.name || 'expand'] = expand;
+  }
+}
+
 globalRegister('expand', 'transitions', expand);
+
+export default plugin;

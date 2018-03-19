@@ -9,7 +9,7 @@
   import Ractive from 'ractive';
   import globalRegister from './globalRegister';
 
-  class AppBar extends Ractive {
+  export class AppBar extends Ractive {
     constructor(opts) { super(opts); }
 
     get waiting() { return this.get('waiting'); }
@@ -39,7 +39,13 @@
 
   globalRegister('RMAppBar', 'components', AppBar);
 
-  export default AppBar;
+  export function plugin(opts = {}) {
+    return function({ instance }) {
+      instance.components[opts.name || 'app-bar'] = AppBar;
+    }
+  }
+
+  export default plugin;
 </script>
 
 <script rel="css">

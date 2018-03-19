@@ -21,12 +21,14 @@
     top: true
   };
 
-  export const style = $CSS;
+  export default function plugin(opts = {}) {
+    const style = $CSS;
+    const template = $TEMPLATE;
 
-  export default {
-    template: $TEMPLATE,
-    apply(proto, options) {
-      const defaults = Object.assign({}, DEFAULTS, options);
+    return function({ instance, proto }) {
+      instance.partials[opts.partial || 'toast'] = template;
+
+      const defaults = Object.assign({}, DEFAULTS, opts);
       const toasts = [];
       let tm;
       let active;
@@ -60,13 +62,9 @@
         });
       }
 
-      proto.transitions = proto.transitions || {};
-      proto.partials = proto.partials || {};
       proto.on = proto.on || {};
 
-      proto.partials.toast = this.template;
-
-      proto.transitions.toast = function(t, ps) {
+      instance.transitions.toast = function(t, ps) {
         const params = t.processParams({ duration: 200 }, ps);
         const opacity = t.getStyle('opacity');
         if (t.isIntro) {
@@ -104,7 +102,7 @@
 
       return proto;
     }
-  };
+  }
 </script>
 
 <script rel="css">

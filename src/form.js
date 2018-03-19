@@ -261,5 +261,30 @@ export function autofocus(node) {
   return { teardown: noop };
 }
 
+export function plugin(opts = {}) {
+  return function({ Ractive, instance }) {
+    // if an extension, offer to include style
+    if (!Ractive.isInstance(instance)) {
+      if (opts.includeStyle) {
+        // handle global use
+        if (instance === Ractive) {
+          Ractive.addCSS('form-decorator', style);
+        } else {
+          const css = instance.css;
+          instance.css = function(data) {
+            const res = typeof css !== 'function' ? (css || '') : css(data);
+            return res + style(data);
+          }
+        }
+      }
+    }
+
+    instance.decorators[opts.name || 'field'] = field;
+    instance.decorators[opts.autofocusName || 'autofocus'] = autofocus;
+  }
+}
+
 globalRegister('field', 'decorators', field);
 globalRegister('autofocus', 'decorators', autofocus);
+
+export default plugin;

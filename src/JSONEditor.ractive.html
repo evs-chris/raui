@@ -163,7 +163,7 @@
     }
   })();
 
-  class JSONEditor extends Ractive {
+  export class JSONEditor extends Ractive {
     constructor(opts) { super(opts); }
 
     renameKey(path, name) {
@@ -297,9 +297,15 @@
     }
   });
 
+  function plugin(opts = {}) {
+    return function({ instance }) {
+      instance.components[opts.name || 'json-editor'] = JSONEditor;
+    }
+  }
+
   globalRegister('RMJSONEditor', 'components', JSONEditor);
 
-  export default JSONEditor;
+  export default plugin;
 </script>
 
 <style>

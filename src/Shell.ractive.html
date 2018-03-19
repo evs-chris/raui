@@ -20,8 +20,8 @@
       {{#if ._center}}
         <div class-rshell-center
           {{#if ._centerA}}{{yield ._centerA}}{{/if}}
-          {{#if ._left}}on-swiperight({maxX:80,bind:'.leftPull'})="@.set('leftHidden', false)"{{/if}}
-          {{#if ._right}}on-swipeleft({minX:-80,bind:'.rightPull'})="@.set('rightHidden', false)"{{/if}}
+          {{#if ._left && .leftHidden}}on-swiperight({maxX:80,bind:'.leftPull'})="@.set('leftHidden', false)"{{/if}}
+          {{#if ._right && .rightHidden}}on-swipeleft({minX:-80,bind:'.rightPull'})="@.set('rightHidden', false)"{{/if}}
         >{{yield ._center}}</div>
       {{/if}}
       {{#if ._right}}
@@ -45,7 +45,7 @@
   import { left as swipeleft, right as swiperight } from './event-swipe';
   import globalRegister from './globalRegister';
 
-  class Shell extends Ractive {
+  export class Shell extends Ractive {
     constructor(opts) { super(opts); }
   }
 
@@ -191,9 +191,15 @@
     matcher();
   }
 
+  export function plugin(opts = {}) {
+    return function({ instance }) {
+      instance.components[opts.name || 'shell'] = Shell;
+    }
+  }
+
   globalRegister('RMShell', 'components', Shell);
 
-  export default Shell;
+  export default plugin;
 </script>
 
 <script rel="css">

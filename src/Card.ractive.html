@@ -8,7 +8,7 @@
 
   const template = $TEMPLATE;
 
-  const Card = Ractive.macro(
+  export const Card = Ractive.macro(
     handle => {
       handle.setTemplate( template );
     }, {
@@ -18,9 +18,15 @@
     }
   );
 
+  export function plugin(opts = {}) {
+    return function({ instance }) {
+      instance.partials[opts.name || 'card'] = Card;
+    };
+  }
+
   globalRegister('RMCard', 'partials', Card);
 
-  export default Card;
+  export default plugin;
 </script>
 
 <script rel="css">

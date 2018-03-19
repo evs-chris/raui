@@ -1,4 +1,4 @@
-export default function button(data) {
+export function button(data) {
   return `
     button, .btn {
       text-decoration: none;
@@ -78,3 +78,11 @@ export default function button(data) {
     }
   `;
 }
+
+export function plugin() {
+  return function({ Ractive }) {
+    if (!Ractive.extraStyles.find(s => s.id === 'ractive-materialish-button')) Ractive.addStyle('ractive-materialish-button', button);
+  };
+}
+
+export default plugin;

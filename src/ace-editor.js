@@ -1,4 +1,4 @@
-export default function(node, options) {
+export function aceEditor(node, options) {
   let handle = {};
 
   const ctx = Ractive.getContext(node);
@@ -10,9 +10,9 @@ export default function(node, options) {
 
   let binding;
   let observer;
-  let listener = ctx.get('@').on('resize', () => {
+  const listener = ctx.get('@.root').on('*.resize', () => {
     editor && editor.resize();
-  });;
+  });
   let lock = false;
 
   session.setUseSoftTabs(false);
@@ -79,3 +79,10 @@ export default function(node, options) {
   return handle;
 };
 
+export function plugin(opts = {}) {
+  return function({ instance }) {
+    instance.decorators[opts.name || 'ace-editor'] = aceEditor;
+  }
+}
+
+export default plugin;

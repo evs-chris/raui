@@ -1,62 +1,256 @@
-<div class-rsplit class-vertical=".vertical" class-horizontal="!.vertical" {{yield extra-attributes}}>
-  <div class="start" {{#if .vertical}}style-width="calc({{size}}% - 6px)"{{else}}style-height="calc({{size}}% - 6px)"{{/if}}>
-    {{yield start}}
-  </div>
-  <div class="sep" class-draggable="!.noDrag" {{#if .vertical}}style-left="calc({{size}}% - 6px)"{{else}}style-top="calc({{size}}% - 6px)"{{/if}} {{#unless .noDrag}}as-sizeHandle=".vertical"{{/unless}}><div class="vsizer"></div><div class="rs-btns">
-    {{#unless .noMax || .maxed === 1 || (.noMaxStart && .maxed !== 2)}}<div on-click=['toStart']>&#9666;</div>{{/unless}}
-    {{#unless .noMax || .maxed === 2 || (.noMaxEnd && .maxed !== 1)}}<div on-click=['toEnd']>&#9656;</div>{{/unless}}
-  </div></div>
-  <div class="end" {{#if .vertical}}style-width="calc({{100 - size}}% - 6px"{{else}}style-height="calc({{100 - size}}% - 6px)"{{/if}}>
-    {{yield end}}
-  </div>
+<div class-rsplit class-rsplit-vertical="vertical" class-rsplit-horizontal="!vertical" class-rsplit-draggable="draggable" {{yield extra-attributes}}>
+  {{#each splits}}
+    <div class-rsplit-split
+      {{#unless ~/dragging}}style-transition="width 0.3s ease-in-out, height 0.3s ease-in-out"{{/unless}}
+      {{#if ~/vertical}}style-width="calc({{.curSize}}% - {{@last * (@style.split.handle.width || 14) / (@last + 1)}}px)"{{else}}style-height="calc({{.curSize}}% - {{@last * (@style.split.handle.width || 14) / (@last + 1)}}px)"{{/if}}
+      {{#if .attrs}}{{yield .attrs}}{{/if}}
+    >
+      {{yield .content}}
+    </div>
+    {{#if @index !== @last}}
+      <div class-rsplit-sep {{#if 'draggable' in . ? .draggable : ~/draggable}}as-sizeHandle="~/vertical, @index"{{/if}}>
+          {{#if 'maximizable' in . ? .maximizable : ~/maximizable && (.min || !../[@index + 1].min)}}<div class-rsplit-sep-max on-click=@.maximize(@index)><div class-rsplit-sep-max-btn /></div>{{/if}}
+          {{#if 'minimizable' in . ? .minimizable : ~/minimizable && !.min}}<div class-rsplit-sep-min on-click=@.minimize(@index)><div class-rsplit-sep-min-btn /></div>{{/if}}
+      </div>
+    {{/if}}
+  {{/each}}
 </div>
 
 <script>
   import Ractive from 'ractive';
   import globalRegister from './globalRegister';
 
-  function sizeHandle(node, vertical) {
+  export class Split extends Ractive {
+    constructor(opts) { super(opts); }
+
+    _adjustSizes() {
+      this._sizing = true;
+      const splits = this.get('splits');
+      let count = 0;
+      let used = 0;
+
+      splits.forEach(s => {
+        const size = s.sizePath ? this.get(s.sizePath) : s.size;
+        if (s.curSize === undefined) {
+          s.curSize = size;
+          used += size;
+          count++;
+        } else if (s.min && s.curSize) {
+          s.lastSize = s.curSize;
+          s.curSize = 0;
+        } else if (!s.min && !s.curSize && s.lastSize) {
+          used += s.lastSize;
+          s.curSize = s.lastSize;
+          s.lastSize = false;
+        } else if (s.curSize) {
+          used += s.curSize;
+          count++;
+        }
+      });
+
+      const offset = (100 - used) / count;
+
+      const sets = {};
+      splits.forEach((s, i) => {
+        sets[s.sizePath ? s.sizePath : `splits.${i}.size`] = s.curSize;
+        sets[`splits.${i}.curSize`] = (s.lastSize === false || !s.curSize) ? s.curSize : s.curSize + offset;
+        if (!s.lastSize) s.lastSize = null;
+      });
+
+      this.set(sets);
+      setTimeout(() => this.fire('resize'), 320);
+      this._sizing = false;
+    }
+
+    maximize(idx) {
+      if (this.get(`splits.${idx}.min`)) this.toggle(`splits.${idx}.min`);
+      else this.toggle(`splits.${idx + 1}.min`);
+      this._adjustSizes();
+    }
+
+    minimize(idx) {
+      if (this.get(`splits.${idx + 1}.min`)) this.toggle(`splits.${idx + 1}.min`);
+      else this.toggle(`splits.${idx}.min`);
+      this._adjustSizes();
+    }
+  }
+
+  Ractive.extendWith(Split, {
+    template: $TEMPLATE, css: $CSS,
+    cssId: 'split',
+    noCssTransform: true,
+    attributes: ['vertical', 'draggable', 'maximizable', 'minimizable'],
+    data() {
+      return {
+        draggable: true,
+        maximizable: true,
+        minimizable: true
+      }
+    },
+    decorators: {
+      sizeHandle
+    },
+    on: {
+      construct() {
+        const cmp = this.component;
+        if ( !cmp ) return;
+
+        const tpl = cmp.template.f || [];
+        const attrs = cmp.template.m ? cmp.template.m.slice() : [];
+        const t = cmp.template;
+        cmp.template = { e: t.e, f: t.f, t: t.t, m: attrs };
+
+        let id = 0;
+        function map(attr, partial) {
+          if (attr && attr.f && attr.f.length === 1 && attr.f[0].t === 2) {
+            const n = `_a${id++}`;
+            attrs.push({ t: 13, n, f: attr.f });
+            return partial ? { t: [{ t: 2, r: `~/${n}` }] } : { t: 2, r: `~/${n}` };
+          }
+          return attr && attr.f;
+        }
+
+        const splits = tpl.filter(e => e.e);
+
+        this._mappedSizes = [];
+        this._splits = splits.map((e, i) => {
+          const attrs = (e.m || []).slice();
+          const el = { e: e.e, f: e.f, t: e.t, m: attrs };
+
+          const res = {
+            content: el.e === 'pane' ? el.f : [el]
+          };
+
+          if (el.e === 'pane') {
+            if (el.m) res.attrs = el.m.slice();
+          }
+
+          const size = attrs.find(a => a.n === 'size');
+          if (size) {
+            if (size.f && typeof size.f[0] === 'string') res.size = +size.f[0];
+            else {
+              res.sizePath = map(size).r;
+              this._mappedSizes.push(res.sizePath);
+            }
+          }
+
+          return res;
+        });
+
+        this._splits.forEach(s => {
+          if (!('size' in s)) s.size = 100 / this._splits.length;
+        })
+      },
+      config() {
+        if (this._splits) this.set('splits', this._splits);
+      },
+      init() {
+        this.observe(this._mappedSizes.concat('splits.*.size').join(' '), () => {
+          if (this._sizing || this._tm) return;
+          this._tm = setTimeout(() => {
+            this._adjustSizes();
+            this._tm = null;
+          });
+        });
+      }
+    }
+  });
+
+  function sizeHandle(node, vertical, startIdx) {
     const ctx = this.getContext(node);
+    const startSplit = ctx.get(`../${startIdx}`);
+    const endSplit = ctx.get(`../${startIdx + 1}`);
     const root = node.parentNode;
-    let pos;
+
+    let pos, initStart, initEnd, available;
     let vert = vertical;
-    let posKey = vertical ? 'screenX' : 'screenY';
-    let init;
+    let posKey = vert ? 'screenX' : 'screenY';
+
+    let tm;
 
     function start(ev) {
+      if (ev.target !== node && ev.target.parentNode !== node) return;
+      ctx.ractive._sizing = true;
+      ctx.set('~/dragging', true);
+      available = vert ? root.clientWidth : root.clientHeight;
+
       document.addEventListener('touchmove', move, true);
       document.addEventListener('mousemove', move, true);
       document.addEventListener('mouseup', end, true);
       document.addEventListener('touchend', end, true);
 
-      init = ctx.get('size');
+      initStart = startSplit.curSize;
+      initEnd = endSplit.curSize;
 
       if (posKey in ev) {
         pos = ev[posKey];
       } else {
         pos = ev.touches[0][posKey];
       }
+
+      ev.preventDefault();
     }
 
     function move(ev) {
       const cur = posKey in ev ? ev[posKey] : ev.touches[0][posKey];
-      const width = vert ? root.clientWidth : root.clientHeight;
-      let target = init + (((cur - pos) / width) * 100);
-      if (target < 10) target = 10;
-      else if (target > 90) target = 90;
+      const dist = cur - pos;
+
+      let moved, s, e;
+      moved = (Math.abs(dist) / available) * 100;
+
+      if (dist < 0) {
+        s = initStart - moved;
+        e = initEnd + moved;
+      } else {
+        s = initStart + moved;
+        e = initEnd - moved;
+      }
+
+      if (s < startSplit.min || 0) {
+        e -= startSplit.min - s;
+        s += startSplit.min - s;
+      }
+
+      if (e < endSplit.min || 0) {
+        s -= endSplit.min - e;
+        e += endSplit.min - e;
+      }
+
+      if (s < 0) {
+        s = 0;
+        e = initStart + initEnd;
+      }
+      if (e < 0) {
+        s = initStart + initEnd;
+        e = 0;
+      }
+
       ctx.set({
-        size: target,
-        maxed: false
+        [startSplit.sizePath ? `~/${startSplit.sizePath}` : `../${startIdx}.size`]: s,
+        [endSplit.sizePath ? `~/${endSplit.sizePath}` : `../${startIdx + 1}.size`]: e,
+        [`../${startIdx}.curSize`]: s,
+        [`../${startIdx}.min`]: false,
+        [`../${startIdx + 1}.curSize`]: e,
+        [`../${startIdx + 1}.min`]: false
       });
-      ev.preventDefault();
-      ev.stopPropagation();
+
+      if (!tm) {
+        setTimeout(() => {
+          ctx.ractive.fire('resize');
+          tm = null;
+        }, 300);
+      }
     }
 
     function end() {
+      ctx.ractive._sizing = false;
+      ctx.set('~/dragging', false);
       document.removeEventListener('touchmove', move, true);
       document.removeEventListener('mousemove', move, true);
       document.removeEventListener('mouseup', end, true);
       document.removeEventListener('touchend', end, true);
+      if (tm) clearTimeout(tm);
+      ctx.ractive.fire('resize');
     }
 
     ctx.listen('mousedown', start);
@@ -70,195 +264,163 @@
       },
       update(vertical) {
         vert = vertical;
-        posKey = vertical ? 'clientX' : 'clientY';
+        posKey = vertical ? 'screenX' : 'screenY';
       }
     };
   }
 
-  class Split extends Ractive {
-    constructor(opts) { super(opts); }
-  }
-
-  Ractive.extendWith(Split, {
-    template: $TEMPLATE,
-    decorators: { sizeHandle },
-    noCssTransform: true,
-    cssId: 'split',
-    css: $CSS,
-    attributes: [ 'size', 'vertical', 'noDrag', 'noMax', 'noMaxStart', 'noMaxEnd' ],
-    data() {
-      return {
-        size: 50,
-        noDrag: false,
-        noMaxStart: false,
-        noMaxEnd: false
-      };
-    },
-    on: {
-      config,
-      'toStart toEnd'(ctx) {
-        if (this.get('maxed')) {
-          this.animate('size', this.get('last'), { duration: 200, easing: 'easeInOut' });
-          this.set('maxed', false);
-          return false;
-        }
-
-        this.set('last', this.get('size'));
-        this.set('maxed', ctx.name === 'toStart' ? 1 : 2);
-
-        const root = this.find('div');
-        const size = this.get('vertical') ? root.clientWidth : root.clientHeight;
-        this.animate('size', ((ctx.name === 'toEnd' ? size - 6 : 6) / size) * 100, { duration: 200, easing: 'easeInOut' });
-
-        return false;
-      }
-    },
-    observe: {
-      'size vertical': {
-        init: false,
-        handler() {
-          this._resizeM = true;
-
-          if (this._resizeT) {
-            return;
-          }
-
-          const fire = () => {
-            this._resizeT = false;
-            if (this._resizeM) {
-              this._resizeM = false;
-              this.fire('resize');
-              this._resizeT = setTimeout(fire, 200);
-            }
-          };
-
-          fire();
-        }
-      }
-    }
-  });
-
-  function config() {
-    const tpl = this.partials.content;
-    if (tpl) {
-      const panes = tpl.filter(n => n.e === 'pane');
-      if (!this.partials.start && panes[0]) {
-        this.partials.start = panes.shift().f;
-      }
-      if (!this.partials.end && panes[0]) {
-        this.partials.end = panes[0].f;
-      }
+  export function plugin(opts = {}) {
+    return function({ instance }) {
+      instance.components[opts.name || 'split'] = Split;
     }
   }
 
   globalRegister('RMSplit', 'components', Split);
 
-  export default Split;
+  export default plugin;
 </script>
 
 <style>
   .rsplit {
-    position: relative;
-    width: 100%;
-    height: 100%;
-  }
-
-  .rsplit > .start,
-  .rsplit > .end,
-  .rsplit > .sep {
     position: absolute;
+    width: 100%;
+    height: 100%;
+    flex-grow: 1;
+    display: flex;
+  }
+
+  .rsplit.rsplit-vertical {
+    flex-direction: row;
+  }
+
+  .rsplit.rsplit-horizontal {
+    flex-direction: column;
+  }
+
+  .rsplit > .rsplit-split {
+    display: inline-block;
     overflow: auto;
+    position: relative;
   }
 
-  .rsplit.vertical > .start {
-    top: 0;
-    left: 0;
+  .rsplit.rsplit-vertical > .rsplit-split {
     height: 100%;
   }
 
-  .rsplit.horizontal > .start {
-    top: 0;
-    left: 0;
+  .rsplit.rsplit-horizontal > .rsplit-split {
     width: 100%;
   }
 
-  .rsplit.vertical > .end {
-    top: 0;
-    right: 0;
-    height: 100%;
-  }
-
-  .rsplit.horizontal > .end {
-    right: 0;
-    bottom: 0;
-    width: 100%;
-  }
-
-  .rsplit.vertical > .sep {
-    top: 0;
-    bottom: 0;
-    width: 12px;
-  }
-  .rsplit.vertical > .sep.draggable {
+  .rsplit.rsplit-draggable.rsplit-vertical > .rsplit-sep {
     cursor: ew-resize;
   }
 
-  .rsplit.horizontal > .sep {
-    left: 0;
-    right: 0;
-    height: 12px;
-  }
-  .rsplit.horizontal > .sep.draggable {
+  .rsplit.rsplit-draggable.rsplit-horizontal > .rsplit-sep {
     cursor: ns-resize;
+  }
+
+  .rsplit > .rsplit-sep {
+    display: flex;
+    justify-content: center;
+    overflow: hidden;
+    touch-action: none;
+    flex-shrink: 0;
+  }
+
+  .rsplit.rsplit-vertical > .rsplit-sep {
+    flex-direction: column;
+  }
+
+  .rsplit > .rsplit-sep .rsplit-sep-max,
+  .rsplit > .rsplit-sep .rsplit-sep-min {
+    text-align: center;
+    display: inline-block;
+    position: relative;
+    cursor: pointer;
+  }
+
+  .rsplit.rsplit-horizontal > .rsplit-sep .rsplit-sep-max,
+  .rsplit.rsplit-horizontal > .rsplit-sep .rsplit-sep-min {
+    width: 3em;
+    height: 100%;
+    margin: 0 1em;
+  }
+  .rsplit.rsplit-vertical > .rsplit-sep .rsplit-sep-max,
+  .rsplit.rsplit-vertical > .rsplit-sep .rsplit-sep-min {
+    width: 100%;
+    height: 1em;
+    padding: 1em 0;
+    margin: 0.5em 0;
+  }
+  .rsplit > .rsplit-sep .rsplit-sep-max-btn,
+  .rsplit > .rsplit-sep .rsplit-sep-min-btn {
+    display: inline-block;
+    border-style: solid;
+    border-top-color: transparent;
+    border-left-color: transparent;
+    position: relative;
+    width: 0;
+    height: 0;
+    box-sizing: border-box;
+  }
+
+  .rsplit.rsplit-horizontal > .rsplit-sep .rsplit-sep-max-btn {
+    transform: rotate(45deg);
+  }
+
+  .rsplit.rsplit-horizontal > .rsplit-sep .rsplit-sep-min-btn {
+    transform: rotate(-135deg);
+  }
+
+  .rsplit.rsplit-vertical > .rsplit-sep .rsplit-sep-max-btn {
+    transform: rotate(-45deg);
+  }
+
+  .rsplit.rsplit-vertical > .rsplit-sep .rsplit-sep-min-btn {
+    transform: rotate(135deg);
   }
 </style>
 
 <script rel="css">
   return `
-  .rsplit > .sep {
-    background-color: ${data('split.color.bg') || 'rgba(0, 0, 0, 0.1)'};
-    color: ${data('split.color.fg') || 'rgba(0, 0, 0, 0.7)'};
-    text-align: center;
-    overflow: hidden;
-    touch-action: none;
+  .rsplit > .rsplit-sep {
+    background-color: ${data('split.handle.bg') || 'rgba(0, 0, 0, 0.1)'};
+    color: ${data('split.handle.fg') || 'rgba(0, 0, 0, 0.4)'};
   }
-  `;
-</script>
 
-<style>
-  .rsplit > .sep .vsizer {
-    display: inline-block;
-    vertical-align: middle;
+  .rsplit.rsplit-vertical > .rsplit-sep {
+    width: ${data('split.handle.width') || 14}px;
     height: 100%;
   }
 
-  .rsplit > .sep .rs-btns {
-    display: inline-block;
-    vertical-align: middle;
-
+  .rsplit.rsplit-horizontal > .rsplit-sep {
+    height: ${data('split.handle.width') || 14}px;
+    width: 100%;
   }
 
-  .rsplit > .sep .rs-btns div {
-    display: inline-block;
-    width: 10px;
-    height: 10px;
-    vertical-align: top;
-    line-height: 10px;
-    cursor: pointer;
-    opacity: 0.3;
-    transition: opacity 0.2s ease-in-out;
+  .rsplit > .rsplit-sep {
+    font-size: ${data('split.handle.width') || 14}px;
   }
 
-  .rsplit > .sep .rs-btns div:hover {
-    opacity: 1;
+  .rsplit > .rsplit-sep .rsplit-sep-max-btn,
+  .rsplit > .rsplit-sep .rsplit-sep-min-btn {
+    border-width: ${(data('split.handle.width') || 14) / 3}px;
   }
 
-  .rsplit.vertical > .sep .rs-btns div {
-    margin: 1em 0;
+  .rsplit.rsplit-horizontal > .rsplit-sep .rsplit-sep-max-btn {
+    bottom: ${(data('split.handle.width') || 14) / 3}px;
   }
 
-  .rsplit.horizontal > .sep .rs-btns div {
-    margin: 0 1em;
-    transform: rotate(90deg);
+  .rsplit.rsplit-horizontal > .rsplit-sep .rsplit-sep-min-btn {
+    top: ${(data('split.handle.width') || 14) / 6}px;
   }
-</style>
+
+  .rsplit.rsplit-vertical > .rsplit-sep .rsplit-sep-max-btn {
+    right: ${(data('split.handle.width') || 14) / 6}px;
+  }
+
+  .rsplit.rsplit-vertical > .rsplit-sep .rsplit-sep-min-btn {
+    left: ${(data('split.handle.width') || 14) / 6}px;
+  }
+  `;
+</script>

@@ -234,5 +234,14 @@ export function spytarget(node, args, optId) {
 	}
 }
 
+export function plugin(opts = {}) {
+	return function({ instance }) {
+		instance.decorators[opts.name || 'scrollspy'] = scrollspy;
+		instance.decorators[opts.targetName || 'spytarget'] = spytarget;
+	}
+}
+
 globalRegister('scrollspy', 'decorators', scrollspy);
 globalRegister('spytarget', 'decorators', spytarget);
+
+export default plugin;

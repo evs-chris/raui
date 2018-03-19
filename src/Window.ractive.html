@@ -94,7 +94,7 @@
 <script>
   import Ractive from 'ractive';
   import expand from './transition-expand';
-  import Toast from './Toast.ractive.html';
+  import toast from './Toast';
   import globalRegister from './globalRegister';
 
   const escape = Ractive.escapeKey;
@@ -489,8 +489,9 @@
     return { top: Math.floor(ii / mw) * cell + 5, left: (ii % mw) * cell + 5 };
   }
 
-  Base.extendWith(Host, Toast.apply({
+  Base.extendWith(Host, {
     template: $TEMPLATE,
+    use: [toast(), expand()],
     cssId: 'window-host',
     noIntro: true,
     observe: {
@@ -519,7 +520,6 @@
         return user || this.get('max') || max;
       }
     },
-    transitions: { expand },
     on: {
       config() {
         let content = this.partials.content;
@@ -561,7 +561,7 @@
         }
       }
     }
-  }));
+  });
 
   function initMediaListener(r) {
     if (r._media) {
@@ -1025,10 +1025,18 @@
     }
   });
 
+  export function plugin(opts = {}) {
+    return function({ instance }) {
+      instance.components[opts.name || 'host'] = Host;
+    }
+  }
+
   globalRegister('RMWindowHost', 'components', Host);
   globalRegister('RMWindow', 'components', Window);
 
   Host.prototype.Window = Window;
+
+  export default plugin;
 </script>
 
 <script rel="css">
