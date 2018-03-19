@@ -1,35 +1,34 @@
 {
-  "name": "ractive-materialish",
+  "name": "raui",
   "version": "0.1.0",
-  "description": "Materialish components, decorators, and helpers for apps",
-  "homepage": "https://github.com/evs-chris/ractive-materialish",
-  "bugs": "https://github.com/evs-chris/ractive-materialish/issues",
+  "description": "Components, decorators, and helpers for Ractive apps that are generally Material-ish",
+  "homepage": "https://github.com/evs-chris/raui",
+  "bugs": "https://github.com/evs-chris/raui/issues",
   "license": "MIT",
   "author": {
     "name": "Chris Reeves"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/evs-chris/ractive-materialish.git"
+    "url": "https://github.com/evs-chris/raui.git"
   },
   "devDependencies": {
-    "buble-loader": "^0.4",
+    "http-server": "^0.11",
+    "nodemon": "^1.17",
     "ractive": "edge",
-    "ractive-bin-loader": "^1",
-    "rollup": "^0.50",
-    "rollup-plugin-buble": "^0.16",
+    "rollup": "^0.57",
+    "rollup-plugin-buble": "^0.19",
+    "rollup-plugin-import-resolver": "^1",
     "rollup-plugin-ractive-bin": "^1.0.0",
-    "rollup-plugin-uglify": "^3",
-    "webpack": "^2"
+    "rollup-plugin-uglify": "^3"
   },
   "peerDependencies": {
-    "ractive": ">= 0.9.7"
+    "ractive": ">= 0.10 || edge"
   },
   "scripts": {
-    "build": "rollup -c rollup.config.js",
-    "watch": "rollup -w -c rollup.config.js",
-    "build:demo": "webpack",
-    "dev": "webpack --watch",
+    "build": "scripts/esm.sh",
+    "watch": "scripts/watch.sh",
+    "dev": "NODE_ENV=dev scripts/watch.sh",
     "clean": "scripts/clean.sh"
   }
 }

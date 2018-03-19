@@ -1,76 +1,134 @@
 const pkg = require('./package.json');
+const fs = require('fs');
 const ractive = require('rollup-plugin-ractive-bin');
 const buble = require('rollup-plugin-buble');
 const uglify = require('rollup-plugin-uglify');
+const resolver = require('rollup-plugin-import-resolver');
 
 const prefix = 'RM';
-const components = [ 'Table', 'Tabs', 'Window', 'Toggle', 'Card', 'Menu', 'Split', 'Shell', 'AppBar', 'JSONEditor' ];
-const helpers = [ 'grid', 'button', 'form', 'event-click', 'event-keys', 'event-swipe', 'transition-expand', 'masked-input', 'scroll-spy', 'ace-editor' ]
+
+const components = fs.readdirSync('./src')
+  .filter(f => /\.ractive\.html$/.test(f))
+  .map(f => f.replace(/\.ractive\.html$/, ''));
+const helpers = fs.readdirSync('./src')
+  .filter(f => /\.js$/.test(f))
+  .map(f => f.replace(/\.js$/, ''));
+
+const resolve = resolver({
+  extensions: ['.js', '.ractive.html']
+});
 
 let bundles = [];
 
-bundles = bundles.concat(helpers.map(h => ({
-  input: `src/${h}.js`,
-  output: [
-    {
-      file: `umd/${h}.js`,
-      format: 'umd',
-      name: `${prefix}${h[0].toUpperCase()}${h.substr(1).replace(/-(.)/g, (o, v) => v.toUpperCase())}`
-    },
-    {
-      file: `es/${h}.js`,
-      format: 'es'
-    }
-  ],
-  globals: { ractive: 'Ractive' },
-  external: [ 'ractive' ],
-  plugins: [ buble() ]
-})));
+if (process.env.NODE_ENV !== 'dev') {
+  bundles = bundles.concat(
+    helpers.map(h => ({
+      input: `src/${h}.js`,
+      output: [
+        {
+          file: `umd/${h}.js`,
+          format: "umd",
+          name: `${prefix}${h[0].toUpperCase()}${h
+            .substr(1)
+            .replace(/-(.)/g, (o, v) => v.toUpperCase())}`,
+          globals: { ractive: "Ractive" },
+          exports: "named"
+        }
+      ],
+      external: ["ractive"],
+      plugins: [buble()],
+      watch: { clearScreen: false }
+    }))
+  );
 
-bundles = bundles.concat(helpers.map(h => ({
-  input: `src/${h}.js`,
-  output: [
-    {
-      file: `umd/${h}.min.js`,
-      format: 'umd',
-      name: `${prefix}${h[0].toUpperCase()}${h.substr(1).replace(/-(.)/g, (o, v) => v.toUpperCase())}`
-    }
-  ],
-  globals: { ractive: 'Ractive' },
-  external: [ 'ractive' ],
-  plugins: [ buble(), uglify() ]
-})));
+  bundles = bundles.concat(
+    helpers.map(h => ({
+      input: `src/${h}.js`,
+      output: [
+        {
+          file: `umd/${h}.min.js`,
+          format: "umd",
+          name: `${prefix}${h[0].toUpperCase()}${h
+            .substr(1)
+            .replace(/-(.)/g, (o, v) => v.toUpperCase())}`,
+          globals: { ractive: "Ractive" },
+          exports: "named"
+        }
+      ],
+      external: ["ractive"],
+      plugins: [buble(), uglify()],
+      watch: { clearScreen: false }
+    }))
+  );
 
-bundles = bundles.concat(components.map(c => ({
-  input: `src/${c}.ractive.html`,
-  output: [
-    {
-      file: `umd/${c}.js`,
-      format: 'umd',
-      name: `${prefix}${c}`
-    },
-    {
-      file: `es/${c}.js`,
-      format: 'es'
-    }
-  ],
-  globals: { ractive: 'Ractive' },
-  external: [ 'ractive' ],
-  plugins: [ ractive(), buble() ]
-})));
+  bundles = bundles.concat(
+    components.map(c => ({
+      input: `src/${c}.ractive.html`,
+      output: [
+        {
+          file: `umd/${c}.js`,
+          format: "umd",
+          name: `${prefix}${c}`,
+          globals: { ractive: "Ractive" },
+          exports: "named"
+        }
+      ],
+      external: ["ractive"],
+      plugins: [ractive(), buble(), resolve],
+      watch: { clearScreen: false }
+    }))
+  );
 
-bundles = bundles.concat(components.map(c => ({
-  input: `src/${c}.ractive.html`,
-  output: [
-    {
-      file: `umd/${c}.min.js`,
-      format: 'umd',
-      name: `${prefix}${c}`
-    }
+  bundles = bundles.concat(
+    components.map(c => ({
+      input: `src/${c}.ractive.html`,
+      output: [
+        {
+          file: `umd/${c}.min.js`,
+          format: "umd",
+          name: `${prefix}${c}`,
+          globals: { ractive: "Ractive" },
+          exports: "named"
+        }
+      ],
+      external: ["ractive"],
+      plugins: [ractive(), buble(), uglify(), resolve],
+      watch: { clearScreen: false }
+    }))
+  );
+}
+
+// Demo
+bundles.push({
+  input: ['demo-src/index.js']
+    .concat(
+      fs.readdirSync('./demo-src/views')
+        .filter(e => /\.ractive\.(html|md)$/.test(e))
+        .map(e => `./demo-src/views/${e}`)
+    ),
+  output: {
+    dir: 'demo/build',
+    format: 'system',
+    globals: { ractive: 'Ractive' }
+  },
+  experimentalCodeSplitting: true,
+  experimentalDynamicImport: true,
+  plugins: [
+    ractive({
+      include: ['**/*.ractive.html'],
+      interpolate: { marked: false },
+      preserveWhitespace: true
+    }),
+    buble(),
+    resolver({
+      extensions: ['.js', '.ractive.html'],
+      alias: {
+        'cmp': './src'
+      }
+    })
   ],
-  globals: { ractive: 'Ractive' },
-  external: [ 'ractive' ],
-  plugins: [ ractive(), buble(), uglify() ]
-})));
+  watch: { clearScreen: false },
+  external: ['ractive']
+});
 
 module.exports = bundles;
