@@ -32,7 +32,7 @@
     <div id="target"></div>
     <script>
       System.config({
-        baseURL: './build'
+        baseURL: window.location.pathname.length > 1 ? window.location.pathName + '/build' : '/build'
       });
       System.registry.set('ractive', System.newModule({ default: Ractive }));
       System.import('index.js')
