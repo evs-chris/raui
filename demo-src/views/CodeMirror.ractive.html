@@ -1,27 +1,103 @@
-<tabs flat pad class-secondary height=dynamic>
+{{#await codemirror}}
+  Loading CodeMirror...
+{{then}}
+<tabs flat pad class-secondary fill height=dynamic>
   <tab title=Intro><marked>
-    TODO
+    The `codemirror` decorator turns an element into a [CodeMirror](https://codemirror.net) editor. Since this requires an external library, it is packaged as a plugin constructor that will accept a `CodeMirror` singleton as an option. If no `CodeMirror` option is supplied, the decorator will try to use the global `CodeMirror` and throw an error if none is found.
+
+    Since CodeMirror options tend not to be complicated, the decorator simply merges in the object you to it with those supplied to the plugin constructor and calls `setOption` for all of the keys that exist within `CodeMirror.defaults`.
+
+    CodeMirror instances aren't as touchy about changing size as some plugins, but they still need to be notified when their parent container is resized. To that end, the decorator will automatically install a listener on the root Ractive instance listening for `resize` events, which will catch things like window and split resizes.
+
+    One of the benefits to CodeMirror is its flexible input model, which means that for those mobile browsers with pesky forced autocomplete/autocapitalize/auto-erase-stuff-I-just-typed, you can use a password input as a backing field to have all of that forcibly disabled. This is available in CodeMirror starting with 5.36.0.
   </marked></tab>
   <tab title=Usage><marked>
+    ### Plugin Options
 
+    All options are optional.
+
+    * `CodeMirror: CodeMirror = CodeMirror` - the CodeMirror singleton to use to create editor instances
+    * `name: string = 'codemirror`' - the name to use when installing the decorator as a plugin
+
+    ### Decorator Options
+
+    All options are optional.
+
+    Any of the [CodeMirror options](https://codemirror.net/doc/manual.html#config) can be passed here as well.
+
+    * `bind: string` - a local keypath to which to bind the editor value
+
+    ### Decorator Events
+
+    * `change` - if present on the decorated element, a change event will be fired every time the editor fires a change event
+
+    ### Decorator Handle
+
+    Decorator handles are accessible from the context of the decorated node e.g. `ractive.getContext('.ace-editor').decorators['ace-editor']`;
+
+    * `editor` - the editor instance installed by the decorator
+    * `focus()` - focus the editor
+    * `resize()` - request that the editor respond to a change in size
   </marked></tab>
-  <tab title=Example>
+  <tab title=Example no-pad>
     <split>
-      <div>
-        <textarea>{{.text}}</textarea><br/>
-        <input type="checkbox" checked="{{.wrap}}" /> Wrap<br/>
-        <input type="checkbox" checked="{{.num}}" /> Number<br/>
-        <input type="checkbox" checked="{{.hiline}}" /> highlight active<br/>
-        <select value="{{.keys}}">
-          <option value="default">(none)</option>
-          <option>vim</option>
-          <option>emacs</option>
-        </select>
+      <div size=20>
+        <label as-field>
+          Wrap
+          <input type="checkbox" checked="{{.wrap}}" />
+        </label>
+
+        <label as-field>
+          Line numbers
+          <input type="checkbox" checked="{{.num}}" />
+        </label>
+
+        <label as-field>
+          Highlight active
+          <input type="checkbox" checked="{{.hiline}}" />
+        </label>
+
+        <label as-field>
+            Syntax
+            <select value="{{.syntax}}">
+              <option value="text">(default)</option>
+              <option>javascript</option>
+              <option>sql</option>
+              <option>shell</option>
+              <option>gfm</option>
+            </select>
+          </label>
+        
+        <label as-field>
+          Theme
+          <select value="{{.theme}}">
+            <option>default</option>
+            <option>ambiance</option>
+            <option>monokai</option>
+            <option>solarized</option>
+            <option>railscasts</option>
+          </select>
+        </label>
+
+        <label as-field>
+          Key Mode
+          <select value="{{.keys}}">
+            <option value="default">(none)</option>
+            <option>vim</option>
+            <option>emacs</option>
+          </select>
+        </label>
+
+        <label as-field>
+          Value
+          <textarea>{{.text}}</textarea>
+        </label>
       </div>
-      <div as-codemirror="{ bind: '.text', lineWrapping: .wrap, lineNumbers: .num, styleActiveLine: .hiline, keyMap: .keys }" style-height="100%" style-overflow=hidden></div>
+      <div as-codemirror="{ bind: '.text', lineWrapping: .wrap, lineNumbers: .num, styleActiveLine: .hiline, keyMap: .keys, mode: .syntax, theme: .theme }" style-height="100%" style-overflow=hidden></div>
     </split>
   </tab>
 </tabs>
+{{/await}}
 
 <script>
   import { Window } from 'cmp/Window';
@@ -33,16 +109,70 @@
     constructor(opts) { super(opts); }
   }
 
+  // lazy load codemirror via script injection if it's not already available
+  let CM = typeof CodeMirror === 'undefined' ?
+    new Promise(ok => {
+      const waits = [];
+      [
+        './codemirror.js',
+        'https://cdn.jsdelivr.net/npm/codemirror@5/mode/javascript/javascript.js',
+        'https://cdn.jsdelivr.net/npm/codemirror@5/mode/gfm/gfm.js',
+        'https://cdn.jsdelivr.net/npm/codemirror@5/mode/sql/sql.js',
+        'https://cdn.jsdelivr.net/npm/codemirror@5/mode/shell/shell.js',
+        'https://cdn.jsdelivr.net/npm/codemirror@5/keymap/vim.js',
+        'https://cdn.jsdelivr.net/npm/codemirror@5/addon/selection/active-line.js'
+      ].forEach(src => {
+        const tag = document.createElement('script');
+        tag.src = src;
+        tag.async = false;
+        waits.push(new Promise(ok => {
+          tag.onload = () => ok();
+        }));
+        document.head.appendChild(tag);
+      });
+
+      [
+        'https://cdn.jsdelivr.net/npm/codemirror@5.35.0/lib/codemirror.css',
+        'https://cdn.jsdelivr.net/npm/codemirror@5.35.0/theme/ambiance.css',
+        'https://cdn.jsdelivr.net/npm/codemirror@5.35.0/theme/monokai.css',
+        'https://cdn.jsdelivr.net/npm/codemirror@5.35.0/theme/solarized.css',
+        'https://cdn.jsdelivr.net/npm/codemirror@5.35.0/theme/railscasts.css',
+      ].forEach(href => {
+        const tag = document.createElement('link');
+        tag.rel = 'stylesheet';
+        tag.href = href;
+        waits.push(new Promise(ok => {
+          tag.onload = () => ok();
+        }));
+        document.head.appendChild(tag)
+      });
+      
+      Promise.all(waits).then(() => {
+        CM = CodeMirror;
+        ok();
+      });
+    }) :
+    CodeMirror;
+
   Window.extendWith(CodeMirrorEditor, {
     template: $TEMPLATE, css: $CSS,
-    use: [cm({ tabSize: 2, indentWithTabs: false, inputStyle: 'password' }).plugin, JSONEditor(), Split()],
+    use: [JSONEditor(), Split()],
     options: {
       id: 'Codemirror',
       title: 'Decorators :: CodeMirror',
       width: '40em', height: '30em',
-      resizable: true
+      resizable: true, flex: true
+    },
+    data() {
+      return { codemirror: CM };
     }
   });
+
+  if (CM instanceof Promise) {
+    CM.then(() => CodeMirrorEditor.use(cm({ tabSize: 2, indentWithTabs: false, inputStyle: 'password' })));
+  } else {
+    CodeMirrorEditor.use(cm({ tabSize: 2, indentWithTabs: false, inputStyle: 'password' }));
+  }
 </script>
 
 

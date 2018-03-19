@@ -48,7 +48,7 @@ export default function makeAceEditor(opts = {}) {
       if (typeof options.wrap === 'boolean') session.setUseWrapMode(options.wrap);
       if (typeof options.highlightActive === 'boolean') editor.setHighlightActiveLine(options.highlightActive);
 
-      if (options.keymode) editor.setKeyboardHandler(options.keymode);
+      if ('keymode' in options) editor.setKeyboardHandler(options.keymode);
       else editor.setKeyboardHandler(null)
 
       if (options.bind !== binding) {

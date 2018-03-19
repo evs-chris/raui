@@ -45,6 +45,9 @@ export default function init(initOpts = {}) {
       if (observer && !lock) {
         lock = true;
         ctx.set(opts.bind, editor.getValue());
+        if (ctx.hasListener('change')) {
+          ctx.raise('change');
+        }
         lock =false;
       }
     });

@@ -1,31 +1,161 @@
-<tabs flat pad class-secondary height=dynamic>
+{{#await ~/ace}}
+  Loading...
+{{then}}
+<tabs flat pad class-secondary fill height=dynamic>
   <tab title=Intro><marked>
-    TODO
+    The `ace-editor` decorator turns an element into an [Ace](https://ace.c9.io/) editor. Since this requires an external library, it is packaged as a plugin constructor that will accept an `ace` singleton as an option. If no `ace` option is supplied, the decorator will try to use the global `ace` and throw an error if none is found.
+
+    This decorator tries to make all of the common Ace settings available as options that can be passed to the decorator. This allows you to bind settings in your UI outside of the editor and have the editor update immediately as they change.
+
+    One thing to note about Ace editors is that they are sensitive to their host elements changing size. This is particularly noticeable in tabs with dynamic heights where the editor is not on the initial tab. The easy way around it is to add a tab listener, `on-enter="@.getContext('.ace-editor').decorators['ace-editor'].resize()"`, which will trigger the `resize` handler on the decorator every time the tab is activated. The decorator will automatically handle actions that fire a `resize` event, such as window and split resizes.
   </marked></tab>
   <tab title=Usage><marked>
+    ### Plugin options
 
+    All options are optional.
+
+    * `ace: ace = window.ace` - an Ace singleton to be used when creating editors
+    * `name: string = 'ace-editor'` - the name to use when installing the decorator as a plugin
+
+    ### Decorator Options
+
+    Since Ace handles its own module loading internally, the module-related settings don't typically require loading extra scripts manually.
+
+    All options are optional.
+
+    * `syntax: string` - the name of a syntax mode to use for the editor e.g. `javascript`
+    * `theme: string` - the name of a theme to use for the editor e.g. `dracula`
+    * `tabSize: number = 2` - the size of tabs/indents
+    * `margin: boolean` - whether to show the print margin
+    * `wrap: boolean` - whether to use word wrapping
+    * `highlightActive: boolean` - whether to highlight the active line
+    * `keymode: string | null` - the name of a key mode to use for the editor e.g. `vim`
+    * `bind: string` - a local keypath to which to bind the text of the editor. The decorator will handle keeping both values in sync with each other.
+
+    ### Decorator Events
+
+    * `change` - if supplied on the decorated node, will be fired every time the editor fires a change event
+
+    ### Decorator Handle
+
+    Decorator handles are accessible from the context of the decorated node e.g. `ractive.getContext('.ace-editor').decorators['ace-editor']`;
+
+    * `editor` - the editor instance installed by the decorator
+    * `focus()` - focus the editor
+    * `resize()` - request that the editor respond to a change in size
   </marked></tab>
-  <tab title=Example>
+  <tab title=Example no-pad on-enter="@.getContext('.ace-editor').decorators['ace-editor'].resize()">
+    <split>
+      <div size=20>
+        <label as-field>
+          Tab size
+          <input type="number" value="{{.tabSize}}" />
+        </label>
 
+        <label as-field>
+          Mode
+          <select value="{{.syntax}}">
+            <option>text</option>
+            <option>javascript</option>
+            <option>sh</option>
+            <option>sql</option>
+            <option>markdown</option>
+          </select>
+        </label>
+
+        <label as-field>
+          Theme
+          <select value="{{.theme}}">
+            <option>github</option>
+            <option>terminal</option>
+            <option>solarized_dark</option>
+            <option>solarized_light</option>
+            <option>monokai</option>
+          </select>
+        </label>
+
+        <label as-field>
+          Key Mode
+          <select value="{{.keymode}}">
+            <option value="{{null}}">(none)</option>
+            <option>vim</option>
+            <option value=emacs>RSI</option>
+          </select>
+        </label>
+
+        <label as-field>
+          <input type="checkbox" checked="{{.wrap}}" /> Wrap
+        </label>
+
+        <label as-field>
+          <input type="checkbox" checked="{{.margin}}" /> Margin
+        </label>
+
+        <label as-field>
+          <input type="checkbox" checked="{{.highlightActive}}" /> Highlight active
+        </label>
+
+        <label as-field>
+          Value
+          <textarea>{{.value}}</textarea>
+        </label>
+      </div>
+      <div style-height="100%" as-ace-editor="{ theme, syntax, wrap, margin, highlightActive, keymode, tabSize, bind: '.value' }"></div>
+    </split>
   </tab>
 </tabs>
+{{/await}}
 
 <script>
   import { Window } from 'cmp/Window';
+  import mkAce from 'cmp/ace-editor';
+  import split from 'cmp/Split';
 
   export default class AceEditor extends Window {
     constructor(opts) { super(opts); }
   }
 
+  let Ace = typeof ace === 'undefined' ?
+    new Promise(ok => {
+      const waits = [];
+      [
+        'https://cdn.jsdelivr.net/npm/ace-builds@1.3.1/src-min/ace.js'
+      ].forEach(link => {
+        const tag = document.createElement('script');
+        tag.src = link;
+        tag.async = false;
+        waits.push(new Promise(ok => {
+          tag.onload = () => ok();
+        }));
+        document.head.appendChild(tag);
+      });
+      
+      Promise.all(waits).then(() => {
+        Ace = ace;
+        ok();
+      });
+    }) :
+    ace;
+
   Window.extendWith(AceEditor, {
     template: $TEMPLATE, css: $CSS,
+    use: [split()],
     options: {
       id: 'Ace',
       title: 'Decorators :: Ace Editor',
       width: '40em', height: '30em',
       flex: true
+    },
+    data() {
+      return { ace: Ace, tabSize: 2 }
     }
   });
+
+  if (Ace instanceof Promise) {
+    Ace.then(() => AceEditor.use(mkAce()));
+  } else {
+    AceEditor.use(mkAce());
+  }
 </script>
 
 
