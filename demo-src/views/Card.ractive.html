@@ -1,26 +1,114 @@
 <tabs flat pad class-secondary height=dynamic>
   <tab title=Intro><marked>
-    TODO
+    This is your fairly standard Material card de-boilerplated a bit as a macro. It has sections for an avatar, title, subtitle, image, content, footer, and actions. It tries to adapt pleasantly to any elements being absent, so it's useful for everything from a box around some text, to a section wrapper in forms, to full-fledged cards displaying an image with actions.
 
-    A Material card macro partial that is mostly a placeholder pending me actually needing full card functionality like headers, buttons, tabs, and image stuff. Right now I mostly just use them as convenient blocks for lists of items. They play really well with the grid decorator.
+    Most of the items within the card also try to be smart about when they render. If you use the attribute shortcut forms, then an empty string in, for instance, the subtitle, will remove the subtitle from the DOM and cause the title to use a larger font and become fully centered in its allocated space.
+
+    Cards play well with the grid decorator.
   </marked></tab>
   <tab title=Usage><marked>
+    ### Plugin Options
 
+    * `name: string = 'card'` - the name to use when registering the plugin as a macro
+
+    ### Attributes
+
+    All attributes are optional.
+
+    * `title: string` - The title to display on the card
+    * `subtitle: string` - The subtitle to display on the card
+    * `avatar: string` - The URL to an avatar to display on the card
+    * `avatar-round: string | boolean` - The URL to an avatar to display on the card as rounded, or if a boolean, whether to display the `avatar` as rounded. This appears next to the title.
+    * `image: string` - The URL to an image to display on the card. This appears between the title and the content, taking up the full width of the card.
+    * `image-alt: string` - An `alt` string for the image.
+    `no-pad: boolean` - Whether to pad the content of the card. This is useful for using other containers, like tabs, as the content of the card.
+
+    ### Children
+
+    For greater control over the render process, you can also specify most of the portions of the card as child elements. These will also pass their attributes through to their containing element.
+
+    Additionally, card actions are specified as `<action>` tags that are rendered as flat Material buttons. An action may be enclosed in an `{{#if}}` section to conditionally render it. The only thing to watch out for in conditional sections is that there will be an additional `{{#each}}` wrapped around your content, so use `^^/` rather than `.` as a prefix to get at the context surrounding the card.
+
+    * `title`
+    * `subtitle`
+    * `avatar` - Bring your own `<img>` or `style="background-image: url(...)"`.
+      * `round` - attribute - When present will add the `rcard-avatar-round` class to the avatar container.
+    * `image` - Bring your own `<img>`
+    * `footer` - appears below content
+    * `action` - zero or more actions to add to the bottom of the card. Handle activation by supplying an `on-click` event listener.
   </marked></tab>
   <tab title=Example>
+    <div as-grid>
+      <div class="row row-s1-2 row-m1-4">
+        <label as-field>
+            Title<input value="{{.title}}" />
+          </label>
+          <label as-field>
+            Subtitle<input value="{{.subtitle}}" />
+          </label>
+          <label as-field>
+            Avatar<input value="{{.avatar}}" />
+          </label>
+          <label as-field>
+            <input type="checkbox" checked="{{.round}}" /> Round avatar?
+          </label>
+          <label as-field>
+            Image<input value="{{.image}}" />
+          </label>
+          <label as-field>
+            Image Alt<input value="{{.alt}}" />
+          </label>
+          <label as-field>
+            <input type="checkbox" checked="{{.share}}" /> Share button?
+          </label>
+          <label as-field class-t1>
+            Content<textarea>{{.content}}</textarea>
+          </label>
+      </div>
+    </div>
     
+    <marked>
+      ### Template:
+      ```handlebars
+      <card title="{{.title}}" subtitle="{{.subtitle}}" avatar="{{.avatar}}" avatar-round="{{.round}}" image="{{.image}}" image-alt="{{.alt}}" style-max-width="30em">
+        {{{.content}}}
+        <action on-click="console.log('Liked!')" title="Like this breed on FriendFace">Like</action>
+        {{#if ^^/share}}<action on-click="console.log('Shared!')" title="Share this breed on FriendFace">Share</action>{{/if}}
+      </card>
+      ```
+      ### Result:
+    </marked>
+    <card title="{{.title}}" subtitle="{{.subtitle}}" avatar="{{.avatar}}" avatar-round="{{.round}}" image="{{.image}}" image-alt="{{.alt}}" style-max-width="30em">
+      {{{.content}}}
+      <action on-click="console.log('Liked!')" title="Like this breed on FriendFace">Like</action>
+      {{#if ^^/share}}<action on-click="console.log('Shared!')" title="Share this breed on FriendFace">Share</action>{{/if}}
+    </card>
   </tab>
 </tabs>
 
 <script>
   import { Window } from 'cmp/Window';
+  import card from 'cmp/Card';
 
   export default Window.extend({
     template: $TEMPLATE,
+    use: [card()],
     options: {
       title: 'Component :: Card',
       resizable: true, flex: true,
       width: '48em', height: '30em'
+    },
+    data() {
+      return {
+        title: 'Shiba Inu',
+        subtitle: 'Dog Breed',
+        round: true,
+        avatar: 'https://material.angular.io/assets/img/examples/shiba1.jpg',
+        image: 'https://material.angular.io/assets/img/examples/shiba2.jpg',
+        alt: 'Shiba Inu',
+        content: '<p>The Shiba Inu is the smallest of the six original and distinct spitz breeds of dog from Japan. A small, agile dog that copes very well with mountainous terrain, the Shiba Inu was originally bred for hunting.</p>',
+        share: true
+      };
     }
   });
 </script>

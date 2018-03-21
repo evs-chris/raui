@@ -1,25 +1,50 @@
 <tabs flat pad class-secondary height=dynamic>
   <tab title=Intro><marked>
-    TODO
+    The button helper is just a CSS function that gives you Material `<button>`s. When passed to an instance, the styles will be registered with `Ractive.addCSS`, and when passed to a constructor (component), they will augment the existing `css` for the constructor.
   </marked></tab>
   <tab title=Usage><marked>
+    ```javascript
+    import plugin from 'raui/es/button';
 
+    Ractive.use(plugin());
+
+    // or
+    MyComponent.use(plugin());
+
+    // or
+    const r = new Ractive();
+    r.use(plugin());
+
+    // or
+    new Ractive({
+      use: [plugin(())]
+    });
+
+    // or
+    const MyComponent = Ractive.extend({
+      use: [plugin()]
+    });
+    ```
   </marked></tab>
   <tab title=Example>
-    
+    <button>Material Button</button> <button class-flat>A Flat Button</button> <button>A Third Button</button> <button class-round>+</button><br/>
+    <button style="color: #fff; background-color: #07e;">Colorful</button>
   </tab>
 </tabs>
 
 <script>
   import { Window } from 'cmp/Window';
+  import button from 'cmp/button';
 
   export default Window.extend({
     template: $TEMPLATE,
+    use: [button()],
     options: {
       title: 'Helper :: Button',
       resizable: true, flex: true,
       width: '48em', height: '30em'
-    }
+    },
+    css: true
   });
 </script>
   

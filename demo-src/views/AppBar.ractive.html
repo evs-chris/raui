@@ -2,7 +2,7 @@
   <tab title=Intro><marked>
     An `AppBar` is a pretty simple component. It's designed to go across the top (or bottom if you're feeling funky) of an app and have a little information about the rest of what's on the screen along with whatever interactive elements are needed, like a hamburger to get at a nav menu or a kebab to get at a popup menu. An AppBar can be used at the top of a window host to show the window title and controls when the window is maximized - either via user action or responsive constraint. The AppBar can also show a "wait spinner" in the form of a gradient line across the bottom so you can give the user some visual feedback that _something_ is happening.
 
-    The AppBar consists of three sections, `left`, `center`, and `right` that can hold whatever you need to put in them, including nothing. They are positioned using flexbox, wherein the left and right containers grow as much as possible to keep the center centered.
+    The AppBar consists of three sections, `left`, `center`, and `right` that can hold whatever you need to put in them, including nothing. They are positioned using flexbox with `justify-content: space-between` to keep the center relatively centered.
   </marked></tab>
   <tab title=Usage><marked>
     ### Plugin Options
@@ -10,6 +10,10 @@
     All options are optional.
 
     * `name: string = 'app-bar'` - the name to use when registering the component as a plugin
+
+    ### Attributes
+
+    * `waiting: boolean` - whether to show the wait spinner
 
     ### Children
 
@@ -38,7 +42,7 @@
         <right>Right</right>
       </app-bar>
       ```
-      ### Result
+      ### Result:
     </marked>
     <app-bar>
       <left>Left</left>
@@ -50,15 +54,19 @@
       ***
       ### Template:
       ```
-      <app-bar waiting>
-        <center>Something is happening...</center>
+      <app-bar style-font-size=1.3em bind-waiting>
+        <center>{{.title}}</center>
+        <right style-font-weight=bold>extra attrs</right>
       </app-bar>
       ```
-      ### Result
+      ### Result:
     </marked>
-    <app-bar waiting>
-      <center>Something is happening...</center>
+    <app-bar style-font-size=1.3em bind-waiting>
+      <center>{{.title}}</center>
+      <right style-font-weight=bold>extra attrs</right>
     </app-bar>
+    <label as-field>Title<input value="{{.title}}" /></label>
+    <label as-field><input type="checkbox" checked="{{.waiting}}" /> Waiting</label>
   </tab>
 </tabs>
 
@@ -73,6 +81,12 @@
       title: 'Component :: AppBar',
       resizable: true, flex: true,
       width: '48em', height: '30em'
+    },
+    data() {
+      return {
+        title: 'Something is happening...',
+        waiting: true
+      }
     }
   });
 </script>
