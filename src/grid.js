@@ -144,6 +144,7 @@ export function style(data, optDefaults) {
     out += `\n${greater[size.key].map(s => `.${s} .${name}0`).join(', ')} { width: 0; overflow: hidden; }`;
 
     size.units.forEach(u => {
+      cols += `\n${greater[size.key].map(s => `.${s} ${name}1, .${s} .row > .${name}1`).join(', ')} { width: 100%; }`;
       for (let i = 1; i < u; i++) {
         str = '' + ((i / u) * 100);
         str = str.substr(0, str.indexOf('.') + 3);
