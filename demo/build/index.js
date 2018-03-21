@@ -492,6 +492,8 @@ System.register(['ractive', './chunk1.js', './chunk2.js', './chunk3.js', './chun
 
           if (current !== idx) {
             var cur = this.getContext(this.find('.rtabs-selected'));
+            var window = this.find('.rtabs-content-window');
+            this.set(("scroll." + (cur.get('@index'))), window.scrollTop);
             if (cur.hasListener('leave')) { cur.raise('leave'); }
             if (trans === 'fade') {
               this.set({
@@ -507,6 +509,7 @@ System.register(['ractive', './chunk1.js', './chunk2.js', './chunk3.js', './chun
                   opacity: 1
                 });
                 if (ctx$1.hasListener('enter')) { ctx$1.raise('enter'); }
+                if (window) { window.scrollTop = this$1.get(("scroll." + idx)) || 0; }
               }, 150);
             } else if (trans === 'slide') {
               this.set('selected', idx);
@@ -514,6 +517,7 @@ System.register(['ractive', './chunk1.js', './chunk2.js', './chunk3.js', './chun
               this.updateIndicator();
               var ctx$2 = this.getContext(this.find('.rtabs-selected'));
               if (ctx$2.hasListener('enter')) { ctx$2.raise('enter'); }
+              if (window) { window.scrollTop = this.get(("scroll." + idx)) || 0; }
             } else {
               this.set({
                 selected: idx,
@@ -522,10 +526,10 @@ System.register(['ractive', './chunk1.js', './chunk2.js', './chunk3.js', './chun
               this.updateIndicator();
               var ctx$3 = this.getContext(this.find('.rtabs-selected'));
               if (ctx$3.hasListener('enter')) { ctx$3.raise('enter'); }
+              if (window) { window.scrollTop = this.get(("scroll." + idx)) || 0; }
             }
 
-            var content = this.find('.rtabs-content-window');
-            if (content && content.scrollLeft) { content.scrollLeft = 0; }
+            if (window && window.scrollLeft) { window.scrollLeft = 0; }
           }
         }
 
