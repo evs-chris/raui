@@ -1,7 +1,7 @@
 <div class-rappbar {{yield extra-attributes}}>
-  <div class-rappbar-left>{{#if ._leftP}}{{yield ._leftP}}{{/if}}</div>
-  <div class-rappbar-center>{{#if ._centerP}}{{yield ._centerP}}{{/if}}</div>
-  <div class-rappbar-right>{{#if ._rightP}}{{yield ._rightP}}{{/if}}</div>
+  <div class-rappbar-left {{#if ._leftAttrs}}{{yield ._leftAttrs}}{{/if}}>{{#if ._leftP}}{{yield ._leftP}}{{/if}}</div>
+  <div class-rappbar-center {{#if ._centerAttrs}}{{yield ._centerAttrs}}{{/if}}>{{#if ._centerP}}{{yield ._centerP}}{{/if}}</div>
+  <div class-rappbar-right {{#if ._rightAttrs}}{{yield ._rightAttrs}}{{/if}}>{{#if ._rightP}}{{yield ._rightP}}{{/if}}</div>
   <div class-rappbar-wait class-waiting="waiting"></div>
 </div>
 
@@ -27,10 +27,9 @@
       config() {
         const tpl = this.partials.content;
         if (tpl) {
-          tpl.forEach(e => {
-            if (e.e === 'left') this.set('_leftP', { t: e.f });
-            if (e.e === 'center') this.set('_centerP', { t: e.f });
-            if (e.e === 'right') this.set('_rightP', { t: e.f });
+          tpl.filter(e => e.e === 'left' || e.e === 'right' || e.e === 'center').forEach(e => {
+            this.set(`_${e.e}P`, e.f);
+            if (e.m) this.set(`_${e.e}Attrs`, e.m);
           });
         }
       }
@@ -56,16 +55,15 @@
     background-color: ${data('appbar.bg') || data('bg2') || '#07e'};
     color: ${data('appbar.fg') || data('fg2') || '#f9f9f9'};
     position: relative;
+    justify-content: space-between;
   }
 
   .rappbar-left {
-    flex-grow: 3;
     display: flex;
     justify-content: flex-start;
   }
 
   .rappbar-right {
-    flex-grow: 3;
     display: flex;
     justify-content: flex-end;
   }
