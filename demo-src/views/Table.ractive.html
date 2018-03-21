@@ -1,16 +1,67 @@
 <tabs fill transition=fade class-secondary>
   <tab title="Intro"><marked>
-    The RaUI table.
+    Just about every app needs to display some list of data at some point, preferably in a filterable, sortable way. To that end, raui provides a `table`, which is more like a desktop-style grid control than a plain html `table`. It comes with built-in filtering, sorting, declarative columns, pagination, selection, and responsive layout.
+
+    Columns are laid out using `column` child elements that specify the content of the column as their content and any other settings, like the label, filter field, sort field, etc as attributes. There's also an additional `row` child that allows adding an extra detail section to each row that is hidden by default but opens when a row is clicked (or tapped) once. When `row` is preset, row selection defaults to a double click (or tap). When it is absent, selection will fire on eith click or double click (or tap).
+
+    By default, the table uses the grid decorator for sizing columns to maintain some sort of reasonable responsiveness. It also has the benefit of allowing multi-line rows if that's something you need. The downside is that you need to specify column sizes manually, though there is sugared handling using size attributes on each column rather than manually having to add each class e.g. `<column t0 s1-4 l1-8 label=Name>{{.name}}</column>`, where the column will be hidden below the small break, 25% before the large break, and 12.5% after the large break.
+
+    There is also an HTML `table` mode available, should you need it.
   </marked></tab>
   <tab title="Usage"><marked>
+    ### Plugin Options
 
+    All options are optional.
+
+    * `name: string = 'data-table'` - The name to use when installing the plugin as a component
+
+    ### Attributes
+
+    All attributes are optional.
+
+    * `items: Object[] = []` - The list of items to display in the table
+    * `filter: string` - The filter used to compare to each item to determine whether or not it should be displayed
+    * `paginate: falsey | number | 'auto' = null` -
+      * `falsey` - no pagination is applied
+      * `number` - the page size is set to the given number
+      * `'auto'` - the table will calculate the number of rows that it can display without causing its container to require a scroll bar (or at the very least have minimal scrolling) when no rows are expanded
+    * `display: 'grid' | 'table' = 'grid'` - Whether to render as a grid or an HTML table
+    * `allowSelect: boolean = true` - Whether to show the select checkbox on individual rows. You have to account for the size (3em) of the select when laying out grid sizes.
+    * `allowSelectAll: boolean = true` - Whether to show the select all checkbox in the header to allow selecting all displayed - and all total - rows.
+    
+    ### Children
+
+    * `column` - Defines a column in the table
+      * `label: string` - The string to display in the column header
+      * `filter: keypath` - A dotted keypath to the property used to filter the column. Filterable fields are automatically sortable.
+      * `sort: keypath = filter` - A dotted keypath to the property used to sort the column. Sortable fields will automatically have their header control sorting by the column.
+      * `hidden: boolean = false` - Whether to actually display the column in the table. This is useful for having a column participate in filtering without having to be displayed.
+
+    * `row` - In grid tables, the content of the `row` child is used for expandable content for each row in the table
   </marked></tab>
   <tab title="Example">
+    <marked>
+      The table below is populated with 2,000 objects in the form `{ foo, bar, bat }` that are based on randomly generated strings (foo, bar) and booleans (bat).
+
+      ### Tempalte:
+      ```handlebars
+      <data-table bind-items bind-filter paginate=auto on-selected="console.log($1)">
+        <row>
+          <h3>Extra stuff goes here</h3>
+          <p>I have a {{.foo}} that is {{.bar}}.</p>
+        </row>
+        <column t7-8 s3-8 m1-3 label="Foo" filter=foo>{{.foo}}</column>
+        <column t0 s3-8 m1-3 label="Bar" filter=bar>{{.bar}}</column>
+        <column t0 m1-5 label="???">{{.bat ? 'Yep' : 'Nope'}}</column>
+      </data-table>
+      ```
+      ### Result:
+    </marked>
     <div>
       <label as-field>Filter<input value="{{filter}}" lazy=300 ></label>
     </div>
     <data-table bind-items bind-filter paginate=auto on-selected="console.log($1)">
-      <row fade-in-out>
+      <row>
         <h3>Extra stuff goes here</h3>
         <p>I have a {{.foo}} that is {{.bar}}.</p>
       </row>
@@ -27,7 +78,7 @@
 
   const data = [];
   const src = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-  for (let i = 0; i < 500; i++) {
+  for (let i = 0; i < 2000; i++) {
     const d = {};
     data.push(d);
     ['foo', 'bar'].forEach(prop => {
