@@ -1,4 +1,4 @@
-<tabs fill transition=fade class-secondary>
+<tabs height=dynamic fill transition=fade class-secondary>
   <tab title="Intro"><marked>
     Just about every app needs to display some list of data at some point, preferably in a filterable, sortable way. To that end, raui provides a `table`, which is more like a desktop-style grid control than a plain html `table`. It comes with built-in filtering, sorting, declarative columns, pagination, selection, and responsive layout.
 
@@ -14,6 +14,7 @@
     All options are optional.
 
     * `name: string = 'data-table'` - The name to use when installing the plugin as a component
+    * `includeGrid: boolean = false` - Whether to include the grid styles within the table. Set this to `true` if you're not using the grid globally. It generates a pretty good deal of extra CSS, so if you _are_ using the grid globally, you should make sure this stays disabled.
 
     ### Attributes
 
@@ -40,41 +41,47 @@
     * `row` - In grid tables, the content of the `row` child is used for expandable content for each row in the table
   </marked></tab>
   <tab title="Example">
-    <marked>
-      The table below is populated with 2,000 objects in the form `{ foo, bar, bat }` that are based on randomly generated strings (foo, bar) and booleans (bat).
+    <split>
+      <pane size=30>
+        <marked>
+          The table below is populated with 2,000 objects in the form `{ foo, bar, bat }` that are based on randomly generated strings (foo, bar) and booleans (bat).
 
-      ### Tempalte:
-      ```handlebars
-      <data-table bind-items bind-filter paginate=auto on-selected="console.log($1)">
-        <row>
-          <h3>Extra stuff goes here</h3>
-          <p>I have a {{.foo}} that is {{.bar}}.</p>
-        </row>
-        <column t7-8 s3-8 m1-3 label="Foo" filter=foo>{{.foo}}</column>
-        <column t0 s3-8 m1-3 label="Bar" filter=bar>{{.bar}}</column>
-        <column t0 m1-5 label="???">{{.bat ? 'Yep' : 'Nope'}}</column>
-      </data-table>
-      ```
-      ### Result:
-    </marked>
-    <div>
-      <label as-field>Filter<input value="{{filter}}" lazy=300 ></label>
-    </div>
-    <data-table bind-items bind-filter paginate=auto on-selected="console.log($1)">
-      <row>
-        <h3>Extra stuff goes here</h3>
-        <p>I have a {{.foo}} that is {{.bar}}.</p>
-      </row>
-      <column t7-8 s3-8 m1-3 label="Foo" filter=foo>{{.foo}}</column>
-      <column t0 s3-8 m1-3 label="Bar" filter=bar>{{.bar}}</column>
-      <column t0 m1-5 label="???">{{.bat ? 'Yep' : 'Nope'}}</column>
-    </data-table>
+          ### Template:
+          ```handlebars
+          <data-table bind-items bind-filter paginate=auto on-selected="console.log($1)">
+            <row>
+              <h3>Extra stuff goes here</h3>
+              <p>I have a {{.foo}} that is {{.bar}}.</p>
+            </row>
+            <column t7-8 s3-8 m1-3 label="Foo" filter=foo>{{.foo}}</column>
+            <column t0 s3-8 m1-3 label="Bar" filter=bar>{{.bar}}</column>
+            <column t0 m1-5 label="???">{{.bat ? 'Yep' : 'Nope'}}</column>
+          </data-table>
+          ```
+          ### Result:
+        </marked>
+      </pane><pane style-display=flex style-flex-direction=column>
+        <div>
+          <label as-field>Filter<input value="{{filter}}" lazy=300 ></label>
+        </div>
+        <data-table bind-items bind-filter paginate=auto on-selected="console.log($1)">
+          <row>
+            <h3>Extra stuff goes here</h3>
+            <p>I have a {{.foo}} that is {{.bar}}.</p>
+          </row>
+          <column t7-8 s3-8 m1-3 label="Foo" filter=foo>{{.foo}}</column>
+          <column t0 s3-8 m1-3 label="Bar" filter=bar>{{.bar}}</column>
+          <column t0 m1-5 label="???">{{.bat ? 'Yep' : 'Nope'}}</column>
+        </data-table>
+      </pane>
+    </split>
   </tab>
 </tabs>
 
 <script>
   import { Window } from 'cmp/Window';
   import Table from 'cmp/Table';
+  import Split from 'cmp/Split';
 
   const data = [];
   const src = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
@@ -94,7 +101,7 @@
 
   export default Window.extend({
     template: $TEMPLATE,
-    use: [Table({ includeGrid: true })],
+    use: [Table(), Split()],
     options: {
       title: 'Component :: Table',
       resizable: true, flex: true,
