@@ -287,7 +287,7 @@ System.register(['ractive', './chunk1.js', './chunk2.js', './chunk3.js', './chun
             }
           },
           cssId: 'app',
-          css: function(data) { return [" body { overscroll-behavior-y: contain; } p { text-indent: 1em; } .hamburger { cursor: pointer; user-select: none; margin: -1em; padding: 1em; } .logo { background-color: #f9f9f9; color: #222; border-style: solid; border-width: 1px; box-sizing: border-box; } .logo img { width: 50px; margin-right: 0.5em; margin-left: calc(-0.5em - 50px); vertical-align: middle; } ", (function(data) {
+          css: function(data) { return [" body { overscroll-behavior-y: contain; } p { text-indent: 1em; } pre { white-space: pre-wrap; } .hamburger { cursor: pointer; user-select: none; margin: -1em; padding: 1em; } .logo { background-color: #f9f9f9; color: #222; border-style: solid; border-width: 1px; box-sizing: border-box; } .logo img { width: 50px; margin-right: 0.5em; margin-left: calc(-0.5em - 50px); vertical-align: middle; } ", (function(data) {
 
 
 

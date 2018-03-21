@@ -28,12 +28,12 @@ System.register(['ractive', './chunk2.js'], function (exports, module) {
         }(Ractive$1));
 
         Ractive$1.extendWith(AppBar, {
-          template: {v:4,t:[{t:7,e:"div",m:[{n:"class-rappbar",t:13},{t:16,r:"extra-attributes"}],f:["\n  ",{t:7,e:"div",m:[{n:"class-rappbar-left",t:13}],f:[{t:4,f:[{t:16,r:"._leftP"}],n:50,r:"._leftP"}]},"\n  ",{t:7,e:"div",m:[{n:"class-rappbar-center",t:13}],f:[{t:4,f:[{t:16,r:"._centerP"}],n:50,r:"._centerP"}]},"\n  ",{t:7,e:"div",m:[{n:"class-rappbar-right",t:13}],f:[{t:4,f:[{t:16,r:"._rightP"}],n:50,r:"._rightP"}]},"\n  ",{t:7,e:"div",m:[{n:"class-rappbar-wait",t:13},{n:"class-waiting",t:13,f:[{t:2,r:"waiting"}]}]},"\n"]}]},
+          template: {v:4,t:[{t:7,e:"div",m:[{n:"class-rappbar",t:13},{t:16,r:"extra-attributes"}],f:["\n  ",{t:7,e:"div",m:[{n:"class-rappbar-left",t:13},{t:4,f:[{t:16,r:"._leftAttrs"}],n:50,r:"._leftAttrs"}],f:[{t:4,f:[{t:16,r:"._leftP"}],n:50,r:"._leftP"}]},"\n  ",{t:7,e:"div",m:[{n:"class-rappbar-center",t:13},{t:4,f:[{t:16,r:"._centerAttrs"}],n:50,r:"._centerAttrs"}],f:[{t:4,f:[{t:16,r:"._centerP"}],n:50,r:"._centerP"}]},"\n  ",{t:7,e:"div",m:[{n:"class-rappbar-right",t:13},{t:4,f:[{t:16,r:"._rightAttrs"}],n:50,r:"._rightAttrs"}],f:[{t:4,f:[{t:16,r:"._rightP"}],n:50,r:"._rightP"}]},"\n  ",{t:7,e:"div",m:[{n:"class-rappbar-wait",t:13},{n:"class-waiting",t:13,f:[{t:2,r:"waiting"}]}]},"\n"]}]},
           css: function(data) { return [(function(data) {
 
 
 
-        return ("\n\n  .rappbar {\n\n    display: flex;\n\n    padding: 1em;\n\n    background-color: " + (data('appbar.bg') || data('bg2') || '#07e') + ";\n\n    color: " + (data('appbar.fg') || data('fg2') || '#f9f9f9') + ";\n\n    position: relative;\n\n  }\n\n\n\n  .rappbar-left {\n\n    flex-grow: 3;\n\n    display: flex;\n\n    justify-content: flex-start;\n\n  }\n\n\n\n  .rappbar-right {\n\n    flex-grow: 3;\n\n    display: flex;\n\n    justify-content: flex-end;\n\n  }\n\n\n\n  .rappbar-center {\n\n    flex-shrink: 1;\n\n  }\n\n\n\n  .rappbar-wait {\n\n    position: absolute;\n\n    bottom: 0;\n\n    left: 0;\n\n    width: 100%;\n\n    height: 0.5em;\n\n    opacity: 0;\n\n    transition: opacity 0.3s ease-in-out;\n\n    background: linear-gradient(to left, " + (data('appbar.wait.color1') || 'rgba(255, 255, 255, 0.7)') + ", " + (data('appbar.wait.color2') || 'rgba(0, 0, 0, 0.1)') + ", " + (data('appbar.wait.color1') || 'rgba(255, 255, 255, 0.7)') + ");\n\n    background-size: 600% 600%;\n\n    animation: rappbar-roll 10s linear infinite;\n\n    animation-play-state: paused;\n\n  }\n\n\n\n  .rappbar-wait.waiting {\n\n    opacity: 1;\n\n    animation-play-state: running;\n\n  }\n\n\n\n  @keyframes rappbar-roll {\n\n    0% { background-position: 0% 50%; }\n\n    50% { background-position: 100% 50%; }\n\n    100% { background-position: 0% 50%; }\n\n  }\n\n  ");
+        return ("\n\n  .rappbar {\n\n    display: flex;\n\n    padding: 1em;\n\n    background-color: " + (data('appbar.bg') || data('bg2') || '#07e') + ";\n\n    color: " + (data('appbar.fg') || data('fg2') || '#f9f9f9') + ";\n\n    position: relative;\n\n    justify-content: space-between;\n\n  }\n\n\n\n  .rappbar-left {\n\n    display: flex;\n\n    justify-content: flex-start;\n\n  }\n\n\n\n  .rappbar-right {\n\n    display: flex;\n\n    justify-content: flex-end;\n\n  }\n\n\n\n  .rappbar-center {\n\n    flex-shrink: 1;\n\n  }\n\n\n\n  .rappbar-wait {\n\n    position: absolute;\n\n    bottom: 0;\n\n    left: 0;\n\n    width: 100%;\n\n    height: 0.5em;\n\n    opacity: 0;\n\n    transition: opacity 0.3s ease-in-out;\n\n    background: linear-gradient(to left, " + (data('appbar.wait.color1') || 'rgba(255, 255, 255, 0.7)') + ", " + (data('appbar.wait.color2') || 'rgba(0, 0, 0, 0.1)') + ", " + (data('appbar.wait.color1') || 'rgba(255, 255, 255, 0.7)') + ");\n\n    background-size: 600% 600%;\n\n    animation: rappbar-roll 10s linear infinite;\n\n    animation-play-state: paused;\n\n  }\n\n\n\n  .rappbar-wait.waiting {\n\n    opacity: 1;\n\n    animation-play-state: running;\n\n  }\n\n\n\n  @keyframes rappbar-roll {\n\n    0% { background-position: 0% 50%; }\n\n    50% { background-position: 100% 50%; }\n\n    100% { background-position: 0% 50%; }\n\n  }\n\n  ");
 
 
       }).call(this, data)].join(' '); },
@@ -46,10 +46,9 @@ System.register(['ractive', './chunk2.js'], function (exports, module) {
 
               var tpl = this.partials.content;
               if (tpl) {
-                tpl.forEach(function (e) {
-                  if (e.e === 'left') { this$1.set('_leftP', { t: e.f }); }
-                  if (e.e === 'center') { this$1.set('_centerP', { t: e.f }); }
-                  if (e.e === 'right') { this$1.set('_rightP', { t: e.f }); }
+                tpl.filter(function (e) { return e.e === 'left' || e.e === 'right' || e.e === 'center'; }).forEach(function (e) {
+                  this$1.set(("_" + (e.e) + "P"), e.f);
+                  if (e.m) { this$1.set(("_" + (e.e) + "Attrs"), e.m); }
                 });
               }
             }

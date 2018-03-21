@@ -148,6 +148,7 @@ System.register(['./chunk2.js'], function (exports, module) {
           out += "\n" + (greater[size.key].map(function (s) { return ("." + s + " ." + name + "0"); }).join(', ')) + " { width: 0; overflow: hidden; }";
 
           size.units.forEach(function (u) {
+            cols += "\n" + (greater[size.key].map(function (s) { return ("." + s + " " + name + "1, ." + s + " .row > ." + name + "1"); }).join(', ')) + " { width: 100%; }";
             var loop = function ( i ) {
               str = '' + ((i / u) * 100);
               str = str.substr(0, str.indexOf('.') + 3);
