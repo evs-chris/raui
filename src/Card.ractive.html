@@ -1,5 +1,27 @@
-<div class-card {{>extra-attributes}}>
-  {{>content}}
+<div class-rcard {{>extra-attributes}} class-rcard-no-pad="_card.noPad">
+  {{#if _card.titleP || _card.subtitleP || _card.avatarP || _card.title || _card.subtitle || (_card.avatar && typeof _card.avatar === 'string')}}
+    <div class-rcard-header>
+      {{#if _card.avatar && typeof _card.avatar === 'string'}}<div class-rcard-avatar>
+        <div class-rcard-avatar-inner style-background-image="url({{_card.avatar}})" class-rcard-avatar-round="_card.round" />
+      </div>
+      {{elseif _card.avatarP}}<div class-rcard-avatar {{#if _card.avatarA}}{{>_card.avatarA}}{{/if}}>{{>_card.avatarP}}</div>{{/if}}
+      <div class-rcard-titles class-rcard-with-sub="_card.subtitle || _card.subtitleP">
+        {{#if _card.title}}<div class-rcard-title>{{_card.title}}</div>
+        {{else}}<div class-rcard-title {{#if _card.titleA}}{{>_card.titleA}}{{/if}}>{{>_card.titleP}}</div>{{/if}}
+        {{#if _card.subtitle}}<div class-rcard-subtitle>{{_card.subtitle}}</div>
+        {{elseif _card.subtitleP}}<div class-rcard-subtitle {{#if _card.subtitleA}}{{>_card.subtitleA}}{{/if}}>{{>_card.subtitleP}}</div>{{/if}}
+      </div>
+    </div>
+  {{/if}}
+  {{#if _card.image}}<div class-rcard-image><img src="{{_card.image}}" alt="{{_card.alt}}"/></div>
+  {{elseif _card.imageP}}<div class-rcard-image {{#if _card.imageA}}{{>_card.imageA}}{{/if}}>{{>_card.imageP}}</div>{{/if}}
+  {{#if _card.contentP}}<div class-rcard-content>{{>_card.contentP}}</div>{{/if}}
+  {{#if _card.footerP}}<div class-rcard-footer {{#if _card.footerA}}{{>_card.footerA}}{{/if}}>{{>_card.footerP}}</div>{{/if}}
+  {{#if _card.actions.length}}
+    <div class-rcard-actions>
+      {{#each _card.actions}}{{#if .P}}{{>.P}}{{else}}<button {{>.attrs}}>{{>.content}}</button>{{/if}}{{/each}}
+    </div>
+  {{/if}}
 </div>
 
 <script>
@@ -10,13 +32,76 @@
 
   export const Card = Ractive.macro(
     handle => {
-      handle.setTemplate( template );
+      init(handle);
+      handle.setTemplate(template);
+
+      return {
+        update() {
+          updateAttrs(handle);
+        }
+      }
     }, {
       cssId: 'rm-card',
       css: $CSS,
-      attributes: []
+      attributes: ['title', 'subtitle', 'image', 'avatar', 'avatar-round', 'no-pad', 'image-alt']
     }
   );
+
+  function init(h) {
+    const data = h.get('@local');
+    h.aliasLocal('_card');
+
+    updateAttrs(h);
+    
+    const tpl = h.partials.content;
+    const content = [];
+
+    tpl.forEach(n => {
+      if (n.e === 'title') {
+        data.titleA = n.m;
+        data.titleP = n.f;
+      }
+      else if (n.e === 'subtitle') {
+        data.subtitleA = n.m;
+        data.subtitleP = n.f;
+      }
+      else if (n.e === 'avatar') {
+        if (n.m) {
+          data.avatarA = n.m.filter(a => a.n !== 'round');
+          if (n.m.find(a => a.n === 'round')) data.avatarA.push({ t: 13, n: 'class-rcard-avatar-round' });
+        }
+        data.avatarP = n.f;
+      }
+      else if (n.e === 'footer') {
+        data.footerA = n.m;
+        data.footerP = n.f;
+      }
+      else if (n.e === 'action') {
+        (data.actions || (data.actions = [])).push({
+          attrs: n.m,
+          content: n.f
+        });
+      }
+      else if (n.t === 4 && n.n === 50 && n.f && n.f.filter(n => typeof n !== 'string').length === 1 && n.f.find(e => e.e === 'action')) { // if action
+        const section = Object.assign({}, n);
+        const b = section.f.find(e => e.e === 'action');
+        section.f = [{ t: 7, e: 'button', m: b.m, f: b.f }];
+        (data.actions || (data.actions = [])).push({ P: [section] });
+      }
+      else content.push(n);
+    });
+
+    data.contentP = content;
+  }
+
+  const keys = ['title', 'subtitle', 'image']
+  function updateAttrs(h) {
+    keys.forEach(k => h.set(`@local.${k}`, h.attributes[k]));
+    h.set('@local.round', h.attributes['avatar-round']);
+    h.set('@local.avatar', h.attributes.avatar || h.attributes['avatar-round']);
+    h.set('@local.alt', h.attributes['image-alt']);
+    h.set('@local.noPad', h.attributes['no-pad']);
+  }
 
   export function plugin(opts = {}) {
     return function({ instance }) {
@@ -31,13 +116,160 @@
 
 <script rel="css">
   return `
-  .card {
+  .rcard {
     display: block;
-    padding: 0.5em;
-    color: ${data('card.fg') || data('fg1')};
-    background-color: ${data('card.bg') || data('bg1')};
-    box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.14), 0 1px 5px 0 rgba(0, 0, 0, 0.12), 0 3px 1px -2px rgba(0, 0, 0, 0.2);
+    color: ${data('card.fg') || data('fg1') || '#222'};
+    background-color: ${data('card.bg') || data('bg1') || '#fff'};
+    box-shadow: 0 2px 2px rgba(0, 0, 0, 0.24), 0 0 2px rgba(0, 0, 0, 0.12);
     border-radius: 2px;
+  }
+
+  .rcard-no-pad > .rcard-content {
+    padding: 0;
+  }
+
+  .rcard > div:nth-last-of-type(n + 2) {
+    padding-bottom: 0;
+  }
+
+  .rcard-header, .rcard-content {
+    padding: 1em;
+  }
+
+  .rcard-header {
+    display: flex;
+    height: 3em;
+  }
+
+  .rcard-avatar {
+    width: 3em;
+    margin-right: 1em;
+  }
+
+  .rcard-avatar-inner {
+    height: 100%;
+    background-size: cover;
+  }
+
+  .rcard-avatar-round {
+    border-radius: 100%;
+  }
+
+  .rcard-titles {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    line-height: 1em;
+  }
+
+  .rcard-with-sub {
+    justify-content: space-evenly;
+  }
+
+  .rcard-with-sub > .rcard-title {
+    font-size: 1.2em;
+  }
+
+  .rcard-title {
+    font-size: 1.5em;
+  }
+
+  .rcard-subtitle {
+    opacity: 0.7;
+    font-size: 1em;
+  }
+
+  .rcard > div:first-of-type.rcard-image {
+    margin-top: 0;
+  }
+
+  .rcard-image {
+    margin-top: 1em;
+  }
+
+  .rcard-image > img {
+    width: 100%;
+  }
+
+  .rcard-actions {
+    padding: 0.5em;
+  }
+
+  .rcard-actions > button {
+    text-decoration: none;
+    text-align: center;
+    letter-spacing: 0.5px;
+    cursor: pointer;
+    user-select: none;
+    border: none;
+    border-radius: 2px;
+    padding: 0 2rem;
+    transition: 0.2s ease-in-out;
+    transition-property: box-shadow, opacity, background-color;
+    font-size: 1em;
+    line-height: 1.5em;
+    background-color: ${data('button.flat.bg') || data('bg1') || '#fefefe'};
+    color: ${data('button.flat.fg') || data('fg1') || '#222'};
+    vertical-align: middle;
+    min-height: 2.25em;
+    outline: 0;
+    margin: 0.25em;
+    position: relative;
+    overflow: hidden;
+    font-weight: 500;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .rcard-actions > button[disabled], .btn.disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+  }
+
+  .rcard-actions > button[disabled]:hover {
+    opacity: 0.7;
+  }
+
+  .rcard-actions > button.flat:hover {
+    box-shadow: none;
+  }
+
+  .rcard-actions > button:after {
+    content: ' ';
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 100%;
+    background: radial-gradient(circle, rgba(0, 0, 0, 0.2) 1.5em, transparent 1.6em);
+    opacity: 0;
+    transform: scale(5, 5);
+    transition: opacity 0.6s ease-out, transform 0.5s ease-in;
+  }
+
+  .rcard-actions > button:before {
+    content: ' ';
+    position: absolute;
+    height: 100%;
+    width: 100%;
+    background-color: rgba(0, 0, 0, 0.075);
+    opacity: 0;
+    top: 0;
+    left: 0;
+    transition: opacity 0.4s ease-in-out;
+  }
+
+  .rcard-actions > button:focus:before {
+    opacity: 1;
+  }
+  .rcard-actions > button:hover:before {
+    opacity: 0.5;
+  }
+  
+  .rcard-actions > button:active:after {
+    transform: scale(1, 1);
+    opacity: 1;
+    transition: none;
   }
   `;
 </script>
