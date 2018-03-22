@@ -2,34 +2,17 @@
   {{>~/getType(.)}}
 </template>
 
-<template id="rootValue">
-  {{#if root !== null && typeof root === 'object'}}
-    {{>value root}}
-  {{else}}
-    {{#if typeof root === 'string'}}
-      <span class="str" style-vertical-align="top"><span class="str"><textarea rows="{{#if root.indexOf('\n') !== -1}}5{{else}}1{{/if}}">{{root}}</textarea></span></span>
-    {{elseif typeof root === 'number'}}
-      <span class="num"><span class="num"><input type="number" value="{{root}}" /></span></span>
-    {{elseif typeof root === 'boolean'}}
-      <span class="bool"><span class="bool"><input type="checkbox" checked="{{root}}" /></span></span>
-    {{elseif root === null}}
-      <span class="null">null</span>
-    {{else}}
-      ???
-    {{/if}}
-    <button title="more actions" class="icon" on-click="@.toggle('extras.root')">&#8943;</button>
-    {{#if ~/extras.root}}
-      {{>changeType root}}
-    {{/if}}
-  {{/if}}
+<template id="open">
+    {{#if ~/getType(.) === 'object'}}<span class-rje-open on-click="@.toggle('toggles.' + ~/escapeKey(@keypath)), false">&#x007b;</span>
+    {{elseif ~/getType(.) === 'array'}}<span class-rje-open on-click="@.toggle('toggles.' + ~/escapeKey(@keypath)), false">[</span>{{/if}}
 </template>
 
 <template id="object">
-  <div class-obj class-open="~/toggles[@keypath]"><span on-click="@.toggle('toggles.' + ~/escapeKey(@keypath)), false">&#x007b;{{#if !~/toggles[@keypath]}}<span class="ellipsis">&hellip;</span>{{/if}}</span>{{#if ~/toggles[@keypath]}}
+  <div class-rje-obj>{{#if !~/toggles[@keypath]}}<span class-rje-ellipsis on-click="@.toggle('toggles.' + ~/escapeKey(@keypath)), false">&hellip; </span>{{else}}
     {{#each .}}
-    <div class="entry">
-      <span class="key" {{#if ~/editable}}on-click="@.set('keys.' + ~/escapeKey(@keypath), @key), @.deferFocus(@node)"{{else}}on-click="@.toClipboard(@keypath.substr(5))"{{/if}}>
-        <span>
+    <div class-rje-entry>
+      <span class-rje-key {{#if ~/editable}}on-click="@.set('keys.' + ~/escapeKey(@keypath), @key), @.deferFocus(@node)"{{else}}on-click="@.toClipboard(@keypath.substr(5))"{{/if}}>
+        <span class-rje-str>
           {{#if typeof ~/keys[@keypath] === 'string'}}
             <textarea rows="{{#if @key.indexOf('\n') !== -1 || ~/keys[@keypath].indexOf('\n') !== -1}}5{{else}}1{{/if}}" on-keyup="@event.which === 27 && @.renameKey(@keypath, ~/keys[@keypath])">{{~/keys[@keypath]}}</textarea>
           {{else}}
@@ -37,80 +20,82 @@
           {{/if}}
         </span>
         {{#if typeof ~/keys[@keypath] === 'string'}}
-          <button title="apply" class="icon ok" on-click="@.renameKey(@keypath, ~/keys[@keypath])">&#10003;</button>
-          <button title="cancel" class="icon cancel" on-click="@.stopEdit(@keypath, 'keys')">&#10005;</button>
-          <button title="remove key" style-margin-left="1em" class="icon cancel" on-click="@.removeKey(@keypath)">&#8722;</button>
-          <button title="copy keypath" style-margin-left="1em" class="icon copy" on-click="@.toClipboard(@keypath.substr(5))">&#10697;</button>
+          <button title="apply" class="rje-icon rje-ok" on-click="@.renameKey(@keypath, ~/keys[@keypath])">&#10003;</button>
+          <button title="cancel" class="rje-icon rje-cancel" on-click="@.stopEdit(@keypath, 'keys')">&#10005;</button>
+          <button title="remove key" class="rje-icon rje-cancel" on-click="@.removeKey(@keypath)">&#8722;</button>
+          <button title="copy keypath" class="rje-icon rje-copy" on-click="@.toClipboard(@keypath.substr(5))">&#10697;</button>
         {{/if}}
-    </span>
-    <div class="value">{{>value}}</div>
+      </span>
+      {{>open}}
+      <div class-rje-value class-rje-value-expanded="~/toggles[@keypath]">{{>value}}</div>
     </div>
     {{/each}}
-    {{/if}}<span class="close" on-click="@.toggle('toggles.' + ~/escapeKey(@keypath)), false">&#x007d;</span>{{#if ~/editable && ~/toggles[@keypath]}}
-    <button title="more actions" class="icon" on-click="@.toggle('extras.' + ~/escapeKey(@keypath)), false">&#8943;</button>
+    {{/if}}<span class-rje-close on-click="@.toggle('toggles.' + ~/escapeKey(@keypath)), false">&#x007d;</span>{{#if ~/editable && ~/toggles[@keypath]}}
+    <div class-rje-buttons><button title="more actions" class-rje-icon on-click="@.toggle('extras.' + ~/escapeKey(@keypath)), false">&#8943;</button>
     {{#if ~/extras[@keypath]}}
-      <input value="{{~/values[@keypath].name}}" on-keyup="@event.which === 13 && @.addKey(@keypath)" /><button title="add key" class="icon ok" on-click="@.addKey(@keypath)">+</button>
+      <input value="{{~/values[@keypath].name}}" on-keyup="@event.which === 13 && @.addKey(@keypath)" /><button title="add key" class="rje-icon rje-ok" on-click="@.addKey(@keypath)">+</button>
       {{>changeType}}
-    {{/if}}
+    {{/if}}</div>
   {{/if}}
   </div>
 </template>
 
 <template id="array">
-<div class-array class-open="~/toggles[@keypath]"><span on-click="@.toggle('toggles.' + ~/escapeKey(@keypath)), false">[{{#if !~/toggles[@keypath]}}<span class="ellipsis">&hellip;</span>{{/if}}</span>{{#if ~/toggles[@keypath]}}
+  <div class-rje-array>{{#if !~/toggles[@keypath]}}<span class-rje-ellipsis on-click="@.toggle('toggles.' + ~/escapeKey(@keypath)), false">&hellip; </span>{{else}}
   {{#with @keypath as array}}{{#each .}}
-  <div class="entry">
-    <span class="idx">
+  <div class-rje-entry>
+    <span class-rje-idx>
       <span on-click="@.toggle('indexes.' + ~/escapeKey(array)), false">{{@index}}</span>
       {{#if ~/editable && ~/indexes[array]}}
-        <button class="icon" style-margin-left="1em" title="remove" on-click="@.splice(array, @index, 1), false">&#8722;</button>
-        <button class="icon" title="move up" on-click="@.splice(array, @index - 1, 0, @.splice(array, @index, 1).result[0]), false" {{#if !@index}}disabled{{/if}}>^</button>
-        <button class="icon" title="move down" on-click="@.splice(array, @index + 1, 0, @.splice(array, @index, 1).result[0]), false" {{#if @index === ../length - 1}}disabled{{/if}}>v</button>
-        <button title="copy keypath" style-margin-left="1em" class="icon copy" on-click="@.toClipboard(@keypath.substr(5))">&#10697;</button>
+        <button class-rje-icon title="remove" on-click="@.splice(array, @index, 1), false">&#8722;</button>
+        <button class-rje-icon title="move up" on-click="@.splice(array, @index - 1, 0, @.splice(array, @index, 1).result[0]), false" {{#if !@index}}disabled{{/if}}>^</button>
+        <button class-rje-icon title="move down" on-click="@.splice(array, @index + 1, 0, @.splice(array, @index, 1).result[0]), false" {{#if @index === ../length - 1}}disabled{{/if}}>v</button>
+        <button title="copy keypath" class="rje-icon rje-copy" on-click="@.toClipboard(@keypath.substr(5))">&#10697;</button>
       {{/if}}
     </span>
-    <div class="value">{{>value}}</div>
+    {{>open}}
+    <div class-rje-value class-rje-value-expanded="~/toggles[@keypath]">{{>value}}</div>
   </div>
   {{/each}}{{/with}}
-  {{/if}}<span class="close" on-click="@.toggle('toggles.' + ~/escapeKey(@keypath)), false">]</span>{{#if ~/editable && ~/toggles[@keypath]}}
-  <button title="more actions" class="icon" on-click="@.toggle('extras.' + ~/escapeKey(@keypath)), false">&#8943;</button>
+  {{/if}}<span class-rje-close on-click="@.toggle('toggles.' + ~/escapeKey(@keypath)), false">]</span>{{#if ~/editable && ~/toggles[@keypath]}}
+  <div class-rje-buttons><button title="more actions" class-rje-icon on-click="@.toggle('extras.' + ~/escapeKey(@keypath)), false">&#8943;</button>
   {{#if ~/extras[@keypath]}}
-    <button title="push" class="icon" on-click="@.push(@keypath, ''), false">&#707;+</button>
-    <button title="unshift" class="icon" on-click="@.unshift(@keypath, ''), false">+&#706;</button>
-    <button title="pop" class="icon" on-click="@.pop(@keypath), false">&#707;-</button>
-    <button title="shift" class="icon" on-click="@.shift(@keypath), false">-&#706;</button>
+    <button title="push" class-rje-icon on-click="@.push(@keypath, ''), false">&#707;+</button>
+    <button title="unshift" class-rje-icon on-click="@.unshift(@keypath, ''), false">+&#706;</button>
+    <button title="pop" class-rje-icon on-click="@.pop(@keypath), false">&#707;-</button>
+    <button title="shift" class-rje-icon on-click="@.shift(@keypath), false">-&#706;</button>
     {{>changeType}}
-  {{/if}}
+  {{/if}}</div>
 {{/if}}
 </div>
 </template>
 
 <template id="string">
-  <span class="str" on-click="@.startEdit(@keypath, @node)"><span class="str">{{#if ~/editable && ~/edits[@keypath]}}<textarea rows="{{#if this.indexOf('\n') !== -1}}5{{else}}1{{/if}}" on-keyup="@event.which === 27 && @.stopEdit(@keypath)">{{.}}</textarea>{{else}}<pre>{{.}}</pre>{{/if}}</span></span><span class="close" />{{#if ~/editable && ~/edits[@keypath]}}{{>editorEnd}}{{/if}}
+  <span class-rje-str on-click="@.startEdit(@keypath, @node)">{{#if ~/editable && ~/edits[@keypath]}}<textarea rows="{{#if this.indexOf('\n') !== -1}}5{{else}}1{{/if}}" on-keyup="@event.which === 27 && @.stopEdit(@keypath)">{{.}}</textarea>{{else}}<pre>{{.}}</pre>{{/if}}</span><span class-rje-close />{{#if ~/editable && ~/edits[@keypath]}}{{>editorEnd}}{{/if}}
 </template>
 
 <template id="number">
-  <span class="num" on-click="@.startEdit(@keypath, @node)">{{#if ~/editable && ~/edits[@keypath]}}<input type="number" value="{{.}}" on-keyup="@event.which === 27 && @.stopEdit(@keypath)" />{{else}}{{.}}{{/if}}</span><span class="close" />{{#if ~/editable && ~/edits[@keypath]}}{{>editorEnd}}{{/if}}
+  <span class-rje-num on-click="@.startEdit(@keypath, @node)">{{#if ~/editable && ~/edits[@keypath]}}<input type="number" value="{{.}}" on-keyup="@event.which === 27 && @.stopEdit(@keypath)" />{{else}}{{.}}{{/if}}</span><span class-rje-close />{{#if ~/editable && ~/edits[@keypath]}}{{>editorEnd}}{{/if}}
 </template>
 
 <template id="boolean">
-  <span class="bool" on-click="@.startEdit(@keypath, @node)">{{#if ~/editable && ~/edits[@keypath]}}<input type="checkbox" checked="{{.}}" on-keyup="@event.which === 27 && @.stopEdit(@keypath)" />{{else}}{{.}}{{/if}}</span><span class="close" />{{#if ~/editable && ~/edits[@keypath]}}{{>editorEnd}}{{/if}}
+  <span class-rje-bool on-click="@.startEdit(@keypath, @node)">{{#if ~/editable && ~/edits[@keypath]}}<input type="checkbox" checked="{{.}}" on-keyup="@event.which === 27 && @.stopEdit(@keypath)" />{{else}}{{.}}{{/if}}</span><span class-rje-close />{{#if ~/editable && ~/edits[@keypath]}}{{>editorEnd}}{{/if}}
 </template>
 
 <template id="null">
-  <span class="null" on-click="@.startEdit(@keypath)">null</span><span class="close" />{{#if ~/editable && ~/edits[@keypath]}}{{>editorEnd}}{{/if}}
+  <span class-rje-null on-click="@.startEdit(@keypath)">null</span><span class-rje-close />{{#if ~/editable && ~/edits[@keypath]}}{{>editorEnd}}{{/if}}
 </template>
 
 <template id="function">
-  <span class="fn" on-click="@.startEdit(@keypath)">function() {...}</span><span class="close" />
+  <span class-rje-fn on-click="@.startEdit(@keypath)">function() {...}</span><span class-rje-close />
 </template>
 
 <template id="wat">
-  <span class="wat" on-click="@.startEdit(@keypath)">???</span><span class="close" />{{#if ~/editable && ~/edits[@keypath]}}{{>editorEnd}}{{/if}}
+  <span class-rje-wat on-click="@.startEdit(@keypath)">???</span><span class-rje-close />{{#if ~/editable && ~/edits[@keypath]}}{{>editorEnd}}{{/if}}
 </template>
 
 <template id="editorEnd">
-  <button title="close editor" class="ok icon" on-click="@.stopEdit(@keypath)">&#10003;</button>{{>changeType}}
+  <button title="close editor" class="rje-ok rje-icon" on-click="@.stopEdit(@keypath)">&#10003;</button>{{>changeType}}
 </template>
 
 <template id="changeType">
@@ -124,7 +109,10 @@
   </select>
 </template>
 
-<div class="root">{{>rootValue}}</div>
+<div class-rje-wrapper {{yield extra-attributes}}>{{#with root}}
+  {{>open}}
+  <div class-rje-root class-rje-value-expanded="~/toggles.root">{{>value}}</div>
+{{/with}}</div>
 
 <script>
   import Ractive from 'ractive';
@@ -268,6 +256,8 @@
     template: $TEMPLATE,
     css: $CSS,
     cssId: "json-editor",
+    noCssTransform: true,
+    attributes: ['editable', 'root'],
     data() {
       return {
         getType,
@@ -309,231 +299,195 @@
 </script>
 
 <style>
-  .root {
+  .rje-wrapper {
     font-family: monospace;
-    line-height: 1.6em;
+    line-height: 1.5em;
   }
-  span,
-  pre {
+
+  .rje-root {
     display: inline-block;
-    cursor: pointer;
-    margin: 0;
   }
-  button {
-    box-shadow: none;
-  }
-  button.icon {
-    border: 1px solid rgba(153,153,153,0.25);
-    background: #fdfdfd;
+
+  .rje-wrapper select, .rje-wrapper input {
+    height: 1.6em;
+    border: 1px solid;
+    color: #222;
     border-radius: 0.2em;
-    font-size: 0.8em;
-    margin: 0 0.25em;
+    background-color: transparent;
     padding: 0;
-    color: #999;
-    cursor: pointer;
-    outline: none;
-    transition-property: color, border;
-    transition-duration: 0.3s;
-    transition-timing-function: ease-in-out;
+    box-sizing: border-box;
+    opacity: 0.3;
+    transition: opacity 0.3s ease-in-out;
+  }
+  .rje-wrapper select:hover, .rje-wrapper input:hover {
+    opacity: 1;
+  }
+
+  .rje-wrapper input[type=checkbox] {
+    width: 1.4em;
+    height: 1.4em;
+    margin: 0.1em;
     vertical-align: top;
+    outline: 0;
+  }
+
+  .rje-wrapper textarea {
+    border: 1px solid;
+    color: #222;
+    border-radius: 0.2em;
+  }
+
+  .rje-value {
+    display: inline-block;
+    position: relative;
+  }
+
+  .rje-value > * {
+    vertical-align: top;
+  }
+
+  .rje-value-expanded {
+    display: block; 
+  }
+  .rje-value-expanded > .rje-obj,
+  .rje-value-expanded > .rje-array {
+    border-left: 1px dotted transparent;
+    transition: border-left-color 0.2s ease-in-out;
+    margin: 0 0 1.5em 0.25em;
+    position: relative;
+    display: block;
+    padding-bottom: 0.6em;
+  }
+  .rje-value-expanded > .rje-obj:hover,
+  .rje-value-expanded > .rje-array:hover {
+    border-left-color: #ccc;
+  }
+
+  .rje-value-expanded > .rje-obj > .rje-close,
+  .rje-value-expanded > .rje-array > .rje-close {
+    position: absolute;
+    bottom: -1.5em;
+    left: -0.25em;
+    width: 2em;
+  }
+
+  .rje-open, .rje-close, .rje-ellipsis {
+    cursor: pointer;
+  }
+
+  .rje-value-expanded > .rje-obj > .rje-buttons,
+  .rje-value-expanded > .rje-array > .rje-buttons {
+    position: absolute;
+    bottom: -1.6em;
+    left: 1.5em;
+  }
+
+  .rje-entry {
+    margin-left: 0.75em;
+    line-height: 2em;
+  }
+  
+  .rje-entry:nth-last-of-type(n+3) > .rje-value > .rje-close:after,
+  .rje-entry:nth-last-of-type(n+3) > .rje-value > * > .rje-close:after {
+    content: ',';
+    position: absolute;
+    top: 0;
+  }
+
+  .rje-idx {
+    cursor: pointer;
+  }
+  .rje-key, .rje-idx {
+    margin-right: 0.5em;
+    position: relative;
+    display: inline-block;
+    vertical-align: top;
+  }
+  .rje-key:after, .rje-idx:after {
+    content: ':';
+    position: absolute;
+    right: -0.5em;
+    display: inline-block;
+    top: 0;
+  }
+
+  .rje-str > pre {
+    font-family: monospace;
+    display: inline-block;
+    margin: 0;
+    vertical-align: top;
+  }
+
+  .rje-str {
+    position: relative;
+    margin: 0 0.6em;
+    display: inline-block;
+    cursor: text;
+  }
+  .rje-str:before, .rje-str:after {
+    content: '"';
+    position: absolute;
+  }
+  .rje-str:before {
+    left: -0.6em;
+    width: 0.6em;
+    text-align: right;
+  }
+  .rje-str:after {
+    right: -0.6em;
+    width: 0.6em;
+    text-align: left;
+    top: 0;
+  }
+
+  .rje-obj {
+    display: inline-block;
+  }
+
+  .rje-icon {
     width: 1.6em;
     height: 1.6em;
-    min-height: 1.6em;
     box-sizing: border-box;
-    line-height: 1.5em;
-    text-align: center;
-  }
-  button.icon[disabled],
-  button.icon[disabled]:hover {
-    color: #ddd;
-    border: 1px solid #ddd;
-    background: #eee;
-  }
-  button.icon:hover {
-    color: #0000bf;
-    border: 1px solid rgba(0,0,191,0.5);
-  }
-  button.icon.ok:hover {
-    color: #006000;
-    border: 1px solid rgba(0,96,0,0.5);
-  }
-  button.icon.cancel:hover {
-    color: #bf0000;
-    border: 1px solid rgba(191,0,0,0.5);
-  }
-  textarea {
-    font-size: 1.025em;
-    border: 1px solid rgba(153,153,153,0.3);
+    padding: 0;
+    margin: 0 0.25em;
+    display: inline-block;
+    vertical-align: top;
+    background-color: transparent;
+    color: #222;
+    border: 1px solid;
     border-radius: 0.2em;
+    opacity: 0.3;
+    transition: opacity 0.2s ease-in-out;
+    outline: 0;
+    cursor: pointer;
   }
-  select {
-    border: 1px solid rgba(153,153,153,0.3);
-    background: #fdfdfd;
-    padding: 0 0.2em 0 0.2em;
-    vertical-align: top;
-    font-size: 0.8em;
-    outline: none;
-    height: 1.6em;
-    box-sizing: border-box;
+  .rje-icon:hover {
+    opacity: 1;
   }
-  input {
-    font-size: 0.8em;
-    border: 1px solid rgba(153,153,153,0.3);
-    border-radius: 0.2em;
+
+  .rje-key .rje-str {
+    color: #005a00;
   }
-  input[type=text],
-  input[type=number],
-  input:not([type]) {
-    height: 1.6em;
-  }
-  .obj,
-  .array {
-    display: inline;
-  }
-  .obj > input {
-    vertical-align: top;
-  }
-  .obj:hover > .entry,
-  .array:hover > .entry {
-    border-left: 1px dashed rgba(0,0,0,0.15);
-  }
-  .obj .entry,
-  .array .entry {
-    transition: border-left 0.3s ease-in-out;
-    border-left: 1px dashed transparent;
-    margin-left: 0.25em;
-    padding-left: 0.75em;
-    margin-bottom: 0.3em;
-  }
-  .obj .entry .close:after,
-  .array .entry .close:after {
-    content: ',';
-    color: #606060;
-    font-weight: 600;
-  }
-  .obj > .entry:last-of-type > .value > .close:after,
-  .array > .entry:last-of-type > .value > .close:after,
-  .obj > .entry:last-of-type > .value > * > .close:after,
-  .array > .entry:last-of-type > .value > * > .close:after {
-    content: '';
-  }
-  .obj .entry .value,
-  .array .entry .value {
-    display: inline;
-  }
-  .obj .entry .key,
-  .array .entry .key {
-    color: #008000;
-  }
-  .obj .entry .key pre,
-  .array .entry .key pre {
-    user-select: none;
-    -webkit-user-select: none;
-    -moz-user-select: none;
-  }
-  .obj .entry .key > *,
-  .array .entry .key > * {
-    vertical-align: top;
-  }
-  .obj .entry .key:after,
-  .array .entry .key:after {
-    content: ':';
-  }
-  .obj .entry .key > span > *,
-  .array .entry .key > span > * {
-    vertical-align: top;
-  }
-  .obj .entry .key > span:before,
-  .array .entry .key > span:before,
-  .obj .entry .key > span:after,
-  .array .entry .key > span:after {
-    content: '"';
-  }
-  .obj .entry .idx,
-  .array .entry .idx {
-    color: #0000e6;
-  }
-  .obj .entry .idx:after,
-  .array .entry .idx:after {
-    content: ':';
-  }
-  .obj .entry .key,
-  .array .entry .key,
-  .obj .entry .idx,
-  .array .entry .idx {
-    vertical-align: top;
-  }
-  .obj .entry .key:after,
-  .array .entry .idx:after {
-    margin-right: 0.5em;
-  }
-  .obj > span,
-  .array > span {
-    font-weight: 600;
-    color: #606060;
-  }
-  .obj .ellipsis,
-  .array .ellipsis {
-    color: #a0a0a0;
-  }
-  .root {
-    padding: 0.5em;
-    margin: 0.2em;
-    border: 1px solid rgba(153,153,153,0.3);
-    background-color: #fefefe;
-    border-radius: 0.2em;
-  }
-  .root > .obj.open {
-    display: block;
-  }
-  .num {
+  .rje-num {
     color: #0000e6;
     font-weight: 500;
-    vertical-align: top;
   }
-  .bool {
+  .rje-bool {
     color: #cc8400;
     font-weight: 500;
   }
-  .wat {
+  .rje-wat {
     color: #e60000;
     font-weight: 500;
   }
-  .null {
+  .rje-null {
     color: #737373;
     font-weight: 500;
   }
-  .fn {
+  .rje-fn {
     color: #005a00;
   }
-  .str {
+  .rje-str {
     color: #753bb0;
-    vertical-align: top;
-  }
-  .str pre {
-    transition: border-left 0.3s ease-in-out;
-    border-left: 1px dashed transparent;
-    padding-left: 0.1em;
-  }
-  .str pre:hover {
-    border-left: 1px dashed rgba(0,0,0,0.15);
-  }
-  .str span.close {
-    vertical-align: bottom;
-  }
-  .str > span.str {
-    vertical-align: top;
-  }
-  .str > span.str:before,
-  .str > span.str:after {
-    content: '"';
-    display: inline-block;
-    color: #4d004d;
-  }
-  .str > span.str:before {
-    vertical-align: top;
-  }
-  .str > span.str:after {
-    vertical-align: bottom;
   }
 </style>
