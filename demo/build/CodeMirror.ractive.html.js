@@ -153,7 +153,7 @@ System.register(['./chunk2.js', './chunk7.js', './chunk8.js'], function (exports
           new Promise(function (ok) {
             var waits = [];
             [
-              './codemirror.js',
+              'https://cdn.jsdelivr.net/npm/codemirror@5/lib/codemirror.js',
               'https://cdn.jsdelivr.net/npm/codemirror@5/mode/javascript/javascript.js',
               'https://cdn.jsdelivr.net/npm/codemirror@5/mode/gfm/gfm.js',
               'https://cdn.jsdelivr.net/npm/codemirror@5/mode/sql/sql.js',

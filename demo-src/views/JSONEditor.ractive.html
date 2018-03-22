@@ -31,7 +31,7 @@
         <input type="checkbox" checked="{{.editable}}" /> Editable?
       </label>
       <label as-field>
-        JSON<textarea rows=10>{{JSON.stringify(.item, null, '  ')}}</textarea>
+        JSON<textarea twoway=false rows=10>{{JSON.stringify(.item, null, '  ')}}</textarea>
       </label>
     </div>
     <marked>
