@@ -21,13 +21,9 @@
 
 <template id="item">
   <div class-rmenu-main
-    {{#if .activeRef}}class-rmenu-active="~/[.activeRef]"{{elseif typeof .active === 'function'}}class-rmenu-active=".active()"{{elseif typeof .active === 'boolean'}}class-rmenu-active=".active"{{/if}}
+    {{#if .activeRef}}class-rmenu-active="~/[.activeRef]"{{elseif typeof .active === 'function'}}class-rmenu-active=".active.length ? .active(@.getHandle(@context)) : .active()"{{elseif typeof .active === 'boolean'}}class-rmenu-active=".active"{{/if}}
   >
     {{#if .left}}<div class-menu-left>{{{.left}}}</div>{{elseif .leftPartial}}<div class-rmenu-left>{{yield .leftPartial}}</div>{{/if}}
-    {{#if .items && .items.length && @.visibleItems(.items)}}
-    <div class-rmenu-expand on-click="@context.toggle('.open'), false" expand-in-out={ axis: 'x' } />
-    {{/if}}
-    {{#if .right}}<div class-menu-right>{{{.right}}}</div>{{elseif .rightPartial}}<div class-rmenu-right>{{yield .rightPartial}}</div>{{/if}}
     <div
       class-rmenu-title
       {{#if typeof .action === 'function'}}on-click="this.action()"
@@ -36,6 +32,10 @@
     >
       {{#if .title}}{{{.title}}}{{elseif .titlePartial}}{{yield .titlePartial}}{{/if}}
     </div>
+    {{#if .right}}<div class-menu-right>{{{.right}}}</div>{{elseif .rightPartial}}<div class-rmenu-right>{{yield .rightPartial}}</div>{{/if}}
+    {{#if .items && .items.length && @.visibleItems(.items)}}
+    <div class-rmenu-expand on-click="@context.toggle('.open'), false" expand-in-out={ axis: 'x' } />
+    {{/if}}
   </div>
   {{>children}}
 </template>
@@ -95,6 +95,8 @@
         }
       } else if (what && what.parentNode) {
         ctx = this.getContext(what);
+      } else if (what && what.decorators) {
+        ctx = what;
       }
 
       if (ctx) {
@@ -365,30 +367,32 @@
     user-select: none;
     transition: 0.3s ease-in-out;
     transition-property: color, background-color;
+    display: flex;
+    align-items: center;
+    padding: 0.2em 0;
   }
   .rmenu-main.rmenu-active {
     color: ${data('menu.fgActive') || data('fga1') || '#07e'};
     background-color: ${data('menu.bgActive') || data('bg1') || '#dfdfdf'};
   }
-  .rmenu-left {
-    float: left;
-    margin: 0 0 0 0.5em;
-  }
-  .rmenu-right {
-    float: right;
-    margin: 0 0.5em 0 0;
-  }
   .rmenu-items {
     display: block;
   }
+  .rmenu-right {
+    padding-right: 0.4em;  
+  }
+  .rmenu-left {
+    padding-left: 0.4em;
+  }
   .rmenu-expand {
     width: 1.5em;
-    height: 2em;
-    float: right;
+    height: 1.5em;
     padding-left: 0.5em;
+    cursor: pointer;
+    position: relative;
   }
   .rmenu-expand:before {
-    position: relative;
+    position: absolute;
     display: inline-block;
     top: 0.25em;
     content: ' ';
@@ -400,15 +404,19 @@
     border-left-color: transparent;
     border-top-color: transparent;
   }
+  .rmenu-expanded > .rmenu-main > .rmenu-expand:before {
+    top: -0.25em;
+  }
 
   .rmenu-title {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
     cursor: pointer;
-    padding: 0.4em 0.5em;
+    padding: 0 0.5em;
+    flex-grow: 1;
   }
-  .rmenu-title h1, .rmenu-title h2, .rmenu-title h3, .rmenu-title h4 {
+  .rmenu-item h1, .rmenu-item h2, .rmenu-item h3, .rmenu-item h4 {
     margin: 0;
   }
 
