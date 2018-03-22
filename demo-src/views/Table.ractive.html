@@ -1,4 +1,4 @@
-<tabs height=dynamic fill transition=fade class-secondary>
+<tabs height=dynamic pad fill transition=fade class-secondary>
   <tab title="Intro"><marked>
     Just about every app needs to display some list of data at some point, preferably in a filterable, sortable way. To that end, raui provides a `table`, which is more like a desktop-style grid control than a plain html `table`. It comes with built-in filtering, sorting, declarative columns, pagination, selection, and responsive layout.
 
@@ -40,9 +40,10 @@
 
     * `row` - In grid tables, the content of the `row` child is used for expandable content for each row in the table
   </marked></tab>
-  <tab title="Example">
+  <tab title="Example" no-pad>
     <split>
       <pane size=30>
+        <div style-padding="1em">
         <marked>
           The table below is populated with 2,000 objects in the form `{ foo, bar, bat }` that are based on randomly generated strings (foo, bar) and booleans (bat).
 
@@ -60,6 +61,7 @@
           ```
           ### Result:
         </marked>
+        </div>
       </pane><pane style-display=flex style-flex-direction=column>
         <div>
           <label as-field>Filter<input value="{{filter}}" lazy=300 ></label>
