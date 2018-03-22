@@ -2,9 +2,9 @@
 
 export PATH=./node_modules/.bin:../node_modules/.bin:$PATH
 
-rollup -c rollup.config.js &
-
 if [ "$NODE_ENV" != "dev" ]; then
+    rollup -c rollup.config.js
+    
     ls src/*.ractive.html | while read cmp; do
         echo compiling $cmp ...
         cat $cmp | ractive component | buble --no modules > es/`basename $cmp .ractive.html`.js
@@ -14,4 +14,6 @@ if [ "$NODE_ENV" != "dev" ]; then
         echo compiling $hlp ...
         cat $hlp | buble --no modules > es/`basename $hlp`
     done
+else
+  rollup -c rollup.config.js &  
 fi
