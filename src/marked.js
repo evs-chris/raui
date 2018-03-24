@@ -31,7 +31,20 @@ export default function plugin(options = {}) {
   return function plugin({ Ractive, instance }) {
     instance.decorators[options.name || 'marked'] = marked;
     instance.partials[options.name || 'marked'] = Ractive.macro(handle => {
-      handle.setTemplate([{ t: 7, e: 'div', m: [{ t: 71, n: 'marked' }], f: handle.template.f }]);
+      const content = handle.partials.content || [];
+      if (content.length === 1 && typeof content[0] === 'string') {
+        handle.aliasLocal('_marked');
+        handle.setTemplate(['Marking down...']);
+        let tpl = content[0];
+        const indent = tpl.split(/\r?\n/).find(l => /[^\s]/.test(l));
+        if (indent) tpl = tpl.replace(new RegExp(`^${indent.replace(/(\s*).*/, '$1')}`, 'gm'), '');
+        lib(tpl, (err, res) => {
+          if (!err) handle.set('@local.content', res);
+        });
+        handle.setTemplate([{ t: 7, e: 'div', m: [{ t: 13, n: 'class-marked-container' }], f: [{ t: 7, e: 'div', m: [{ t: 13, n: 'class-marked-content' }], f: [{ t: 3, r: '_marked.content' }] }] }]);
+      } else {
+        handle.setTemplate([{ t: 7, e: 'div', m: [{ t: 71, n: 'marked' }], f: handle.template.f }]);
+      }
     }, {
       css(data) { return `.marked-container { display: flex; justify-content: space-around; } .marked-content { max-width: ${data('marked.max') || '70em'}; width: 100%; box-sizing: border-box; }` },
       noCssTransform: true
