@@ -139,78 +139,78 @@ System.register(['./chunk2.js', './chunk7.js', './chunk8.js'], function (exports
       }
 
       var CodeMirrorEditor = (function (Window) {
-        function CodeMirrorEditor(opts) { Window.call(this, opts); }
+          function CodeMirrorEditor(opts) { Window.call(this, opts); }
 
-        if ( Window ) CodeMirrorEditor.__proto__ = Window;
-        CodeMirrorEditor.prototype = Object.create( Window && Window.prototype );
-        CodeMirrorEditor.prototype.constructor = CodeMirrorEditor;
+          if ( Window ) CodeMirrorEditor.__proto__ = Window;
+          CodeMirrorEditor.prototype = Object.create( Window && Window.prototype );
+          CodeMirrorEditor.prototype.constructor = CodeMirrorEditor;
 
-        return CodeMirrorEditor;
-      }(Window));
+          return CodeMirrorEditor;
+        }(Window));
       exports('default', CodeMirrorEditor);
-      // lazy load codemirror via script injection if it's not already available
-      var CM = typeof CodeMirror === 'undefined' ?
-        new Promise(function (ok) {
-          var waits = [];
-          [
-            'https://cdn.jsdelivr.net/npm/codemirror@5/lib/codemirror.js',
-            'https://cdn.jsdelivr.net/npm/codemirror@5/mode/javascript/javascript.js',
-            'https://cdn.jsdelivr.net/npm/codemirror@5/mode/gfm/gfm.js',
-            'https://cdn.jsdelivr.net/npm/codemirror@5/mode/sql/sql.js',
-            'https://cdn.jsdelivr.net/npm/codemirror@5/mode/shell/shell.js',
-            'https://cdn.jsdelivr.net/npm/codemirror@5/keymap/vim.js',
-            'https://cdn.jsdelivr.net/npm/codemirror@5/addon/selection/active-line.js'
-          ].forEach(function (src) {
-            var tag = document.createElement('script');
-            tag.src = src;
-            tag.async = false;
-            waits.push(new Promise(function (ok) {
-              tag.onload = function () { return ok(); };
-            }));
-            document.head.appendChild(tag);
-          });
+        // lazy load codemirror via script injection if it's not already available
+        var CM = typeof CodeMirror === 'undefined' ?
+          new Promise(function (ok) {
+            var waits = [];
+            [
+              'https://cdn.jsdelivr.net/npm/codemirror@5/lib/codemirror.js',
+              'https://cdn.jsdelivr.net/npm/codemirror@5/mode/javascript/javascript.js',
+              'https://cdn.jsdelivr.net/npm/codemirror@5/mode/gfm/gfm.js',
+              'https://cdn.jsdelivr.net/npm/codemirror@5/mode/sql/sql.js',
+              'https://cdn.jsdelivr.net/npm/codemirror@5/mode/shell/shell.js',
+              'https://cdn.jsdelivr.net/npm/codemirror@5/keymap/vim.js',
+              'https://cdn.jsdelivr.net/npm/codemirror@5/addon/selection/active-line.js'
+            ].forEach(function (src) {
+              var tag = document.createElement('script');
+              tag.src = src;
+              tag.async = false;
+              waits.push(new Promise(function (ok) {
+                tag.onload = function () { return ok(); };
+              }));
+              document.head.appendChild(tag);
+            });
 
-          [
-            'https://cdn.jsdelivr.net/npm/codemirror@5.35.0/lib/codemirror.css',
-            'https://cdn.jsdelivr.net/npm/codemirror@5.35.0/theme/ambiance.css',
-            'https://cdn.jsdelivr.net/npm/codemirror@5.35.0/theme/monokai.css',
-            'https://cdn.jsdelivr.net/npm/codemirror@5.35.0/theme/solarized.css',
-            'https://cdn.jsdelivr.net/npm/codemirror@5.35.0/theme/railscasts.css' ].forEach(function (href) {
-            var tag = document.createElement('link');
-            tag.rel = 'stylesheet';
-            tag.href = href;
-            waits.push(new Promise(function (ok) {
-              tag.onload = function () { return ok(); };
-            }));
-            document.head.appendChild(tag);
-          });
-          
-          Promise.all(waits).then(function () {
-            CM = CodeMirror;
-            ok();
-          });
-        }) :
-        CodeMirror;
+            [
+              'https://cdn.jsdelivr.net/npm/codemirror@5.35.0/lib/codemirror.css',
+              'https://cdn.jsdelivr.net/npm/codemirror@5.35.0/theme/ambiance.css',
+              'https://cdn.jsdelivr.net/npm/codemirror@5.35.0/theme/monokai.css',
+              'https://cdn.jsdelivr.net/npm/codemirror@5.35.0/theme/solarized.css',
+              'https://cdn.jsdelivr.net/npm/codemirror@5.35.0/theme/railscasts.css' ].forEach(function (href) {
+              var tag = document.createElement('link');
+              tag.rel = 'stylesheet';
+              tag.href = href;
+              waits.push(new Promise(function (ok) {
+                tag.onload = function () { return ok(); };
+              }));
+              document.head.appendChild(tag);
+            });
+            
+            Promise.all(waits).then(function () {
+              CM = CodeMirror;
+              ok();
+            });
+          }) :
+          CodeMirror;
 
-      Window.extendWith(CodeMirrorEditor, {
-        template: {v:4,t:[{t:55,f:[{f:["Loading CodeMirror..."],t:4},{t:62,f:[" ",{t:7,e:"tabs",m:[{n:"flat",f:0,t:13},{n:"pad",f:0,t:13},{n:"class-secondary",t:13},{n:"fill",f:0,t:13},{n:"height",f:"dynamic",t:13}],f:[{t:7,e:"tab",m:[{n:"title",f:"Intro",t:13}],f:[{t:7,e:"marked",f:["    The `codemirror` decorator turns an element into a [CodeMirror](https://codemirror.net) editor. Since this requires an external library, it is packaged as a plugin constructor that will accept a `CodeMirror` singleton as an option. If no `CodeMirror` option is supplied, the decorator will try to use the global `CodeMirror` and throw an error if none is found.\n\n    Since CodeMirror options tend not to be complicated, the decorator simply merges in the object you to it with those supplied to the plugin constructor and calls `setOption` for all of the keys that exist within `CodeMirror.defaults`.\n\n    CodeMirror instances aren't as touchy about changing size as some plugins, but they still need to be notified when their parent container is resized. To that end, the decorator will automatically install a listener on the root Ractive instance listening for `resize` events, which will catch things like window and split resizes.\n\n    One of the benefits to CodeMirror is its flexible input model, which means that for those mobile browsers with pesky forced autocomplete/autocapitalize/auto-erase-stuff-I-just-typed, you can use a password input as a backing field to have all of that forcibly disabled. This is available in CodeMirror starting with 5.36.0.\n  "]}]}," ",{t:7,e:"tab",m:[{n:"title",f:"Usage",t:13}],f:[{t:7,e:"marked",f:["    ### Plugin Options\n\n    All options are optional.\n\n    * `CodeMirror: CodeMirror = CodeMirror` - the CodeMirror singleton to use to create editor instances\n    * `name: string = 'codemirror`' - the name to use when installing the decorator as a plugin\n\n    ### Decorator Options\n\n    All options are optional.\n\n    Any of the [CodeMirror options](https://codemirror.net/doc/manual.html#config) can be passed here as well.\n\n    * `bind: string` - a local keypath to which to bind the editor value\n\n    ### Decorator Events\n\n    * `change` - if present on the decorated element, a change event will be fired every time the editor fires a change event\n\n    ### Decorator Handle\n\n    Decorator handles are accessible from the context of the decorated node e.g. `ractive.getContext('.ace-editor').decorators['ace-editor']`;\n\n    * `editor` - the editor instance installed by the decorator\n    * `focus()` - focus the editor\n    * `resize()` - request that the editor respond to a change in size\n  "]}]}," ",{t:7,e:"tab",m:[{n:"title",f:"Example",t:13},{n:"no-pad",f:0,t:13}],f:[{t:7,e:"split",f:[{t:7,e:"div",m:[{n:"size",f:"20",t:13}],f:[{t:7,e:"label",m:[{n:"field",t:71}],f:["Wrap ",{t:7,e:"input",m:[{n:"type",f:"checkbox",t:13},{n:"checked",f:[{t:2,r:".wrap"}],t:13}]}]}," ",{t:7,e:"label",m:[{n:"field",t:71}],f:["Line numbers ",{t:7,e:"input",m:[{n:"type",f:"checkbox",t:13},{n:"checked",f:[{t:2,r:".num"}],t:13}]}]}," ",{t:7,e:"label",m:[{n:"field",t:71}],f:["Highlight active ",{t:7,e:"input",m:[{n:"type",f:"checkbox",t:13},{n:"checked",f:[{t:2,r:".hiline"}],t:13}]}]}," ",{t:7,e:"label",m:[{n:"field",t:71}],f:["Syntax ",{t:7,e:"select",m:[{n:"value",f:[{t:2,r:".syntax"}],t:13}],f:[{t:7,e:"option",m:[{n:"value",f:"text",t:13}],f:["(default)"]}," ",{t:7,e:"option",f:["javascript"]}," ",{t:7,e:"option",f:["sql"]}," ",{t:7,e:"option",f:["shell"]}," ",{t:7,e:"option",f:["gfm"]}]}]}," ",{t:7,e:"label",m:[{n:"field",t:71}],f:["Theme ",{t:7,e:"select",m:[{n:"value",f:[{t:2,r:".theme"}],t:13}],f:[{t:7,e:"option",f:["default"]}," ",{t:7,e:"option",f:["ambiance"]}," ",{t:7,e:"option",f:["monokai"]}," ",{t:7,e:"option",f:["solarized"]}," ",{t:7,e:"option",f:["railscasts"]}]}]}," ",{t:7,e:"label",m:[{n:"field",t:71}],f:["Key Mode ",{t:7,e:"select",m:[{n:"value",f:[{t:2,r:".keys"}],t:13}],f:[{t:7,e:"option",m:[{n:"value",f:"default",t:13}],f:["(none)"]}," ",{t:7,e:"option",f:["vim"]}," ",{t:7,e:"option",f:["emacs"]}]}]}," ",{t:7,e:"label",m:[{n:"field",t:71}],f:["Value ",{t:7,e:"textarea",f:[{t:2,r:".text"}]}]}]}," ",{t:7,e:"div",m:[{n:"codemirror",t:71,f:{r:[".wrap",".num",".hiline",".keys",".syntax",".theme"],s:"[{bind:\".text\",lineWrapping:_0,lineNumbers:_1,styleActiveLine:_2,keyMap:_3,mode:_4,theme:_5}]"}},{n:"style-height",f:"100%",t:13},{n:"style-overflow",f:"hidden",t:13}]}]}]}]}]}],r:"codemirror"}],e:{"[{bind:\".text\",lineWrapping:_0,lineNumbers:_1,styleActiveLine:_2,keyMap:_3,mode:_4,theme:_5}]":function (_0,_1,_2,_3,_4,_5){return([{bind:".text",lineWrapping:_0,lineNumbers:_1,styleActiveLine:_2,keyMap:_3,mode:_4,theme:_5}]);}}}, css: "",
-        use: [json(), Split()],
-        options: {
-          id: 'Codemirror',
-          title: 'Decorators :: CodeMirror',
-          width: '40em', height: '30em',
-          resizable: true, flex: true
-        },
-        data: function data() {
-          return { codemirror: CM };
+        Window.extendWith(CodeMirrorEditor, {
+          template: {v:4,t:[{t:55,f:[{f:["\n  Loading CodeMirror...\n"],t:4},{t:62,f:["\n",{t:7,e:"tabs",m:[{n:"flat",f:0,t:13},{n:"pad",f:0,t:13},{n:"class-secondary",t:13},{n:"fill",f:0,t:13},{n:"height",f:"dynamic",t:13}],f:["\n  ",{t:7,e:"tab",m:[{n:"title",f:"Intro",t:13}],f:[{t:7,e:"marked",f:["\n    The `codemirror` decorator turns an element into a [CodeMirror](https://codemirror.net) editor. Since this requires an external library, it is packaged as a plugin constructor that will accept a `CodeMirror` singleton as an option. If no `CodeMirror` option is supplied, the decorator will try to use the global `CodeMirror` and throw an error if none is found.\n\n    Since CodeMirror options tend not to be complicated, the decorator simply merges in the object you to it with those supplied to the plugin constructor and calls `setOption` for all of the keys that exist within `CodeMirror.defaults`.\n\n    CodeMirror instances aren't as touchy about changing size as some plugins, but they still need to be notified when their parent container is resized. To that end, the decorator will automatically install a listener on the root Ractive instance listening for `resize` events, which will catch things like window and split resizes.\n\n    One of the benefits to CodeMirror is its flexible input model, which means that for those mobile browsers with pesky forced autocomplete/autocapitalize/auto-erase-stuff-I-just-typed, you can use a password input as a backing field to have all of that forcibly disabled. This is available in CodeMirror starting with 5.36.0.\n  "]}]},"\n  ",{t:7,e:"tab",m:[{n:"title",f:"Usage",t:13}],f:[{t:7,e:"marked",f:["\n    ### Plugin Options\n\n    All options are optional.\n\n    * `CodeMirror: CodeMirror = CodeMirror` - the CodeMirror singleton to use to create editor instances\n    * `name: string = 'codemirror`' - the name to use when installing the decorator as a plugin\n\n    ### Decorator Options\n\n    All options are optional.\n\n    Any of the [CodeMirror options](https://codemirror.net/doc/manual.html#config) can be passed here as well.\n\n    * `bind: string` - a local keypath to which to bind the editor value\n\n    ### Decorator Events\n\n    * `change` - if present on the decorated element, a change event will be fired every time the editor fires a change event\n\n    ### Decorator Handle\n\n    Decorator handles are accessible from the context of the decorated node e.g. `ractive.getContext('.ace-editor').decorators['ace-editor']`;\n\n    * `editor` - the editor instance installed by the decorator\n    * `focus()` - focus the editor\n    * `resize()` - request that the editor respond to a change in size\n  "]}]},"\n  ",{t:7,e:"tab",m:[{n:"title",f:"Example",t:13},{n:"no-pad",f:0,t:13}],f:["\n    ",{t:7,e:"split",f:["\n      ",{t:7,e:"div",m:[{n:"size",f:"20",t:13}],f:["\n        ",{t:7,e:"label",m:[{n:"field",t:71}],f:["\n          Wrap\n          ",{t:7,e:"input",m:[{n:"type",f:"checkbox",t:13},{n:"checked",f:[{t:2,r:".wrap"}],t:13}]},"\n        "]},"\n\n        ",{t:7,e:"label",m:[{n:"field",t:71}],f:["\n          Line numbers\n          ",{t:7,e:"input",m:[{n:"type",f:"checkbox",t:13},{n:"checked",f:[{t:2,r:".num"}],t:13}]},"\n        "]},"\n\n        ",{t:7,e:"label",m:[{n:"field",t:71}],f:["\n          Highlight active\n          ",{t:7,e:"input",m:[{n:"type",f:"checkbox",t:13},{n:"checked",f:[{t:2,r:".hiline"}],t:13}]},"\n        "]},"\n\n        ",{t:7,e:"label",m:[{n:"field",t:71}],f:["\n            Syntax\n            ",{t:7,e:"select",m:[{n:"value",f:[{t:2,r:".syntax"}],t:13}],f:["\n              ",{t:7,e:"option",m:[{n:"value",f:"text",t:13}],f:["(default)"]},"\n              ",{t:7,e:"option",f:["javascript"]},"\n              ",{t:7,e:"option",f:["sql"]},"\n              ",{t:7,e:"option",f:["shell"]},"\n              ",{t:7,e:"option",f:["gfm"]},"\n            "]},"\n          "]},"\n        \n        ",{t:7,e:"label",m:[{n:"field",t:71}],f:["\n          Theme\n          ",{t:7,e:"select",m:[{n:"value",f:[{t:2,r:".theme"}],t:13}],f:["\n            ",{t:7,e:"option",f:["default"]},"\n            ",{t:7,e:"option",f:["ambiance"]},"\n            ",{t:7,e:"option",f:["monokai"]},"\n            ",{t:7,e:"option",f:["solarized"]},"\n            ",{t:7,e:"option",f:["railscasts"]},"\n          "]},"\n        "]},"\n\n        ",{t:7,e:"label",m:[{n:"field",t:71}],f:["\n          Key Mode\n          ",{t:7,e:"select",m:[{n:"value",f:[{t:2,r:".keys"}],t:13}],f:["\n            ",{t:7,e:"option",m:[{n:"value",f:"default",t:13}],f:["(none)"]},"\n            ",{t:7,e:"option",f:["vim"]},"\n            ",{t:7,e:"option",f:["emacs"]},"\n          "]},"\n        "]},"\n\n        ",{t:7,e:"label",m:[{n:"field",t:71}],f:["\n          Value\n          ",{t:7,e:"textarea",f:[{t:2,r:".text"}]},"\n        "]},"\n      "]},"\n      ",{t:7,e:"div",m:[{n:"codemirror",t:71,f:{r:[".wrap",".num",".hiline",".keys",".syntax",".theme"],s:"[{bind:\".text\",lineWrapping:_0,lineNumbers:_1,styleActiveLine:_2,keyMap:_3,mode:_4,theme:_5}]"}},{n:"style-height",f:"100%",t:13},{n:"style-overflow",f:"hidden",t:13}]},"\n    "]},"\n  "]},"\n"]},"\n"]}],r:"codemirror"}],e:{"[{bind:\".text\",lineWrapping:_0,lineNumbers:_1,styleActiveLine:_2,keyMap:_3,mode:_4,theme:_5}]":function (_0,_1,_2,_3,_4,_5){return([{bind:".text",lineWrapping:_0,lineNumbers:_1,styleActiveLine:_2,keyMap:_3,mode:_4,theme:_5}]);}}}, css: "",
+          use: [json(), Split()],
+          options: {
+            id: 'Codemirror',
+            title: 'Decorators :: CodeMirror',
+            width: '40em', height: '30em',
+            resizable: true, flex: true
+          },
+          data: function data() {
+            return { codemirror: CM };
+          }
+        });
+
+        if (CM instanceof Promise) {
+          CM.then(function () { return CodeMirrorEditor.use(init({ tabSize: 2, indentWithTabs: false, inputStyle: 'password' })); });
+        } else {
+          CodeMirrorEditor.use(init({ tabSize: 2, indentWithTabs: false, inputStyle: 'password' }));
         }
-      });
-
-      if (CM instanceof Promise) {
-        CM.then(function () { return CodeMirrorEditor.use(init({ tabSize: 2, indentWithTabs: false, inputStyle: 'password' })); });
-      } else {
-        CodeMirrorEditor.use(init({ tabSize: 2, indentWithTabs: false, inputStyle: 'password' }));
-      }
 
     }
   };
