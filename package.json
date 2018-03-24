@@ -26,9 +26,9 @@
     "ractive": ">= 0.10 || edge"
   },
   "scripts": {
-    "build": "scripts/esm.sh",
-    "watch": "scripts/watch.sh",
-    "dev": "NODE_ENV=dev scripts/watch.sh",
-    "clean": "scripts/clean.sh"
+    "build": "sh scripts/esm.sh",
+    "watch": "sh scripts/watch.sh",
+    "dev": "sh -c \"NODE_ENV=dev scripts/watch.sh\"",
+    "clean": "sh scripts/clean.sh"
   }
 }
