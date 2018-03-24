@@ -1,12 +1,37 @@
 <tabs flat pad class-secondary height=dynamic>
   <tab title=Intro><marked>
-    TODO
+    This macro and/or decorator combo takes the markdown embedded within it and renders it into the DOM. If the markdown is just a string, the macro will pre-render it into a triple. If the markdown is a template, it will render it inline, hide the host elemnent, and duplicate it into an additional sibling element using the decorator.
+
+    It is important to tell Ractive to preserve whitespace within any `marked` elemnts using `{ preserveWhitespace: { marked: true } }`. If your markdown happens to have any elements or mustaches in it, you'll also want to add in `interpolate: { markdown: false }`.
   </marked></tab>
   <tab title=Usage><marked>
+    ### Plugin Options
 
+    All options are optional.
+
+    * `name: string = 'marked'` - the name to use when registering the plugin as a macro and decorator
+    * `marked: marked = marked` - the `marked` singleton to use to render markdown. If falsey, the global `marked` object will be used. If no `marked` is found, an error will be thrown.
   </marked></tab>
   <tab title=Example>
-    
+    <marked>
+      ### Template:
+      ```handlebars
+      ## This is a heading
+      Paragraphs work too. So do code blocks. In fact, all of the docs here are rendered in `<markdown>` tags.
+
+      > Here's a quote.
+
+      http://an.auto.link and [another link](http://google.com).
+      ```
+      ### Result:
+
+      ## This is a heading
+      Paragraphs work too. So do code blocks. In fact, all of the docs here are rendered in `<markdown>` tags.
+
+      > Here's a quote.
+
+      http://an.auto.link and [another link](http://google.com).
+    </marked>
   </tab>
 </tabs>
 
