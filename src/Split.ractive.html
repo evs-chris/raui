@@ -32,9 +32,14 @@
       splits.forEach(s => {
         const size = s.sizePath ? this.get(s.sizePath) : s.size;
         if (s.curSize === undefined) {
-          s.curSize = size;
-          used += size;
-          count++;
+          if (s.min) {
+            s.curSize = 0;
+            s.lastSize = Math.floor(100 / splits.length);
+          } else {
+            s.curSize = size;
+            used += size;
+            count++;
+          }
         } else if (s.min && s.curSize) {
           s.lastSize = s.curSize;
           s.curSize = 0;
@@ -114,8 +119,8 @@
 
         this._mappedSizes = [];
         this._splits = splits.map((e, i) => {
-          const attrs = (e.m || []).slice();
-          const el = { e: e.e, f: e.f, t: e.t, m: attrs };
+          let attrs = (e.m || []).slice();
+          const el = { e: e.e, f: e.f, t: e.t, m: attrs.filter(a => a.n !== 'size' && a.n !== 'minimize') };
 
           const res = {
             content: el.e === 'pane' ? el.f : [el]
@@ -133,6 +138,8 @@
               this._mappedSizes.push(res.sizePath);
             }
           }
+
+          if (attrs.find(a => a.n === 'minimize')) res.min = true;
 
           return res;
         });
