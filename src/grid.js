@@ -92,6 +92,7 @@ export function grid(node, options) {
       points[k] = s.clientWidth;
       if (!regexps[k]) regexps[k] = new RegExp(`\\b${k}\\b`, 'g');
     }
+    s.style.width = 0;
     resize();
   }
 
