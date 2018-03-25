@@ -11,17 +11,23 @@
 
     * `name: string = 'marked'` - the name to use when registering the plugin as a macro and decorator
     * `marked: marked = marked` - the `marked` singleton to use to render markdown. If falsey, the global `marked` object will be used. If no `marked` is found, an error will be thrown.
+
+    ### Content
+
+    The content of the `marked` tag should maintain the same base indent throughout, since the base indent will be stripped off prior to sending it through the marked processor.
   </marked></tab>
   <tab title=Example>
-    <marked>
+    <md>
       ### Template:
       ```handlebars
-      ## This is a heading
-      Paragraphs work too. So do code blocks. In fact, all of the docs here are rendered in `<markdown>` tags.
+      <marked>
+        ## This is a heading
+        Paragraphs work too. So do code blocks. In fact, all of the docs here are rendered in `<markdown>` tags.
 
-      > Here's a quote.
+        > Here's a quote.
 
-      http://an.auto.link and [another link](http://google.com).
+        http://an.auto.link and [another link](http://google.com).
+      </marked>
       ```
       ### Result:
 
@@ -31,15 +37,17 @@
       > Here's a quote.
 
       http://an.auto.link and [another link](http://google.com).
-    </marked>
+      </md>
   </tab>
 </tabs>
 
 <script>
   import { Window } from 'cmp/Window';
+  import marked from 'cmp/marked';
 
   export default Window.extend({
     template: $TEMPLATE,
+    use: [marked({ name: 'md' })],
     options: {
       title: 'Decorator :: Marked',
       resizable: true, flex: true,

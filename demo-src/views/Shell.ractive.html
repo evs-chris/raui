@@ -1,27 +1,136 @@
-<tabs pad height=dynamic flat class-secondary>
+<tabs pad fill height=dynamic flat class-secondary flex>
   <tab title="Intro"><marked>
-    Every app needs a good wrapper, and this aims to be it. The Shell provides three sections, `<left>`, `<center>`, and `<right>`, which are managed responsively, so the left and right containers are automatically shown and hidden based on the available width of the window, whereas the center is always rendered. The Shell also exposes hooks to dynamically show and hide the left and right sides.
+    Every app needs a good wrapper, and this aims to be it. The Shell provides three sections, `<left>`, `<center>`, and `<right>`, which are managed responsively, so the left and right containers are automatically shown and hidden based on the available width of the window, whereas the center is always rendered. The Shell also exposes hooks to dynamically show and hide the left and right sides, and there are appropriate swipe events installed in each container to pull out or push in the sides. The `left` and `right` sections can be flagged as primary, which detremines the order in which they are hidden automatically as the width of the container changes. The primary side will stay expanded as long as there is room, so the secondary is hidden first.
 
-    Shell also contains support for toasting, because most apps also need a convenient way to give the user feedback.
+    There are also `<top>` and `<bottom>` sections that can be used to display content above and below the three side-by-side sections. The shell tries to complete fill in its parent element, so the `top` and `bottom` should end up at the top and bottom of the parent element, respectively. This works out well if you mount your app in the `body` element, make sure it has no padding or margins, and is filling the page.
+
+    There are also `<left-pop>` and `<right-pop>` sections that can be uses to show content modally over the entire shell. These sections behave like the `left` and `right` sections when the shell is not wide enough to display them full-time, except they appear above the `left` and `right` sections by `z-index`. These are useful for popping up temporary modals for input or further information.
   </marked></tab>
   <tab title="Usage"><marked>
+    ### Plugin options
+
+    All options are optional.
+
+    * `name: string = 'shell'` - the name to use when installing the plugin as a component
+
+    ### Attributes
+
+    * `adaptive: boolean` - whether to listen to root `*.resize` events to check to see if sides need to be hidden or shown
+
+    ### Children
+
+    * `left` - the content to display in the left section
+      * #### Attributes
+        * `hidden: boolean` - whether the section is hidden. If this is a binding, it can be used to show/hide the section and also to control content in the containing instance, as the bindings are updated when the shell adapts to width changes.
+        * `primary: boolean` - whether this secion is the primary
+        * `over: boolean` - whether the section is displayed modally over the center when displayed
+    * `left-pop` - the content to display in the left popup section. An anchor would be ideal for installing dynamic content.
+      * #### Attributes
+        * `popped: boolean` - trigger to display the left popup section
+    * `center` - the content to display in the center section
+    * `right` - the content to display in the right section
+      * #### Attributes
+        * `hidden: boolean` - whether the section is hidden. If this is a binding, it can be used to show/hide the section and also to control content in the containing instance, as the bindings are updated when the shell adapts to width changes.
+        * `primary: boolean` - whether this secion is the primary
+        * `over: boolean` - whether the section is displayed modally over the center when displayed
+    * `right-pop` - the content to display in the right popup section. An anchor would be ideal for installing dynamic content.
+      * #### Attributes
+        * `popped: boolean` - trigger to display the right popup section
+    * `top` - the content to display across the top of all side-by-side sections
+    * `bottom` - the content to display across the bottom of all side-by-side sections
+
+    ### API
+
+    * `adaptSize(reinit: boolean)` - when something changes in a non-observable way, this can be used to tell the shell it should check to see if everything still fits. The `reinit` option controls whether or not the resize listeners are torn down and reinstalled, which is useful for changing the `adaptive` setting.
 
   </marked></tab>
-  <tab title="Example">
-
+  <tab title="Example" no-pad>
+    <split>
+      <div style="padding: 1em;" size=20>
+        <label as-field>
+          Zoom %
+          <input type="number" value="{{.zoom}}" on-change="@.findComponent('shell').adaptSize()" />
+        </label>
+        <label as-field>
+          <input type="checkbox" checked="{{.leftHidden}}" /> Left hidden
+        </label>
+        <label as-field>
+          <input type="checkbox" checked="{{.leftOver}}" /> Left over
+        </label>
+        <label as-field>
+          <input type="checkbox" checked="{{.leftPrimary}}" on-change="@.set('rightPrimary', !@node.checked)" /> Left primary
+        </label>
+        <label as-field>
+          <input type="checkbox" checked="{{.rightHidden}}" /> Right hidden
+        </label>
+        <label as-field>
+          <input type="checkbox" checked="{{.rightOver}}" /> Right over
+        </label>
+        <label as-field>
+          <input type="checkbox" checked="{{.rightPrimary}}" on-change="@.set('leftPrimary', !@node.checked)" /> Right primary
+        </label>
+        <label as-field>
+          <input type="checkbox" checked="{{.leftPop}}" /> Left pop popped
+        </label>
+        <label as-field>
+          <input type="checkbox" checked="{{.rightPop}}" /> Right pop popped
+        </label>
+        <marked>
+          ### Template:
+          ```handlebars
+          <shell adaptive style-font-size="{{.zoom}}%">
+            <top>Top</top>
+            <bottom>Bottom</bottom>
+            <left hidden="{{.leftHidden}}" over="{{.leftOver}}" primary="{{.leftPrimary}}" style-background-color="#fff">Left</left>
+            <right hidden="{{.rightHidden}}" over="{{.rightOver}}" primary="{{.rightPrimary}}" style-background-color="#fff">Right</right>
+            <center style-background-color='#fafafa'>In the middle</center>
+            <left-pop popped="{{.leftPop}}" style="background-color: #fff; width: 50%;">Pop on the left</left-pop>
+            <right-pop popped="{{.rightPop}}" style="background-color: #fff; width: 50%;">Pop on the right</right-pop>
+          </shell>
+          ```
+          ### Result:
+        </marked>
+      </div>
+      <div>
+        <split vertical>
+          <shell adaptive style-font-size="{{.zoom}}%">
+            <top>Top</top>
+            <bottom>Bottom</bottom>
+            <left hidden="{{.leftHidden}}" over="{{.leftOver}}" primary="{{.leftPrimary}}" style-background-color="#fff">Left</left>
+            <right hidden="{{.rightHidden}}" over="{{.rightOver}}" primary="{{.rightPrimary}}" style-background-color="#fff">Right</right>
+            <center style-background-color='#fafafa'>In the middle</center>
+            <left-pop popped="{{.leftPop}}" style="background-color: #fff; width: 50%;">Pop on the left</left-pop>
+            <right-pop popped="{{.rightPop}}" style="background-color: #fff; width: 50%;">Pop on the right</right-pop>
+          </shell>
+          <div minimize></div>
+        </split>
+      </div>
+    </split>
   </tab>
 </tabs>
 
 <script>
   import { Window } from 'cmp/Window';
+  import shell from 'cmp/Shell';
+  import split from 'cmp/Split';
 
   export default Window.extend({
     template: $TEMPLATE, css: $CSS,
-    use: [],
+    cssId: 'demo-shell',
+    use: [shell(), split()],
     options: {
       title: 'Components :: Shell',
       width: '40em', height: '30em',
       flex: true
+    },
+    data() {
+      return {
+        zoom: '100'
+      }
     }
   });
 </script>
+
+<style>
+  li h4 { margin: 0; }
+</style>
