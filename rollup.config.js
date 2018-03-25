@@ -116,8 +116,8 @@ bundles.push({
   plugins: [
     ractive({
       include: ['**/*.ractive.html'],
-      interpolate: { marked: false },
-      preserveWhitespace: { marked: true }
+      interpolate: { marked: false, md: false },
+      preserveWhitespace: { marked: true, md: false }
     }),
     buble(),
     resolver({
