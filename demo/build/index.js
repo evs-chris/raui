@@ -1,210 +1,32 @@
-System.register(['ractive', './chunk1.js', './chunk2.js', './chunk3.js', './chunk4.js', './chunk5.js', './Hello.ractive.html.js'], function (exports, module) {
+System.register(['./chunk3.js', './chunk4.js', './chunk5.js', './chunk2.js', './chunk6.js', './Hello.ractive.html.js', 'ractive', './chunk8.js'], function (exports, module) {
   'use strict';
-  var Ractive$1, left, right, globalRegister, Host, AppBar, Menu, style, Hello;
+  var Shell, AppBar, Menu, Host, globalRegister, style, Hello, Ractive$1, marked;
   return {
     setters: [function (module) {
-      Ractive$1 = module.default;
-    }, function (module) {
-      left = module.left;
-      right = module.right;
-    }, function (module) {
-      globalRegister = module.default;
-      Host = module.default$1;
+      Shell = module.default;
     }, function (module) {
       AppBar = module.default;
     }, function (module) {
       Menu = module.default;
     }, function (module) {
+      Host = module.default$2;
+      globalRegister = module.default;
+    }, function (module) {
       style = module.style;
     }, function (module) {
       Hello = module.default;
+    }, function (module) {
+      Ractive$1 = module.default;
+    }, function (module) {
+      marked = module.default;
     }],
     execute: function () {
-
-      var Shell = (function (Ractive) {
-          function Shell(opts) { Ractive.call(this, opts); }
-
-          if ( Ractive ) Shell.__proto__ = Ractive;
-          Shell.prototype = Object.create( Ractive && Ractive.prototype );
-          Shell.prototype.constructor = Shell;
-
-          return Shell;
-        }(Ractive$1));
-
-        Ractive$1.extendWith(Shell, {
-          template: {v:4,t:[{t:7,e:"div",m:[{n:"class-rshell",t:13},{t:16,r:"extra-attributes"}],f:["\n  ",{t:7,e:"div",m:[{n:"class-rshell-main",t:13}],f:["\n    ",{t:4,f:[{t:7,e:"div",m:[{n:"class-rshell-top",t:13},{t:4,f:[{t:16,r:"._topA"}],n:50,r:"._topA"}],f:[{t:16,r:"._top"}]}],n:50,r:"._top"},"\n    ",{t:7,e:"div",m:[{n:"class-rshell-has-left",t:13,f:[{t:2,x:{r:["._left","._leftOver",".leftOver"],s:"_0&&!_1&&!_2"}}]},{n:"class-rshell-has-right",t:13,f:[{t:2,x:{r:["._right","._rightOver",".rightOver"],s:"_0&&!_1&&!_2"}}]},{n:"class-rshell-left-hidden",t:13,f:[{t:2,r:".leftHidden"}]},{n:"class-rshell-right-hidden",t:13,f:[{t:2,r:".rightHidden"}]}],f:["\n      ",{t:7,e:"div",m:[{n:"class-rshell-modal",t:13},{n:"class-rshell-blocked",t:13,f:[{t:2,x:{r:[".blocked",".blockableLeft",".leftPull",".blockableRight",".rightPull"],s:"_0||(_1&&_2)||(_3&&_4)"}}]},{n:["click"],t:70,f:{r:["@this","leftOver","_leftOver","leftHidden","rightOver","_rightOver","rightHidden"],s:"[_0.set({leftHidden:_1||_2?true:_3,rightHidden:_4||_5?true:_6})]"}},{n:["swipeleft"],t:70,a:{r:[],s:"[{bind:\".leftPush\"}]"},f:{r:["@this"],s:"[_0.set(\"leftHidden\",true)]"}},{n:["swiperight"],t:70,a:{r:[],s:"[{bind:\".rightPush\"}]"},f:{r:["@this"],s:"[_0.set(\"rightHidden\",true)]"}},{t:4,f:[{n:"style-transition",f:"none",t:13},{n:"style-opacity",f:[{t:2,x:{r:[".leftPull",".rightPull"],s:"Math.min(_0||_1,100)/200"}}],t:13}],n:50,x:{r:[".leftPull",".rightPull"],s:"_0||_1"}}]},"\n",{t:4,f:["        ",{t:7,e:"div",m:[{n:"class-rshell-left",t:13},{t:4,f:[{t:16,r:"._leftA"}],n:50,r:"._leftA"},{n:["click"],t:70,f:{r:["._leftOver","leftOver","@this"],s:"[(_0||_1)&&_2.toggle(\"leftHidden\")]"}},{n:["swipeleft"],t:70,a:{r:[],s:"[{bind:\".leftPush\"}]"},f:{r:["@this"],s:"[_0.set(\"leftHidden\",true)]"}},{t:4,f:[{n:"style-transition",f:"none",t:13},{n:"style-transform",f:["translate(-",{t:2,x:{r:[".leftPull"],s:"100-(_0>100?100:_0)"}},"%)"],t:13}],n:50,r:".leftPull"},{t:4,f:[{n:"style-transition",f:"none",t:13},{n:"style-transform",f:["translate(-",{t:2,x:{r:[".leftPush"],s:"_0>100?100:_0"}},"%)"],t:13}],n:50,r:".leftPush"}],f:[{t:16,r:"._left"}]},"\n"],n:50,r:"._left"},"      ",{t:4,f:["\n        ",{t:7,e:"div",m:[{n:"class-rshell-center",t:13},{t:4,f:[{t:16,r:"._centerA"}],n:50,r:"._centerA"},{t:4,f:[{n:["swiperight"],t:70,a:{r:[],s:"[{maxX:80,bind:\".leftPull\"}]"},f:{r:["@this"],s:"[_0.set(\"leftHidden\",false)]"}}],n:50,x:{r:["._left",".leftHidden"],s:"_0&&_1"}},{t:4,f:[{n:["swipeleft"],t:70,a:{r:[],s:"[{minX:-80,bind:\".rightPull\"}]"},f:{r:["@this"],s:"[_0.set(\"rightHidden\",false)]"}}],n:50,x:{r:["._right",".rightHidden"],s:"_0&&_1"}}],f:[{t:16,r:"._center"}]},"\n"],n:50,r:"._center"},"      ",{t:4,f:["\n        ",{t:7,e:"div",m:[{n:"class-rshell-right",t:13},{t:4,f:[{t:16,r:"._rightA"}],n:50,r:"._rightA"},{n:["click"],t:70,f:{r:["._rightOver",".rightOver","@this"],s:"[(_0||_1)&&_2.toggle(\"rightHidden\")]"}},{n:["swiperight"],t:70,a:{r:[],s:"[{bind:\".rightPush\"}]"},f:{r:["@this"],s:"[_0.set(\"rightHidden\",true)]"}},{t:4,f:[{n:"style-transition",f:"none",t:13},{n:"style-transform",f:["translate(",{t:2,x:{r:[".rightPull"],s:"100-(_0>100?100:_0)"}},"%)"],t:13}],n:50,r:".rightPull"},{t:4,f:[{n:"style-transition",f:"none",t:13},{n:"style-transform",f:["translate(",{t:2,x:{r:[".rightPush"],s:"_0>100?100:_0"}},"%)"],t:13}],n:50,r:".rightPush"}],f:[{t:16,r:"._right"}]},"\n"],n:50,r:"._right"},"    "]},"\n    ",{t:4,f:[{t:7,e:"div",m:[{n:"class-rshell-bottom",t:13},{t:4,f:[{t:16,r:"._bottomA"}],n:50,r:"._bottomA"}],f:[{t:16,r:"._bottom"}]}],n:50,r:"._bottom"},"\n  "]},"\n  ",{t:4,f:[{t:7,e:"div",m:[{n:"class-rshell-left-pop",t:13},{t:4,f:[{t:16,r:"._leftPA"}],n:50,r:"._leftPA"}],f:[{t:16,r:"._leftP"}]}],n:50,r:"._leftP"},"\n  ",{t:4,f:[{t:7,e:"div",m:[{n:"class-rshell-right-pop",t:13},{t:4,f:[{t:16,r:"._rightPA"}],n:50,r:"._rightPA"}],f:[{t:16,r:"._rightP"}]}],n:50,r:"._rightP"},"\n"]}],e:{"_0&&!_1&&!_2":function (_0,_1,_2){return(_0&&!_1&&!_2);},"_0||(_1&&_2)||(_3&&_4)":function (_0,_1,_2,_3,_4){return(_0||(_1&&_2)||(_3&&_4));},"[_0.set({leftHidden:_1||_2?true:_3,rightHidden:_4||_5?true:_6})]":function (_0,_1,_2,_3,_4,_5,_6){return([_0.set({leftHidden:_1||_2?true:_3,rightHidden:_4||_5?true:_6})]);},"[{bind:\".leftPush\"}]":function (){return([{bind:".leftPush"}]);},"[_0.set(\"leftHidden\",true)]":function (_0){return([_0.set("leftHidden",true)]);},"[{bind:\".rightPush\"}]":function (){return([{bind:".rightPush"}]);},"[_0.set(\"rightHidden\",true)]":function (_0){return([_0.set("rightHidden",true)]);},"Math.min(_0||_1,100)/200":function (_0,_1){return(Math.min(_0||_1,100)/200);},"_0||_1":function (_0,_1){return(_0||_1);},"[(_0||_1)&&_2.toggle(\"leftHidden\")]":function (_0,_1,_2){return([(_0||_1)&&_2.toggle("leftHidden")]);},"100-(_0>100?100:_0)":function (_0){return(100-(_0>100?100:_0));},"_0>100?100:_0":function (_0){return(_0>100?100:_0);},"[{maxX:80,bind:\".leftPull\"}]":function (){return([{maxX:80,bind:".leftPull"}]);},"[_0.set(\"leftHidden\",false)]":function (_0){return([_0.set("leftHidden",false)]);},"_0&&_1":function (_0,_1){return(_0&&_1);},"[{minX:-80,bind:\".rightPull\"}]":function (){return([{minX:-80,bind:".rightPull"}]);},"[_0.set(\"rightHidden\",false)]":function (_0){return([_0.set("rightHidden",false)]);},"[(_0||_1)&&_2.toggle(\"rightHidden\")]":function (_0,_1,_2){return([(_0||_1)&&_2.toggle("rightHidden")]);}}},
-          attributes: [],
-          use: [ left, right ],
-          css: function(data) { return [(function(data) {
-
-
-
-        var left = data('shell.left.width') || data('menu.width') || '18em';
-
-        var right = data('shell.right.width') || data('menu.width') || '18em';
-
-        return ("\n\n  .rshell {\n\n    width: 100%;\n\n    height: 100%;\n\n    position: absolute;\n\n    overflow: hidden;\n\n  }\n\n  .rshell-modal {\n\n    position: absolute;\n\n    top: 0;\n\n    left: 0;\n\n    bottom: 0;\n\n    right: 0;\n\n    opacity: 0;\n\n    background-color: #000;\n\n    z-index: -1;\n\n    transition: opacity 0.4s ease-in-out, z-index 0s linear 0.4s;\n\n  }\n\n  .rshell-modal.rshell-blocked {\n\n    opacity: 0.5;\n\n    z-index: 3;\n\n    transition: opacity 0.4s ease-in-out, z-index 0s linear;\n\n  }\n\n  .rshell-main {\n\n    width: 100%;\n\n    height: 100%;\n\n    box-sizing: border-box;\n\n    display: flex;\n\n    overflow: hidden;\n\n    z-index: 1;\n\n  }\n\n\n\n  .rshell-left, .rshell-right {\n\n    position: absolute;\n\n    top: 0;\n\n    box-sizing: border-box;\n\n    height: 100%;\n\n    overflow: auto;\n\n    z-index: 4;\n\n    background-color: " + (data('shell.menu.bg') || data('bg1') || 'inherit') + ";\n\n    transition: transform 0.4s ease-in-out;\n\n  }\n\n  .rshell-left {\n\n    left: 0;\n\n    width: " + left + ";\n\n  }\n\n  .rshell-right {\n\n    right: 0;\n\n    width: " + right + ";\n\n  }\n\n  .rshell-left-hidden > .rshell-left {\n\n    transform: translateX(-100%);\n\n  }\n\n  .rshell-right-hidden > .rshell-right {\n\n    transform: translateX(100%);\n\n  }\n\n  .rshell-has-right > .rshell-right,\n\n  .rshell-has-left > .rshell-left {\n\n    z-index: 2;\n\n  }\n\n\n\n  .rshell-center {\n\n    position: absolute;\n\n    top: 0;\n\n    left: 0;\n\n    z-index: 1;\n\n    box-sizing: border-box;\n\n    transition: left 0.4s ease-in-out, width 0.4s ease-in-out;\n\n    height: 100%;\n\n    width: 100%;\n\n    overflow: auto;\n\n  }\n\n  .rshell-has-left > .rshell-center {\n\n    width: calc(100% - " + left + ");\n\n    left: " + left + ";\n\n  }\n\n  .rshell-has-right > .rshell-center {\n\n    width: calc(100% - " + right + ");\n\n    left: 0;\n\n  }\n\n  .rshell-has-left.rshell-has-right > .rshell-center {\n\n    width: calc(100% - " + left + " - " + right + ");\n\n    left: " + left + ";\n\n  }\n\n  .rshell-has-left.rshell-left-hidden > .rshell-center {\n\n    width: 100%;\n\n    left: 0;\n\n  }\n\n  .rshell-has-right.rshell-right-hidden > .rshell-center {\n\n    width: 100%;\n\n  }\n\n  .rshell-has-left.rshell-has-right.rshell-left-hidden > .rshell-center {\n\n    width: calc(100% - " + right + ");\n\n    left: 0;\n\n  }\n\n  .rshell-has-left.rshell-has-right.rshell-right-hidden > .rshell-center {\n\n    width: calc(100% - " + left + ");\n\n    left: " + left + ";\n\n  }\n\n  .rshell-has-left.rshell-has-right.rshell-left-hidden.rshell-right-hidden > .rshell-center {\n\n    width: 100%;\n\n    left: 0;\n\n  }\n\n  ");
-
-
-      }).call(this, data)].join(' '); },
-          cssId: 'rshell',
-          noCssTransform: true,
-          computed: {
-            blockableLeft: function blockableLeft() {
-              return this.get('_left') && (this.get('leftOver') || this.get('_leftOver'));
-            },
-            blockableRight: function blockableRight() {
-              return this.get('_right') && (this.get('rightOver') || this.get('_rightOver'));
-            },
-            blocked: function blocked() {
-              return (this.get('blockableLeft') && !(this.get('leftHidden')) || (this.get('blockableRight') && !this.get('rightHidden')));
-            }
-          },
-          on: {
-            construct: construct,
-            config: function config() {
-              if (this._items) { this.set(this._items); }
-            },
-            init: function init() {
-              var this$1 = this;
-
-              if (this.get('@style.shell.sides.initialTimeout') && (this.get('rightOver') || this.get('leftOver'))) {
-                setTimeout(function () {
-                  if (this$1.get('rightOver')) { this$1.set('rightHidden', true); }
-                  if (this$1.get('leftOver')) { this$1.set('leftHidden', true); }
-                }, this.get('@style.shell.sides.initialTimeout') || 1500);
-              } else {
-                  if (this.get('rightOver')) { this.set('rightHidden', true); }
-                  if (this.get('leftOver')) { this.set('leftHidden', true); }
-              }
-            }
-          },
-          observe: {
-            '@style': function _style(v) {
-              initMediaListener(this);
-            },
-            'leftHidden rightHidden': {
-              handler: function handler() {
-                var this$1 = this;
-
-                setTimeout(function () { return this$1.fire('resize'); }, 410);
-              },
-              defer: true,
-              init: false
-            }
-          }
-        });
-
-        var parts = ['top', 'bottom', 'center', 'left', 'right', 'leftP', 'rightP'];
-        var skipAttrs = ['hidden', 'primary', 'over'];
-        function construct() {
-          var cmp = this.component;
-          if ( !cmp ) { return; }
-
-          var tpl = cmp.template.f || [];
-          var attrs = cmp.template.m ? cmp.template.m.slice() : [];
-          var t = cmp.template;
-          cmp.template = { e: t.e, f: t.f, t: t.t, m: attrs };
-
-          var items = {};
-
-          tpl.forEach(function (e) {
-            if (~parts.indexOf(e.e)) {
-              items[("_" + (e.e))] = { t: e.f };
-              if (e.m) {
-                var as = e.m.filter(function (a) { return !~skipAttrs.indexOf(a.n); });
-
-                if (as.length) {
-                  items[("_" + (e.e) + "A")] = { t: as };
-                }
-
-                if (as.length !== e.m.length) {
-                  var a = e.m.find(function (a) { return a.n === 'hidden'; });
-                  if (a) { attrs.push({ t: 13, n: ((e.e) + "Hidden"), f: a.f }); }
-                  a = e.m.find(function (a) { return a.n === 'over'; });
-                  if (a) { attrs.push({ t: 13, n: ((e.e) + "Over"), f: a.f }); }
-                  a = e.m.find(function (a) { return a.n === 'primary'; });
-                  if (a) { attrs.push({ t: 13, n: ("_" + (e.e) + "Primary"), f: a.f }); }
-                }
-              }
-            }
-          });
-
-          this._items = items;
-        }
-
-        function initMediaListener(r) {
-          if (typeof window === 'undefined') { return; }
-
-          var left = r.get('@style.shell.left.width') || r.get('@style.menu.width') || '18em';
-          var right = r.get('@style.shell.right.width') || r.get('@style.menu.width') || '18em';
-          var hasLeft = r.get('_left') && !r.get('leftOver');
-          var hasRight = r.get('_right') && !r.get('rightOver');
-          var prim = (!hasLeft || r.get('_rightPrimary')) ? 'r' : 'l';
-          var hasPrimary = hasLeft || hasRight;
-          var hasSecondary = hasLeft && hasRight;
-          var medium = r.get('@style.break.medium') || '960px';
-
-          if (!hasPrimary) { return; }
-
-          if (r._media) {
-            r._media.cancel();
-          }
-
-          var media = {};
-          r._media = media;
-
-          var div = document.createElement('div');
-          document.body.appendChild(div);
-          div.style.width = "calc((" + medium + " + " + (prim === 'l' ? left : right) + ") - 1px)";
-          var style = getComputedStyle(div);
-          var primary = window.matchMedia(("(max-width: " + (style.width) + ")"));
-          if (hasSecondary) {
-            div.style.width = "calc(((" + medium + " + " + (prim === 'l' ? left : right) + ")" + (hasSecondary ? (" + " + (prim === 'l' ? right : left)) : '') + ") - 1px)";
-          }
-          var secondary = hasSecondary && window.matchMedia(("(max-width: " + (style.width) + ")"));
-          document.body.removeChild(div);
-
-          function matcher() {
-            var left = !hasLeft ? true : prim === 'l' ? primary.matches : secondary ? secondary.matches : false;
-            var right = !hasRight ? true : prim === 'r' ? primary.matches : secondary ? secondary.matches : false;
-            r.set({
-              leftHidden: left,
-              rightHidden: right,
-              _leftOver: left,
-              _rightOver: right
-            });
-          }
-
-          primary.addListener(matcher);
-          secondary && secondary.addListener(matcher);
-
-          media.cancel = function() {
-            r._media = null;
-            primary.removeListener(matcher);
-            secondary && secondary.removeListener(matcher);
-          };
-
-          matcher();
-        }
-
-        function plugin(opts) {
-          if ( opts === void 0 ) opts = {};
-
-          return function(ref) {
-            var instance = ref.instance;
-
-            instance.components[opts.name || 'shell'] = Shell;
-          }
-        }
-
-        globalRegister('RMShell', 'components', Shell);
 
       Ractive.styleSet('window.maxFrom', '60em');
 
         var App = Ractive.extend({
           template: {v:4,t:[{t:7,e:"shell",f:["\n  ",{t:7,e:"left",m:[{n:"hidden",t:13,f:[{t:2,r:"menu.hidden"}]}],f:["\n    ",{t:7,e:"menu",f:["\n      ",{t:7,e:"container",m:[{n:"pad",f:0,t:13},{n:"class-logo",t:13}],f:[{t:7,e:"h1",m:[{n:"style-text-align",f:"center",t:13}],f:[{t:7,e:"img",m:[{n:"src",f:"./raui.svg",t:13},{n:"alt",f:"raui logo",t:13}]},"RaUI"]}]},"\n      ",{t:7,e:"item",m:[{n:"ref",f:"Hello",t:13}],f:["\n        ",{t:7,e:"h3",f:["Welcome"]},"\n        ",{t:7,e:"right",f:["\n            ",{t:7,e:"a",m:[{n:"href",f:"https://github.com/evs-chris/raui",t:13},{n:"target",f:"_blank",t:13}],f:[{t:7,e:"svg",m:[{n:"aria-labelledby",f:"simpleicons-github-icon",t:13},{n:"role",f:"img",t:13},{n:"viewBox",f:"0 0 24 24",t:13},{n:"xmlns",f:"http://www.w3.org/2000/svg",t:13},{n:"id",f:"gh",t:13}],f:[{t:7,e:"title",m:[{n:"id",f:"simpleicons-github-icon",t:13}],f:["Browse code on GitHub"]},{t:7,e:"path",m:[{n:"d",f:"M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12",t:13}]}]}]},"\n        "]},"\n      "]},"\n      ",{t:7,e:"item",m:[{n:"open",f:0,t:13}],f:[{t:7,e:"h3",f:["Components"]},"\n        ",{t:7,e:"item",m:[{n:"ref",f:"AppBar",t:13}],f:["AppBar"]},"\n        ",{t:7,e:"item",m:[{n:"ref",f:"Card",t:13}],f:["Card"]},"\n        ",{t:7,e:"item",m:[{n:"ref",f:"JSONEditor",t:13}],f:["JSON Editor"]},"\n        ",{t:7,e:"item",m:[{n:"ref",f:"Menu",t:13}],f:["Menu"]},"\n        ",{t:7,e:"item",m:[{n:"ref",f:"Shell",t:13}],f:["Shell"]},"\n        ",{t:7,e:"item",m:[{n:"ref",f:"Split",t:13}],f:["Split"]},"\n        ",{t:7,e:"item",m:[{n:"ref",f:"Table",t:13}],f:["Table"]},"\n        ",{t:7,e:"item",m:[{n:"ref",f:"Tabs",t:13}],f:["Tabs"]},"\n        ",{t:7,e:"item",m:[{n:"ref",f:"Toggle",t:13}],f:["Toggle"]},"\n        ",{t:7,e:"item",m:[{n:"ref",f:"Window",t:13}],f:["Window"]},"\n      "]},"\n      ",{t:7,e:"item",m:[{n:"open",f:0,t:13}],f:[{t:7,e:"h3",f:["Decorators"]},"\n        ",{t:7,e:"item",m:[{n:"ref",f:"AceEditor",t:13}],f:["Ace Editor"]},"\n        ",{t:7,e:"item",m:[{n:"ref",f:"CodeMirror",t:13}],f:["CodeMirror"]},"\n        ",{t:7,e:"item",m:[{n:"ref",f:"Form",t:13}],f:["Form"]},"\n        ",{t:7,e:"item",m:[{n:"ref",f:"Grid",t:13}],f:["Grid"]},"\n        ",{t:7,e:"item",m:[{n:"ref",f:"Marked",t:13}],f:["Marked"]},"\n        ",{t:7,e:"item",m:[{n:"ref",f:"MaskedInput",t:13}],f:["Masked Input"]},"\n        ",{t:7,e:"item",m:[{n:"ref",f:"ScrollSpy",t:13}],f:["Scroll Spy"]},"\n      "]},"\n      ",{t:7,e:"item",m:[{n:"open",f:0,t:13}],f:[{t:7,e:"h3",f:["Events"]},"\n        ",{t:7,e:"item",m:[{n:"ref",f:"Click",t:13}],f:["Click"]},"\n        ",{t:7,e:"item",m:[{n:"ref",f:"Keys",t:13}],f:["Keys"]},"\n        ",{t:7,e:"item",m:[{n:"ref",f:"Swipe",t:13}],f:["Swipe"]},"\n      "]},"\n      ",{t:7,e:"item",m:[{n:"open",f:0,t:13}],f:[{t:7,e:"h3",f:["Transitions"]},"\n        ",{t:7,e:"item",m:[{n:"ref",f:"Expand",t:13}],f:["Expand"]},"\n        ",{t:7,e:"item",m:[{n:"ref",f:"Fade",t:13}],f:["Fade"]},"\n      "]},"\n      ",{t:7,e:"item",m:[{n:"open",f:0,t:13}],f:[{t:7,e:"h3",f:["Helpers"]},"\n        ",{t:7,e:"item",m:[{n:"ref",f:"Button",t:13}],f:["Button"]},"\n        ",{t:7,e:"item",m:[{n:"ref",f:"Toast",t:13}],f:["Toast"]},"\n      "]},"\n    "]},"\n  "]},"\n  ",{t:7,e:"center",m:[{n:"class-app-center",t:13}],f:["\n",{t:4,f:["      ",{t:7,e:"app-bar",f:["\n        ",{t:7,e:"left",f:[{t:7,e:"div",m:[{n:"class-hamburger",t:13},{n:["click"],t:70,f:{r:["@this"],s:"[_0.toggle(\"menu.hidden\")]"}}],f:["☰"]}]},"\n      "]},"\n"],n:51,r:"win.max"},"    ",{t:7,e:"host",m:[{n:"windows",t:13,f:[{t:2,r:"windows"}]},{n:"placement",f:"smart",t:13}],f:["\n      ",{t:7,e:"max-top",f:["\n        ",{t:7,e:"app-bar",f:["\n          ",{t:7,e:"left",f:[{t:7,e:"div",m:[{n:"class-hamburger",t:13},{n:["click"],t:70,f:{r:["@this"],s:"[_0.toggle(\"menu.hidden\")]"}}],f:["☰"]}]},"\n          ",{t:7,e:"center",f:[{t:2,r:"window.title"}]},"\n          ",{t:7,e:"right",f:[{t:8,r:"windowControls"}]},"\n        "]},"\n      "]},"\n    "]},"\n  "]},"\n"]}],e:{"[_0.toggle(\"menu.hidden\")]":function (_0){return([_0.toggle("menu.hidden")]);}}},
-          use: [AppBar(), Host(), Menu(), plugin()],
+          use: [AppBar(), Host(), Menu(), Shell()],
           on: {
             init: function init() {
               var this$1 = this;
@@ -383,7 +205,7 @@ System.register(['ractive', './chunk1.js', './chunk2.js', './chunk3.js', './chun
             }
           },
           on: {
-            construct: construct$1,
+            construct: construct,
             config: function config() {
               if ( this._tabs ) { this.set('tabs', (this.get('tabs') || []).concat(this._tabs), { shuffle: true }); }
             },
@@ -428,7 +250,7 @@ System.register(['ractive', './chunk1.js', './chunk2.js', './chunk3.js', './chun
           }
         });
 
-        function construct$1() {
+        function construct() {
           var cmp = this.component;
           if ( !cmp ) { return; }
 
@@ -546,7 +368,7 @@ System.register(['ractive', './chunk1.js', './chunk2.js', './chunk3.js', './chun
           return false;
         }
 
-        function plugin$1(opts) {
+        function plugin(opts) {
           if ( opts === void 0 ) opts = {};
 
           return function(ref) {
@@ -557,65 +379,6 @@ System.register(['ractive', './chunk1.js', './chunk2.js', './chunk3.js', './chun
         }
 
         globalRegister('RMTabs', 'components', Tabs);
-
-      function plugin$2(options) {
-        if ( options === void 0 ) options = {};
-
-        var lib = options.marked || window.marked;
-        if (!lib) { throw new Error("Marked must be either passed in or provided globally as 'marked'.") }
-
-        function marked(node, opts) {
-          var div = document.createElement('div');
-          div.setAttribute('class', 'marked-container');
-          var display = node.style.display;
-          node.style.display = 'none';
-
-          var content = document.createElement('div');
-          content.setAttribute('class', 'marked-content');
-          div.appendChild(content);
-
-          var html = node.innerText;
-          var lines = html.split(/\r?\n/);
-          var indent = lines.find(function (l) { return /[^\s]/.test(l); });
-          if (indent) { html = html.replace(new RegExp(("^" + (indent.replace(/(\s*).*/, '$1'))), 'gm'), ''); }
-
-          lib(html, function (err, res) {
-            content.innerHTML = res;
-            node.parentNode.insertBefore(div, node.nextSibling);
-          });
-
-          return { teardown: function teardown() {
-            node.parentNode.removeChild(div);
-            node.style.display = display;
-          } };
-        }
-
-        return function plugin(ref) {
-          var Ractive = ref.Ractive;
-          var instance = ref.instance;
-
-          instance.decorators[options.name || 'marked'] = marked;
-          instance.partials[options.name || 'marked'] = Ractive.macro(function (handle) {
-            var content = handle.partials.content || [];
-            if (content.length === 1 && typeof content[0] === 'string') {
-              handle.aliasLocal('_marked');
-              handle.setTemplate(['Marking down...']);
-              var tpl = content[0];
-              var indent = tpl.split(/\r?\n/).find(function (l) { return /[^\s]/.test(l); });
-              if (indent) { tpl = tpl.replace(new RegExp(("^" + (indent.replace(/(\s*).*/, '$1'))), 'gm'), ''); }
-              lib(tpl, function (err, res) {
-                if (!err) { handle.set('@local.content', res); }
-              });
-              handle.setTemplate([{ t: 7, e: 'div', m: [{ t: 13, n: 'class-marked-container' }], f: [{ t: 7, e: 'div', m: [{ t: 13, n: 'class-marked-content' }], f: [{ t: 3, r: '_marked.content' }] }] }]);
-            } else {
-              handle.setTemplate([{ t: 7, e: 'div', m: [{ t: 71, n: 'marked' }], f: handle.template.f }]);
-            }
-          }, {
-            css: function css(data) { return (".marked-container { display: flex; justify-content: space-around; } .marked-content { max-width: " + (data('marked.max') || '70em') + "; width: 100%; box-sizing: border-box; }") },
-            noCssTransform: true
-          });
-        }
-      }
 
       function style$1(data) {
         return ("\n  label.field {\n    display: inline-block;\n    font-size: 0.8em;\n    color: " + (data('form.color.accent') || data('fg1') || '#222') + ";\n    min-height: 6.5em;\n    transition: 0.2s ease-in-out;\n    transition-property: color;\n    vertical-align: middle;\n    box-sizing: border-box;\n    padding: " + (data('form.boxy') ? '0.8em 1em' : '0.8em 0.5em') + ";\n  }\n\n  label.field.textarea {\n    display: block;\n    border: 1px solid " + (data('form.color.accent') || data('fg1') || '#222') + ";\n    padding: 0.5em 0.8em 0.8em 0.8em;\n    border-radius: 2px;\n    box-shadow: none;\n    transition-property: color, border-color, box-shadow;\n    margin: 0.8em 0.2em;\n    min-height: auto;\n  }\n\n  label.field.inline {\n    padding-top: 3em;\n    cursor: pointer;\n  }\n\n  label.field.focus {\n    color: " + (data('form.color.accentActive') || data('fga1') || '#07e') + ";\n  }\n\n  label.field.textarea.focus {\n    border-color: " + (data('form.color.accentActive') || data('fga1') || '#07e') + ";\n    " + (!data('form.boxy') ? ("box-shadow: 1px 1px " + (data('form.color.accentActive') || data('fga1') || '#07e') + ",\n      -1px 1px " + (data('form.color.accentActive') || data('fga1') || '#07e') + ",\n      1px -1px " + (data('form.color.accentActive') || data('fga1') || '#07e') + ",\n      -1px -1px " + (data('form.color.accentActive') || data('fga1') || '#07e') + ";") : '') + "\n  }\n\n  label.field > input,\n  label.field > select,\n  label.field > textarea\n  {\n    display: block;\n    border-width: " + (data('form.boxy') ? '0.0625em' : '0 0 0.0625em 0') + ";\n    border-color: " + (data('form.color.accent') || data('fg1') || '#222') + ";\n    border-style: solid;\n    box-sizing: border-box;\n    background-color: transparent;\n    transition: 0.2s ease-in-out;\n    transition-property: box-shadow, color;\n    outline: none;\n    padding: " + (data('form.boxy') ? '0.7em 1.5em 0.7em 0.7em' : '0.5em 0') + ";\n    box-shadow: none;\n    width: 100%;\n    margin-bottom: 0.8em;\n    font-size: 1.2em;" + (data('form.boxy') ? '\n  border-radius: 0.2em;' : '') + "\n  }\n  " + (!data('form.boxy') ? "label.field > select {\n    height: 2.25em;\n  }" : '') + "\n\n  " + (!data('form.boxy') ? ("label.field:hover > input,\n  label.field:hover > select,\n  label.field.file:hover:after {\n    box-shadow: 0 1px 0 0 " + (data('form.color.accent') || data('fg1') || '#222') + ";\n  }\n  label.field.inline:hover > input:before,\n  label.field.textarea:hover {\n    box-shadow: 1px 1px " + (data('form.color.accent') || data('fg1') || '#222') + ",\n      -1px 1px " + (data('form.color.accent') || data('fg1') || '#222') + ",\n      1px -1px " + (data('form.color.accent') || data('fg1') || '#222') + ",\n      -1px -1px " + (data('form.color.accent') || data('fg1') || '#222') + ";\n  }\n  label.field.textarea.focus:hover {\n    box-shadow: 1px 1px " + (data('form.color.accentActive') || data('fga1') || '#07e') + ",\n      -1px 1px " + (data('form.color.accentActive') || data('fga1') || '#07e') + ",\n      1px -1px " + (data('form.color.accentActive') || data('fga1') || '#07e') + ",\n      -1px -1px " + (data('form.color.accentActive') || data('fga1') || '#07e') + ";\n  }\n  label.field.inline:hover > input:checked:before {\n    box-shadow: 0px 1px " + (data('form.color.accent') || data('fg1') || '#222') + ",\n      -1px 0px " + (data('form.color.accent') || data('fg1') || '#222') + ";\n  }\n  label.field.inline.focus:hover > input:checked:before {\n    box-shadow: 0px 1px " + (data('form.color.accentActive') || data('fga1') || '#07e') + ",\n      -1px 0px " + (data('form.color.accentActive') || data('fga1') || '#07e') + ";\n  }") : '') + "\n\n  label.field > textarea {\n    font-size: 1.4em;\n    border: none;\n  }\n\n  label.field.inline > input {\n    width: auto;\n    float: left;\n    width: 0;\n    margin-right: 1.5em;\n  }\n\n  label.field.inline > input:before {\n    content: '';\n    display: block;\n    border: 1px solid " + (data('form.color.accent') || data('fg1') || '#222') + ";\n    width: 1em;\n    height: 1em;\n    box-sizing: border-box;\n    transition: 0.2s ease-in-out;\n    transition-property: transform, border-color, height, width, box-shadow;\n    margin-top: -0.125em;\n  }\n\n  label.field.inline.focus > input:before {\n    border-color: " + (data('form.color.accentActive') || data('fga1') || '#07e') + ";\n  }\n\n  label.field.inline > input:checked:before {\n    height: 0.7em;\n    width: 1.3em;\n    border-width: 2px;\n    border-top-color: transparent;\n    border-right-color: transparent;\n    transform: rotate(-50deg);\n  }\n\n  label.field > input:focus,\n  label.field > select:focus,\n  label.field.file.focus:after\n  {\n    border-color: " + (data('form.color.accentActive') || data('fga1') || '#07e') + ";\n    " + (!data('form.boxy') ? ("box-shadow: 0 1px 0 0 " + (data('form.color.accentActive') || data('fga1') || '#07e') + ";") : '') + "\n  }\n\n  label.field.file.focus:after {\n    color: " + (data('form.color.accentActive') || data('fga1') || '#07e') + ";\n  }\n  label.field.file [type=file] {\n    position: absolute;\n    width: 0;\n    height: 0;\n    opacity: 0;\n    z-index: -1;\n  }\n  label.field.file:after {\n    position: absolute;\n    content: 'Choose a file';\n    width: calc(100% - 1em);\n    height: 1.22em;\n    color: " + (data('form.color.accent') || data('fg1') || '#222') + ";\n    border-color: " + (data('form.color.accent') || data('fg1') || '#222') + ";\n    border-bottom-style: solid;\n    border-bottom-width: 0.0625em;\n    text-align: center;\n    padding: 0.5em 0;\n    cursor: pointer;\n    font-style: oblique;\n    left: 0.5em;\n    bottom: 1.78em;\n    transition: 0.2s ease-in-out;\n    transition-property: color, border-bolor, box-shadow;\n  }\n\n  label.field.button > button {\n    position: relative;\n    top: 1.2em;\n    font-size: 1.2em;\n  }\n\n  label.field.plain > div {\n    position: absolute;\n    font-size: 1.2em;\n    top: 2.28em;\n  }\n  ");
@@ -702,7 +465,7 @@ System.register(['ractive', './chunk1.js', './chunk2.js', './chunk3.js', './chun
         return { teardown: noop };
       }
 
-      function plugin$3(opts) {
+      function plugin$1(opts) {
         if ( opts === void 0 ) opts = {};
 
         return function(ref) {
@@ -734,9 +497,9 @@ System.register(['ractive', './chunk1.js', './chunk2.js', './chunk3.js', './chun
       globalRegister('autofocus', 'decorators', autofocus);
 
       Ractive$1.use(
-        plugin$2(),
-        plugin$3({ includeStyle: true }),
-        plugin$1()
+        marked(),
+        plugin$1({ includeStyle: true }),
+        plugin()
       );
 
       var app = window.app = new App({ target: '#target' });

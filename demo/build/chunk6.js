@@ -1,274 +1,173 @@
-System.register([], function (exports, module) {
+System.register(['./chunk2.js'], function (exports, module) {
   'use strict';
+  var globalRegister;
   return {
+    setters: [function (module) {
+      globalRegister = module.default;
+    }],
     execute: function () {
 
-      exports('default', makeClick);
-      // based on ractive-event-tap
-      var distance = 5;
-      var timeout = 400;
-      var between = 250;
+      exports('style', style);
+      exports('grid', grid);
+      var el;
+      function sizer() {
+        if (!el) {
+          el = document.createElement('div');
+          document.body.appendChild(el);
+        }
+        return el;
+      }
 
-      function makeClick(opts) {
-        if ( opts === void 0 ) opts = {};
+      var defaults = {
+        tiny: {
+          units: [ 2, 3, 4, 5, 6, 8 ],
+          max: '0',
+          value: 0
+        },
+        xsmall: {
+          units: [ 2, 3, 4, 5, 6, 8, 10, 12 ],
+          max: '20em',
+          prefix: 'xs',
+          value: 10
+        },
+        small: {
+          units: [ 2, 3, 4, 5, 6, 8, 10, 12 ],
+          max: '36em',
+          value: 20
+        },
+        medium: {
+          units: [ 2, 3, 4, 5, 6, 8, 10, 12 ],
+          max: '48em',
+          value: 30
+        },
+        large: {
+          units: [ 2, 3, 4, 5, 6, 8, 10, 12, 20, 24 ],
+          max: '64em',
+          value: 40
+        },
+        xlarge: {
+          units: [ 2, 3, 4, 5, 6, 8, 10, 12, 20, 24, 32 ],
+          max: '100em',
+          value: 50
+        },
+        ginormous: {
+          units: [ 2, 3, 4, 5, 6, 8, 10, 12, 20, 24, 32, 64 ],
+          max: '150em',
+          value: 60
+        }
+      };
 
-        return function setup(ref) {
-          var Ractive = ref.Ractive;
-          var instance = ref.instance;
+      var regexps = { 'grid grid-root': /\bgrid grid-root\b/g };
+      var spaces = /\s+/g;
+      function grid(node, options) {
+        var ctx = this.getContext(node);
+        var owner = this;
+        var points;
+        var opts = options || {};
+        var breaks;
 
-          instance.events[opts.name || ((opts.count||1) + "click")] = function clicks(node, fire) {
-            var handler;
-            if (handler = node.__r_clicks__) {
-              handler.subscribe(opts.count, !!opts.hold, fire);
-            } else {
-              handler = new Handler(Ractive.getContext(node), opts.delay || between, opts.bubble || false);
-              node.__r_clicks__ = handler;
-              handler.subscribe(opts.count, !!opts.hold, fire);
+        function resize() {
+          var size = node.clientWidth;
+
+          if (!opts.type || opts.type === 'class') {
+            var match, max = -1;
+            for (var k in points) {
+              if (points[k] <= size) {
+                regexps[k].lastIndex = -1;
+                if (points[k] > max) {
+                  match = k;
+                  max = points[k];
+                }
+              }
+              node.className = node.className.replace(regexps[k], '').trim();
             }
 
-            return { teardown: function teardown() { handler.unsubscribe(opts.count, !!opts.hold, fire); } };
-          };
+            if (!regexps[match].test(node.className)) { node.className += " " + match; }
+
+            if (opts.value) { ctx.set(opts.value, breaks[match].value); }
+            if (opts.name) { ctx.set(opts.name, breaks[match].value); }
+
+            node.className = node.className.replace(spaces, ' ');
+          }
         }
+
+        function settings() {
+          var s = sizer();
+          breaks = owner.get('@style.break') || defaults;
+          points = {};
+          for (var k in breaks) {
+            s.style.width = breaks[k].max;
+            points[k] = s.clientWidth;
+            if (!regexps[k]) { regexps[k] = new RegExp(("\\b" + k + "\\b"), 'g'); }
+          }
+          resize();
+        }
+
+        var listener = this.root.on('*.resize', resize);
+        var observer = this.observe('@style.breaks', settings);
+
+        node.className += ' grid grid-root';
+        settings();
+
+        return {
+          update: function update(options) {
+            // TODO: if type changes, undo whatever the original did first
+            opts = options || {};
+            resize();
+          },
+          teardown: function teardown() {
+            node.className = node.className.replace(regexps['grid grid-root'], '').trim();
+            listener.cancel();
+            observer.cancel();
+          }
+        };
       }
 
-      var click = makeClick({ name: 'click', count: 1 });
-      var dblclick = makeClick({ name: 'dblclick', count: 2 });
-      var trpclick = makeClick({ name: 'trpclick', count: 3 });
+      function style(data, optDefaults) {
+        var defs = data('break') || optDefaults || defaults;
 
-      var Handler = function Handler(context, delay, bubble) {
-        this.context = context;
-        this.node = context.node;
-        this.delay = delay;
-        this.fires = {};
-        this.refs = 0;
-        this.bubble = bubble;
+        var out = ".row > * { position: relative; width: 100%; transition-duration: 0.2s; transition-timing-function: ease-in-out; transition-property: width, padding, margin; box-sizing: border-box; }\n.grid { display: block; }\n.grid .row { display: flex; flex-wrap: wrap; min-height: fit-content; width: 100%; }\n.grid .row.row-pad > * { padding: " + (data('grid.padding') || '0.5em') + "; }\n.grid .row > .pad { display: flex; flex-direction: column; padding: " + (data('grid.padding') || '0.5em') + "; box-sizing: border-box; }";
 
-        this.bind();
-      };
+        var str;
 
-      Handler.prototype.subscribe = function subscribe (count, hold, fire) {
-        (this.fires[(count + "," + hold)] || (this.fires[(count + "," + hold)] = [])).push(fire);
-        this.refs++;
-      };
+        var points = Object.keys(defs).map(function (k) { return (defs[k].key = k) && defs[k]; });
+        points.sort(function (l, r) { return l.value > r.value ? 1 : l.value < r.value ? -1 : 0; });
+        var greater = {};
 
-      Handler.prototype.unsubscribe = function unsubscribe (count, hold, fire) {
-        var fires = this.fires[(count + "," + hold)] || [];
-        fires.splice(fires.indexOf(fire), 1);
-        this.refs--;
-        if (!this.refs) { this.teardown(); }
-      };
 
-      Handler.prototype.bind = function bind () {
-        // listen for mouse/pointer events...
-        if (window.navigator.pointerEnabled) {
-          this.context.listen('pointerdown', handleMousedown);
-        } else if (window.navigator.msPointerEnabled) {
-          this.context.listen('MSPointerDown', handleMousedown);
-        } else {
-          this.context.listen('mousedown', handleMousedown);
+        points.reverse().reduce(function (a, c) {
+          a.push(c.key);
+          greater[c.key] = a.slice();
+          return a;
+        }, []);
 
-          // ...and touch events
-          this.context.listen('touchstart', handleTouchstart);
-        }
+        var rows = '', cols = '';
+        points.reverse().forEach(function (size) {
+          var name = size.prefix || size.key[0];
 
-        // native buttons, anchors, and button/submit input elements, should fire a tap event
-        // when the space key is pressed
-        if (this.node.tagName === 'A' || this.node.tagName === 'BUTTON' || this.node.type === 'button' || this.node.type === 'submit') {
-          this.context.listen('focus', handleFocus);
-        }
-      };
+          out += "\n" + (greater[size.key].map(function (s) { return ("." + s + " ." + name + "0"); }).join(', ')) + " { width: 0; overflow: hidden; }";
 
-      Handler.prototype.fire = function fire (event, x, y, hold) {
-          var this$1 = this;
+          size.units.forEach(function (u) {
+            cols += "\n" + (greater[size.key].map(function (s) { return ("." + s + " " + name + "1, ." + s + " .row > ." + name + "1"); }).join(', ')) + " { width: 100%; }";
+            var loop = function ( i ) {
+              str = '' + ((i / u) * 100);
+              str = str.substr(0, str.indexOf('.') + 3);
+              rows += "\n" + (greater[size.key].map(function (s) { return ("." + s + " .row-" + name + i + "-" + u + " > *"); }).join(', ')) + " { width: " + str + "%; }";
+              cols += "\n" + (greater[size.key].map(function (s) { return ("." + s + " ." + name + i + "-" + u + ", ." + s + " .row > ." + name + i + "-" + u); }).join(', ')) + " { width: " + str + "%; }";
+            };
 
-        if (this.tm) {
-          this.tmCount++;
-          clearTimeout(this.tm);
-        } else {
-          this.tmCount = 1;
-        }
-
-        var go = function () {
-          this$1.tm = null;
-          (this$1.fires[((this$1.tmCount) + "," + (!!hold))] || []).forEach(function (f) {
-            f({ node: this$1.node, original: event, x: x, y: y, hold: !!hold });
+            for (var i = 1; i < u; i++) loop( i );
           });
-        };
+        });
 
-        if (hold) { go(); }
-        else { this.tm = setTimeout(go, this.delay); }
+        out += rows + cols;
 
-        return this.bubble;
-      };
-
-      Handler.prototype.mousedown = function mousedown (event) {
-          var this$1 = this;
-
-        if (this.preventMousedownEvents) {
-          return;
-        }
-
-        if (event.which !== undefined && event.which !== 1) {
-          return;
-        }
-
-        var tm;
-
-        var x = event.clientX;
-        var y = event.clientY;
-
-        // This will be null for mouse events.
-        var pointerId = event.pointerId;
-
-        var handleMouseup = function (event) {
-          if (event.pointerId != pointerId) {
-            return;
-          }
-
-          this$1.fire(event, x, y);
-          cancel();
-        };
-
-        var handleMousemove = function (event) {
-          if (event.pointerId != pointerId) {
-            return;
-          }
-
-          if ((Math.abs(event.clientX - x) >= distance) || (Math.abs(event.clientY - y) >= distance)) {
-            cancel();
-          }
-        };
-
-        var cancel = function () {
-          if (tm) { clearTimeout(tm); }
-          this$1.node.removeEventListener('MSPointerUp', handleMouseup, false);
-          document.removeEventListener('MSPointerMove', handleMousemove, false);
-          document.removeEventListener('MSPointerCancel', cancel, false);
-          this$1.node.removeEventListener('pointerup', handleMouseup, false);
-          document.removeEventListener('pointermove', handleMousemove, false);
-          document.removeEventListener('pointercancel', cancel, false);
-          this$1.node.removeEventListener('click', handleMouseup, false);
-          document.removeEventListener('mousemove', handleMousemove, false);
-        };
-
-        if (window.navigator.pointerEnabled) {
-          this.node.addEventListener('pointerup', handleMouseup, false);
-          document.addEventListener('pointermove', handleMousemove, false);
-          document.addEventListener('pointercancel', cancel, false);
-        } else if (window.navigator.msPointerEnabled) {
-          this.node.addEventListener('MSPointerUp', handleMouseup, false);
-          document.addEventListener('MSPointerMove', handleMousemove, false);
-          document.addEventListener('MSPointerCancel', cancel, false);
-        } else {
-          this.node.addEventListener('click', handleMouseup, false);
-          document.addEventListener('mousemove', handleMousemove, false);
-        }
-
-        tm = setTimeout(function () {
-          cancel();
-          this$1.fire(event, x, y, true);
-        }, timeout);
-
-        return this.bubble;
-      };
-
-      Handler.prototype.touchdown = function touchdown (event) {
-          var this$1 = this;
-
-        var tm;
-        var touch = event.touches[0];
-
-        var x = touch.clientX;
-        var y = touch.clientY;
-
-        var finger = touch.identifier;
-
-        var handleTouchup = function (event) {
-          var touch = event.changedTouches[0];
-
-          if (touch.identifier !== finger) {
-            cancel();
-            return;
-          }
-
-          event.preventDefault(); // prevent compatibility mouse event
-
-          // for the benefit of mobile Firefox and old Android browsers, we need this absurd hack.
-          this$1.preventMousedownEvents = true;
-          clearTimeout(this$1.preventMousedownTimeout);
-
-          this$1.preventMousedownTimeout = setTimeout(function () {
-            this$1.preventMousedownEvents = false;
-          }, 400);
-
-          this$1.fire(event, x, y);
-          cancel();
-        };
-
-        var handleTouchmove = function (event) {
-          if (event.touches.length !== 1 || event.touches[0].identifier !== finger) {
-            cancel();
-          }
-
-          var touch = event.touches[0];
-          if ((Math.abs(touch.clientX - x) >= distance) || (Math.abs(touch.clientY - y) >= distance)) {
-            cancel();
-          }
-        };
-
-        var cancel = function () {
-          if (tm) { clearTimeout(tm); }
-          this$1.node.removeEventListener('touchend', handleTouchup, false);
-          window.removeEventListener('touchmove', handleTouchmove, false);
-          window.removeEventListener('touchcancel', cancel, false);
-        };
-
-        this.node.addEventListener('touchend', handleTouchup, false);
-        window.addEventListener('touchmove', handleTouchmove, false);
-        window.addEventListener('touchcancel', cancel, false);
-
-        tm = setTimeout(function () {
-          cancel();
-          this$1.fire(event, x, y, true);
-        }, timeout);
-
-        return this.bubble;
-      };
-
-      Handler.prototype.teardown = function teardown () {
-        var ctx = this.context;
-
-        ctx.unlisten('pointerdown', handleMousedown);
-        ctx.unlisten('MSPointerDown', handleMousedown);
-        ctx.unlisten('mousedown', handleMousedown);
-        ctx.unlisten('touchstart', handleTouchstart);
-        ctx.unlisten('focus', handleFocus);
-
-        delete this.node.__r_clicks__;
-      };
-      function handleMousedown(event) {
-        return this.__r_clicks__.mousedown(event);
+        return out;
       }
 
-      function handleTouchstart(event) {
-        return this.__r_clicks__.touchdown(event);
-      }
+      grid.style = style;
 
-      function handleFocus() {
-        this.addEventListener('keydown', handleKeydown, false);
-        this.addEventListener('blur', handleBlur, false);
-      }
-
-      function handleBlur() {
-        this.removeEventListener('keydown', handleKeydown, false);
-        this.removeEventListener('blur', handleBlur, false);
-      }
-
-      function handleKeydown(event) {
-        if (event.which === 32 || event.which === 10 || event.which === 13) { // space/enter key
-          return this.__r_clicks__.fire();
-        }
-      }
+      globalRegister('grid', 'decorators', grid);
 
     }
   };

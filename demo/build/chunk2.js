@@ -63,7 +63,7 @@ System.register(['ractive'], function (exports, module) {
       }
 
       globalRegister('expand', 'transitions', expand);
-      exports('default$2', plugin);
+      exports('default$1', plugin);
 
       var DEFAULTS = {
           timeout: 6000,
@@ -666,11 +666,10 @@ System.register(['ractive'], function (exports, module) {
             r._media = {};
             r._media.fn = function () {
               var max = r.sizeInPx(r.get('@style.window.maxFrom'));
-              var first = r.get('max') === undefined;
               var trans = r.transitionsEnabled;
-              if (first) { r.transitionsEnabled = false; }
+              r.transitionsEnabled = false;
               r.set('max', r.host.clientWidth <= max);
-              if (first) { r.transitionsEnabled = trans; }
+              r.transitionsEnabled = trans;
             };
             r._media.handle = r.root.on('*.resize', r._media.fn);
             setTimeout(r._media.fn, 0);
@@ -1141,7 +1140,7 @@ System.register(['ractive'], function (exports, module) {
         globalRegister('RMWindow', 'components', Window);
 
         Host.prototype.Window = Window;
-      exports('default$1', plugin$2);
+      exports('default$2', plugin$2);
 
     }
   };
