@@ -497,7 +497,7 @@ System.register(['./chunk3.js', './chunk4.js', './chunk5.js', './chunk2.js', './
       globalRegister('autofocus', 'decorators', autofocus);
 
       Ractive$1.use(
-        marked(),
+        marked({ highlight: true }),
         plugin$1({ includeStyle: true }),
         plugin()
       );

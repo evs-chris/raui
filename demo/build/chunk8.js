@@ -8,7 +8,19 @@ System.register([], function (exports, module) {
         if ( options === void 0 ) options = {};
 
         var lib = options.marked || window.marked;
+        var hl = options.highlight;
+        if (hl === true) { hl = window.hljs; }
+
         if (!lib) { throw new Error("Marked must be either passed in or provided globally as 'marked'.") }
+
+        if (hl && hl.getLanguage) {
+          var renderer = new lib.Renderer();
+          renderer.code = function (code, lang) {
+            var highlighted = lang && hl.getLanguage(lang) ? hl.highlight(lang, code).value : code.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+            return ("<pre><code class=\"hljs " + lang + "\">" + highlighted + "</code></pre>");
+          };
+          lib.setOptions({ renderer: renderer });
+        }
 
         function marked(node, opts) {
           var div = document.createElement('div');
@@ -57,8 +69,9 @@ System.register([], function (exports, module) {
               handle.setTemplate([{ t: 7, e: 'div', m: [{ t: 71, n: 'marked' }], f: handle.template.f }]);
             }
           }, {
-            css: function css(data) { return (".marked-container { display: flex; justify-content: space-around; } .marked-content { max-width: " + (data('marked.max') || '70em') + "; width: 100%; box-sizing: border-box; }") },
-            noCssTransform: true
+            css: function css(data) { return (".marked-content { max-width: " + (data('marked.max') || '70em') + "; width: 100%; box-sizing: border-box; margin: 0 auto; }") },
+            noCssTransform: true,
+            cssId: 'rmarked'
           });
         }
       }
