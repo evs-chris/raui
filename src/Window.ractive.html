@@ -570,11 +570,10 @@
       r._media = {};
       r._media.fn = () => {
         const max = r.sizeInPx(r.get('@style.window.maxFrom'));
-        const first = r.get('max') === undefined;
         const trans = r.transitionsEnabled;
-        if (first) r.transitionsEnabled = false;
+        r.transitionsEnabled = false;
         r.set('max', r.host.clientWidth <= max);
-        if (first) r.transitionsEnabled = trans;
+        r.transitionsEnabled = trans;
       };
       r._media.handle = r.root.on('*.resize', r._media.fn);
       setTimeout(r._media.fn, 0);

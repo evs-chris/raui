@@ -1,31 +1,32 @@
-<div class-rshell {{yield extra-attributes}}>
+<div class-rshell {{yield extra-attributes}} as-tracked=`outer` class-rshell-left-popped=".leftPop" class-rshell-right-popped=".rightPop">
+  <div class-rshell-sizer as-tracked=`sizer` />
   <div class-rshell-main>
     {{#if ._top}}<div class-rshell-top {{#if ._topA}}{{yield ._topA}}{{/if}}>{{yield ._top}}</div>{{/if}}
-    <div class-rshell-has-left="._left && !._leftOver && !.leftOver" class-rshell-has-right="._right && !._rightOver && !.rightOver" class-rshell-left-hidden=".leftHidden" class-rshell-right-hidden=".rightHidden">
+    <div class-rshell-middle class-rshell-has-left="._left && !._leftOver && !.leftOver" class-rshell-has-right="._right && !._rightOver && !.rightOver" class-rshell-left-hidden=".leftHidden" class-rshell-right-hidden=".rightHidden">
       <div class-rshell-modal class-rshell-blocked=".blocked || (.blockableLeft && .leftPull) || (.blockableRight && .rightPull)"
-        on-click="@.set({ leftHidden: leftOver || _leftOver ? true : leftHidden, rightHidden: rightOver || _rightOver ? true : rightHidden })"
+        on-click="@.set({ leftHidden: .leftOver || ._leftOver ? true : .leftHidden, rightHidden: .rightOver || ._rightOver ? true : .rightHidden })"
         on-swipeleft({bind:'.leftPush'})="@.set('leftHidden', true)"
         on-swiperight({bind:'.rightPush'})="@.set('rightHidden', true)"
         {{#if .leftPull || .rightPull}}style-transition=none style-opacity="{{Math.min(.leftPull || .rightPull, 100) / 200}}"{{/if}}
        />
       {{#if ._left}}
-        <div class-rshell-left
+        <div class-rshell-left as-tracked=`left`
           {{#if ._leftA}}{{yield ._leftA}}{{/if}}
-          on-click="(._leftOver || leftOver) && @.toggle('leftHidden')"
+          on-click="(._leftOver || .leftOver) && @.toggle('leftHidden')"
           on-swipeleft({bind:'.leftPush'})="@.set('leftHidden', true)"
           {{#if .leftPull}}style-transition=none style-transform="translate(-{{100 - (.leftPull > 100 ? 100 : .leftPull)}}%)"{{/if}}
           {{#if .leftPush}}style-transition=none style-transform="translate(-{{.leftPush > 100 ? 100 : .leftPush}}%)"{{/if}}
         >{{yield ._left}}</div>
       {{/if}}
       {{#if ._center}}
-        <div class-rshell-center
+        <div class-rshell-center as-tracked=`center`
           {{#if ._centerA}}{{yield ._centerA}}{{/if}}
           {{#if ._left && .leftHidden}}on-swiperight({maxX:80,bind:'.leftPull'})="@.set('leftHidden', false)"{{/if}}
           {{#if ._right && .rightHidden}}on-swipeleft({minX:-80,bind:'.rightPull'})="@.set('rightHidden', false)"{{/if}}
         >{{yield ._center}}</div>
       {{/if}}
       {{#if ._right}}
-        <div class-rshell-right
+        <div class-rshell-right as-tracked=`right`
           {{#if ._rightA}}{{yield ._rightA}}{{/if}}
           on-click="(._rightOver || .rightOver) && @.toggle('rightHidden')"
           on-swiperight({bind:'.rightPush'})="@.set('rightHidden', true)"
@@ -36,8 +37,8 @@
     </div>
     {{#if ._bottom}}<div class-rshell-bottom {{#if ._bottomA}}{{yield ._bottomA}}{{/if}}>{{yield ._bottom}}</div>{{/if}}
   </div>
-  {{#if ._leftP}}<div class-rshell-left-pop {{#if ._leftPA}}{{yield ._leftPA}}{{/if}}>{{yield ._leftP}}</div>{{/if}}
-  {{#if ._rightP}}<div class-rshell-right-pop {{#if ._rightPA}}{{yield ._rightPA}}{{/if}}>{{yield ._rightP}}</div>{{/if}}
+  {{#if ._leftPop}}<div class-rshell-left-pop {{#if ._leftPopA}}{{yield ._leftPopA}}{{/if}}>{{yield ._leftPop}}</div>{{/if}}
+  {{#if ._rightPop}}<div class-rshell-right-pop {{#if ._rightPopA}}{{yield ._rightPopA}}{{/if}}>{{yield ._rightPop}}</div>{{/if}}
 </div>
 
 <script>
@@ -47,13 +48,38 @@
 
   export class Shell extends Ractive {
     constructor(opts) { super(opts); }
+
+    adaptSize(reinit) {
+      if (reinit) {
+        if (this._media) this._media.cancel();
+        initMediaListener(this);
+      } else {
+        this._media && this._media.fn();
+      }
+    }
+
+    sizeInPx(size) {
+      if (!this.sizer) return 160;
+      this.sizer.style.width = typeof size === 'number' ? `${size}px` : size;
+      return this.sizer.clientWidth;
+    }
+
+    relativeSize(size, rel = '1em') {
+      if (!this.sizer) return 10;
+      return this.sizeInPx(size) / this.sizeInPx(rel);
+    }
   }
 
   Ractive.extendWith(Shell, {
-    template: $TEMPLATE,
-    attributes: [],
+    template: $TEMPLATE, css: $CSS,
+    attributes: ['adaptive'],
     use: [ swipeleft, swiperight ],
-    css: $CSS,
+    decorators: {
+      tracked(node, name) {
+        this[name] = node;
+        return { teardown() { this[name] = undefined; } };
+      }
+    },
     cssId: 'rshell',
     noCssTransform: true,
     computed: {
@@ -64,7 +90,7 @@
         return this.get('_right') && (this.get('rightOver') || this.get('_rightOver'));
       },
       blocked() {
-        return (this.get('blockableLeft') && !(this.get('leftHidden')) || (this.get('blockableRight') && !this.get('rightHidden')));
+        return (this.get('blockableLeft') && !(this.get('leftHidden')) || (this.get('blockableRight') && !this.get('rightHidden'))) || this.get('leftPop') || this.get('rightPop');
       }
     },
     on: {
@@ -82,15 +108,24 @@
             if (this.get('rightOver')) this.set('rightHidden', true);
             if (this.get('leftOver')) this.set('leftHidden', true);
         }
+      },
+      complete() {
+        initMediaListener(this);
+      },
+      unrender() {
+        if (this._media) this._media.cancel();
       }
     },
     observe: {
-      '@style'(v) {
-        initMediaListener(this);
-      },
       'leftHidden rightHidden': {
-        handler() {
-          setTimeout(() => this.fire('resize'), 410);
+        handler(v, o, k) {
+          if (~k.indexOf('left') && !this.get('leftOver') && !this.get('_leftOver') || ~k.indexOf('right') && !this.get('rightOver') && !this.get('_rightOver')) {
+            setTimeout(() => {
+              this._media && this._media.listener && this._media.listener.silence();
+              this.fire('resize')
+              this._media && this._media.listener && this._media.listener.resume();
+            }, 410);
+          }
         },
         defer: true,
         init: false
@@ -98,8 +133,8 @@
     }
   });
 
-  const parts = ['top', 'bottom', 'center', 'left', 'right', 'leftP', 'rightP'];
-  const skipAttrs = ['hidden', 'primary', 'over'];
+  const parts = ['top', 'bottom', 'center', 'left', 'right', 'left-pop', 'right-pop'];
+  const skipAttrs = ['hidden', 'primary', 'over', 'popped'];
   function construct() {
     const cmp = this.component;
     if ( !cmp ) return;
@@ -113,21 +148,26 @@
 
     tpl.forEach(e => {
       if (~parts.indexOf(e.e)) {
-        items[`_${e.e}`] = { t: e.f };
+        const name = e.e === 'left-pop' ? 'leftPop' : e.e === 'right-pop' ? 'rightPop' : e.e;
+        items[`_${name}`] = { t: e.f };
         if (e.m) {
           const as = e.m.filter(a => !~skipAttrs.indexOf(a.n));
 
           if (as.length) {
-            items[`_${e.e}A`] = { t: as };
+            items[`_${name}A`] = { t: as };
           }
 
           if (as.length !== e.m.length) {
             let a = e.m.find(a => a.n === 'hidden');
-            if (a) attrs.push({ t: 13, n: `${e.e}Hidden`, f: a.f });
+            if (a) attrs.push({ t: 13, n: `${name}Hidden`, f: a.f });
             a = e.m.find(a => a.n === 'over');
-            if (a) attrs.push({ t: 13, n: `${e.e}Over`, f: a.f });
+            if (a) attrs.push({ t: 13, n: `${name}Over`, f: a.f });
             a = e.m.find(a => a.n === 'primary');
-            if (a) attrs.push({ t: 13, n: `_${e.e}Primary`, f: a.f });
+            if (a) attrs.push({ t: 13, n: `_${name}Primary`, f: a.f });
+            if (~e.e.indexOf('-pop')) {
+              a = e.m.find(a => a.n === 'popped');
+              if (a) attrs.push({ t: 13, n: name, f: a.f });
+            }
           }
         }
       }
@@ -138,57 +178,53 @@
 
   function initMediaListener(r) {
     if (typeof window === 'undefined') return;
+    if (!r.left && !r.right) return;
+    if (r._media) return r._media.fn;
 
-    const left = r.get('@style.shell.left.width') || r.get('@style.menu.width') || '18em';
-    const right = r.get('@style.shell.right.width') || r.get('@style.menu.width') || '18em';
-    const hasLeft = r.get('_left') && !r.get('leftOver');
-    const hasRight = r.get('_right') && !r.get('rightOver');
-    const prim = (!hasLeft || r.get('_rightPrimary')) ? 'r' : 'l';
-    const hasPrimary = hasLeft || hasRight;
-    const hasSecondary = hasLeft && hasRight;
-    const medium = r.get('@style.break.medium') || '960px';
+    const media = {
+      fn() {
+        const sizes = {
+          left:  !r.get('leftOver') && r.left && r.left.clientWidth || 0,
+          right: !r.get('rightOver') && r.right && r.right.clientWidth || 0
+        };
+        if (sizes.left) sizes.left = r.relativeSize(sizes.left);
+        if (sizes.right) sizes.right = r.relativeSize(sizes.right);
 
-    if (!hasPrimary) return;
+        const outer = r.relativeSize('100%');
+        const primary = r.get('_rightPrimary') ? 'right' : 'left';
+        const secondary = primary === 'right' ? 'left' : 'right';
+        const medium = r.relativeSize(r.get('@style.break.medium') || '60rem', '1rem');
 
-    if (r._media) {
-      r._media.cancel();
+        const sets = { leftHidden: r.get('leftOver'), rightHidden: r.get('rightOver'), _leftOver: false, _rightOver: false };
+
+        let w = outer - sizes.left - sizes.right;
+        if (w <= medium) {
+          w += sizes[secondary];
+          sets[`${secondary}Hidden`] = true;
+          sets[`_${secondary}Over`] = true;
+          if (w <= medium) {
+            sets[`${primary}Hidden`] = true;
+            sets[`_${primary}Over`] = true;
+          }
+        }
+
+        r.set(sets);
+      },
+      cancel() {
+        r._media = null;
+        window.removeEventListener('resize', media.fn);
+        if (media.observer) media.observer.cancel();
+        if (media.listener) media.listener.cancel();
+      }
     }
 
-    const media = {};
+    window.addEventListener('resize', media.fn);
+    media.observer = r.observe('@style leftOver rightOver _leftPrimary _rightPrimary', media.fn);
+    if (r.get('adaptive')) media.listener = r.root.on('*.resize', media.fn);
+
     r._media = media;
 
-    const div = document.createElement('div');
-    document.body.appendChild(div);
-    div.style.width = `calc((${medium} + ${prim === 'l' ? left : right}) - 1px)`;
-    const style = getComputedStyle(div);
-    const primary = window.matchMedia(`(max-width: ${style.width})`);
-    if (hasSecondary) {
-      div.style.width = `calc(((${medium} + ${prim === 'l' ? left : right})${hasSecondary ? ` + ${prim === 'l' ? right : left}` : ''}) - 1px)`;
-    }
-    const secondary = hasSecondary && window.matchMedia(`(max-width: ${style.width})`);
-    document.body.removeChild(div);
-
-    function matcher() {
-      const left = !hasLeft ? true : prim === 'l' ? primary.matches : secondary ? secondary.matches : false;
-      const right = !hasRight ? true : prim === 'r' ? primary.matches : secondary ? secondary.matches : false;
-      r.set({
-        leftHidden: left,
-        rightHidden: right,
-        _leftOver: left,
-        _rightOver: right
-      });
-    }
-
-    primary.addListener(matcher);
-    secondary && secondary.addListener(matcher);
-
-    media.cancel = function() {
-      r._media = null;
-      primary.removeListener(matcher);
-      secondary && secondary.removeListener(matcher);
-    }
-
-    matcher();
+    r._media.fn();
   }
 
   export function plugin(opts = {}) {
@@ -212,6 +248,9 @@
     position: absolute;
     overflow: hidden;
   }
+  .rshell-sizer {
+    position: absolute;
+  }
   .rshell-modal {
     position: absolute;
     top: 0;
@@ -233,8 +272,14 @@
     height: 100%;
     box-sizing: border-box;
     display: flex;
+    flex-direction: column;
     overflow: hidden;
     z-index: 1;
+  }
+
+  .rshell-middle {
+    flex-grow: 1;
+    position: relative;
   }
 
   .rshell-left, .rshell-right {
@@ -265,6 +310,34 @@
   .rshell-has-left > .rshell-left {
     z-index: 2;
   }
+  .rshell-left-popped > .rshell-main > .rshell-middle > .rshell-left,
+  .rshell-left-popped > .rshell-main > .rshell-middle > .rshell-right,
+  .rshell-right-popped > .rshell-main > .rshell-middle > .rshell-left,
+  .rshell-right-popped > .rshell-main > .rshell-middle > .rshell-right {
+    z-index: 2;
+  }
+
+  .rshell-left-pop, .rshell-right-pop {
+    z-index: 5;
+    transition: transform 0.4s ease-in-out;
+    position: absolute;
+    top: 0;
+    bottom: 0;
+  }
+  .rshell-left-pop {
+    transform: translateX(-100%);
+  }
+  .rshell-left-popped > .rshell-left-pop {
+    transform: none;
+  }
+
+  .rshell-right-pop {
+    transform: translateX(100%);
+    right: 0;
+  }
+  .rshell-right-popped > .rshell-right-pop {
+    transform: none;
+  }
 
   .rshell-center {
     position: absolute;
@@ -275,6 +348,7 @@
     transition: left 0.4s ease-in-out, width 0.4s ease-in-out;
     height: 100%;
     width: 100%;
+    flex-grow: 1;
     overflow: auto;
   }
   .rshell-has-left > .rshell-center {
