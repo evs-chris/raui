@@ -1,6 +1,18 @@
 export default function plugin(options = {}) {
   const lib = options.marked || window.marked;
+  let hl = options.highlight;
+  if (hl === true) hl = window.hljs;
+
   if (!lib) throw new Error(`Marked must be either passed in or provided globally as 'marked'.`)
+
+  if (hl && hl.getLanguage) {
+    const renderer = new lib.Renderer();
+    renderer.code = (code, lang) => {
+      const highlighted = lang && hl.getLanguage(lang) ? hl.highlight(lang, code).value : code.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      return `<pre><code class="hljs ${lang}">${highlighted}</code></pre>`;
+    }
+    lib.setOptions({ renderer });
+  }
 
   function marked(node, opts) {
     const div = document.createElement('div');
@@ -46,8 +58,9 @@ export default function plugin(options = {}) {
         handle.setTemplate([{ t: 7, e: 'div', m: [{ t: 71, n: 'marked' }], f: handle.template.f }]);
       }
     }, {
-      css(data) { return `.marked-container { display: flex; justify-content: space-around; } .marked-content { max-width: ${data('marked.max') || '70em'}; width: 100%; box-sizing: border-box; }` },
-      noCssTransform: true
+      css(data) { return `.marked-content { max-width: ${data('marked.max') || '70em'}; width: 100%; box-sizing: border-box; margin: 0 auto; }` },
+      noCssTransform: true,
+      cssId: 'rmarked'
     });
   }
 }

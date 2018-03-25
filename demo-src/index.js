@@ -5,7 +5,7 @@ import marked from 'cmp/marked';
 import form from 'cmp/form';
 
 Ractive.use(
-  marked(),
+  marked({ highlight: true }),
   form({ includeStyle: true }),
   tabs()
 );

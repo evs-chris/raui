@@ -11,6 +11,7 @@
 
     * `name: string = 'marked'` - the name to use when registering the plugin as a macro and decorator
     * `marked: marked = marked` - the `marked` singleton to use to render markdown. If falsey, the global `marked` object will be used. If no `marked` is found, an error will be thrown.
+    * `highlight: hljs | boolean` - to use highlight.js with code blocks, you can either pass in the module or `true` to use `window.hljs`
 
     ### Content
 
