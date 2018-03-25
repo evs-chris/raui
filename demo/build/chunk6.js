@@ -100,6 +100,7 @@ System.register(['./chunk2.js'], function (exports, module) {
             points[k] = s.clientWidth;
             if (!regexps[k]) { regexps[k] = new RegExp(("\\b" + k + "\\b"), 'g'); }
           }
+          s.style.width = 0;
           resize();
         }
 
