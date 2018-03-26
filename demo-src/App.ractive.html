@@ -68,6 +68,7 @@
   import Menu from 'cmp/Menu';
   import Host from 'cmp/Window';
   import { style as gridStyle } from 'cmp/grid';
+  import buttons from 'cmp/button';
 
   import Hello from './views/Hello';
 
@@ -75,7 +76,7 @@
 
   const App = Ractive.extend({
     template: $TEMPLATE,
-    use: [AppBar(), Host(), Menu(), Shell()],
+    use: [AppBar(), Host(), Menu(), Shell(), buttons()],
     on: {
       init() {
         this.shell = this.findComponent('shell');

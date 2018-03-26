@@ -1,24 +1,66 @@
+{{>toast}}
 <tabs flat pad class-secondary fill height=dynamic>
   <tab title=Intro><marked>
-    TODO
+    Nearly every app needs to give user feedback when some actions occur, and one reasonably good Material-ish way to achieve that is with toast and/or snackbar messages. To that end, raui provides a helper to add toasting to any old instance, though it is particularly suited to things like the shell and window host.
+
+    
   </marked></tab>
   <tab title=Usage><marked>
+    ### Plugin options
 
+    All options are optional.
+
+    * `name: string = 'toast'` - the name to use when registering the partial in the host
+    * `timeout: number = 6000` - default number of milliseconds to display a message before it is automatically closed
+    * `top: boolean = true` - default toast position to the top of its container
+    * `bottom: boolean` - default toast position to the bottom of its container
+    * `left: boolean` - default toast position to the left of its container
+    * `right: boolean` - default toast position to the right of its container
+    * `type: 'success' | 'info' | 'warn' | 'error'` - the type of the message. You can add additional message types as `.rtoast-${type}`
+    * `class: string` - additional class(es) to add to the message container
+    * `dismissable: boolean` - if not `false`, the message won't close when clicked
+    * `buttons: Button[]` - a list of buttons to display at the end of the message. If no buttons are supplied and the message is dismissable, a close button is automatically provided
+      * `class: string` - additional class(es) to add to the button
+      * `label: string` - the label to display on the button
+      * `action: () => void` - a function to call when the button is activated
+
+    ### API
+
+    Message location defaults to the top center of the container. The left or right option can be combined with the opt or bottom option so that you can hit the four corners or top or bottom center.
+
+    * `toastDefaults = { timeout: 6000, top: true }` - plus any other options you passed to the plugin
+    * `toast(message, options)` - queue a message to displayed in the toast area in the order queued
+      * options are assigned over the defaults above
   </marked></tab>
   <tab title=Example>
-    
+    <label as-field>Message<input value="{{.message}}" /></label>
+    <label as-field><button on-click="@.toast(.message || 'This is a toast', .options)">Toast</button></label>
+    <h3>Options</h3>
+    <json-editor root="{{.options}}" />
   </tab>
 </tabs>
 
 <script>
   import { Window } from 'cmp/Window';
+  import toast from 'cmp/Toast';
+  import json from 'cmp/JSONEditor';
 
   export default Window.extend({
-    template: $TEMPLATE,
+    template: $TEMPLATE, css: $CSS,
+    cssId: 'toast-demo',
+    use: [toast(), json()],
     options: {
       title: 'Helper :: Toast',
       resizable: true, flex: true,
       width: '48em', height: '30em'
+    },
+    data() {
+      return {
+        options: {
+          timeout: 6000,
+          top: true
+        }
+      }
     }
   });
 </script>
