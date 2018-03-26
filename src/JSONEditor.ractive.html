@@ -109,10 +109,13 @@
   </select>
 </template>
 
-<div class-rje-wrapper {{yield extra-attributes}}>{{#with root}}
-  {{>open}}
-  <div class-rje-root class-rje-value-expanded="~/toggles.root">{{>value}}</div>
-{{/with}}</div>
+<div class-rje-wrapper {{yield extra-attributes}}>
+  {{#if !root}}{{>value root}}{{/if}}
+  {{#with root}}
+    {{>open}}
+    <div class-rje-root class-rje-value-expanded="~/toggles.root">{{>value}}</div>
+  {{/with}}
+</div>
 
 <script>
   import Ractive from 'ractive';
@@ -319,7 +322,8 @@
     opacity: 0.3;
     transition: opacity 0.3s ease-in-out;
   }
-  .rje-wrapper select:hover, .rje-wrapper input:hover {
+  .rje-wrapper select:hover, .rje-wrapper input:hover,
+  .rje-wrapper select:focus, .rje-wrapper input:focus {
     opacity: 1;
   }
 
@@ -445,8 +449,10 @@
   }
 
   .rje-icon {
-    width: 1.6em;
-    height: 1.6em;
+    width: 1.3em;
+    height: 1.3em;
+    line-height: 1.3em;   
+    min-height: auto;
     box-sizing: border-box;
     padding: 0;
     margin: 0 0.25em;
