@@ -22,11 +22,32 @@ System.register(['./chunk3.js', './chunk4.js', './chunk5.js', './chunk2.js', './
     }],
     execute: function () {
 
+      function button(data) {
+        return ("\n    button, .btn {\n      text-decoration: none;\n      text-align: center;\n      letter-spacing: 0.5px;\n      cursor: pointer;\n      user-select: none;\n      border: none;\n      border-radius: 2px;\n      padding: 0 2rem;\n      box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.14),\n        0 1px 5px 0 rgba(0, 0, 0, 0.12),\n        0 3px 1px -2px rgba(0, 0, 0, 0.2);\n      transition: 0.2s ease-in-out;\n      transition-property: box-shadow, opacity, background-color;\n      font-size: 1em;\n      line-height: 1.5em;\n      background-color: " + (data('button.bg') || data('bg2') || '#ddd') + ";\n      color: " + (data('button.fg') || data('fg2') || '#222') + ";\n      vertical-align: middle;\n      min-height: 2.25em;\n      outline: 0;\n      margin: 0.25em;\n      position: relative;\n      overflow: hidden;\n      -webkit-tap-highlight-color: transparent;\n    }\n\n    button[disabled], .btn.disabled {\n      opacity: 0.7;\n      cursor: not-allowed;\n    }\n\n    button.round {\n      width: 2.2em;\n      height: 2.2em;\n      border-radius: 100%;\n      line-height: 2.2em;\n      text-align: center;\n      padding: 0;\n    }\n\n    button.flat, .btn.flat {\n      background-color: " + (data('button.flat.bg') || data('bg1') || '#fefefe') + ";\n      color: " + (data('button.flat.fg') || data('fg1') || '#222') + ";\n      box-shadow: none;\n    }\n\n    button.alt1, .btn.alt1 {\n      bakcground-color: " + (data('alt1.bg2') || '#ddd') + ";\n      color: " + (data('alt1.fg2') || '#222') + ";\n    }\n\n    button.alt1.flat, .btn.alt1.flat {\n      background-color: " + (data('alt1.bg1') || '#fefefe') + ";\n      color: " + (data('alt1.fg1') || '#222') + ";\n    }\n\n    button.alt2, .btn.alt2 {\n      bakcground-color: " + (data('alt2.bg2') || '#ddd') + ";\n      color: " + (data('alt2.fg2') || '#222') + ";\n    }\n\n    button.alt2.flat, .btn.alt2.flat {\n      background-color: " + (data('alt2.bg1') || '#fefefe') + ";\n      color: " + (data('alt2.fg1') || '#222') + ";\n    }\n\n    button:hover, .btn:hover {\n      opacity: 0.9;\n      box-shadow: 0 3px 3px 0 rgba(0,0,0,0.14),\n      0 1px 7px 0 rgba(0,0,0,0.12),\n      0 3px 1px -1px rgba(0,0,0,0.2);\n    }\n\n    button[disabled]:hover, .btn.disabled:hover {\n      opacity: 0.7;\n    }\n\n    button.flat:hover, .btn.flat:hover {\n      box-shadow: none;\n    }\n\n    button:after {\n      content: ' ';\n      position: absolute;\n      top: 0;\n      left: 0;\n      height: 100%;\n      width: 100%;\n      background: radial-gradient(circle, rgba(255, 255, 255, 0.4) 2em, transparent 2.1em);\n      opacity: 0;\n      transform: scale(5, 5);\n      transition: opacity 1s ease-out, transform 0.5s ease-in;\n    }\n\n    button.flat:after {\n      background: radial-gradient(circle, rgba(0, 0, 0, 0.2) 1.5em, transparent 1.6em);\n    }\n\n    button.round:after {\n      background: radial-gradient(circle, rgba(255, 255, 255, 0.4) 0.75em, transparent 0.76em);\n    }\n\n    button.round.flat:after {\n      background: radial-gradient(circle, rgba(0, 0, 0, 0.2) 0.75em, transparent 0.76em);\n    }\n\n    button:before {\n      content: ' ';\n      position: absolute;\n      height: 100%;\n      width: 100%;\n      background-color: rgba(0, 0, 0, 0.075);\n      opacity: 0;\n      top: 0;\n      left: 0;\n      transition: opacity 0.4s ease-in-out;\n    }\n    button:focus:before {\n      opacity: 1;\n    }\n    button.flat:hover:before {\n      opacity: 0.5;\n    }\n    \n    button:active:after {\n      transform: scale(1, 1);\n      opacity: 1;\n      transition: none;\n    }\n  ");
+      }
+
+      function plugin() {
+        return function(ref) {
+          var instance = ref.instance;
+          var Ractive = ref.Ractive;
+
+          if (instance === Ractive || Ractive.isInstance(instance)) {
+            Ractive.addCSS('raui-button', button);
+          } else {
+            var css = instance.css;
+            instance.css = function(data) {
+              var res = typeof css === 'string' ? css : typeof css === 'function' ? css(data) : '';
+              return res + button(data);
+            };
+          }
+        };
+      }
+
       Ractive.styleSet('window.maxFrom', '60em');
 
         var App = Ractive.extend({
           template: {v:4,t:[{t:7,e:"shell",f:["\n  ",{t:7,e:"left",m:[{n:"hidden",t:13,f:[{t:2,r:"menu.hidden"}]}],f:["\n    ",{t:7,e:"menu",f:["\n      ",{t:7,e:"container",m:[{n:"pad",f:0,t:13},{n:"class-logo",t:13}],f:[{t:7,e:"h1",m:[{n:"style-text-align",f:"center",t:13}],f:[{t:7,e:"img",m:[{n:"src",f:"./raui.svg",t:13},{n:"alt",f:"raui logo",t:13}]},"RaUI"]}]},"\n      ",{t:7,e:"item",m:[{n:"ref",f:"Hello",t:13}],f:["\n        ",{t:7,e:"h3",f:["Welcome"]},"\n        ",{t:7,e:"right",f:["\n            ",{t:7,e:"a",m:[{n:"href",f:"https://github.com/evs-chris/raui",t:13},{n:"target",f:"_blank",t:13}],f:[{t:7,e:"svg",m:[{n:"aria-labelledby",f:"simpleicons-github-icon",t:13},{n:"role",f:"img",t:13},{n:"viewBox",f:"0 0 24 24",t:13},{n:"xmlns",f:"http://www.w3.org/2000/svg",t:13},{n:"id",f:"gh",t:13}],f:[{t:7,e:"title",m:[{n:"id",f:"simpleicons-github-icon",t:13}],f:["Browse code on GitHub"]},{t:7,e:"path",m:[{n:"d",f:"M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12",t:13}]}]}]},"\n        "]},"\n      "]},"\n      ",{t:7,e:"item",m:[{n:"open",f:0,t:13}],f:[{t:7,e:"h3",f:["Components"]},"\n        ",{t:7,e:"item",m:[{n:"ref",f:"AppBar",t:13}],f:["AppBar"]},"\n        ",{t:7,e:"item",m:[{n:"ref",f:"Card",t:13}],f:["Card"]},"\n        ",{t:7,e:"item",m:[{n:"ref",f:"JSONEditor",t:13}],f:["JSON Editor"]},"\n        ",{t:7,e:"item",m:[{n:"ref",f:"Menu",t:13}],f:["Menu"]},"\n        ",{t:7,e:"item",m:[{n:"ref",f:"Shell",t:13}],f:["Shell"]},"\n        ",{t:7,e:"item",m:[{n:"ref",f:"Split",t:13}],f:["Split"]},"\n        ",{t:7,e:"item",m:[{n:"ref",f:"Table",t:13}],f:["Table"]},"\n        ",{t:7,e:"item",m:[{n:"ref",f:"Tabs",t:13}],f:["Tabs"]},"\n        ",{t:7,e:"item",m:[{n:"ref",f:"Toggle",t:13}],f:["Toggle"]},"\n        ",{t:7,e:"item",m:[{n:"ref",f:"Window",t:13}],f:["Window"]},"\n      "]},"\n      ",{t:7,e:"item",m:[{n:"open",f:0,t:13}],f:[{t:7,e:"h3",f:["Decorators"]},"\n        ",{t:7,e:"item",m:[{n:"ref",f:"AceEditor",t:13}],f:["Ace Editor"]},"\n        ",{t:7,e:"item",m:[{n:"ref",f:"CodeMirror",t:13}],f:["CodeMirror"]},"\n        ",{t:7,e:"item",m:[{n:"ref",f:"Form",t:13}],f:["Form"]},"\n        ",{t:7,e:"item",m:[{n:"ref",f:"Grid",t:13}],f:["Grid"]},"\n        ",{t:7,e:"item",m:[{n:"ref",f:"Marked",t:13}],f:["Marked"]},"\n        ",{t:7,e:"item",m:[{n:"ref",f:"MaskedInput",t:13}],f:["Masked Input"]},"\n        ",{t:7,e:"item",m:[{n:"ref",f:"ScrollSpy",t:13}],f:["Scroll Spy"]},"\n      "]},"\n      ",{t:7,e:"item",m:[{n:"open",f:0,t:13}],f:[{t:7,e:"h3",f:["Events"]},"\n        ",{t:7,e:"item",m:[{n:"ref",f:"Click",t:13}],f:["Click"]},"\n        ",{t:7,e:"item",m:[{n:"ref",f:"Keys",t:13}],f:["Keys"]},"\n        ",{t:7,e:"item",m:[{n:"ref",f:"Swipe",t:13}],f:["Swipe"]},"\n      "]},"\n      ",{t:7,e:"item",m:[{n:"open",f:0,t:13}],f:[{t:7,e:"h3",f:["Transitions"]},"\n        ",{t:7,e:"item",m:[{n:"ref",f:"Expand",t:13}],f:["Expand"]},"\n        ",{t:7,e:"item",m:[{n:"ref",f:"Fade",t:13}],f:["Fade"]},"\n      "]},"\n      ",{t:7,e:"item",m:[{n:"open",f:0,t:13}],f:[{t:7,e:"h3",f:["Helpers"]},"\n        ",{t:7,e:"item",m:[{n:"ref",f:"Button",t:13}],f:["Button"]},"\n        ",{t:7,e:"item",m:[{n:"ref",f:"Toast",t:13}],f:["Toast"]},"\n      "]},"\n    "]},"\n  "]},"\n  ",{t:7,e:"center",m:[{n:"class-app-center",t:13}],f:["\n",{t:4,f:["      ",{t:7,e:"app-bar",f:["\n        ",{t:7,e:"left",f:[{t:7,e:"div",m:[{n:"class-hamburger",t:13},{n:["click"],t:70,f:{r:["@this"],s:"[_0.toggle(\"menu.hidden\")]"}}],f:["☰"]}]},"\n      "]},"\n"],n:51,r:"win.max"},"    ",{t:7,e:"host",m:[{n:"windows",t:13,f:[{t:2,r:"windows"}]},{n:"placement",f:"smart",t:13}],f:["\n      ",{t:7,e:"max-top",f:["\n        ",{t:7,e:"app-bar",f:["\n          ",{t:7,e:"left",f:[{t:7,e:"div",m:[{n:"class-hamburger",t:13},{n:["click"],t:70,f:{r:["@this"],s:"[_0.toggle(\"menu.hidden\")]"}}],f:["☰"]}]},"\n          ",{t:7,e:"center",f:[{t:2,r:"window.title"}]},"\n          ",{t:7,e:"right",f:[{t:8,r:"windowControls"}]},"\n        "]},"\n      "]},"\n    "]},"\n  "]},"\n"]}],e:{"[_0.toggle(\"menu.hidden\")]":function (_0){return([_0.toggle("menu.hidden")]);}}},
-          use: [AppBar(), Host(), Menu(), Shell()],
+          use: [AppBar(), Host(), Menu(), Shell(), plugin()],
           on: {
             init: function init() {
               var this$1 = this;
@@ -368,7 +389,7 @@ System.register(['./chunk3.js', './chunk4.js', './chunk5.js', './chunk2.js', './
           return false;
         }
 
-        function plugin(opts) {
+        function plugin$1(opts) {
           if ( opts === void 0 ) opts = {};
 
           return function(ref) {
@@ -465,7 +486,7 @@ System.register(['./chunk3.js', './chunk4.js', './chunk5.js', './chunk2.js', './
         return { teardown: noop };
       }
 
-      function plugin$1(opts) {
+      function plugin$2(opts) {
         if ( opts === void 0 ) opts = {};
 
         return function(ref) {
@@ -498,8 +519,8 @@ System.register(['./chunk3.js', './chunk4.js', './chunk5.js', './chunk2.js', './
 
       Ractive$1.use(
         marked({ highlight: true }),
-        plugin$1({ includeStyle: true }),
-        plugin()
+        plugin$2({ includeStyle: true }),
+        plugin$1()
       );
 
       var app = window.app = new App({ target: '#target' });

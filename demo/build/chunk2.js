@@ -8,6 +8,7 @@ System.register(['ractive'], function (exports, module) {
     execute: function () {
 
       exports('default', globalRegister);
+      exports('default$3', plugin$1);
       var win = typeof window !== 'undefined' ? window : null;
 
       function globalRegister(name, registry, constructor) {
@@ -77,17 +78,18 @@ System.register(['ractive'], function (exports, module) {
 
 
 
-        return ("\n\n  .rtoast {\n\n    position: absolute;\n\n    display: flex;\n\n    justify-content: center;\n\n    left: 1em;\n\n    right: 1em;\n\n    top: 1em;\n\n    bottom: auto;\n\n    z-index: 2;\n\n  }\n\n  .rtoast-message {\n\n    padding: 0.5em 0.5em 0.5em 1em;\n\n    flex-grow: 2;\n\n  }\n\n  .rtoast-buttons {\n\n    display: inline-block;\n\n    padding: 0.5em 1em 0.5em 0.5em;\n\n    flex-shrink: 1;\n\n  }\n\n  .rtoast-button {\n\n    background-color: transparent;\n\n    color: inherit;\n\n    padding: 0.5em 1em;\n\n    margin: 0 0 0 1em;\n\n    line-height: 1em;\n\n    box-shadow: none;\n\n  }\n\n  .rtoast-bottom {\n\n    bottom: 1em;\n\n    top: auto;\n\n  }\n\n  .rtoast-left {\n\n    justify-content: flex-start;\n\n  }\n\n  .rtoast-right {\n\n    justify-content: flex-end;\n\n  }\n\n  .rtoast-body {\n\n    display: flex;\n\n    flex-shrink: 2;\n\n    align-items: center;\n\n    border-radius: 2px;\n\n    color: " + (data('toast.fg') || data('bg1') || '#fff') + ";\n\n    background-color: " + (data('toast.bg') || data('fg1') || '#222') + ";\n\n    box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.14), 0 1px 5px 0 rgba(0, 0, 0, 0.12), 0 3px 1px -2px rgba(0, 0, 0, 0.2);\n\n    opacity: 0.95;\n\n  }\n\n\n\n  .rtoast-success {\n\n    color: " + (data('toast.success.fg') || '#f9f9f9') + ";\n\n    background-color: " + (data('toast.success.bg') || '#4caf50') + ";\n\n  }\n\n  .rtoast-info {\n\n    color: " + (data('toast.info.fg') || '#f9f9f9') + ";\n\n    background-color: " + (data('toast.info.bg') || '#07e') + ";\n\n  }\n\n  .rtoast-warn {\n\n    color: " + (data('toast.warn.fg') || '#222') + ";\n\n    background-color: " + (data('warn.success.bg') || '#ffc107') + ";\n\n  }\n\n  .rtoast-error {\n\n    color: " + (data('toast.error.fg') || '#f9f9f9') + ";\n\n    background-color: " + (data('toast.error.bg') || '#ff5252') + ";\n\n  }\n\n  ");
+        return ("\n\n  .rtoast {\n\n    position: absolute;\n\n    display: flex;\n\n    justify-content: center;\n\n    left: 1em;\n\n    right: 1em;\n\n    top: 1em;\n\n    bottom: auto;\n\n    z-index: 5;\n\n  }\n\n  .rtoast-message {\n\n    padding: 0.5em 0.5em 0.5em 1em;\n\n    flex-grow: 2;\n\n  }\n\n  .rtoast-buttons {\n\n    display: inline-block;\n\n    padding: 0.5em 1em 0.5em 0.5em;\n\n    flex-shrink: 1;\n\n  }\n\n  .rtoast-button {\n\n    background-color: transparent;\n\n    border: none;\n\n    color: inherit;\n\n    padding: 0.5em 1em;\n\n    margin: 0 0 0 1em;\n\n    line-height: 1em;\n\n    box-shadow: none;\n\n  }\n\n  .rtoast-bottom {\n\n    bottom: 1em;\n\n    top: auto;\n\n  }\n\n  .rtoast-left {\n\n    justify-content: flex-start;\n\n  }\n\n  .rtoast-right {\n\n    justify-content: flex-end;\n\n  }\n\n  .rtoast-body {\n\n    display: flex;\n\n    flex-shrink: 2;\n\n    align-items: center;\n\n    border-radius: 2px;\n\n    color: " + (data('toast.fg') || data('bg1') || '#fff') + ";\n\n    background-color: " + (data('toast.bg') || data('fg1') || '#222') + ";\n\n    box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.14), 0 1px 5px 0 rgba(0, 0, 0, 0.12), 0 3px 1px -2px rgba(0, 0, 0, 0.2);\n\n    opacity: 0.95;\n\n  }\n\n\n\n  .rtoast-success {\n\n    color: " + (data('toast.success.fg') || '#f9f9f9') + ";\n\n    background-color: " + (data('toast.success.bg') || '#4caf50') + ";\n\n  }\n\n  .rtoast-info {\n\n    color: " + (data('toast.info.fg') || '#f9f9f9') + ";\n\n    background-color: " + (data('toast.info.bg') || '#07e') + ";\n\n  }\n\n  .rtoast-warn {\n\n    color: " + (data('toast.warn.fg') || '#222') + ";\n\n    background-color: " + (data('warn.success.bg') || '#ffc107') + ";\n\n  }\n\n  .rtoast-error {\n\n    color: " + (data('toast.error.fg') || '#f9f9f9') + ";\n\n    background-color: " + (data('toast.error.bg') || '#ff5252') + ";\n\n  }\n\n  ");
 
 
       }).call(this, data)].join(' '); };
-          var template = {v:4,t:[{t:4,f:[{t:4,f:["\n",{t:7,e:"div",m:[{n:"class-rtoast",t:13},{n:"class-rtoast-bottom",t:13,f:[{t:2,r:".bottom"}]},{n:"class-rtoast-left",t:13,f:[{t:2,r:".left"}]},{n:"class-rtoast-right",t:13,f:[{t:2,r:".right"}]}],f:["\n  ",{t:7,e:"div",m:[{n:"toast",t:72,v:"t0"},{n:"class",f:["rtoast-body",{t:4,f:[" rtoast-",{t:2,r:".type"}],n:50,r:".type"},{t:4,f:[{t:2,r:".class"}],n:50,r:".class"}],t:13},{t:4,f:[{n:["click"],t:70,f:{r:["@this"],s:"[_0._closeToast()]"}}],n:50,x:{r:[".dismissable"],s:"_0!==false"}}],f:["\n    ",{t:7,e:"div",m:[{n:"class-rtoast-message",t:13}],f:[{t:2,r:".message"}]},"\n",{t:4,f:["    ",{t:7,e:"div",m:[{n:"class-rtoast-buttons",t:13}],f:["\n",{t:4,f:["        ",{t:7,e:"button",m:[{n:"class",f:["rtoast-button",{t:4,f:[" ",{t:2,r:".class"}],n:50,r:".class"}],t:13},{t:4,f:[{n:["click"],t:70,f:{r:["."],s:"[_0.action()]"}}],n:50,x:{r:[".action"],s:"typeof _0===\"function\""}}],f:[{t:2,r:".label"}]},"\n"],n:52,r:".buttons"},{t:4,f:["\n        ",{t:7,e:"button",m:[{n:"class-rtoast-button",t:13}],f:["Close"]},"\n      "],n:51,l:1},"    "]},"\n"],n:50,x:{r:[".dismissable",".buttons.length"],s:"_0!==false||_1"}},"  "]},"\n"]},"\n"],n:54,r:"~/_toast"}],n:50,r:"~/_toast"}],e:{"[_0._closeToast()]":function (_0){return([_0._closeToast()]);},"_0!==false":function (_0){return(_0!==false);},"[_0.action()]":function (_0){return([_0.action()]);},"typeof _0===\"function\"":function (_0){return(typeof _0==="function");},"_0!==false||_1":function (_0,_1){return(_0!==false||_1);}}};
+          var template = {v:4,t:[{t:4,f:[{t:4,f:["\n",{t:7,e:"div",m:[{n:"class-rtoast",t:13},{n:"class-rtoast-bottom",t:13,f:[{t:2,r:".bottom"}]},{n:"class-rtoast-left",t:13,f:[{t:2,r:".left"}]},{n:"class-rtoast-right",t:13,f:[{t:2,r:".right"}]}],f:["\n  ",{t:7,e:"div",m:[{n:"toast",t:72,v:"t0"},{n:"class",f:["rtoast-body",{t:4,f:[" rtoast-",{t:2,r:".type"}],n:50,r:".type"},{t:4,f:[{t:2,r:".class"}],n:50,r:".class"}],t:13},{t:4,f:[{n:["click"],t:70,f:{r:["@this"],s:"[_0._closeToast()]"}}],n:50,x:{r:[".dismissable"],s:"_0!==false"}}],f:["\n    ",{t:7,e:"div",m:[{n:"class-rtoast-message",t:13}],f:[{t:2,r:".message"}]},"\n",{t:4,f:["    ",{t:7,e:"div",m:[{n:"class-rtoast-buttons",t:13}],f:["\n",{t:4,f:["        ",{t:7,e:"button",m:[{n:"class",f:["rtoast-button",{t:4,f:[" ",{t:2,r:".class"}],n:50,r:".class"}],t:13},{t:4,f:[{n:["click"],t:70,f:{r:["."],s:"[_0.action()]"}}],n:50,x:{r:[".action"],s:"typeof _0===\"function\""}}],f:[{t:2,r:".label"}]},"\n"],n:52,r:".buttons"},{t:4,f:["\n        ",{t:7,e:"button",m:[{n:"class-rtoast-button",t:13}],f:["Close"]},"\n      "],n:50,x:{r:[".dismissable"],s:"_0!==false"},l:1},"    "]},"\n"],n:50,x:{r:[".dismissable",".buttons.length"],s:"_0!==false||_1"}},"  "]},"\n"]},"\n"],n:54,r:"~/_toast"}],n:50,r:"~/_toast"}],e:{"[_0._closeToast()]":function (_0){return([_0._closeToast()]);},"_0!==false":function (_0){return(_0!==false);},"[_0.action()]":function (_0){return([_0.action()]);},"typeof _0===\"function\"":function (_0){return(typeof _0==="function");},"_0!==false||_1":function (_0,_1){return(_0!==false||_1);}}};
 
           return function(ref) {
+            var Ractive = ref.Ractive;
             var instance = ref.instance;
             var proto = ref.proto;
 
-            instance.partials[opts.partial || 'toast'] = template;
+            instance.partials[opts.name || 'toast'] = template;
 
             var defaults = Object.assign({}, DEFAULTS, opts);
             var toasts = [];
@@ -153,13 +155,17 @@ System.register(['ractive'], function (exports, module) {
               this._closeToast();
             };
 
-            var pcss = proto.css;
-            proto.css = function(data) {
-              var css = '';
-              if (typeof pcss === 'string') { css += pcss; }
-              else if (typeof pcss === 'function') { css += pcss(data); }
-              return style(data) + css;
-            };
+            if (instance === Ractive || Ractive.isInstance(instance)) {
+              if (!Ractive.hasCSS('toast-css')) { Ractive.addCSS('toast', style); }
+            } else {
+              var pcss = instance.css;
+              instance.css = function(data) {
+                var css = '';
+                if (typeof pcss === 'string') { css += pcss; }
+                else if (typeof pcss === 'function') { css += pcss(data); }
+                return style(data) + css;
+              };
+            }
 
             return proto;
           }
