@@ -4,7 +4,7 @@
   class-rtoggle-disabled="__toggle.disabled"
   class-rtoggle-true="__toggle._value"
   class-rtoggle-false="__toggle._value === false || (!__toggle.nullable && (__toggle._value === null || __toggle._value === undefined))"
-  class-rtoggle-null="__toggle._value === null || __toggle._value === undefined"
+  class-rtoggle-null="__toggle.nullable && (__toggle._value === null || __toggle._value === undefined)"
   {{#unless __toggle.disabled}}on-click="__toggle.toggle()"{{/unless}}
 >
   <div class="rtoggle-rail" />
@@ -18,7 +18,7 @@
   const template = $TEMPLATE;
 
   export const Toggle = Ractive.macro(
-    ( handle, attrs ) => {
+    (handle, attrs) => {
       const obj = {
         observers: [],
         update(attrs) { handle.set('@local', attrs, { deep: true }); },
@@ -72,7 +72,7 @@
     },
     {
       noCssTransform: true,
-      cssId: 'toggle',
+      cssId: 'rtoggle',
       css: $CSS,
       attributes: ['value', 'nullable', 'disabled', 'undefined']
     }
