@@ -132,7 +132,7 @@
 
           const size = attrs.find(a => a.n === 'size');
           if (size) {
-            if (size.f && typeof size.f[0] === 'string') res.size = +size.f[0];
+            if (size.f && typeof size.f === 'string') res.size = +size.f;
             else {
               res.sizePath = map(size).r;
               this._mappedSizes.push(res.sizePath);
@@ -144,8 +144,16 @@
           return res;
         });
 
+        const remain = 100 - this._splits.reduce((a, c) => a + (c.min ? 0 : (c.size || 0)), 0);
+        const unsized = this._splits.reduce((a, c) => a + ('size' in c ? 0 : 1), 0);
         this._splits.forEach(s => {
-          if (!('size' in s)) s.size = 100 / this._splits.length;
+          if (!('size' in s)) s.size = remain / unsized;
+          if (s.min) {
+            s.lastSize = s.size;
+            s.curSize = 0;
+          } else {
+            s.curSize = s.size;
+          }
         })
       },
       config() {

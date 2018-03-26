@@ -1,25 +1,62 @@
 <tabs flat pad class-secondary fill height=dynamic>
   <tab title=Intro><marked>
-    TODO
+    A two- or more paned splitter that can be rendered as either vertical or horizontal. The split tries to be mobile friendly by having a large enough handle to hit with a finger and watching for touch events. Panes also come with minimize and maximize buttons by default that will shrink the pane to 0% and let the surrounding panes absorb its space.
 
-    A two or more -sided splitter - either vertical or horizontal.
+    Split children are set up in their own panes, and you can use the special `pane` child to embed non-element content directly into a pane, as the contents of the `pane` element are used rather than the `pane` element itself.
   </marked></tab>
   <tab title=Usage><marked>
+    ### Plugin options
 
+    All options are optional.
+
+    * `name: string = 'split'` - the name to use when registering the plugin as a component
+
+    ### Attributes
+    
+    * `vertical: boolean = false` - whether this split should have vertical panes. This defaults to `false`, so the default split uses horizontal panes.
+    * `draggable: boolean = true` - whether the panes should be resizable by dragging the split handle
+    * `maximizable: boolean = true` - whether the panes are maximizable
+    * `minimizable: boolean = true` - whether the panes are minimizable
+
+    #### Child attributes
+
+    * `size: number` - the width of the pane as a percentage. This defaults to an equal amount of the space available in the split.
+    * `minimize: boolean = false` - whether the split should start out minimized
+
+    ### API
+
+    * `maximize(index: number)` - maximize the pane at the given index
+    * `minimize(index: number)` - minimize the pane at the given index
   </marked></tab>
   <tab title=Example no-pad>
     <split>
-        <split vertical>
-          <menu></menu>
-          <div>right</div>
+      <div style-padding=1em size=30><marked>
+        ### Template:
+        ```hbs
+        <split>
+          <div>1</div>
+          <split vertical>
+            <div minimize>2.1</div>
+            <div size=60>2.2</div>
+            <div>2.3</div>
+          </split>
+          <div size=50>3</div>
         </split>
-        <div>middle</div>
-        <tabs flex fill class-secondary flat transition=fade height=dynamic pad>
-          <tab title="Demo">
-            Tab content
-          </tab>
-        </tabs>
-      </split>
+        ```
+        ### Result:
+      </marked></div>
+      <div>
+        <split>
+          <div>1</div>
+          <split vertical>
+            <div minimize>2.1</div>
+            <div size=60>2.2</div>
+            <div>2.3</div>
+          </split>
+          <div size=50>3</div>
+        </split>
+      </div>
+    </split>
   </tab>
 </tabs>
 
