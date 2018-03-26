@@ -1,26 +1,90 @@
 <tabs flat pad class-secondary fill height=dynamic>
   <tab title=Intro><marked>
-    TODO
-
     This is a slightly (okay, very) unusual set of interdependent components for a modern webapp. It consists of two components, the Host and the Window, where the Host is meant to be included directly in your template and the Window is meant to be extended.
+
+    When used together, these two components can allow your app to maintain a usable responsive layout on everything from an iPhone 4 to a 50" 4k desktop screen. Windows are presented within the Host in the style of a desktop multiple document interface. This allows the usable space on the screen to be utilized by multiple windows at once if possible. By default, the Host will watch its available size and automatically maximize windows once a certain breakpoint is reached (60em).
 
     #### Host
 
-    A Host contains a list of Windows for which it manages positioning, sizing, and stacking. The Host also manages blocking (modality) of windows that prevent other windows from being the target of interaction. Blocking can take place globally as well, so you can easily implement, for instance, a message box that blocks the entire host until it is closed.
+    A Host contains a list of Windows for which it manages positioning, sizing, and stacking. The Host also manages blocking (modality) of windows that prevent other windows from being the target of interaction. Blocking can take place globally as well, so you can easily implement, for instance, a message box that blocks the entire host until it is closed or a detail input window that only blocks its caller.
 
     The Host has special support for maximized windows that allows you to render special content at the top of the Host while a window is maximized. This is typically used to integrate the window controls and title into an AppBar. Additionally, there is a mode, controlled by `@style.window.maxFrom`, that will automatically maximize windows when its environment gets narrower than the set value.
 
-    The Host _also_ has support for toasting because with windowed applications, it's much easier to get to the Host that it may be to access a Shell above it.
+    The Host _also_ has support for toasting because with windowed applications, it's much easier to get to the Host than it may be to access a Shell or app instance above it.
 
     #### Window
 
     Windows are instantiated and attached to Host, where they are displayed within the Host's bounds. Windows may be movable, resizable, closable, maximizable, and minify-able.  Once a window is minimized, there's no built-in UI to restore it, but you can hook the Host's window list into a Menu fairly easily to provide access to raise and restore windows.
   </marked></tab>
   <tab title=Usage><marked>
+    ### Plugin options
 
+    * `name: string = 'host'` - the name to use when registering the window host as a component
+
+    ### Host
+    
+    #### Attributes
+
+    * `placement: 'grid' | 'smart'` - the placement algorithm to use when placing a new unpositioned window. `grid` placement uses 3x3 grid that remembers where a window was last placed. `smart` placement computes the portion of the host where the window would overlap the least with the other windows.
+
+    #### Children
+
+    * `max-top` - content to display at the top of the host when windows are maximized. When a window is maximized, it has no titlebar or controls, so if you need to maintain those, you can do so with the `max-top` section.
+
+    #### API
+
+    * `current: Window` - get the top-level window
+    * `currentId: string` - get the id of the top-level window
+    * `addWindow(window: Window, options)` - add the given window to the host. Options are applied over the default options for the host and any options supplied by the window extension or constructor.
+      * `id: string` - the id to use for the window. If not supplied, one will be generated from a monotonically incrementing sequence.
+      * `show: boolean = true` - whether to display the window immediately
+      * `autoSize: boolean = true` - whether to let the window contents determine its initial size. This is overridden by `width` and `height`.
+      * `close: boolean = true` - whether the window should have a close control
+      * `maximize: boolean = true` - whether the window should have a maximize control
+      * `minimize: boolean = true` - whether the window should have a minimize control
+      * `block: Window | id | boolean = false`
+        * `Window | id` - the window or id of a window that should be blocked by this window
+        * `boolean` - whether this window should block all windows
+      * `fill: boolean = false` - if the window is blocking a parent, enabling fill will automatically size the window to fill its parent with 10px of padding
+      * `width: number | string` - the width to use for the window. This may be a number of pixels or a CSS size in a string.
+      * `height: number | string` - the height to use for the window. This may be a number of pixels or a CSS size in a string.
+      * `top: number` - the top coordinate to place the window in px. If both `top` and `left` are not supplied, then placement is left to the host.
+      * `left: number` - the left coordinate to place the window in px. If both `top` and `left` are not supplied, then placement is left to the host.
+      * `resizable: boolean = false` - whether the window is resizable
+      * `movable: boolean = true` - whether the window is movable
+      * `pad: boolean = false` - whether the window body should have padding applied
+      * `title: string` - the title of the window
+    * `getWindow(id: string): Window` - retrieve a window by its id
+    * `windowGet(id: string, path: string): any` - retrieve a value from the data at the given path from the window with the given id
+    * `windowSet(id: string, path: string, val: any)` - set a value in the data at the given path in the window with the given id
+    * `raise(window: Window : id, show: boolean = true) - move the target window to the top of the stack. If the window is currently hidden and the `show` argument is not `false`, then the window will also become visible.
+    * `place(window: Window)` - automatically place the given window based on the host placement algorithm
+
+    ### Window
+
+    #### API
+
+    * `resizable: boolean` - get or set whether the window is resizable
+    * `title: boolean` - get or set the title of the window
+    * `visible: boolean` - get or set whether the window is visible
+    * `pad: boolean` - get or set whether the window is padded
+    * `close(force: boolean = false)` - close the window. If `force` is not `true`, then a blocker or `beforeClose` hook can veto the close.
+    * `maximize()` - make the window fill the host
+    * `hide()` - make the window invisible (minimize)
+    * `show()` - make the window visible (restore)
+    * `raise(show: boolean = true)` - bring the window to the top of the stack. If the window is currently hidden and the `show` argument is not `false`, then the window will become visible.
+    * `size(width: number | string | 'auto', height: number | string)` - resize the window with the given dimensions
+      * `number`s - size in px
+      * `string`s - size in CSS string
+      * `'auto'` - allow content to determine the size of the window
+    * `move(top: number | string, left: number | string)` - move the window to the given coordinates in either pixels or CSS size strings
   </marked></tab>
   <tab title=Example>
-    
+    <marked>
+      ### You are here :)
+
+      This one of those things that's mostly API, so it's hard to make an example. Luckily, the docs you're looking at right now are all in windows embedded in a host, so you've already experienced the example to some extent. If you'd like to see the code, check out the github repo in the `demo-src` directory.
+    </marked>>
   </tab>
 </tabs>
 
