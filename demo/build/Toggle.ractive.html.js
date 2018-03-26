@@ -10,10 +10,10 @@ System.register(['ractive', './chunk2.js'], function (exports, module) {
     }],
     execute: function () {
 
-      var template = {v:4,t:[{t:7,e:"div",m:[{n:"class-rtoggle",t:13},{t:16,r:"extra-attributes"},{n:"class-rtoggle-disabled",t:13,f:[{t:2,r:"__toggle.disabled"}]},{n:"class-rtoggle-true",t:13,f:[{t:2,r:"__toggle._value"}]},{n:"class-rtoggle-false",t:13,f:[{t:2,x:{r:["__toggle.nullable","__toggle._value"],s:"_1===false||(!_0&&(_1===null||_1===undefined))"}}]},{n:"class-rtoggle-null",t:13,f:[{t:2,x:{r:["__toggle._value"],s:"_0===null||_0===undefined"}}]},{t:4,f:[{n:["click"],t:70,f:{r:["__toggle"],s:"[_0.toggle()]"}}],n:51,r:"__toggle.disabled"}],f:["\n  ",{t:7,e:"div",m:[{n:"class",f:"rtoggle-rail",t:13}]},"\n  ",{t:7,e:"div",m:[{n:"class",f:"rtoggle-nubbin",t:13}]},"\n"]}],e:{"_1===false||(!_0&&(_1===null||_1===undefined))":function (_0,_1){return(_1===false||(!_0&&(_1===null||_1===undefined)));},"_0===null||_0===undefined":function (_0){return(_0===null||_0===undefined);},"[_0.toggle()]":function (_0){return([_0.toggle()]);}}};
+      var template = {v:4,t:[{t:7,e:"div",m:[{n:"class-rtoggle",t:13},{t:16,r:"extra-attributes"},{n:"class-rtoggle-disabled",t:13,f:[{t:2,r:"__toggle.disabled"}]},{n:"class-rtoggle-true",t:13,f:[{t:2,r:"__toggle._value"}]},{n:"class-rtoggle-false",t:13,f:[{t:2,x:{r:["__toggle.nullable","__toggle._value"],s:"_1===false||(!_0&&(_1===null||_1===undefined))"}}]},{n:"class-rtoggle-null",t:13,f:[{t:2,x:{r:["__toggle.nullable","__toggle._value"],s:"_0&&(_1===null||_1===undefined)"}}]},{t:4,f:[{n:["click"],t:70,f:{r:["__toggle"],s:"[_0.toggle()]"}}],n:51,r:"__toggle.disabled"}],f:["\n  ",{t:7,e:"div",m:[{n:"class",f:"rtoggle-rail",t:13}]},"\n  ",{t:7,e:"div",m:[{n:"class",f:"rtoggle-nubbin",t:13}]},"\n"]}],e:{"_1===false||(!_0&&(_1===null||_1===undefined))":function (_0,_1){return(_1===false||(!_0&&(_1===null||_1===undefined)));},"_0&&(_1===null||_1===undefined)":function (_0,_1){return(_0&&(_1===null||_1===undefined));},"[_0.toggle()]":function (_0){return([_0.toggle()]);}}};
 
         var Toggle = Ractive$1.macro(
-          function ( handle, attrs ) {
+          function (handle, attrs) {
             var obj = {
               observers: [],
               update: function update(attrs) { handle.set('@local', attrs, { deep: true }); },
@@ -69,7 +69,7 @@ System.register(['ractive', './chunk2.js'], function (exports, module) {
           },
           {
             noCssTransform: true,
-            cssId: 'toggle',
+            cssId: 'rtoggle',
             css: function(data) { return [(function(d) {
 
 
@@ -95,7 +95,7 @@ System.register(['ractive', './chunk2.js'], function (exports, module) {
         globalRegister('RMToggle', 'partials', Toggle);
 
       var Toggle_ractive = exports('default', Window.extend({
-          template: {v:4,t:[{t:7,e:"tabs",m:[{n:"flat",f:0,t:13},{n:"pad",f:0,t:13},{n:"class-secondary",t:13},{n:"fill",f:0,t:13},{n:"height",f:"dynamic",t:13}],f:["\n  ",{t:7,e:"tab",m:[{n:"title",f:"Intro",t:13}],f:[{t:7,e:"marked",f:["\n    TODO\n\n    Your standard boolean toggle that looks like an on/off switch. This is actually a macro partial rather than a component, so it's fairly light weight. It also supports `null` or `undefined` states with an intermediate position for all of your parties with three-state booleans.\n  "]}]},"\n  ",{t:7,e:"tab",m:[{n:"title",f:"Usage",t:13}],f:[{t:7,e:"marked",f:["\n\n  "]}]},"\n  ",{t:7,e:"tab",m:[{n:"title",f:"Example",t:13}],f:["\n    ",{t:7,e:"toggle",m:[{n:"value",f:".foo",t:13}]},"\n    ",{t:7,e:"input",m:[{n:"type",f:"checkbox",t:13},{n:"checked",f:[{t:2,r:".foo"}],t:13}]},"\n  "]},"\n"]}]},
+          template: {v:4,t:[{t:7,e:"tabs",m:[{n:"flat",f:0,t:13},{n:"pad",f:0,t:13},{n:"class-secondary",t:13},{n:"fill",f:0,t:13},{n:"height",f:"dynamic",t:13}],f:["\n  ",{t:7,e:"tab",m:[{n:"title",f:"Intro",t:13}],f:[{t:7,e:"marked",f:["\n    This is your standard boolean toggle that looks like an on/off switch. This is actually a macro partial rather than a component, so it's fairly light weight. It also supports `null` or `undefined` states with an intermediate position for all of your parties with three-state booleans.\n  "]}]},"\n  ",{t:7,e:"tab",m:[{n:"title",f:"Usage",t:13}],f:[{t:7,e:"marked",f:["\n    ### Plugin options\n\n    All options are optional.\n\n    * `name: string = 'toggle'` - the name to use when registering the plugin as a component\n\n    ### Attributes\n\n    * `disabled: boolean` - whether the toggle is disabled\n    * `value: any` - the backing value for the toggle\n    * `nullable: boolean` - whether the toggle includes a `null` state\n    * `undefined: boolean` - whether the null value should be `undefined` rather than `null`\n  "]}]},"\n  ",{t:7,e:"tab",m:[{n:"title",f:"Example",t:13}],f:["\n    ",{t:7,e:"label",m:[{n:"field",t:71}],f:[{t:7,e:"input",m:[{n:"type",f:"checkbox",t:13},{n:"checked",f:[{t:2,r:".nullable"}],t:13}]}," Nullable"]},"\n    ",{t:7,e:"label",m:[{n:"field",t:71}],f:[{t:7,e:"input",m:[{n:"type",f:"checkbox",t:13},{n:"checked",f:[{t:2,r:".undefined"}],t:13}]}," Undefined"]},"\n    ",{t:7,e:"label",m:[{n:"field",t:71}],f:[{t:7,e:"input",m:[{n:"type",f:"checkbox",t:13},{n:"checked",f:[{t:2,r:".disabled"}],t:13}]}," Disabled"]},"\n    ",{t:7,e:"marked",f:["\n      ### Template:\n      ```hbs\n      <toggle value=\".foo\" bind-disabled bind-nullable bind-undefined />\n      <input type=\"checkbox\" checked=\"{{.foo}}\" />\n      {{'' + .foo}}\n      ```\n      ### Result:\n    "]},"\n    ",{t:7,e:"toggle",m:[{n:"value",f:".foo",t:13},{n:"disabled",t:13,f:[{t:2,r:"disabled"}]},{n:"nullable",t:13,f:[{t:2,r:"nullable"}]},{n:"undefined",t:13,f:[{t:2,r:"undefined"}]}]},"\n    ",{t:7,e:"input",m:[{n:"type",f:"checkbox",t:13},{n:"checked",f:[{t:2,r:".foo"}],t:13}]},"\n    ",{t:2,x:{r:[".foo"],s:"\"\"+_0"}},"\n  "]},"\n"]}],e:{"\"\"+_0":function (_0){return(""+_0);}}},
           use: [plugin()],
           options: {
             title: 'Component :: Toggle',

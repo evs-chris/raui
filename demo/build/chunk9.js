@@ -138,7 +138,7 @@ System.register(['ractive', './chunk2.js'], function (exports, module) {
 
                 var size = attrs.find(function (a) { return a.n === 'size'; });
                 if (size) {
-                  if (size.f && typeof size.f[0] === 'string') { res.size = +size.f[0]; }
+                  if (size.f && typeof size.f === 'string') { res.size = +size.f; }
                   else {
                     res.sizePath = map(size).r;
                     this$1._mappedSizes.push(res.sizePath);
@@ -150,8 +150,16 @@ System.register(['ractive', './chunk2.js'], function (exports, module) {
                 return res;
               });
 
+              var remain = 100 - this._splits.reduce(function (a, c) { return a + (c.min ? 0 : (c.size || 0)); }, 0);
+              var unsized = this._splits.reduce(function (a, c) { return a + ('size' in c ? 0 : 1); }, 0);
               this._splits.forEach(function (s) {
-                if (!('size' in s)) { s.size = 100 / this$1._splits.length; }
+                if (!('size' in s)) { s.size = remain / unsized; }
+                if (s.min) {
+                  s.lastSize = s.size;
+                  s.curSize = 0;
+                } else {
+                  s.curSize = s.size;
+                }
               });
             },
             config: function config() {
