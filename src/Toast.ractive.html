@@ -6,7 +6,7 @@
     <div class-rtoast-buttons>
       {{#each .buttons}}
         <button class="rtoast-button{{#if .class}} {{.class}}{{/if}}" {{#if typeof .action === 'function'}}on-click=".action()"{{/if}}>{{.label}}</button>
-      {{else}}
+      {{elseif .dismissable !== false}}
         <button class-rtoast-button>Close</button>
       {{/each}}
     </div>
@@ -25,8 +25,8 @@
     const style = $CSS;
     const template = $TEMPLATE;
 
-    return function({ instance, proto }) {
-      instance.partials[opts.partial || 'toast'] = template;
+    return function({ Ractive, instance, proto }) {
+      instance.partials[opts.name || 'toast'] = template;
 
       const defaults = Object.assign({}, DEFAULTS, opts);
       const toasts = [];
@@ -92,12 +92,16 @@
         this._closeToast();
       };
 
-      const pcss = proto.css;
-      proto.css = function(data) {
-        let css = '';
-        if (typeof pcss === 'string') css += pcss;
-        else if (typeof pcss === 'function') css += pcss(data);
-        return style(data) + css;
+      if (instance === Ractive || Ractive.isInstance(instance)) {
+        if (!Ractive.hasCSS('toast-css')) Ractive.addCSS('toast', style);
+      } else {
+        const pcss = instance.css;
+        instance.css = function(data) {
+          let css = '';
+          if (typeof pcss === 'string') css += pcss;
+          else if (typeof pcss === 'function') css += pcss(data);
+          return style(data) + css;
+        }
       }
 
       return proto;
@@ -115,7 +119,7 @@
     right: 1em;
     top: 1em;
     bottom: auto;
-    z-index: 2;
+    z-index: 5;
   }
   .rtoast-message {
     padding: 0.5em 0.5em 0.5em 1em;
@@ -128,6 +132,7 @@
   }
   .rtoast-button {
     background-color: transparent;
+    border: none;
     color: inherit;
     padding: 0.5em 1em;
     margin: 0 0 0 1em;
