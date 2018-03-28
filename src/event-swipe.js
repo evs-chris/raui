@@ -1,12 +1,12 @@
 // based on ractive-event-tap
 const abs = Math.abs;
 
-export default function makeSwipe(name, direction = 'right', distance = 150, flick = 200, threshold = 0.2) {
-  const init = { direction, distance, flick, threshold };
+export default function makeSwipe(opts) {
+  const init = Object.assign({}, { distance: 150, flick: 200, threshold: 0.2 }, opts);
   return function setup({ Ractive, instance }) {
-    instance.events[name] = function swipe(node, fire, options = {}) {
+    instance.events[opts.name || `swipe${opts.direction || ''}`] = function swipe(node, fire, options = {}) {
       let handler;
-      const opts = Object.assign({}, init, options);
+      const opts = Object.assign({}, { direction: 'right' }, init, options);
       opts.fire = fire;
       if (handler = node.__r_swipes__) {
         handler.subscribe(opts);
@@ -21,10 +21,10 @@ export default function makeSwipe(name, direction = 'right', distance = 150, fli
   }
 }
 
-export const left = makeSwipe('swipeleft', 'left');
-export const right = makeSwipe('swiperight', 'right');
-export const up = makeSwipe('swipeup', 'up');
-export const down = makeSwipe('swipedown', 'down');
+export const left = makeSwipe({ direction: 'left' });
+export const right = makeSwipe({ direction: 'right' });
+export const up = makeSwipe({ direction: 'up' });
+export const down = makeSwipe({ direction: 'down' });
 
 class Handler {
   constructor(context) {
@@ -50,7 +50,7 @@ class Handler {
 
   bind() {
     // listen for mouse/pointer events...
-    if (window.navigator.pointerEnabled) {
+    if (window.PointerEvent || window.navigator.pointerEnabled) {
       this.context.listen('pointerdown', handleMousedown);
     } else if (window.navigator.msPointerEnabled) {
       this.context.listen('MSPointerDown', handleMousedown);
@@ -192,7 +192,7 @@ class Handler {
       document.removeEventListener('mousemove', handleMousemove, false);
     };
 
-    if (window.navigator.pointerEnabled) {
+    if (window.PointerEvent || window.navigator.pointerEnabled) {
       document.addEventListener('pointerup', handleMouseup, false);
       document.addEventListener('pointermove', handleMousemove, false);
       document.addEventListener('pointercancel', cancel, false);
