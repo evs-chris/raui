@@ -1,14 +1,22 @@
 import Ractive from 'ractive';
 import globalRegister from './globalRegister';
 
-export function keys(...keys) {
-  return function KeyEvent(node, fire) {
+export default function keys(opts = {}) {
+  function KeyEvent(node, fire) {
+    const options = Object.assign({}, { keys: opts.keys }, arguments[arguments.length - 1]);
+    if (arguments.length > 2) {
+      options.keys = [];
+      for (let i = 2; i < arguments.length; i++) {
+        if (typeof arguments[i] === 'number') options.keys.push(arguments[i]);
+      }
+    }
+
     const ctx = Ractive.getContext(node);
 
     const listener = ctx.listen('keydown', ev => {
-      if (~keys.indexOf(ev.which)) {
-        fire(ev);
-        ev.preventDefault();
+      if (~options.keys.indexOf(ev.which)) {
+        fire({ event: ev });
+        if (options.prevent !== false) ev.preventDefault();
       }
     });
 
@@ -18,9 +26,17 @@ export function keys(...keys) {
       }
     }
   }
+
+  function plugin({ instance }) {
+    instance.events[opts.name || 'keys'] = KeyEvent;
+  }
+
+  plugin.event = KeyEvent;
+
+  return plugin;
 }
 
-const tabQuery = 'input:not(:disabled):not([tabIndex="-1"]), select:not(:disabled):not([tabIndex="-1"]), a:not([tabIndex="-1"]), button:not(:disabled):not([tabIndex="-1"])';
+const tabQuery = 'input:not(:disabled):not([tabIndex="-1"]), select:not(:disabled):not([tabIndex="-1"]), a:not([tabIndex="-1"]), button:not(:disabled):not([tabIndex="-1"]), textarea:no(:disabled):not([tabIndex="-1"])';
 
 export function tab(instance) {
   let nodes;
@@ -42,5 +58,4 @@ export function tab(instance) {
   }
 }
 
-globalRegister('RMKeyEvent', 'events', keys);
-globalRegister('RMTabEvent', 'events', tab);
+globalRegister('RMKeyEvent', 'events', keys().event);
