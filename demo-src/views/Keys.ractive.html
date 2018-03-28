@@ -1,20 +1,51 @@
 <tabs flat pad class-secondary fill height=dynamic>
   <tab title=Intro><marked>
-    TODO
+    Sometimes it's more convenient to declaratively listen for certain keys than it is to install a key listener that has logic on the data or API side. To that end, raui has the custom key event, which automatically filters out keydown events that aren't in its list of keys for which to listen.
   </marked></tab>
   <tab title=Usage><marked>
+    ### Plugin options
 
+    All options are optional.
+
+    * `name: string = 'keys'` - the name to use when registering the plugin as an event
+    * `keys: number[]` - a list of key codes to use as the default for the event
+
+    ### Init arguments
+
+    * `on-keys([...keys], { options })="event handler"`
+      * `...keys` - an optional list of for which to listen
+      * `options` - an optional options object
+        * `keys: number[]` - keys can also be specified directly in the options
+        * `prevent: boolean = true` - whether the event should `preventDefault` when a matching event is fired
   </marked></tab>
   <tab title=Example>
-    
+    <marked>
+      ### Template:
+      ```hbs
+      <label as-field>
+        Test
+        <input on-keys(9,10,13,16,17,18,27,37,38,39,40)="@.unshift('presses', @event.which)" />
+      </label>
+      ```
+      ### Result:
+    </marked>
+    <label as-field>
+      Test
+      <input on-keys(9,10,13,16,17,18,27,37,38,39,40)="@.unshift('presses', @event.which)" />
+    </label>
+    <pre><code>
+{{presses.join(', ')}}
+    </code></pre>
   </tab>
 </tabs>
 
 <script>
   import { Window } from 'cmp/Window';
+  import keys from 'cmp/event-keys';
 
   export default Window.extend({
     template: $TEMPLATE,
+    use: [keys()],
     options: {
       title: 'Event :: Keys',
       resizable: true, flex: true,
@@ -22,4 +53,3 @@
     }
   });
 </script>
-  

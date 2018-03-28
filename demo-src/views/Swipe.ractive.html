@@ -1,24 +1,67 @@
 <tabs fill flat pad class-secondary height=dynamic>
   <tab title=Intro><marked>
-    TODO
+    Swiping is one of those complex events that seems like it should be pretty easy to handle, but then you start looking at the available DOM events and realize that there's a lot going on under the hood when tracking a swipe. raui provides this cardinal swipe event to give you up, down, left, and right swipe support.
+
+    This event also takes advantage of init args to allow you to bind the current position of a swipe to a local variable, which means you can give the user feedback about the swipe before it is complete.
   </marked></tab>
   <tab title=Usage><marked>
+    ### Plugin options
 
+    All options are optional.
+
+    * `name: string = 'swipe${direction}'` - the name to use when registering the event as a plugin. If no `name` or `direction` is supplied, the name defaults to `'swipe'`. If a direction is supplied, it is appended to `'swipe'` when computing a name.
+    * `direction: string = 'right'` - the direction to watch for swipes
+    * `distance: number = 150` - the number of pixels that must be covered in order to consider the swipe to have occurred
+    * `flick: number = 200` - the extrapolated number of pixels that must be covered in order to consider the swipe to have occurred. A small fast flick on the screen that doesn't cover the required distance will still trigger a swipe event.
+    * `threshold: number = 0.2` - the overall percentange of perpendicular axis movement that is allowed during the swipe. If the swipe is currently at 100px in length, then with a 0.2 threshold, 20px of movement in the perpendicular axis is allowed before the movement is no longer considered a swipe.
+
+    ### Init arguments
+
+    `direction`, `distance`, `flick`, and `threshold` can all also be specified as init arguments and will override any options set at the plugin level.
+
+    * `maxX: number = target.clientWidth` - the largest x axis coordinate to consider when starting a swipe. If this number is less than 0, it is added to the width of the target.
+    * `minX: number = 0` - the smallest x axis coordinate to consider when starting a swipe. If this number is less than 0, it is added to the height of the target.
+    * `maxY: number = target.clientHeight` - the largest y axis coordinate to consider when starting a swipe. If this number is less than 0, it is added to the width of the target.
+    * `minY: number = 0` - the smallest y axis coordinate to consider when starting a swipe. If this number is less than 0, it is added to the height of the target.
+    * `bind: string` - a keypath to which to bind the current swipe distance as a percentage of target `distance`
+    * `bindPx: string` - a keypath to which to bind the current swipe distance in px
   </marked></tab>
   <tab title=Example>
-    <div style-flex-grow=1
-      on-swipeleft({ bind: '.leftpct', bindPx: '.leftdist' })="@.log('swipe left')"
-      on-swiperight({ bind: '.rightpct', bindPx: '.rightdist' })="@.log('swipe right')"
-      on-swipeup({ bind: '.uppct', bindPx: '.updist' })="@.log('swipe up')"
-      on-swipedown({ bind: '.downpct', bindPx: '.downdist' })="@.log('swipe down')"
-    >
-      <div class-vars>
-        left: {{leftdist}}px {{Math.round(leftpct)}}%<br/>
-        right: {{rightdist}}px {{Math.round(rightpct)}}%<br/>
-        up: {{updist}}px {{Math.round(uppct)}}%<br/>
-        down: {{downdist}}px {{Math.round(downpct)}}%<br/>
+    <div style="display: flex; height: 100%; flex-direction: column;">
+      <marked>
+          ### Template:
+          ```hbs
+          <div
+            on-swipeleft({ bind: '.leftpct', bindPx: '.leftdist' })="@.log('swipe left')"
+            on-swiperight({ bind: '.rightpct', bindPx: '.rightdist' })="@.log('swipe right')"
+            on-swipeup({ bind: '.uppct', bindPx: '.updist' })="@.log('swipe up')"
+            on-swipedown({ bind: '.downpct', bindPx: '.downdist' })="@.log('swipe down')"
+          >
+            <div>
+              left: {{leftdist}}px {{Math.round(leftpct)}}%<br/>
+              right: {{rightdist}}px {{Math.round(rightpct)}}%<br/>
+              up: {{updist}}px {{Math.round(uppct)}}%<br/>
+              down: {{downdist}}px {{Math.round(downpct)}}%<br/>
+            </div>
+            {{#each ~/logs}}<div>{{.}}</div>{{else}}Swipe Here{{/each}}
+          </div>
+          ```
+          ### Result:
+        </marked>
+      <div style="flex-grow: 1; position: relative; background-color: #eee;"
+        on-swipeleft({ bind: '.leftpct', bindPx: '.leftdist' })="@.log('swipe left')"
+        on-swiperight({ bind: '.rightpct', bindPx: '.rightdist' })="@.log('swipe right')"
+        on-swipeup({ bind: '.uppct', bindPx: '.updist' })="@.log('swipe up')"
+        on-swipedown({ bind: '.downpct', bindPx: '.downdist' })="@.log('swipe down')"
+      >
+        <div class-vars>
+          left: {{leftdist}}px {{Math.round(leftpct)}}%<br/>
+          right: {{rightdist}}px {{Math.round(rightpct)}}%<br/>
+          up: {{updist}}px {{Math.round(uppct)}}%<br/>
+          down: {{downdist}}px {{Math.round(downpct)}}%<br/>
+        </div>
+        {{#each ~/logs}}<div>{{.}}</div>{{else}}Swipe Here{{/each}}
       </div>
-      {{#each ~/logs}}<div>{{.}}</div>{{/each}}
     </div>
   </tab>
 </tabs>

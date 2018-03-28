@@ -1,25 +1,61 @@
 <tabs flat pad class-secondary fill height=dynamic>
   <tab title=Intro><marked>
-    TODO
+    It's nearly impossible to mix `click` and `dblclick` when dealing with plain old DOM events. It's also a bit challenging to handle touchscreen taps and double taps. Tap or click and hold also take a bit more work.
+
+    To handle all things poke, raui provides the click event, which can handle as many consecutive pokes as you like, optionally with the last requiring a hold in order to fire. This is based on the `ractive-event-tap` code, so it also handles poke and wiggle, poke and hold (when not desired), and select on buttons.
+
+    __Note:__ Because handling multiple clicks requires waiting around a bit to make sure more aren't coming, this plugin will introduce a slight delay to your UI responding to clicks. It defaults to 250ms, which seems to be a reasonable compromise between making multiple clicks hard to register and making the UI feel laggy.
   </marked></tab>
   <tab title=Usage><marked>
+    ### Plugin options
 
+    All options are optional.
+
+    * `name: string = '${count || 1}clicks'` - the name to use when registering the plugin as an event. If no `name` and `count` are provided, the default is `'clicks'`.
+    * `count: number = 1` - the number of clicks or taps that this event should handle
+    * `hold: boolean = false` - whether the last click of the event sequence should be held in order to fire
+    * `delay: number = 250` - maximum time between clicks when `count` is greater than 1
+    * `bubble: boolean` - whether the event should be allowed to bubble
+
+    ### Init arguments
+
+    The `count`, `hold`, `delay`, and `bubble` options can also be specified as init arguments on the event e.g. `<button on-clicks({ count: 2, hold: true })="console.log('click-click+hold')">double tap-n-hold me</button>`.
   </marked></tab>
   <tab title=Example>
-    
+    <marked>
+      ### Template:
+      ```hbs
+      <button on-clicks({ count: 1 })="@.set('message', 'button clicked')">one click</button>
+      <button on-clicks({ hold: true })="@.set('message', 'button held')">hold me</button>
+      <button on-clicks({ count: 2 })="@.set('message', 'double tap')" on-clicks({ count: 1 })="@.set('message', 'just tapped')">tap or double click and hold</button>
+      <button on-clicks({ count: 3 })="@.set('message', 'triple clicked, why not?')">triple click me</button>
+      ```
+      ### Result:
+    </marked>
+    <div>{{message}}</div>
+    <button on-clicks({ count: 1 })="@.set('message', 'button clicked')">one click</button>
+    <button on-clicks({ hold: true })="@.set('message', 'button held')">hold me</button>
+    <button on-clicks({ count: 2 })="@.set('message', 'double tap')" on-clicks({ count: 1 })="@.set('message', 'just tapped')">tap or double click and hold</button>
+    <button on-clicks({ count: 3 })="@.set('message', 'triple clicked, why not?')">triple click me</button>
   </tab>
 </tabs>
 
 <script>
   import { Window } from 'cmp/Window';
+  import clicks from 'cmp/event-click';
 
   export default Window.extend({
     template: $TEMPLATE,
+    use: [clicks()],
     options: {
       title: 'Event :: Click',
       resizable: true, flex: true,
       width: '48em', height: '30em'
+    },
+    data() {
+      return {
+        message: 'use the buttons'
+      };
     }
   });
 </script>
-    

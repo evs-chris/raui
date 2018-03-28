@@ -3,7 +3,9 @@
   <tab title=Intro><marked>
     Nearly every app needs to give user feedback when some actions occur, and one reasonably good Material-ish way to achieve that is with toast and/or snackbar messages. To that end, raui provides a helper to add toasting to any old instance, though it is particularly suited to things like the shell and window host.
 
-    
+    Toasts can appear top-center (the default), top-left, rop-right, bottom-center, bottom-left, or bottom-right. They have a message and a defaulted close button that can be disabled on a toast by toast basis. You can also add user-defined buttons to any toast, and there are five built-in types - plain, info, warn, error, and success - that can be added to fairly easily. By default, toasts will automatically close after six seconds, but the timeout is also overridable (or disable-able) on a toast by toast basis.
+
+    Only one toast message can be displayed at a time, so toasts are queued in an internal queue. When a toast is closed, the queue is checked for pending messages, and if one is found, it is shifted from the queue and displayed. This process repeats until the queue is drained.
   </marked></tab>
   <tab title=Usage><marked>
     ### Plugin options
