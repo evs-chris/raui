@@ -6,22 +6,17 @@ System.register([], function (exports, module) {
       // based on ractive-event-tap
       var abs = Math.abs;
 
-      function makeSwipe(name, direction, distance, flick, threshold) {
-        if ( direction === void 0 ) direction = 'right';
-        if ( distance === void 0 ) distance = 150;
-        if ( flick === void 0 ) flick = 200;
-        if ( threshold === void 0 ) threshold = 0.2;
-
-        var init = { direction: direction, distance: distance, flick: flick, threshold: threshold };
+      function makeSwipe(opts) {
+        var init = Object.assign({}, { distance: 150, flick: 200, threshold: 0.2 }, opts);
         return function setup(ref) {
           var Ractive = ref.Ractive;
           var instance = ref.instance;
 
-          instance.events[name] = function swipe(node, fire, options) {
+          instance.events[opts.name || ("swipe" + (opts.direction || ''))] = function swipe(node, fire, options) {
             if ( options === void 0 ) options = {};
 
             var handler;
-            var opts = Object.assign({}, init, options);
+            var opts = Object.assign({}, { direction: 'right' }, init, options);
             opts.fire = fire;
             if (handler = node.__r_swipes__) {
               handler.subscribe(opts);
@@ -36,10 +31,10 @@ System.register([], function (exports, module) {
         }
       }
 
-      var left = exports('left', makeSwipe('swipeleft', 'left'));
-      var right = exports('right', makeSwipe('swiperight', 'right'));
-      var up = exports('up', makeSwipe('swipeup', 'up'));
-      var down = exports('down', makeSwipe('swipedown', 'down'));
+      var left = exports('left', makeSwipe({ direction: 'left' }));
+      var right = exports('right', makeSwipe({ direction: 'right' }));
+      var up = exports('up', makeSwipe({ direction: 'up' }));
+      var down = exports('down', makeSwipe({ direction: 'down' }));
 
       var Handler = function Handler(context) {
         this.context = context;
@@ -64,7 +59,7 @@ System.register([], function (exports, module) {
 
       Handler.prototype.bind = function bind () {
         // listen for mouse/pointer events...
-        if (window.navigator.pointerEnabled) {
+        if (window.PointerEvent || window.navigator.pointerEnabled) {
           this.context.listen('pointerdown', handleMousedown);
         } else if (window.navigator.msPointerEnabled) {
           this.context.listen('MSPointerDown', handleMousedown);
@@ -215,7 +210,7 @@ System.register([], function (exports, module) {
           document.removeEventListener('mousemove', handleMousemove, false);
         };
 
-        if (window.navigator.pointerEnabled) {
+        if (window.PointerEvent || window.navigator.pointerEnabled) {
           document.addEventListener('pointerup', handleMouseup, false);
           document.addEventListener('pointermove', handleMousemove, false);
           document.addEventListener('pointercancel', cancel, false);

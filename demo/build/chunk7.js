@@ -16,17 +16,18 @@ System.register([], function (exports, module) {
           var Ractive = ref.Ractive;
           var instance = ref.instance;
 
-          instance.events[opts.name || ((opts.count||1) + "click")] = function clicks(node, fire) {
+          instance.events[opts.name || ((opts.count || '') + "clicks")] = function clicks(node, fire, options) {
+            var o = Object.assign({}, opts, options);
             var handler;
             if (handler = node.__r_clicks__) {
-              handler.subscribe(opts.count, !!opts.hold, fire);
+              handler.subscribe(o.count || 1, !!o.hold, fire);
             } else {
-              handler = new Handler(Ractive.getContext(node), opts.delay || between, opts.bubble || false);
+              handler = new Handler(Ractive.getContext(node), o.delay || between, o.bubble || false);
               node.__r_clicks__ = handler;
-              handler.subscribe(opts.count, !!opts.hold, fire);
+              handler.subscribe(o.count || 1, !!o.hold, fire);
             }
 
-            return { teardown: function teardown() { handler.unsubscribe(opts.count, !!opts.hold, fire); } };
+            return { teardown: function teardown() { handler.unsubscribe(o.count || 1, !!o.hold, fire); } };
           };
         }
       }
@@ -60,7 +61,7 @@ System.register([], function (exports, module) {
 
       Handler.prototype.bind = function bind () {
         // listen for mouse/pointer events...
-        if (window.navigator.pointerEnabled) {
+        if (window.PointerEvent || window.navigator.pointerEnabled) {
           this.context.listen('pointerdown', handleMousedown);
         } else if (window.navigator.msPointerEnabled) {
           this.context.listen('MSPointerDown', handleMousedown);
@@ -151,7 +152,7 @@ System.register([], function (exports, module) {
           document.removeEventListener('mousemove', handleMousemove, false);
         };
 
-        if (window.navigator.pointerEnabled) {
+        if (window.PointerEvent || window.navigator.pointerEnabled) {
           this.node.addEventListener('pointerup', handleMouseup, false);
           document.addEventListener('pointermove', handleMousemove, false);
           document.addEventListener('pointercancel', cancel, false);
