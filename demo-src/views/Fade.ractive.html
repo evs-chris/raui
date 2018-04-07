@@ -1,20 +1,50 @@
 <tabs flat pad class-secondary fill height=dynamic>
   <tab title=Intro><marked>
-    TODO
+    This is your bog-standard fade transition. It's only included as a convenience to avoid yet another tiny dependency.
   </marked></tab>
   <tab title=Usage><marked>
+    ### Plugin options
 
+    All options are optional.
+
+    * `name: string = 'fade'` - the name to use when registering the plugin as a transition
+
+    ### Parameters
+
+    Parameters, as with most transitions, are passed in an options argument e.g. `fade-in="{ ... }"`. Any Ractive transition args can be passed in, and this transition has no non-standard parameters.
   </marked></tab>
   <tab title=Example>
-    
+    <marked>
+      ### Template:
+      ```hbs
+      {{#if .show}}
+      <div fade-in-out="{ duration: 1000 }">
+        This is a thing that will fade in and out.
+      </div>
+      {{/if}]}
+      ```
+      ### Result:
+    </marked>
+
+    <label as-field>
+      <button on-click="@.toggle('show')">Show</button>
+    </label>
+
+    {{#if .show}}
+    <div fade-in-out="{ duration: 1000 }">
+      This is a thing that will fade in and out.
+    </div>
+    {{/if}}
   </tab>
 </tabs>
 
 <script>
   import { Window } from 'cmp/Window';
+  import fade from 'cmp/transition-fade';
 
   export default Window.extend({
     template: $TEMPLATE,
+    use: [fade],
     options: {
       title: 'Transition :: Fade',
       resizable: true, flex: true,

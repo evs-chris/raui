@@ -1,12 +1,53 @@
 <tabs flat pad class-secondary fill height=dynamic>
   <tab title=Intro><marked>
-    TODO
+    This is a fairly simple two-step transition that will make a space big enough for the target content and then fade it in on intro and fade it out and shrink the space back to nothing on outro. It defaults to working on the Y axis for things laid out vertically, but it can also be told to use the X axis instead.
   </marked></tab>
   <tab title=Usage><marked>
+    ### Plugin options
 
+    All options are optional.
+
+    * `name: string = 'expand'` - the name to use when registering the plugin as a transition
+
+    ### Parameters
+
+    Parameters, as with most transitions, are passed in an options argument e.g. `expand-in="{ ... }"`. Any Ractive transition args can be passed in in addition to the following:
+
+    * `axis: string = 'y'` - the axis in which the transition should expand. Set this to `'x'` for horizontally oriented layouts.
   </marked></tab>
   <tab title=Example>
-    
+    <marked>
+      ### Template:
+      ```hbs
+      <div style-display=flex style-flex-direction="{{.x ? 'row' : 'column'}}">
+        <div>Before</div>
+        {{#if .show}}
+          <div expand-in-out="{ axis: .x ? 'x' : 'y' }">
+            Midst<br/>Midst<br/>Midst<br/>Midst<br/>
+          </div>
+        {{/if}}
+        <div>After</div>
+      </div>
+      ```
+      ### Result:
+    </marked>
+
+    <label as-field>
+      <input type=checkbox checked="{{.x}}" /> X-axis
+    </label>
+    <label as-field>
+      <button on-click="@.toggle('show')">{{.show ? 'Hide' : 'Show'}}</button>
+    </label>
+
+    <div style-display=flex style-flex-direction="{{.x ? 'row' : 'column'}}">
+      <div>Before</div>
+      {{#if .show}}
+        <div expand-in-out="{ axis: .x ? 'x' : 'y' }">
+          Midst<br/>Midst<br/>Midst<br/>Midst<br/>
+        </div>
+      {{/if}}
+      <div>After</div>
+    </div>
   </tab>
 </tabs>
 
