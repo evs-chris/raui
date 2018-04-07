@@ -50,8 +50,14 @@ class Handler {
 
   bind() {
     // listen for mouse/pointer events...
-    if (window.PointerEvent || window.navigator.pointerEnabled) {
-      this.context.listen('pointerdown', handleMousedown);
+    if ('ontouchstart' in window) {
+      this.context.listen('mousedown', handleMousedown);
+      this.context.listen('dragstart', handleDragstart);
+
+      // ...and touch events
+      this.context.listen('touchstart', handleTouchstart, { passive: false });
+    } else if (window.PointerEvent || window.navigator.pointerEnabled) {
+      this.context.listen('pointerdown', handleMousedown, { passive: false });
     } else if (window.navigator.msPointerEnabled) {
       this.context.listen('MSPointerDown', handleMousedown);
     } else {
@@ -59,7 +65,7 @@ class Handler {
       this.context.listen('dragstart', handleDragstart);
 
       // ...and touch events
-      this.context.listen('touchstart', handleTouchstart);
+      this.context.listen('touchstart', handleTouchstart, { passive: false });
     }
   }
 
@@ -110,9 +116,9 @@ class Handler {
       if (maxY > 0 && y > maxY) { f.active = false; return; }
       if (maxY < 0 && y > rect.height + maxY) { f.active = false; return; }
       if (minX > 0 && x < minX) { f.active = false; return; }
-      if (minX < 0 && x < rect.width - minX) { f.active = false; return; }
+      if (minX < 0 && x < rect.width + minX) { f.active = false; return; }
       if (minY > 0 && y < minY) { f.active = false; return; }
-      if (minY < 0 && y < rect.width - minY) { f.active = false; return; }
+      if (minY < 0 && y < rect.width + minY) { f.active = false; return; }
       f.active = true;
     });
 
