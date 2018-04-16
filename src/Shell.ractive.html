@@ -124,7 +124,7 @@
               this._media && this._media.listener && this._media.listener.silence();
               this.fire('resize')
               this._media && this._media.listener && this._media.listener.resume();
-            }, 410);
+            }, (this.get('shell.slide.ms') || 400) + 10);
           }
         },
         defer: true,
@@ -180,6 +180,8 @@
     if (typeof window === 'undefined') return;
     if (!r.left && !r.right) return;
     if (r._media) return r._media.fn;
+    let inited = 0;
+    let tm;
 
     const media = {
       fn() {
@@ -195,20 +197,42 @@
         const secondary = primary === 'right' ? 'left' : 'right';
         const medium = r.relativeSize(r.get('@style.break.medium') || '60rem', '1rem');
 
-        const sets = { leftHidden: r.get('leftOver'), rightHidden: r.get('rightOver'), _leftOver: false, _rightOver: false };
+        const overs = { _leftOver: false, _rightOver: false };
+        const hides = { leftHidden: r.get('leftOver'), rightHidden: r.get('rightOver') };
+
+        if (!inited) {
+          overs.leftHidden = false;
+          overs.rightHidden = false;
+        }
 
         let w = outer - sizes.left - sizes.right;
         if (w <= medium) {
           w += sizes[secondary];
-          sets[`${secondary}Hidden`] = true;
-          sets[`_${secondary}Over`] = true;
+          hides[`${secondary}Hidden`] = true;
+          overs[`_${secondary}Over`] = true;
           if (w <= medium) {
-            sets[`${primary}Hidden`] = true;
-            sets[`_${primary}Over`] = true;
+            hides[`${primary}Hidden`] = true;
+            overs[`_${primary}Over`] = true;
           }
         }
 
-        r.set(sets);
+        r.set(overs);
+
+        if (!inited) {
+          inited = 1;
+          setTimeout(() => {
+            inited = 2;
+            r.set(hides);
+          }, r.get('@style.shell.sides.initialTimeout') || 1500);
+        } else if (inited === 2) {
+          r.set(hides);
+        }
+
+        if (tm) clearTimeout(tm);
+        tm = setTimeout(() => {
+          r.fire('resize');
+          tm = 0;
+        }, (r.get('shell.slide.ms') || 400) + 100);
       },
       cancel() {
         r._media = null;
@@ -260,12 +284,12 @@
     opacity: 0;
     background-color: #000;
     z-index: -1;
-    transition: opacity 0.4s ease-in-out, z-index 0s linear 0.4s;
+    transition: opacity ${data('shell.slide.ms') || 400}ms ease-in-out, z-index 0s linear ${data('shell.slide.ms') || 400}ms;
   }
   .rshell-modal.rshell-blocked {
     opacity: 0.5;
     z-index: 3;
-    transition: opacity 0.4s ease-in-out, z-index 0s linear;
+    transition: opacity ${data('shell.slide.ms') || 400}ms ease-in-out, z-index 0s linear;
   }
   .rshell-main {
     width: 100%;
@@ -290,7 +314,7 @@
     overflow: auto;
     z-index: 4;
     background-color: ${data('shell.menu.bg') || data('bg1') || 'inherit'};
-    transition: transform 0.4s ease-in-out;
+    transition: transform ${data('shell.slide.ms') || 400}ms ease-in-out;
   }
   .rshell-left {
     left: 0;
@@ -319,7 +343,7 @@
 
   .rshell-left-pop, .rshell-right-pop {
     z-index: 5;
-    transition: transform 0.4s ease-in-out;
+    transition: transform ${data('shell.slide.ms') || 400}ms ease-in-out;
     position: absolute;
     top: 0;
     bottom: 0;
@@ -345,7 +369,7 @@
     left: 0;
     z-index: 1;
     box-sizing: border-box;
-    transition: left 0.4s ease-in-out, width 0.4s ease-in-out;
+    transition: left ${data('shell.slide.ms') || 400}ms ease-in-out, width ${data('shell.slide.ms') || 400}ms ease-in-out;
     height: 100%;
     width: 100%;
     flex-grow: 1;
