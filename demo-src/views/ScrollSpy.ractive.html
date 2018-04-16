@@ -1,20 +1,92 @@
 <tabs flat pad class-secondary fill height=dynamic>
   <tab title=Intro><marked>
-    TODO
+    The scroll spy decorators allow you to watch a scrollable element and check designated targets within it to keep a bound value up to date to match the scroll position.
   </marked></tab>
   <tab title=Usage><marked>
+    ### Plugin options
+
+    All options are optional.
+
+    * `name: string = 'scrollspy'` - the name to use when registering the spy decorator as a plugin
+    * `targetName: string = 'spytarget'` - the name to use when registering the spy target decorator as a plugin
+
+    ### Arguments
+
+    * #### Scroll Spy
+
+      The scroll spy decorator accepts a string keypath or a hash of options as an argument.
+
+      * `string` - the keypath of the data to keep updated with the current target
+      * `object`
+        * `path: string` - the keypath of the data to keep updated with the current target
+        * `id: string = ''` - an identifier to allow having multiple scroll spies on one page. If you try to create to spies with the same id, an error will be thrown.
+        * `target: HTMLElement = node` - the node on which to listen for scroll events
+  
+    * ### Spy Target
+
+      The spy target decorator accepts any value, any value and a string, or an options hash as arguments.
+
+      * `any` - the value to use when this target is active
+      * `any, string`
+        * `any` - the value to use when this target is active
+        * `string = ''` - the id of the spy for which this should be a target
+      * `object`
+        * `value: any` - the value to use when this target is active
+        * `id: string = ''` - the id of the spy for which this should be a target
 
   </marked></tab>
-  <tab title=Example>
-    
+  <tab title=Example no-pad>
+    <split>
+      <div style="padding: 1em;" size=20>
+        <marked>
+          ### Template:
+
+          ```hbs
+          <div style="height: 100%; overflow: auto;" as-scrollspy=`.target`>
+            Check out the target indicator over there ->
+            <div style="position: sticky; top: 0; left: calc(100% - 6em); width: 5em;">{{.target}}</div>
+            {{#each [1, 2, 3, 4, 5, 6, 7]}}
+              <div style="min-height: 40%; margin: 2em; background-color: #eee" as-spytarget=.>
+                Target {{.}}
+                {{#if . === 4}}{{#each [1, 2, 3, 4]}}
+                  <div style="height: 100%; margin: 2em; background-color: #ddd" as-spytarget=`${^^/}.${.}`>
+                    Target {{^^/}}.{{.}}
+                  </div>
+                {{/each}}{{/if}}
+              </div>
+            {{/each}}
+          </div>
+          ```
+
+          ### Result:
+        </marked>
+      </div>
+      <div style="height: 100%; overflow: auto;" as-scrollspy=`.target`>
+        Check out the target indicator over there ->
+        <div style="position: sticky; top: 0; left: calc(100% - 6em); width: 5em;">{{.target}}</div>
+        {{#each [1, 2, 3, 4, 5, 6, 7]}}
+          <div style="min-height: 40%; margin: 2em; background-color: #eee" as-spytarget=.>
+            Target {{.}}
+            {{#if . === 4}}{{#each [1, 2, 3, 4]}}
+              <div style="height: 20em; margin: 2em; background-color: #ddd" as-spytarget=`${^^/}.${.}`>
+                Target {{^^/}}.{{.}}
+              </div>
+            {{/each}}{{/if}}
+          </div>
+        {{/each}}
+      </div>
+    </split>
   </tab>
 </tabs>
 
 <script>
   import { Window } from 'cmp/Window';
+  import split from 'cmp/Split';
+  import spy from 'cmp/scroll-spy';
 
   export default Window.extend({
     template: $TEMPLATE,
+    use: [split(), spy()],
     options: {
       title: 'Decorator :: ScrollSpy',
       resizable: true, flex: true,

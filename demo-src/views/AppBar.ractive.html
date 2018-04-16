@@ -35,13 +35,14 @@
   <tab title=Example>
     <marked>
       ### Template:
-      ```
+      ```hbs
       <app-bar>
         <left>Left</left>
         <center>Center</center>
         <right>Right</right>
       </app-bar>
       ```
+
       ### Result:
     </marked>
     <app-bar>
@@ -52,13 +53,16 @@
 
     <marked>
       ***
+
       ### Template:
-      ```
+
+      ```hbs
       <app-bar style-font-size=1.3em bind-waiting>
         <center>{{.title}}</center>
         <right style-font-weight=bold>extra attrs</right>
       </app-bar>
       ```
+
       ### Result:
     </marked>
     <app-bar style-font-size=1.3em bind-waiting>
