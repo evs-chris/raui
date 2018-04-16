@@ -59,7 +59,7 @@ System.register([], function (exports, module) {
               handle.aliasLocal('_marked');
               handle.setTemplate(['Marking down...']);
               var tpl = content[0];
-              var indent = tpl.split(/\r?\n/).find(function (l) { return /[^\s]/.test(l); });
+              var indent = tpl.split(/\r?\n/).find(function (l) { return /^\s/.test(l); });
               if (indent) { tpl = tpl.replace(new RegExp(("^" + (indent.replace(/(\s*).*/, '$1'))), 'gm'), ''); }
               lib(tpl, function (err, res) {
                 if (!err) { handle.set('@local.content', res); }
