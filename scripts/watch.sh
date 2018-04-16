@@ -1,6 +1,6 @@
 export PATH=./node_modules/.bin:../node_modules/.bin:$PATH
 
-if [[ -z $PORT ]]; then
+if [ -z "$PORT" ]; then
   PORT=3000
 fi
 

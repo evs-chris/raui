@@ -15,7 +15,7 @@
   "devDependencies": {
     "http-server": "^0.11",
     "nodemon": "^1.17",
-    "ractive": "edge",
+    "ractive": "^0.10.1",
     "rollup": "^0.57",
     "rollup-plugin-buble": "^0.19",
     "rollup-plugin-import-resolver": "^1",
@@ -26,9 +26,9 @@
     "ractive": ">= 0.10 || edge"
   },
   "scripts": {
-    "build": "sh scripts/esm.sh",
-    "watch": "sh scripts/watch.sh",
-    "dev": "sh -c \"NODE_ENV=dev scripts/watch.sh\"",
-    "clean": "sh scripts/clean.sh"
+    "build": "bash scripts/esm.sh",
+    "watch": "bash scripts/watch.sh",
+    "dev": "bash -c \"NODE_ENV=dev scripts/watch.sh\"",
+    "clean": "bash scripts/clean.sh"
   }
 }
