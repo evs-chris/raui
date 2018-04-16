@@ -48,7 +48,7 @@ export default function plugin(options = {}) {
         handle.aliasLocal('_marked');
         handle.setTemplate(['Marking down...']);
         let tpl = content[0];
-        const indent = tpl.split(/\r?\n/).find(l => /[^\s]/.test(l));
+        const indent = tpl.split(/\r?\n/).find(l => /^\s/.test(l));
         if (indent) tpl = tpl.replace(new RegExp(`^${indent.replace(/(\s*).*/, '$1')}`, 'gm'), '');
         lib(tpl, (err, res) => {
           if (!err) handle.set('@local.content', res);
