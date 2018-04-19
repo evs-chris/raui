@@ -17,9 +17,9 @@ export function masked(node, opt1, opt2, opt3) {
 	opts.mask = opts.mask || '';
 	opts.masks = opts.masks || masked.defaults.masks;
 	opts.maskChars = '';
-	opts.bind_value = opts.bindValue || opts.bind;
-	opts.bind_masked = opts.bindMasked;
-	opts.bind_display = opts.bindDisplay;
+	opts.bind_value = opts.value;
+	opts.bind_masked = opts.masked;
+	opts.bind_display = opts.display;
 
 	for (const k in opts.masks) {
 		if (k.length > 1) {
@@ -166,7 +166,7 @@ masked.defaults = {
 
 export function plugin(opts = {}) {
 	return function({ instance }) {
-		isntance.decorators[opts.name || 'masked'] = masked;
+		instance.decorators[opts.name || 'masked'] = masked;
 	}
 }
 
