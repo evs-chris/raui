@@ -77,7 +77,7 @@ export function grid(node, options) {
       if (!regexps[match].test(node.className)) node.className += ` ${match}`;
 
       if (opts.value) ctx.set(opts.value, breaks[match].value);
-      if (opts.name) ctx.set(opts.name, breaks[match].value);
+      if (opts.name) ctx.set(opts.name, match);
 
       node.className = node.className.replace(spaces, ' ');
     }
@@ -97,7 +97,7 @@ export function grid(node, options) {
   }
 
   const listener = this.root.on('*.resize', resize);
-  const observer = this.observe('@style.breaks', settings);
+  const observer = this.observe('@style.break', settings);
 
   node.className += ' grid grid-root';
   settings();
@@ -142,15 +142,15 @@ export function style(data, optDefaults) {
   points.reverse().forEach(size => {
     const name = size.prefix || size.key[0];
 
-    out += `\n${greater[size.key].map(s => `.${s} .${name}0`).join(', ')} { width: 0; overflow: hidden; }`;
+    out += `\n${greater[size.key].map(s => `.${s} > .${name}0, .${s} .${name}-n0`).join(', ')} { width: 0; overflow: hidden; }`;
 
     size.units.forEach(u => {
-      cols += `\n${greater[size.key].map(s => `.${s} ${name}1, .${s} .row > .${name}1`).join(', ')} { width: 100%; }`;
+      cols += `\n${greater[size.key].map(s => `.${s} > ${name}1, .${s} > .row > .${name}1, .${s} ${name}-n1`).join(', ')} { width: 100%; }`;
       for (let i = 1; i < u; i++) {
         str = '' + ((i / u) * 100);
         str = str.substr(0, str.indexOf('.') + 3);
-        rows += `\n${greater[size.key].map(s => `.${s} .row-${name}${i}-${u} > *`).join(', ')} { width: ${str}%; }`;
-        cols += `\n${greater[size.key].map(s => `.${s} .${name}${i}-${u}, .${s} .row > .${name}${i}-${u}`).join(', ')} { width: ${str}%; }`;
+        rows += `\n${greater[size.key].map(s => `.${s} > .row-${name}${i}-${u} > *, ${s} > .row-${name}-n${i}-${u} > *`).join(', ')} { width: ${str}%; }`;
+        cols += `\n${greater[size.key].map(s => `.${s} > .${name}${i}-${u}, .${s} > .row > .${name}${i}-${u}, .${s} .${name}-n${i}-${u}, .${s} > .row > .${name}-n${i}-${u}`).join(', ')} { width: ${str}%; }`;
       }
     });
   });
