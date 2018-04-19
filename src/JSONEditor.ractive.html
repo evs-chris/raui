@@ -3,12 +3,12 @@
 </template>
 
 <template id="open">
-    {{#if ~/getType(.) === 'object'}}<span class-rje-open on-click="@.toggle('toggles.' + ~/escapeKey(@keypath)), false">&#x007b;</span>
-    {{elseif ~/getType(.) === 'array'}}<span class-rje-open on-click="@.toggle('toggles.' + ~/escapeKey(@keypath)), false">[</span>{{/if}}
+    {{#if ~/getType(.) === 'object'}}<span class-rje-open class-rje-bracket on-click="@.toggle('toggles.' + ~/escapeKey(@keypath)), false">&#x007b;</span>
+    {{elseif ~/getType(.) === 'array'}}<span class-rje-open class-rje-bracket on-click="@.toggle('toggles.' + ~/escapeKey(@keypath)), false">[</span>{{/if}}
 </template>
 
 <template id="object">
-  <div class-rje-obj>{{#if !~/toggles[@keypath]}}<span class-rje-ellipsis on-click="@.toggle('toggles.' + ~/escapeKey(@keypath)), false">&hellip; </span>{{else}}
+  <div class-rje-obj>{{#if !~/toggles[@keypath]}}<span class-rje-ellipsis on-click="@.toggle('toggles.' + ~/escapeKey(@keypath)), false">&hellip;</span>{{else}}
     {{#each .}}
     <div class-rje-entry>
       <span class-rje-key {{#if ~/editable}}on-click="@.set('keys.' + ~/escapeKey(@keypath), @key), @.deferFocus(@node)"{{else}}on-click="@.toClipboard(@keypath.substr(5))"{{/if}}>
@@ -25,12 +25,10 @@
           <button title="remove key" class="rje-icon rje-cancel" on-click="@.removeKey(@keypath)">&#8722;</button>
           <button title="copy keypath" class="rje-icon rje-copy" on-click="@.toClipboard(@keypath.substr(5))">&#10697;</button>
         {{/if}}
-      </span>
-      {{>open}}
-      <div class-rje-value class-rje-value-expanded="~/toggles[@keypath]">{{>value}}</div>
+      </span>{{>open}}<div class-rje-value class-rje-value-expanded="~/toggles[@keypath]">{{>value}}</div>
     </div>
     {{/each}}
-    {{/if}}<span class-rje-close on-click="@.toggle('toggles.' + ~/escapeKey(@keypath)), false">&#x007d;</span>{{#if ~/editable && ~/toggles[@keypath]}}
+    {{/if}}<span class-rje-close class-rje-bracket on-click="@.toggle('toggles.' + ~/escapeKey(@keypath)), false">&#x007d;</span>{{#if ~/editable && ~/toggles[@keypath]}}
     <div class-rje-buttons><button title="more actions" class-rje-icon on-click="@.toggle('extras.' + ~/escapeKey(@keypath)), false">&#8943;</button>
     {{#if ~/extras[@keypath]}}
       <input value="{{~/values[@keypath].name}}" on-keyup="@event.which === 13 && @.addKey(@keypath)" /><button title="add key" class="rje-icon rje-ok" on-click="@.addKey(@keypath)">+</button>
@@ -41,7 +39,7 @@
 </template>
 
 <template id="array">
-  <div class-rje-array>{{#if !~/toggles[@keypath]}}<span class-rje-ellipsis on-click="@.toggle('toggles.' + ~/escapeKey(@keypath)), false">&hellip; </span>{{else}}
+  <div class-rje-array>{{#if !~/toggles[@keypath]}}<span class-rje-ellipsis on-click="@.toggle('toggles.' + ~/escapeKey(@keypath)), false">&hellip;</span>{{else}}
   {{#with @keypath as array}}{{#each .}}
   <div class-rje-entry>
     <span class-rje-idx>
@@ -52,12 +50,10 @@
         <button class-rje-icon title="move down" on-click="@.splice(array, @index + 1, 0, @.splice(array, @index, 1).result[0]), false" {{#if @index === ../length - 1}}disabled{{/if}}>v</button>
         <button title="copy keypath" class="rje-icon rje-copy" on-click="@.toClipboard(@keypath.substr(5))">&#10697;</button>
       {{/if}}
-    </span>
-    {{>open}}
-    <div class-rje-value class-rje-value-expanded="~/toggles[@keypath]">{{>value}}</div>
+    </span>{{>open}}<div class-rje-value class-rje-value-expanded="~/toggles[@keypath]">{{>value}}</div>
   </div>
   {{/each}}{{/with}}
-  {{/if}}<span class-rje-close on-click="@.toggle('toggles.' + ~/escapeKey(@keypath)), false">]</span>{{#if ~/editable && ~/toggles[@keypath]}}
+  {{/if}}<span class-rje-close class-rje-bracket on-click="@.toggle('toggles.' + ~/escapeKey(@keypath)), false">]</span>{{#if ~/editable && ~/toggles[@keypath]}}
   <div class-rje-buttons><button title="more actions" class-rje-icon on-click="@.toggle('extras.' + ~/escapeKey(@keypath)), false">&#8943;</button>
   {{#if ~/extras[@keypath]}}
     <button title="push" class-rje-icon on-click="@.push(@keypath, ''), false">&#707;+</button>
@@ -109,7 +105,7 @@
   </select>
 </template>
 
-<div class-rje-wrapper {{yield extra-attributes}}>
+<div class-rje-wrapper class-rje-editable="~/editable" class-rje-readonly="!~/editable" {{yield extra-attributes}}>
   {{#if !root}}{{>value root}}{{/if}}
   {{#with root}}
     {{>open}}
@@ -344,6 +340,7 @@
   .rje-value {
     display: inline-block;
     position: relative;
+    margin-left: 0.75em;
   }
 
   .rje-value > * {
@@ -352,6 +349,7 @@
 
   .rje-value-expanded {
     display: block; 
+    margin-left: 0;
   }
   .rje-value-expanded > .rje-obj,
   .rje-value-expanded > .rje-array {
@@ -371,12 +369,23 @@
   .rje-value-expanded > .rje-array > .rje-close {
     position: absolute;
     bottom: -1.5em;
-    left: -0.25em;
+    left: -1em;
     width: 2em;
   }
 
   .rje-open, .rje-close, .rje-ellipsis {
     cursor: pointer;
+  }
+
+  .rje-entry .rje-close.rje-bracket,
+  .rje-ellipsis {
+    margin-left: 0;
+    padding-left: 0.75em;
+  }
+
+  .rje-entry .rje-open.rje-bracket {
+    margin-left: 0.75em;
+    margin-right: -0.75em;
   }
 
   .rje-value-expanded > .rje-obj > .rje-buttons,
@@ -391,8 +400,15 @@
     line-height: 2em;
   }
   
-  .rje-entry:nth-last-of-type(n+3) > .rje-value > .rje-close:after,
-  .rje-entry:nth-last-of-type(n+3) > .rje-value > * > .rje-close:after {
+  .rje-editable .rje-entry:nth-last-of-type(n+3) > .rje-value > .rje-close:after,
+  .rje-editable .rje-entry:nth-last-of-type(n+3) > .rje-value > * > .rje-close:after {
+    content: ',';
+    position: absolute;
+    top: 0;
+  }
+
+  .rje-readonly .rje-entry:nth-last-of-type(n+2) > .rje-value > .rje-close:after,
+  .rje-readonly .rje-entry:nth-last-of-type(n+2) > .rje-value > * > .rje-close:after {
     content: ',';
     position: absolute;
     top: 0;
