@@ -1,20 +1,58 @@
 <tabs flat pad class-secondary fill height=dynamic>
   <tab title=Intro><marked>
-    TODO
+    Material forms a little bit polarizing, but this decorator tries to take a fairly unobtrusive approach. You wrap your input element in a `label` with the `field` decorator, and the decorator handles the rest based on the content of the label. Handling for fields includes plain inputs, checkboxes, selects, buttons, and textareas.
 
-    Material forms a little bit polarizing, but this decorator tries to take a fairly unobtrusive approach. You wrap your input element in a `label` with the `field` decorator, and the decorator handles the rest based on the content of the label. It also provides a CSS function to apply the styling at the root of your app.
+    The decorator comes with a handlful of styles that need to be applied. When using the plugin, the styles are automatically registered in the appropriate place. When using the decorator directly, you'll need to apply the provided style function as part of a component CSS function.
+
+    There's also an included autofocus decorator that will focus its node automatically when it is rendered.
   </marked></tab>
   <tab title=Usage><marked>
+    ### Plugin options
 
+    All options are optional.
+
+    * `name: string = 'field'` - the name to use when registering the field decorator as a plugin
+    * `autofocusName: string = 'autofocus'` - the name to use when registering the autofocus decorator as a plugin
+
+    ### Arguments
+
+    _None_
   </marked></tab>
   <tab title=Example>
-    <div as-grid>
+    <marked>
+      ### Template:
+
+      ```hbs
+      <div as-grid>
         <div class-row>
-          <label as-field class-t1-3>Input Field<input /></label>
-          <label as-field class-t1-3>Select Field<select><option>option1</option><options>option2</options></select></label>
+          <label as-field class-t1-3>Input field<input /></label>
+          <label as-field class-t1-3>Select field<select><option>option1</option><option>option2</option><options>option2</options></select></label>
           <label as-field class-t1-3><input type="checkbox" /> Checkbox</label>
+          <label as-field class-t1-3>Another field<input /></label>
+          <label as-field class-t1-3>A file<input type="file" /></label>
+          <label as-field>
+            A text block
+            <textarea></textarea>
+          </label>
         </div>
       </div>
+      ```
+
+      ### Result:
+    </marked>
+    <div as-grid>
+      <div class-row>
+        <label as-field class-t1-3>Input field<input /></label>
+        <label as-field class-t1-3>Select field<select><option>option1</option><option>option2</option><options>option2</options></select></label>
+        <label as-field class-t1-3><input type="checkbox" /> Checkbox</label>
+        <label as-field class-t1-3>Another field<input /></label>
+        <label as-field class-t1-3>A file<input type="file" /></label>
+        <label as-field>
+          A text block
+          <textarea></textarea>
+        </label>
+      </div>
+    </div>
   </tab>
 </tabs>
 

@@ -1,69 +1,146 @@
 <tabs flat pad class-secondary fill height=dynamic>
   <tab title=Intro><marked>
-    TODO
-
     The grid decorator takes your usual CSS grid (no, not `display: grid`) and makes it container-aware, meaning that it will respond to its container changing sizes rather than just the window. It does so by listening to both window resize events and any Ractive resize events that happen to bubble up to its root instance.
 
-    You can also customize the breakpoints and sizes available in the grid fairly easily, as it provides a CSS function to be included in your main instance that handles the breakpoints and their corresponding sizes. The defaults cover a range from tiny (t at 0 to 20em) to ginormous (g at 150em+) and halves, thirds, quarters, fifths, and eighths for the smaller breakpoints up to tenths, twelfths, twentieths, twenty-fourths, thirty-seconds, and sixty-fourths for the largest.
+    Inside the decorated element, you can place `.row` elements, which can have sized contents. Because you can have _nested_ grids, this is a bit different than your normal CSS grid framework. Grids nested within other grids still use their own width when determining what breakpoints to apply.
+
+    You can customize the breakpoints and sizes available in the grid fairly easily, as it provides a CSS function to be included in your main instance that handles the breakpoints and their corresponding sizes. Here are the defaults:
+    
+    * `tiny` - prefixed with a `t` - matches at any width.
+    * `xsmall` - prefixed with an `xs` - matches from 20em.
+    * `small` - prefixed with an `s` - matches from 36em.
+    * `medium` - prefixed with an `m` - matches from 48em.
+    * `large` - prefixed with an `l` - matches from 64em.
+    * `xlarge` - prefixed with an `x` - matches from 100em.
+    * `ginormous` - prefixed with a `g` - matches from 150em.
+
+    Fractions, using a `-` rather than `/`, can specified for each breakpoint using the prefix for the breakpoint. For instance, `t1-2 m1-4` will be 1/4 above 48em and 1/2 below 48em. There are two special sizes, `1` and `0`, which make the element take full width and hide, respectively.
+    
+    The denominators available by default are:
+
+    * `tiny` - 2, 3, 4, 5, 6, 8
+    * `xsmall`, `small`, `medium` - 2, 3, 4, 5, 6, 8, 10, 12
+    * `large` - 2, 3, 4, 5, 6, 8, 10, 12, 20, 24
+    * `xlarge` - 2, 3, 4, 5, 6, 8, 10, 12, 20, 24, 32
+    * `ginormous` - 2, 3, 4, 5, 6, 8, 10, 12, 20, 24, 32, 64
+
+    _All_ fractions, even those not simplified, are available for each range, so if you're laying out a grid in 6ths, you can use `2-6` to keep things consistent rather than having to use `1-3`.
   </marked></tab>
   <tab title=Usage><marked>
+    ### Plugin options
 
+    All options are optional.
+
+    * `name: string = 'grid'` - the name to use when registering the plugin as a decorator
+
+    ### Children
+
+    Elements decorated as a grid should have children with the `row` class applied. Children of the rows can have size classes applied e.g. `t1-2`. The rows themselves can also have default child sizes applied using row size classes, which are simply sizes with `row-` prepended e.g. `row-t1-4`.
+
+    To target elements _not_ immediately nested within a row, including further rows, you can use `-n` prefixed sizes e.g. `m-n1-5` for medium 1/5. Note though, that the outermost grid will determine sizing for the nested elements in this case, so it's probably not what you want with nested grids.
+
+    ### Arguments
+
+    All arguments are optional.
+
+    * `value: keypath` - binds the current matching breakpoint value to the given keypath
+    * `name: keypath` - binds the current matching breakpoint name to the given keypath
+
+    ### Style
+
+    Breakpoints and their sizes can be defined in `@style.break`, which should be an object with breakpoint keys.
+
+    * `[breakpointName]: string` - this is used as the class name for the breakpoint
+      * `units: number[]` - denominators for which to generate size fractions for this breakpoint. `1` and `0` are automatically provided. Setting this to `[ 7, 9 ]`, for instance`, would result in sizes from `1-7` to `7-7` and `1-9` to `9-9`.
+      * `max: string` - the size to set as the breaking point e.g. `'20em'`, `'0'`, `'1024px'`, etc.
+      * `prefix: string = breakpointName[0]` - the prefix to use for sizes. The first letter of the breakpoint name is used if none is provided.
+      * `value: number` - a numeric value to associate with this breakpoint. Since the `max` size is a string that could be in a number of different units, there's not really a way to automatically sort breakpoints based on that. In order to set the right precedence in CSS, the style function needs to know the order in which the breakpoints should appear in order from smallest to largest. Set the smallest breakpoint to 0, and each subsequent breakpoint should have a larger value.
   </marked></tab>
-  <tab title=Example>
-    <div as-grid>
-        <div class-row class-row-t1-2 class-row-m1-3 class-row-l1-4>
-          <div class="thing">Thing 1</div>
-          <div class="thing">Thing 2</div>
-          <div class="thing">Thing 3</div>
-          <div class="pad m1-2"><div class="thing" class-m1-2>Thing 4</div></div>
-          <div class="thing">Thing 5</div>
-          <div class="thing">Thing 6</div>
-          <div class-t1-2>
-            <div class-row class-row-t1-3 class-row-pad>
-              <div><div class="thing">Thing 7.1</div></div>
-              <div><div class="thing">Thing 7.2</div></div>
-              <div><div class="thing">Thing 7.3</div></div>
-              <div><div class="thing">Thing 7.4</div></div>
+  <tab title=Example no-pad>
+    <split>
+      <div style="padding: 1em;" size=20>
+        <marked>
+          ### Template:
+
+          ```hbs
+          <div as-grid="{ value: '.value', name: '.name' }" size=80>
+            <div>{{.name}} = {{.value}}</div>
+            <div class="row row-t1-4 row-m1-6">
+              <div class="thing">Thing 1.1</div>
+              <div class="thing">Thing 1.2</div>
+              <div class="thing t1 m1-3">Thing 1.3</div>
+              <div class="thing t1 m1-3">Thing 1.4</div>
+              <div class="thing">Thing 1.5</div>
+              <div class="thing">Thing 1.6</div>
+              <div class="thing">Thing 1.7</div>
+            </div>
+            <div class="row row-t1-2 row-m1-3">
+              <div class="thing">Thing 2.1</div>
+              <div class="thing">Thing 2.2</div>
+              <div class="thing">Thing 2.3</div>
+              <div class="thing">Thing 2.4</div>
+              <div class="thing">Thing 2.5</div>
+              <div class="thing">Thing 2.6</div>
+              <div class="thing">Thing 2.7</div>
+              <div class="thing xs1-2" as-grid="{ value: '.subValue', name: '.subName' }">
+                <div>{{.subName}} = {{.subValue}}</div>
+                <div class="row row-t1-4 row-xs1-5">
+                  <div class="thing">Thing 2.7.1</div>
+                  <div class="thing">Thing 2.7.2</div>
+                  <div class="thing">Thing 2.7.3</div>
+                  <div class="thing">Thing 2.7.4</div>
+                  <div class="thing">Thing 2.7.5</div>
+                </div>
+              </div>
             </div>
           </div>
-        </div>
-        <div class-row>
-          <div class-t4-5>
-            <div class-row class-row-t1-4>
-              <div class="thing">Thing 10</div>
-              <div class="thing">Thing 11</div>
-              <div class="thing">Thing 12</div>
-              <div class="thing">Thing 13</div>
-              <div class="thing">Thing 14</div>
-              <div class="thing">Thing 15</div>
-              <div class="thing">Thing 16</div>
-              <div class="thing">Thing 17</div>
-              <div class="thing">Thing 18</div>
-              <div class="thing">Thing 19</div>
-            </div>
-          </div>
-          <div class-t1-5>
-            <div class-row>
-              <div class="thing">Thing 20</div>
-              <div class="thing">Thing 21</div>
-              <div class="thing">Thing 22</div>
-              <div class="thing">Thing 23</div>
-              <div class="thing">Thing 24</div>
-              <div class="thing">Thing 25</div>
-              <div class="thing">Thing 26</div>
-              <div class="thing">Thing 27</div>
-              <div class="thing">Thing 28</div>
-              <div class="thing">Thing 29</div>
-            </div>
-          </div>
-        </div>
+          ```
+
+          ### Result:
+        </marked>
       </div>
-    </tab>
-  </tabs>
+      <split vertical>
+        <div as-grid="{ value: '.value', name: '.name' }" size=80>
+          <div>{{.name}} = {{.value}}</div>
+          <div class="row row-t1-4 row-m1-6">
+            <div class="thing">Thing 1.1</div>
+            <div class="thing">Thing 1.2</div>
+            <div class="thing t1 m1-3">Thing 1.3</div>
+            <div class="thing t1 m1-3">Thing 1.4</div>
+            <div class="thing">Thing 1.5</div>
+            <div class="thing">Thing 1.6</div>
+            <div class="thing">Thing 1.7</div>
+          </div>
+          <div class="row row-t1-2 row-m1-3">
+            <div class="thing">Thing 2.1</div>
+            <div class="thing">Thing 2.2</div>
+            <div class="thing">Thing 2.3</div>
+            <div class="thing">Thing 2.4</div>
+            <div class="thing">Thing 2.5</div>
+            <div class="thing">Thing 2.6</div>
+            <div class="thing">Thing 2.7</div>
+            <div class="thing xs1-2" as-grid="{ value: '.subValue', name: '.subName' }">
+              <div>{{.subName}} = {{.subValue}}</div>
+              <div class="row row-t1-4 row-xs1-5">
+                <div class="thing">Thing 2.7.1</div>
+                <div class="thing">Thing 2.7.2</div>
+                <div class="thing">Thing 2.7.3</div>
+                <div class="thing">Thing 2.7.4</div>
+                <div class="thing">Thing 2.7.5</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div>Resize Me</div>
+      </split>
+    </split>
+  </tab>
+</tabs>
 
 <script>
   import { Window } from 'cmp/Window';
-  import { grid } from 'cmp/grid';
+  import grid from 'cmp/grid';
+  import split from 'cmp/Split';
 
   export default class Grid extends Window {
     constructor(opts) { super(opts); }
@@ -71,7 +148,7 @@
 
   Window.extendWith(Grid, {
     template: $TEMPLATE, css: $CSS,
-    decorators: { grid },
+    use: [grid(), split()],
     options: {
       id: 'grid',
       title: 'Decorators :: Grid',
