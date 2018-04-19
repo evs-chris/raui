@@ -60,6 +60,11 @@ System.register(['ractive', './chunk2.js'], function (exports, module) {
           title: 'Event :: Keys',
           resizable: true, flex: true,
           width: '48em', height: '30em'
+        },
+        data: function data() {
+          return {
+            presses: []
+          };
         }
       }));
 

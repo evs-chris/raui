@@ -85,7 +85,7 @@ System.register(['./chunk2.js'], function (exports, module) {
             if (!regexps[match].test(node.className)) { node.className += " " + match; }
 
             if (opts.value) { ctx.set(opts.value, breaks[match].value); }
-            if (opts.name) { ctx.set(opts.name, breaks[match].value); }
+            if (opts.name) { ctx.set(opts.name, match); }
 
             node.className = node.className.replace(spaces, ' ');
           }
@@ -105,7 +105,7 @@ System.register(['./chunk2.js'], function (exports, module) {
         }
 
         var listener = this.root.on('*.resize', resize);
-        var observer = this.observe('@style.breaks', settings);
+        var observer = this.observe('@style.break', settings);
 
         node.className += ' grid grid-root';
         settings();
@@ -146,15 +146,15 @@ System.register(['./chunk2.js'], function (exports, module) {
         points.reverse().forEach(function (size) {
           var name = size.prefix || size.key[0];
 
-          out += "\n" + (greater[size.key].map(function (s) { return ("." + s + " ." + name + "0"); }).join(', ')) + " { width: 0; overflow: hidden; }";
+          out += "\n" + (greater[size.key].map(function (s) { return ("." + s + " > ." + name + "0, ." + s + " ." + name + "-n0"); }).join(', ')) + " { width: 0; overflow: hidden; }";
 
           size.units.forEach(function (u) {
-            cols += "\n" + (greater[size.key].map(function (s) { return ("." + s + " " + name + "1, ." + s + " .row > ." + name + "1"); }).join(', ')) + " { width: 100%; }";
+            cols += "\n" + (greater[size.key].map(function (s) { return ("." + s + " > " + name + "1, ." + s + " > .row > ." + name + "1, ." + s + " " + name + "-n1"); }).join(', ')) + " { width: 100%; }";
             var loop = function ( i ) {
               str = '' + ((i / u) * 100);
               str = str.substr(0, str.indexOf('.') + 3);
-              rows += "\n" + (greater[size.key].map(function (s) { return ("." + s + " .row-" + name + i + "-" + u + " > *"); }).join(', ')) + " { width: " + str + "%; }";
-              cols += "\n" + (greater[size.key].map(function (s) { return ("." + s + " ." + name + i + "-" + u + ", ." + s + " .row > ." + name + i + "-" + u); }).join(', ')) + " { width: " + str + "%; }";
+              rows += "\n" + (greater[size.key].map(function (s) { return ("." + s + " > .row-" + name + i + "-" + u + " > *, " + s + " > .row-" + name + "-n" + i + "-" + u + " > *"); }).join(', ')) + " { width: " + str + "%; }";
+              cols += "\n" + (greater[size.key].map(function (s) { return ("." + s + " > ." + name + i + "-" + u + ", ." + s + " > .row > ." + name + i + "-" + u + ", ." + s + " ." + name + "-n" + i + "-" + u + ", ." + s + " > .row > ." + name + "-n" + i + "-" + u); }).join(', ')) + " { width: " + str + "%; }";
             };
 
             for (var i = 1; i < u; i++) loop( i );
@@ -168,7 +168,34 @@ System.register(['./chunk2.js'], function (exports, module) {
 
       grid.style = style;
 
+      function plugin(opts) {
+        if ( opts === void 0 ) opts = {};
+
+        return function(ref) {
+          var Ractive = ref.Ractive;
+          var instance = ref.instance;
+
+          // if an extension, offer to include style
+          if (!Ractive.isInstance(instance)) {
+            if (opts.includeStyle) {
+              if (instance === Ractive) {
+                Ractive.addCSS('grid-decorator', style);
+              } else {
+                var css = instance.css;
+                instance.css = function(data) {
+                  var res = typeof css !== "function" ? css || "" : css(data);
+                  return res + style(data, opts.defaults);
+                };
+              }
+            }
+          }
+
+          instance.decorators[opts.name || 'grid'] = grid;
+        }
+      }
+
       globalRegister('grid', 'decorators', grid);
+      exports('default', plugin);
 
     }
   };

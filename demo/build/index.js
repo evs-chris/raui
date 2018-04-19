@@ -392,7 +392,7 @@ System.register(['./chunk3.js', './chunk4.js', './chunk5.js', './chunk2.js', './
       globalRegister('RMTabs', 'components', Tabs);
 
       function style$1(data) {
-        return ("\n  label.field {\n    display: inline-block;\n    font-size: 0.8em;\n    color: " + (data('form.color.accent') || data('fg1') || '#222') + ";\n    min-height: 6.5em;\n    transition: 0.2s ease-in-out;\n    transition-property: color;\n    vertical-align: middle;\n    box-sizing: border-box;\n    padding: " + (data('form.boxy') ? '0.8em 1em' : '0.8em 0.5em') + ";\n  }\n\n  label.field.textarea {\n    display: block;\n    border: 1px solid " + (data('form.color.accent') || data('fg1') || '#222') + ";\n    padding: 0.5em 0.8em 0.8em 0.8em;\n    border-radius: 2px;\n    box-shadow: none;\n    transition-property: color, border-color, box-shadow;\n    margin: 0.8em 0.2em;\n    min-height: auto;\n  }\n\n  label.field.inline {\n    padding-top: 3em;\n    cursor: pointer;\n  }\n\n  label.field.focus {\n    color: " + (data('form.color.accentActive') || data('fga1') || '#07e') + ";\n  }\n\n  label.field.textarea.focus {\n    border-color: " + (data('form.color.accentActive') || data('fga1') || '#07e') + ";\n    " + (!data('form.boxy') ? ("box-shadow: 1px 1px " + (data('form.color.accentActive') || data('fga1') || '#07e') + ",\n      -1px 1px " + (data('form.color.accentActive') || data('fga1') || '#07e') + ",\n      1px -1px " + (data('form.color.accentActive') || data('fga1') || '#07e') + ",\n      -1px -1px " + (data('form.color.accentActive') || data('fga1') || '#07e') + ";") : '') + "\n  }\n\n  label.field > input,\n  label.field > select,\n  label.field > textarea\n  {\n    display: block;\n    border-width: " + (data('form.boxy') ? '0.0625em' : '0 0 0.0625em 0') + ";\n    border-color: " + (data('form.color.accent') || data('fg1') || '#222') + ";\n    border-style: solid;\n    box-sizing: border-box;\n    background-color: transparent;\n    transition: 0.2s ease-in-out;\n    transition-property: box-shadow, color;\n    outline: none;\n    padding: " + (data('form.boxy') ? '0.7em 1.5em 0.7em 0.7em' : '0.5em 0') + ";\n    box-shadow: none;\n    width: 100%;\n    margin-bottom: 0.8em;\n    font-size: 1.2em;" + (data('form.boxy') ? '\n  border-radius: 0.2em;' : '') + "\n  }\n  " + (!data('form.boxy') ? "label.field > select {\n    height: 2.25em;\n  }" : '') + "\n\n  " + (!data('form.boxy') ? ("label.field:hover > input,\n  label.field:hover > select,\n  label.field.file:hover:after {\n    box-shadow: 0 1px 0 0 " + (data('form.color.accent') || data('fg1') || '#222') + ";\n  }\n  label.field.inline:hover > input:before,\n  label.field.textarea:hover {\n    box-shadow: 1px 1px " + (data('form.color.accent') || data('fg1') || '#222') + ",\n      -1px 1px " + (data('form.color.accent') || data('fg1') || '#222') + ",\n      1px -1px " + (data('form.color.accent') || data('fg1') || '#222') + ",\n      -1px -1px " + (data('form.color.accent') || data('fg1') || '#222') + ";\n  }\n  label.field.textarea.focus:hover {\n    box-shadow: 1px 1px " + (data('form.color.accentActive') || data('fga1') || '#07e') + ",\n      -1px 1px " + (data('form.color.accentActive') || data('fga1') || '#07e') + ",\n      1px -1px " + (data('form.color.accentActive') || data('fga1') || '#07e') + ",\n      -1px -1px " + (data('form.color.accentActive') || data('fga1') || '#07e') + ";\n  }\n  label.field.inline:hover > input:checked:before {\n    box-shadow: 0px 1px " + (data('form.color.accent') || data('fg1') || '#222') + ",\n      -1px 0px " + (data('form.color.accent') || data('fg1') || '#222') + ";\n  }\n  label.field.inline.focus:hover > input:checked:before {\n    box-shadow: 0px 1px " + (data('form.color.accentActive') || data('fga1') || '#07e') + ",\n      -1px 0px " + (data('form.color.accentActive') || data('fga1') || '#07e') + ";\n  }") : '') + "\n\n  label.field > textarea {\n    font-size: 1.4em;\n    border: none;\n  }\n\n  label.field.inline > input {\n    width: auto;\n    float: left;\n    width: 0;\n    margin-right: 1.5em;\n  }\n\n  label.field.inline > input:before {\n    content: '';\n    display: block;\n    border: 1px solid " + (data('form.color.accent') || data('fg1') || '#222') + ";\n    width: 1em;\n    height: 1em;\n    box-sizing: border-box;\n    transition: 0.2s ease-in-out;\n    transition-property: transform, border-color, height, width, box-shadow;\n    margin-top: -0.125em;\n  }\n\n  label.field.inline.focus > input:before {\n    border-color: " + (data('form.color.accentActive') || data('fga1') || '#07e') + ";\n  }\n\n  label.field.inline > input:checked:before {\n    height: 0.7em;\n    width: 1.3em;\n    border-width: 2px;\n    border-top-color: transparent;\n    border-right-color: transparent;\n    transform: rotate(-50deg);\n  }\n\n  label.field > input:focus,\n  label.field > select:focus,\n  label.field.file.focus:after\n  {\n    border-color: " + (data('form.color.accentActive') || data('fga1') || '#07e') + ";\n    " + (!data('form.boxy') ? ("box-shadow: 0 1px 0 0 " + (data('form.color.accentActive') || data('fga1') || '#07e') + ";") : '') + "\n  }\n\n  label.field.file.focus:after {\n    color: " + (data('form.color.accentActive') || data('fga1') || '#07e') + ";\n  }\n  label.field.file [type=file] {\n    position: absolute;\n    width: 0;\n    height: 0;\n    opacity: 0;\n    z-index: -1;\n  }\n  label.field.file:after {\n    position: absolute;\n    content: 'Choose a file';\n    width: calc(100% - 1em);\n    height: 1.22em;\n    color: " + (data('form.color.accent') || data('fg1') || '#222') + ";\n    border-color: " + (data('form.color.accent') || data('fg1') || '#222') + ";\n    border-bottom-style: solid;\n    border-bottom-width: 0.0625em;\n    text-align: center;\n    padding: 0.5em 0;\n    cursor: pointer;\n    font-style: oblique;\n    left: 0.5em;\n    bottom: 1.78em;\n    transition: 0.2s ease-in-out;\n    transition-property: color, border-bolor, box-shadow;\n  }\n\n  label.field.button > button {\n    position: relative;\n    top: 1.2em;\n    font-size: 1.2em;\n  }\n\n  label.field.plain > div {\n    position: absolute;\n    font-size: 1.2em;\n    top: 2.28em;\n  }\n  ");
+        return ("\n  label.field {\n    display: inline-block;\n    font-size: 0.8em;\n    color: " + (data('form.color.accent') || data('fg1') || '#222') + ";\n    min-height: 6.5em;\n    transition: 0.2s ease-in-out;\n    transition-property: color;\n    vertical-align: middle;\n    box-sizing: border-box;\n    padding: " + (data('form.boxy') ? '0.8em 1em' : '0.8em 0.5em') + ";\n  }\n\n  label.field.textarea {\n    display: block;\n    border: 1px solid " + (data('form.color.accent') || data('fg1') || '#222') + ";\n    padding: 0.5em 0.8em 0.8em 0.8em;\n    border-radius: 2px;\n    box-shadow: none;\n    transition-property: color, border-color, box-shadow;\n  label.field.check.focus > input:before  margin: 0.8em 0.2em;\n    min-height: auto;\n  }\n\n  label.field.focus {\n    color: " + (data('form.color.accentActive') || data('fga1') || '#07e') + ";\n  }\n\n  label.field.textarea.focus {\n    border-color: " + (data('form.color.accentActive') || data('fga1') || '#07e') + ";\n    " + (!data('form.boxy') ? ("box-shadow: 1px 1px " + (data('form.color.accentActive') || data('fga1') || '#07e') + ",\n      -1px 1px " + (data('form.color.accentActive') || data('fga1') || '#07e') + ",\n      1px -1px " + (data('form.color.accentActive') || data('fga1') || '#07e') + ",\n      -1px -1px " + (data('form.color.accentActive') || data('fga1') || '#07e') + ";") : '') + "\n  }\n\n  label.field > input,\n  label.field > select,\n  label.field > textarea\n  {\n    display: block;\n    border-width: " + (data('form.boxy') ? '0.0625em' : '0 0 0.0625em 0') + ";\n    border-color: " + (data('form.color.accent') || data('fg1') || '#222') + ";\n    border-style: solid;\n    box-sizing: border-box;\n    background-color: transparent;\n    transition: 0.2s ease-in-out;\n    transition-property: box-shadow, color;\n    outline: none;\n    " + (data('form.boxy') ? 'padding: 0.7em 1.5em 0.7em 0.7em;' : '') + "\n    box-shadow: none;\n    width: 100%;\n    margin-bottom: 0.8em;\n    font-size: 1.2em;" + (data('form.boxy') ? '\n  border-radius: 0.2em;' : '') + "\n  }\n  " + (!data('form.boxy') ? "label.field > select, label.field > input {\n    height: 2.5em;\n  }" : '') + "\n\n  " + (!data('form.boxy') ? ("label.field:hover > input,\n  label.field:hover > select,\n  label.field.file:hover:after {\n    box-shadow: 0 1px 0 0 " + (data('form.color.accent') || data('fg1') || '#222') + ";\n  }\n  label.field.check:hover > input:before,\n  label.field.radio:hover > input:before,\n  label.field.textarea:hover {\n    box-shadow: 1px 1px " + (data('form.color.accent') || data('fg1') || '#222') + ",\n      -1px 1px " + (data('form.color.accent') || data('fg1') || '#222') + ",\n      1px -1px " + (data('form.color.accent') || data('fg1') || '#222') + ",\n      -1px -1px " + (data('form.color.accent') || data('fg1') || '#222') + ";\n  }\n  label.field.check.focus > input:before,\n  label.field.radio.focus > input:before {\n    box-shadow: 1px 1px " + (data('form.color.accentActive') || data('fga1') || '#07e') + ",\n      -1px 1px " + (data('form.color.accentActive') || data('fga1') || '#07e') + ",\n      1px -1px " + (data('form.color.accentActive') || data('fga1') || '#07e') + ",\n      -1px -1px " + (data('form.color.accentActive') || data('fga1') || '#07e') + ";\n  }\n  label.field.textarea.focus:hover {\n    box-shadow: 1px 1px " + (data('form.color.accentActive') || data('fga1') || '#07e') + ",\n      -1px 1px " + (data('form.color.accentActive') || data('fga1') || '#07e') + ",\n      1px -1px " + (data('form.color.accentActive') || data('fga1') || '#07e') + ",\n      -1px -1px " + (data('form.color.accentActive') || data('fga1') || '#07e') + ";\n  }\n  label.field.check > input:checked:before,\n  label.field.radio > input:checked:before {\n    box-shadow: 0px 1px " + (data('form.color.accent') || data('fg1') || '#222') + ",\n      -1px 0px " + (data('form.color.accent') || data('fg1') || '#222') + ";\n  }\n  label.field.check.focus > input:checked:before,\n  label.field.radio.focus > input:checked:before {\n    box-shadow: 0px 1px " + (data('form.color.accentActive') || data('fga1') || '#07e') + ",\n      -1px 0px " + (data('form.color.accentActive') || data('fga1') || '#07e') + ";\n  }") : '') + "\n\n  label.field.check, label.field.radio {\n    padding-top: 3em;\n    cursor: pointer;\n  }\n\n  label.field.check > input, label.field.radio > input {\n    width: 1em;\n    height: 1em;\n    border: none;\n    margin-right: 1em;\n    float: left;\n    box-shadow: none;\n  }\n\n  label.field.select {\n    cursor: pointer;\n  }\n\n  label.field.select:after {\n    content: ' ';\n    position: absolute;\n    display: block;\n    width: 0.6em;\n    height: 0.6em;\n    right: 1em;\n    top: 3.5em;\n    border-bottom: 2px solid;\n    border-right: 2px solid;\n    transform: rotate(45deg);\n    pointer-events: none;\n  }\n\n  label.field > textarea {\n    font-size: 1.4em;\n    border: none;\n  }\n\n  label.field.check > input:before,\n  label.field.radio > input:before {\n    content: '';\n    display: block;\n    border: 1px solid " + (data('form.color.accent') || data('fg1') || '#222') + ";\n    width: 1em;\n    height: 1em;\n    box-sizing: border-box;\n    transition: 0.2s ease-in-out;\n    transition-property: transform, border-color, height, width, box-shadow;\n    margin-top: -0.125em;\n  }\n\n  label.field.check.focus > input:before,\n  label.field.radio.focus > input:before {\n    border-color: " + (data('form.color.accentActive') || data('fga1') || '#07e') + ";\n  }\n\n  label.field.check > input:checked:before,\n  label.field.radio > input:checked:before {\n    height: 0.7em;\n    width: 1.3em;\n    border-width: 2px;\n    border-top-color: transparent;\n    border-right-color: transparent;\n    transform: rotate(-50deg);\n  }\n\n  label.field.check > input,\n  label.field > select {\n    -moz-appearance: none;\n    -webkit-appearance: none;\n  }\n\n  label.field > input:focus,\n  label.field > select:focus,\n  label.field.file.focus:after\n  {\n    border-color: " + (data('form.color.accentActive') || data('fga1') || '#07e') + ";\n    " + (!data('form.boxy') ? ("box-shadow: 0 1px 0 0 " + (data('form.color.accentActive') || data('fga1') || '#07e') + ";") : '') + "\n  }\n\n  label.field.file.focus:after {\n    color: " + (data('form.color.accentActive') || data('fga1') || '#07e') + ";\n  }\n  label.field.file [type=file] {\n    position: absolute;\n    width: 0;\n    height: 0;\n    opacity: 0;\n    z-index: -1;\n  }\n  label.field.file:after {\n    position: absolute;\n    content: 'Choose a file';\n    width: calc(100% - 1em);\n    height: 1.22em;\n    color: " + (data('form.color.accent') || data('fg1') || '#222') + ";\n    border-color: " + (data('form.color.accent') || data('fg1') || '#222') + ";\n    border-bottom-style: solid;\n    border-bottom-width: 0.0625em;\n    text-align: center;\n    padding: 1em 0;\n    cursor: pointer;\n    font-style: oblique;\n    left: 0.5em;\n    bottom: 1.78em;\n    transition: 0.2s ease-in-out;\n    transition-property: color, border-bolor, box-shadow;\n  }\n\n  label.field.button > button {\n    position: relative;\n    top: 1.2em;\n    font-size: 1.2em;\n  }\n\n  label.field.plain > div {\n    position: absolute;\n    font-size: 1.2em;\n    top: 2.28em;\n  }\n  ");
       }
 
       function noop() {}
@@ -409,57 +409,56 @@ System.register(['./chunk3.js', './chunk4.js', './chunk5.js', './chunk2.js', './
         var ctx = this.getContext(node);
         var cls = [];
 
-        var isField = !!~node.className.indexOf('field');
-        if (!isField) { cls.push('field'); }
+        var isField, isCheck, isRadio, isArea, isSelect, isFile, isButton, isPlain;
 
-        var isCheck = !!node.querySelector('input[type=checkbox], input[type=radio]');
-        if (isCheck) { cls.push('inline'); }
+        function invalidate() {
+          isField = !!~node.className.indexOf('field');
+          if (!isField) { cls.push('field'); }
 
-        var isArea = !!node.querySelector('textarea');
-        if (isArea) { cls.push('textarea'); }
+          isCheck = !!node.querySelector('input[type=checkbox]');
+          if (isCheck) { cls.push('check'); }
 
-        var isFile = !!node.querySelector('input[type=file]');
-        if (isFile) { cls.push('file'); }
+          isRadio = !!node.querySelector('input[type=radio]');
+          if (isRadio) { cls.push('radio'); }
 
-        var isButton = !!node.querySelector('button');
-        if (isButton) { cls.push('button'); }
+          isArea = !!node.querySelector('textarea');
+          if (isArea) { cls.push('textarea'); }
 
-        var isPlain = !!node.querySelector('div');
-        if (isPlain) { cls.push('plain'); }
+          isSelect = !!node.querySelector('select');
+          if (isSelect) { cls.push('select'); }
+
+          isFile = !!node.querySelector('input[type=file]');
+          if (isFile) { cls.push('file'); }
+
+          isButton = !!node.querySelector('button');
+          if (isButton) { cls.push('button'); }
+
+          isPlain = !!node.querySelector('div');
+          if (isPlain) { cls.push('plain'); }
+
+          node.className += (node.className.length ? ' ' : '') + cls.join(' ');
+        }
 
         var focus = ctx.listen('focusin', focused);
         var blur = ctx.listen('focusout', blurred);
 
-        node.className += (node.className.length ? ' ' : '') + cls.join(' ');
+        invalidate();
 
         return {
           update: noop,
+          invalidate: invalidate,
           teardown: function teardown() {
             var cls = node.className;
 
-            if (!isField) {
-              cls = cls.replace(/\bfield\b/, '').trim();
-            }
-
-            if (isCheck) {
-              cls = cls.replace(/\binline\b/, '').trim();
-            }
-
-            if (isArea) {
-              cls = cls.replace(/\btextarea\b/, '').trim();
-            }
-
-            if (isFile) {
-              cls = cls.replace(/\bfile\/b/, '').trim();
-            }
-
-            if (isButton) {
-              cls = cls.replace(/\bbutton\/b/, '').trim();
-            }
-
-            if (isPlain) {
-              cls = cls.replace(/\bplain\/b/, '').trim();
-            }
+            if (!isField) { cls = cls.replace(/\bfield\b/, '').trim(); }
+            if (isCheck) { cls = cls.replace(/\bcheck\b/, '').trim(); }
+            if (isRadio) { cls = cls.replace(/\bradio\b/, '').trim(); }
+            if (isArea) { cls = cls.replace(/\btextarea\b/, '').trim(); }
+            if (isSelect) { cls = cls.replace(/\bselect\b/, '').trim(); }
+            if (isFile) { cls = cls.replace(/\bfile\/b/, '').trim(); }
+            if (isButton) { cls = cls.replace(/\bbutton\/b/, '').trim(); }
+            if (isPlain) { cls = cls.replace(/\bplain\/b/, '').trim(); }
+            cls = cls.replace(/\bfocus\b/, '').trim();
 
             focus.cancel();
             blur.cancel();
