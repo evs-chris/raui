@@ -104,8 +104,10 @@ System.register(['ractive', './chunk1.js', './chunk2.js'], function (exports, mo
               if (~k.indexOf('left') && !this.get('leftOver') && !this.get('_leftOver') || ~k.indexOf('right') && !this.get('rightOver') && !this.get('_rightOver')) {
                 setTimeout(function () {
                   this$1._media && this$1._media.listener && this$1._media.listener.silence();
+                  this$1._media && this$1._media.observer && this$1._media.observer.silence();
                   this$1.fire('resize');
                   this$1._media && this$1._media.listener && this$1._media.listener.resume();
+                  this$1._media && this$1._media.observer && this$1._media.observer.resume();
                 }, (this.get('shell.slide.ms') || 400) + 10);
               }
             },
@@ -212,7 +214,9 @@ System.register(['ractive', './chunk1.js', './chunk2.js'], function (exports, mo
 
             if (tm) { clearTimeout(tm); }
             tm = setTimeout(function () {
+              if (media.listener) { media.listener.silence(); }
               r.fire('resize');
+              if (media.listener) { media.listener.resume(); }
               tm = 0;
             }, (r.get('shell.slide.ms') || 400) + 100);
           },
@@ -225,7 +229,7 @@ System.register(['ractive', './chunk1.js', './chunk2.js'], function (exports, mo
         };
 
         window.addEventListener('resize', media.fn);
-        media.observer = r.observe('@style leftOver rightOver _leftPrimary _rightPrimary', media.fn);
+        media.observer = r.observe('@style leftOver rightOver _leftPrimary _rightPrimary', media.fn, { init: false });
         if (r.get('adaptive')) { media.listener = r.root.on('*.resize', media.fn); }
 
         r._media = media;
