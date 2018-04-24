@@ -1,0 +1,1 @@
+export { default, PluginOpts } from '../src/ace-editor';

@@ -1,0 +1,1 @@
+export { default, grid, style, PluginOpts } from '../src/grid';

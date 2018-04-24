@@ -1,0 +1,1 @@
+export { default, Table, PluginOpts } from '../src/Table';

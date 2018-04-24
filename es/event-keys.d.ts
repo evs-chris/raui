@@ -1,0 +1,1 @@
+export { default, PluginOpts, tab } from '../src/event-keys';

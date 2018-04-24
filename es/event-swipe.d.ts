@@ -1,0 +1,1 @@
+export { default, PluginOpts, left, right, up, down } from '../src/event-swipe';

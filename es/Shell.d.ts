@@ -1,0 +1,1 @@
+export { default, Shell, PluginOpts } from '../src/Shell';

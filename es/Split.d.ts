@@ -1,0 +1,1 @@
+export { default, Split, PluginOpts } from '../src/Split';

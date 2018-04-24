@@ -1,0 +1,1 @@
+export { default, Tabs, PluginOpts } from '../src/Tabs';

@@ -1,0 +1,1 @@
+export { default, Card, PluginOpts } from '../src/Card';

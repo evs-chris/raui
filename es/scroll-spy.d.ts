@@ -1,0 +1,1 @@
+export { default, scrollspy, spytarget, PluginOpts } from '../src/scroll-spy';

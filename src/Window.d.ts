@@ -71,6 +71,4 @@ export interface PluginOpts {
   name?: string;
 }
 
-export function plugin(opts?: PluginOpts): Plugin;
-
-export default plugin;
+export default function(opts?: PluginOpts): Plugin;

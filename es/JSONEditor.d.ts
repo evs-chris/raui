@@ -1,0 +1,1 @@
+export { default, JSONEditor, PluginOpts } from '../src/JSONEditor';

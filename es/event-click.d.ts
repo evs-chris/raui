@@ -1,0 +1,1 @@
+export { default, PluginOpts, click, dblclick, trpclick } from '../src/event-click';
