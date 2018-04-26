@@ -30,7 +30,7 @@
       let used = 0;
 
       splits.forEach(s => {
-        const size = s.sizePath ? this.get(s.sizePath) : s.size;
+        const size = s.sizePath ? +this.get(s.sizePath) : s.size;
         if (s.curSize === undefined) {
           if (s.min) {
             s.curSize = 0;
@@ -47,18 +47,31 @@
           used += s.lastSize;
           s.curSize = s.lastSize;
           s.lastSize = false;
+        } else if (size && !s.min && s.lastSet && s.lastSet !== size) {
+          s.curSize = size;
+          s.lastSize = false;
+          used += size;
         } else if (s.curSize) {
           used += s.curSize;
+          count++;
+        } else if (!s.curSize && !s.min) {
+          s.curSize = 0.1;
           count++;
         }
       });
 
-      const offset = (100 - used) / count;
+      const offset = (100 - used) / (count || 1);
 
       const sets = {};
       splits.forEach((s, i) => {
-        sets[s.sizePath ? s.sizePath : `splits.${i}.size`] = s.curSize;
-        sets[`splits.${i}.curSize`] = (s.lastSize === false || !s.curSize) ? s.curSize : s.curSize + offset;
+        setTimeout(() => {
+          let sizing = this._sizing;
+          this._sizing = true;
+          this.set(s.sizePath ? s.sizePath : `splits.${i}.size`, s.curSize);
+          this._sizing = sizing;
+        });
+        sets[`splits.${i}.curSize`] = (s.lastSize === false || s.min) ? s.curSize : s.curSize + offset;
+        sets[`splits.${i}.lastSet`] = sets[`splits.${i}.curSize`];
         if (!s.lastSize) s.lastSize = null;
       });
 
@@ -244,8 +257,10 @@
         [startSplit.sizePath ? `~/${startSplit.sizePath}` : `../${startIdx}.size`]: s,
         [endSplit.sizePath ? `~/${endSplit.sizePath}` : `../${startIdx + 1}.size`]: e,
         [`../${startIdx}.curSize`]: s,
+        [`../${startIdx}.lastSet`]: s,
         [`../${startIdx}.min`]: false,
         [`../${startIdx + 1}.curSize`]: e,
+        [`../${startIdx + 1}.lastSet`]: e,
         [`../${startIdx + 1}.min`]: false
       });
 

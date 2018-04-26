@@ -35,9 +35,13 @@
         ```hbs
         <split>
           <div>1</div>
+          <div>
+            1<br/>
+            2.2 size: <input value="{{sizer}}" lazy=500 />
+          </div>
           <split vertical>
             <div minimize>2.1</div>
-            <div size=60>2.2</div>
+            <div size="{{sizer}}">2.2</div>
             <div>2.3</div>
           </split>
           <div size=50>3</div>
@@ -47,10 +51,13 @@
       </marked></div>
       <div>
         <split>
-          <div>1</div>
+          <div>
+            1<br/>
+            2.2 size: <input value="{{sizer}}" lazy=500 />
+          </div>
           <split vertical>
             <div minimize>2.1</div>
-            <div size=60>2.2</div>
+            <div size="{{sizer}}">2.2</div>
             <div>2.3</div>
           </split>
           <div size=50>3</div>
@@ -77,6 +84,9 @@
       title: 'Component :: Split',
       width: '40em', height: '30em',
       flex: true
+    },
+    data() {
+      return { sizer: 60 };
     }
   });
 </script>
