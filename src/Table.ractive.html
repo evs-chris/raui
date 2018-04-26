@@ -731,6 +731,9 @@
   .rtable-sortable {
     cursor: pointer;
     user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    -webkit-user-select: none;
   }
 
   .rtable-row {
@@ -771,6 +774,10 @@
     flex-shrink: 0;
     padding: 0 0.5em 0.5em 0.5em;
     justify-content: space-between;
+    user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    -webkit-user-select: none;
   }
 
   .rtable-bottom > * {
@@ -780,7 +787,6 @@
   .rtable-pages span {
     margin: 0.3em;
     cursor: pointer;
-    user-select: none;
   }
   .rtable-pages span:first-of-type {
     margin-left: 0;
