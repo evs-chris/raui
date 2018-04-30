@@ -49,7 +49,7 @@
 
           ### Template:
           ```handlebars
-          <data-table bind-items bind-filter paginate=auto on-selected="console.log($1)">
+          <data-table bind-items bind-filter bind-border bind-paginate="paginate === 'fixed' ? pages : paginate" bind-allowSelect="select" bind-allowSelectAll="selectAll" paginate=auto on-selected="console.log($1)">
             <row>
               <h3>Extra stuff goes here</h3>
               <p>I have a {{.foo}} that is {{.bar}}.</p>
@@ -57,6 +57,9 @@
             <column t7-8 s3-8 m1-3 label="Foo" filter=foo>{{.foo}}</column>
             <column t0 s3-8 m1-3 label="Bar" filter=bar>{{.bar}}</column>
             <column t0 m1-5 label="???">{{.bat ? 'Yep' : 'Nope'}}</column>
+            <group by=bat select="{{groupSelect}}" show="{{groups}}">
+              <column t7-8>{{.bat ? 'Yeps' : 'Nopes'}}</column>
+            </group>
           </data-table>
           ```
           ### Result:
@@ -65,8 +68,15 @@
       </pane><pane style-display=flex style-flex-direction=column>
         <div>
           <label as-field>Filter<input value="{{filter}}" lazy=300 ></label>
+          <label as-field><input type="checkbox" checked="{{border}}" />Border</label>
+          <label as-field><input type="checkbox" checked="{{select}}" />Select</label>
+          <label as-field><input type="checkbox" checked="{{selectAll}}" />Select All</label>
+          <label as-field><input type="checkbox" checked="{{groups}}" />Show Groups</label>
+          <label as-field><input type="checkbox" checked="{{groupSelect}}" />Group Select</label>
+          <label as-field>Pagination<select value="{{paginate}}"><option>auto</option><option>virtual</option><option>fixed</option><option value="{{null}}">none</option></select></label>
+          {{#if paginate === 'fixed'}}<label as-field>Items per page<input type="number" value="{{pages}}" /></label>{{/if}}
         </div>
-        <data-table bind-items bind-filter paginate=auto on-selected="console.log($1)">
+        <data-table bind-items bind-filter bind-border bind-paginate="paginate === 'fixed' ? pages : paginate" bind-allowSelect="select" bind-allowSelectAll="selectAll" paginate=auto on-selected="console.log($1)">
           <row>
             <h3>Extra stuff goes here</h3>
             <p>I have a {{.foo}} that is {{.bar}}.</p>
@@ -74,6 +84,9 @@
           <column t7-8 s3-8 m1-3 label="Foo" filter=foo>{{.foo}}</column>
           <column t0 s3-8 m1-3 label="Bar" filter=bar>{{.bar}}</column>
           <column t0 m1-5 label="???">{{.bat ? 'Yep' : 'Nope'}}</column>
+          <group by=bat select="{{groupSelect}}" show="{{groups}}">
+            <column t7-8>{{.bat ? 'Yeps' : 'Nopes'}}</column>
+          </group>
         </data-table>
       </pane>
     </split>
@@ -110,7 +123,7 @@
       width: '48em', height: '30em'
     },
     data() {
-      return { items: data, filter: '' };
+      return { items: data, filter: '', select: true, selectAll: true, pages: 20, paginate: 'auto' };
     }
   });
 </script>
