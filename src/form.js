@@ -98,7 +98,7 @@ export function style(data) {
   }` : ''}
 
   label.field.check, label.field.radio {
-    padding-top: 3em;
+    padding-top: 2.75em;
     cursor: pointer;
   }
 
@@ -111,8 +111,13 @@ export function style(data) {
     box-shadow: none;
   }
 
+  label.field > select {
+    padding-right: 2em;
+  }
+
   label.field.select {
     cursor: pointer;
+    position: relative;
   }
 
   label.field.select:after {
@@ -122,7 +127,7 @@ export function style(data) {
     width: 0.6em;
     height: 0.6em;
     right: 1em;
-    top: 3.5em;
+    top: 3.25em;
     border-bottom: 2px solid;
     border-right: 2px solid;
     transform: rotate(45deg);
