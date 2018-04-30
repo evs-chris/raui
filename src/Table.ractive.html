@@ -1,4 +1,9 @@
-<div class-rtable class-rtable-virtual="~/paginate === 'virtual'" class-rtable-auto="~/paginate === 'auto'" class-rtable-fixed="~/fixed">
+<div class-rtable
+  class-rtable-virtual="~/paginate === 'virtual'"
+  class-rtable-auto="~/paginate === 'auto'"
+  class-rtable-fixed="~/fixed"
+  class-rtable-border="~/border"
+>
   <div class-rtable-top>
     {{#if ~/display === 'grid'}}
       {{>grid}}
@@ -199,6 +204,55 @@
     selectionUp() {
       this.selectionOffset(-1);
     }
+
+    _selectGroup(idx) {
+      let grp = idx;
+      if (this.get('page')) {
+        grp += this.get('page') * this.get('pagination.per');
+      }
+      const rows = this.get('rows');
+      const groups = this.get('groups');
+      const sels = this.get('selections');
+      let x = rows[grp++];
+      const xs = ['selections'];
+      let ss = [];
+      let i;
+      if (!~(i = sels.indexOf(x))) xs.push(x);
+      else ss.push(i);
+
+      while (grp < rows.length && !(grp in groups)) {
+        x = rows[grp++];
+        if (!~(i = sels.indexOf(x))) xs.push(x);
+        else ss.push(i)
+      }
+
+      // select or unselect the things
+      if (xs.length === 1) {
+        i = ss.length;
+        while (i--) {
+          this.splice('selections', ss[i], 1);
+        }
+      } else {
+        this.push.apply(this, xs);
+      }
+    }
+
+    _groupSelected(idx) {
+      let grp = idx;
+      if (this.get('page')) {
+        grp += this.get('page') * this.get('pagination.per');
+      }
+      const rows = this.get('rows');
+      const groups = this.get('groups');
+      const sels = this.get('selections');
+      if (!~sels.indexOf(rows[grp++])) return false;
+
+      while (grp < rows.length && !(grp in groups)) {
+        if (!~sels.indexOf(rows[grp++])) return false;
+      }
+
+      return true;
+    }
   }
 
   Ractive.extendWith(Table, {
@@ -206,7 +260,7 @@
     css: $CSS,
     cssId: 'rtable',
     noCssTransform: true,
-    attributes: [ 'paginate', 'items', 'filter', 'sort', 'helpers', 'fixed', 'display', 'allowSelect', 'allowSelectAll' ],
+    attributes: [ 'paginate', 'items', 'filter', 'sort', 'helpers', 'fixed', 'display', 'allowSelect', 'allowSelectAll', 'border' ],
     components: {
       table: false,
       Table: false
@@ -312,6 +366,10 @@
           } else if (this._autoObserver) {
             this._autoObserver.cancel();
           }
+
+          if (typeof v === 'number') {
+            this.set('_paginate', v);
+          }
         },
         defer: true
       }
@@ -323,6 +381,8 @@
         selections: [],
         allowSelect: true,
         allowSelectAll: true,
+        showGroups: true,
+        allowGroupSelect: true,
         expanded: null
       }
     },
@@ -444,6 +504,19 @@
 
           return info;
         }
+      },
+      groups: {
+        get() {
+          const rows = this.get('rows');
+          let last, cur;
+          const res = {};
+          for (let i = 0; i < rows.length; i++) {
+            cur = rows[i][this._by];
+            if (cur != last) res[i] = 1;
+            last = cur;
+          }
+          return res;
+        }
       }
     }
   });
@@ -475,14 +548,12 @@
     const cmp = this.component;
     if ( !cmp ) return;
 
-    let rowEl;
+    let rowEl, groupEl, mappings;
 
     const tpl = cmp.template.f || [];
     const attrs = cmp.template.m ? cmp.template.m.slice() : [];
     const t = cmp.template;
     cmp.template = { e: t.e, f: t.f, t: t.t, m: attrs };
-
-    const columns = [];
 
     let id = 0;
     function map(attr, partial) {
@@ -494,57 +565,64 @@
       return attr && attr.f;
     }
 
-    // get column defs
-    // build row partial
-    tpl.forEach(e => {
-      if (e.e === 'column') {
-        const col = {};
-        const attrs = e.m || empty;
-        col.index = columns.length;
-        columns.push(col);
+    function grabColumns(tpl) {
+      const columns = [];
 
-        col.content = (e.f || []).filter(e => e.e !== 'edit');
+      tpl.forEach(e => {
+        if (e.e === 'column') {
+          const col = {};
+          const attrs = e.m || empty;
+          col.index = columns.length;
+          columns.push(col);
 
-        col.label = attrs.find(a => a.n === 'label');
-        if (col.label && col.label.f) col.label = map(col.label);
-        if (!col.label) col.label = '';
-        if (!Array.isArray(col.label)) col.label = [col.label];
+          col.content = (e.f || []).filter(e => e.e !== 'edit');
 
-        col.type = attrs.find(a => a.n === 'type');
-        if (col.type && col.type.f) col.type = col.type.f;
-        if (!col.type) col.type = 'string';
+          col.label = attrs.find(a => a.n === 'label');
+          if (col.label && col.label.f) col.label = map(col.label);
+          if (!col.label) col.label = '';
+          if (!Array.isArray(col.label)) col.label = [col.label];
 
-        col.filter = attrs.find(a => a.n === 'filter');
-        if (col.filter && col.filter.f) {
-          col.filter = map(col.filter);
-          if (col.filter.r) col.filter = col.filter.r;
-        }
+          col.type = attrs.find(a => a.n === 'type');
+          if (col.type && col.type.f) col.type = col.type.f;
+          if (!col.type) col.type = 'string';
 
-        col.sort = attrs.find(a => a.n === 'sort');
-        if (col.sort && col.sort.f) {
-          col.sort = map(col.sort);
-          if (col.sort.r) col.sort = col.sort.r;
-        }
-
-        col.hidden = attrs.find(a => a.n === 'hidden');
-        if (col.hidden && col.hidden.f === 0) col.hidden = true;
-        else if (col.hidden && typeof col.hidden.f === 'object') col.hidden = map(col.hidden);
-        else col.hidden = false;
-        if (typeof col.hidden === 'string') col.hidden = false;
-
-        col.attrs = attrs.filter(a => !~colAttrs.indexOf(a.n));
-
-        // handle inline grid sizes without requiring the class prefix
-        col.attrs.forEach((a, i) => {
-          if (cell.test(a.n)) {
-            col.attrs[i] = { t: 13, n: `class-${a.n}` };
+          col.filter = attrs.find(a => a.n === 'filter');
+          if (col.filter && col.filter.f) {
+            col.filter = map(col.filter);
+            if (col.filter.r) col.filter = col.filter.r;
           }
-        })
-      } else if (e.e === 'row') {
-        rowEl = e;
-      }
-    });
 
+          col.sort = attrs.find(a => a.n === 'sort');
+          if (col.sort && col.sort.f) {
+            col.sort = map(col.sort);
+            if (col.sort.r) col.sort = col.sort.r;
+          }
+
+          col.hidden = attrs.find(a => a.n === 'hidden');
+          if (col.hidden && col.hidden.f === 0) col.hidden = true;
+          else if (col.hidden && typeof col.hidden.f === 'object') col.hidden = map(col.hidden);
+          else col.hidden = false;
+          if (typeof col.hidden === 'string') col.hidden = false;
+
+          col.attrs = attrs.filter(a => !~colAttrs.indexOf(a.n));
+
+          // handle inline grid sizes without requiring the class prefix
+          col.attrs.forEach((a, i) => {
+            if (cell.test(a.n)) {
+              col.attrs[i] = { t: 13, n: `class-${a.n}` };
+            }
+          });
+        }
+      });
+
+      return columns;
+    }
+
+    rowEl = tpl.find(e => e.e === 'row');
+    groupEl = tpl.find(e => e.e === 'group');
+
+    const columns = grabColumns(tpl);
+    
     this._items = { columns };
 
     const sortKey = '[_0._setSort(_1,_2)]';
@@ -601,6 +679,7 @@
         const div = { t: 7, e: 'div', f: [{ t: 7, e: 'div', f: c.label }], m: [{ t: 4, n: 53, r: `~/columns.${c.index}`, f: [{ t: 70, n: ['click'], f: { r: ['@this', '.index', '@event'], s: sortKey } }] }, { t: 13, n: 'title', f: c.label }].concat(c.attrs.filter(a => a.n !== 'title')) };
         if (c.type) div.m.push({ t: 13, n: `class-rtable-${c.type}-column` });
         if (c.filter || c.sort) div.m.push({ t: 13, n: 'class-rtable-sortable' });
+        div.m.push({ t: 13, n: 'class-rtable-column' });
         let res = div;
 
         if (c.hidden && c.hidden.r) {
@@ -615,12 +694,13 @@
 
       // selectall
       header[0].f.unshift({
-        t: 4, n: 50, r: '~/allowSelect', f: [{ t: 7, e: 'div', m: [{ t: 13, n: 'class-rtable-select-header' }, { t: 13, n: 'title', f: [{ t: 2, r: 'selections.length' }, ' items selected']}], f: [{ t: 7, e: 'div', f: [{ t: 4, n: 50, r: '~/allowSelectAll', f: [{ t: 7, e: 'input', m: [{ t: 73, v: 't', f: 'false' }, { t: 13, n: 'type', f: 'checkbox' }, { t: 13, n: 'checked', f: [{ t: 2, x: { r: ['@this'], s: '_0.allSelected()' } }] }, { t: 70, n: ['click'], f: 'selectAll' }, { t: 13, n: 'class-rtable-select' }] }] }] }] }]
+        t: 4, n: 50, r: '~/allowSelect', f: [{ t: 7, e: 'div', m: [{ t: 13, n: 'class-rtable-select-header' }, { t: 13, n: 'class-rtable-column' }, { t: 13, n: 'title', f: [{ t: 2, r: 'selections.length' }, ' items selected']}], f: [{ t: 7, e: 'div', f: [{ t: 4, n: 50, r: '~/allowSelectAll', f: [{ t: 7, e: 'input', m: [{ t: 73, v: 't', f: 'false' }, { t: 13, n: 'type', f: 'checkbox' }, { t: 13, n: 'checked', f: [{ t: 2, x: { r: ['@this'], s: '_0.allSelected()' } }] }, { t: 70, n: ['click'], f: 'selectAll' }, { t: 13, n: 'class-rtable-select' }] }] }] }] }]
       });
 
       const row = [{ t: 7, e: 'div', f: columns.filter(c => c.hidden !== true).map(c => {
         const div = { t: 7, e: 'div', f: [{ t: 7, e: 'div', f: c.content }], m: c.attrs };
         if (c.type) div.m.unshift({ t: 13, n: `class-rtable-${c.type}-column` });
+        div.m.push({ t: 13, n: 'class-rtable-column' });
         if (!div.m.find(a => a.n === 'title')) div.m.unshift({ t: 13, n: 'title', f: c.content });
         let res = div;
 
@@ -637,7 +717,7 @@
 
       // select
       row[0].f.unshift({
-        t: 4, n: 50, r: '~/allowSelect', f: [{ t: 7, e: 'div', m: [{ t: 13, n: 'class-rtable-select-row' }, { t: 70, n: ['clickd'], f: { r: ['@this', '.', '@event'], s: '[_0._select(_1,_2),false]' } }], f: [{ t: 7, e: 'div', f: [{ t: 7, e: 'input', m: [{ t: 73, v: 't', f: 'false' }, { t: 13, n: 'type', f: 'checkbox' }, { t: 13, n: 'checked', f: [{ t: 2, x: { r: ['~/selections', '.'], s: '~_0.indexOf(_1)' } }] }, { t: 13, n: 'class-rtable-select' }, { t: 70, n: ['click'], f: { r: [], s: '[false]' } }] }] }] }]
+        t: 4, n: 50, r: '~/allowSelect', f: [{ t: 7, e: 'div', m: [{ t: 13, n: 'class-rtable-select-row' }, { t: 13, n: 'class-rtable-column' }, { t: 70, n: ['clickd'], f: { r: ['@this', '.', '@event'], s: '[_0._select(_1,_2),false]' } }], f: [{ t: 7, e: 'div', f: [{ t: 7, e: 'input', m: [{ t: 73, v: 't', f: 'false' }, { t: 13, n: 'type', f: 'checkbox' }, { t: 13, n: 'checked', f: [{ t: 2, x: { r: ['~/selections', '.'], s: '~_0.indexOf(_1)' } }] }, { t: 13, n: 'class-rtable-select' }, { t: 70, n: ['click'], f: { r: [], s: '[false]' } }] }] }] }]
       });
 
       // expando rows
@@ -648,8 +728,58 @@
         row[0].m.push({ t: 70, n: ['clickd'], f: { r: ['@this', '@index'], s: '[_0._expand(_1)]' } });
       }
 
+      // group
+      let by;
+      if (groupEl && groupEl.m && (by = groupEl.m.find(a => a.n === 'by')) && (typeof by.f === 'string' || (by.length === 1 && by[0].t === 2))) {
+        const group = {
+          t: 4, n: 50, f: [{
+            t: 7, e: 'div', m: [
+              { t: 13, n: 'class-row' }, { t: 13, n: 'class-rtable-group' },
+              { t: 13, n: 'class-rtable-selected', f: [{ t: 2, x: { r: ['~/selections', '.'], s: '~_0.indexOf(_1)' } }] },
+              { t: 70, n: (rowEl && rowEl.f ? ['dblclickd'] : ['click', 'dblclick']), f: { r: ['~/rows', '~/visibleRows', '.'], s: `[['selected',_2,_0.indexOf(_2),_1.indexOf(_2)]]` } }
+            ].concat(groupEl.m.filter(a => a.n !== 'by' && a.n !== 'select'))
+          }],
+          x: { s: `_0&&_1[(_1&&(_2*_3+_4))||_4]`, r: [ '~/showGroups', '~/groups', '~/page', '~/pagination.per', '@index' ] }
+        };
+        row.unshift(group);
+        this._by = by.f;
+
+        const parts = grabColumns(groupEl.f).filter(c => c.hidden !== true).map(c => {
+          const div = { t: 7, e: 'div', f: [{ t: 7, e: 'div', f: c.content }], m: c.attrs };
+          if (c.type) div.m.unshift({ t: 13, n: `class-rtable-${c.type}-column` });
+          div.m.push({ t: 13, n: 'class-rtable-column' });
+          if (!div.m.find(a => a.n === 'title')) div.m.unshift({ t: 13, n: 'title', f: c.content });
+          let res = div;
+
+          if (c.hidden && c.hidden.r) {
+            res = { t: 4, n: 51, r: c.hidden.r, f: [div] };
+          }
+
+          return res;
+        });
+
+        // select
+        parts.unshift({
+          t: 4, n: 50, r: '~/allowGroupSelect', f: [{ t: 7, e: 'div', m: [{ t: 13, n: 'class-rtable-select-row' }, { t: 13, n: 'class-rtable-column' }, { t: 70, n: ['clickd'], f: { r: ['@this', '@index'], s: '[_0._selectGroup(_1),false]' } }], f: [{ t: 7, e: 'div', f: [{ t: 7, e: 'input', m: [{ t: 73, v: 't', f: 'false' }, { t: 13, n: 'type', f: 'checkbox' }, { t: 13, n: 'checked', f: [{ t: 2, x: { r: ['@this', '@index'], s: '_0._groupSelected(_1)' } }] }, { t: 13, n: 'class-rtable-select' }, { t: 70, n: ['click'], f: { r: [], s: '[false]' } }] }] }] }]
+        });
+
+        
+        let attr;
+        if (attr = groupEl.m.find(a => a.n === 'select')) {
+          (mappings || (mappings = [])).push(Object.assign({}, attr, { n: 'allowGroupSelect' }));
+        }
+
+        if (attr = groupEl.m.find(a => a.n === 'show')) {
+          (mappings || (mappings = [])).push(Object.assign({}, attr, { n: 'showGroups' }));
+        }
+
+        group.f[0].f = parts;
+      }
+
       this._grid_row = row;
       this._grid_head = header;
+
+      if (mappings && this.component) this.component.mappings = mappings;
     }
   }
 
@@ -691,6 +821,7 @@
   .rtable td {
     padding: 0.5em;
   }
+  .rtable-group > div > div,
   .rtable-header > div > div,
   .rtable-row > div > div {
     padding: 0.5em;
@@ -720,7 +851,7 @@
   }
 
   .rtable-header {
-    border-bottom: 1px solid ${data('table.divider') || data('table.fg') || data('fg1') || '#ddd'};
+    border-bottom: 1px solid ${data('table.divider') || data('table.fg') || data('fg1') || '#d2d2d2'};
     text-align: left;
   }
 
@@ -738,13 +869,13 @@
 
   .rtable-row {
     color: ${data('table.fg') || data('fg1') || '#000'};
-    border-bottom: 1px solid ${data('table.divider') || data('table.fg') || data('fg1') || '#ddd'};
+    border-bottom: 1px solid ${data('table.divider') || data('table.fg') || data('fg1') || '#d2d2d2'};
     background-color: ${data('table.odd') || data('bg1') || '#f9f9f9'};
     transition: 0.2s ease-in-out;
     transition-property: background-color, color;
   }
-  .rtable-row:nth-child(even) {
-    background-color: ${data('table.even') || data('bga1') || '#fefefe'};
+  .rtable-row:nth-child(odd) {
+    background-color: ${data('table.odd') || data('bga1') || '#fefefe'};
   }
   .rtable-row:last-of-type {
     border-bottom: none;
@@ -754,11 +885,24 @@
   }
 
   .rtable-row.rtable-selected {
-    background-color: ${data('table.selected.bg') || data('bg2') || 'rgba(0, 119, 238, 0.35)'};
+    background-color: ${data('table.selected.bg') || data('bg2') || 'rgba(0, 119, 238, 0.12)'};
     color: ${data('table.selected.fg') || data('fg2') || '#000'};
   }
-  .rtable-row.rtable-selected:nth-child(even) {
-    background-color: ${data('table.selected.even') || data('bga2') || 'rgba(0, 119, 238, 0.3)'};
+  .rtable-row.rtable-selected:nth-child(odd) {
+    background-color: ${data('table.selected.odd') || data('bga2') || 'rgba(0, 119, 238, 0.1)'};
+  }
+
+  .rtable-border .rtable-row .rtable-column:nth-child(n+2),
+  .rtable-border .rtable-group .rtable-column:nth-child(n+2) {
+    border-left: 1px solid ${data('table.divider') || data('table.fg') || data('fg1') || '#d2d2d2'};
+  }
+
+  .rtable-border .rtable-row-expand {
+    border-top: 1px solid ${data('table.divider') || data('table.fg') || data('fg1') || '#d2d2d2'};
+  }
+
+  .rtable-group {
+    border-bottom: 2px solid ${data('table.divider') || data('table.fg') || data('fg1') || '#d2d2d2'};
   }
 
   .rtable-top {
