@@ -85,7 +85,7 @@
           <column t0 s3-8 m1-3 label="Bar" filter=bar>{{.bar}}</column>
           <column t0 m1-5 label="???">{{.bat ? 'Yep' : 'Nope'}}</column>
           <group by=bat select="{{groupSelect}}" show="{{groups}}">
-            <column t7-8>{{.bat ? 'Yeps' : 'Nopes'}}</column>
+            <column t7-8><strong>{{.bat ? 'Yeps' : 'Nopes'}}</strong></column>
           </group>
         </data-table>
       </pane>
