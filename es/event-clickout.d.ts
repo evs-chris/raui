@@ -1,0 +1,1 @@
+export { default, clickout } from '../src/clickout';
