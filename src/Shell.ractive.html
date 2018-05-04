@@ -1,7 +1,7 @@
 <div class-rshell {{yield extra-attributes}} as-tracked=`outer` class-rshell-left-popped=".leftPop" class-rshell-right-popped=".rightPop">
   <div class-rshell-sizer as-tracked=`sizer` />
   <div class-rshell-main>
-    {{#if ._top}}<div class-rshell-top {{#if ._topA}}{{yield ._topA}}{{/if}}>{{yield ._top}}</div>{{/if}}
+    {{#if ._top}}<div class-rshell-top class-rshell-overflow="~/topOverflow" {{#if ._topA}}{{yield ._topA}}{{/if}}>{{yield ._top}}</div>{{/if}}
     <div class-rshell-middle class-rshell-has-left="._left && !._leftOver && !.leftOver" class-rshell-has-right="._right && !._rightOver && !.rightOver" class-rshell-left-hidden=".leftHidden" class-rshell-right-hidden=".rightHidden">
       <div class-rshell-modal class-rshell-blocked=".blocked || (.blockableLeft && .leftPull) || (.blockableRight && .rightPull)"
         on-click="@.set({ leftHidden: .leftOver || ._leftOver ? true : .leftHidden, rightHidden: .rightOver || ._rightOver ? true : .rightHidden })"
@@ -12,10 +12,10 @@
       {{#if ._left}}
         <div class-rshell-left as-tracked=`left`
           {{#if ._leftA}}{{yield ._leftA}}{{/if}}
-          on-click="(._leftOver || .leftOver) && @.toggle('leftHidden')"
           on-swipeleft({bind:'.leftPush'})="@.set('leftHidden', true)"
           {{#if .leftPull}}style-transition=none style-transform="translate(-{{100 - (.leftPull > 100 ? 100 : .leftPull)}}%)"{{/if}}
           {{#if .leftPush}}style-transition=none style-transform="translate(-{{.leftPush > 100 ? 100 : .leftPush}}%)"{{/if}}
+          class-rshell-overflow="~/leftOverflow"
         >{{yield ._left}}</div>
       {{/if}}
       {{#if ._center}}
@@ -23,19 +23,20 @@
           {{#if ._centerA}}{{yield ._centerA}}{{/if}}
           {{#if ._left && .leftHidden}}on-swiperight({maxX:80,bind:'.leftPull'})="@.set('leftHidden', false)"{{/if}}
           {{#if ._right && .rightHidden}}on-swipeleft({minX:-80,bind:'.rightPull'})="@.set('rightHidden', false)"{{/if}}
+          class-rshell-overflow="~/centerOverflow"
         >{{yield ._center}}</div>
       {{/if}}
       {{#if ._right}}
         <div class-rshell-right as-tracked=`right`
           {{#if ._rightA}}{{yield ._rightA}}{{/if}}
-          on-click="(._rightOver || .rightOver) && @.toggle('rightHidden')"
           on-swiperight({bind:'.rightPush'})="@.set('rightHidden', true)"
           {{#if .rightPull}}style-transition=none style-transform="translate({{ 100 - (.rightPull > 100 ? 100 : .rightPull)}}%)"{{/if}}
           {{#if .rightPush}}style-transition=none style-transform="translate({{.rightPush > 100 ? 100 : .rightPush}}%)"{{/if}}
+          class-rshell-overflow="~/rightOverflow"
         >{{yield ._right}}</div>
       {{/if}}
     </div>
-    {{#if ._bottom}}<div class-rshell-bottom {{#if ._bottomA}}{{yield ._bottomA}}{{/if}}>{{yield ._bottom}}</div>{{/if}}
+    {{#if ._bottom}}<div class-rshell-bottom {{#if ._bottomA}}{{yield ._bottomA}}{{/if}} class-rshell-overflow="~/bottomOverflow">{{yield ._bottom}}</div>{{/if}}
   </div>
   {{#if ._leftPop}}<div class-rshell-left-pop {{#if ._leftPopA}}{{yield ._leftPopA}}{{/if}}>{{yield ._leftPop}}</div>{{/if}}
   {{#if ._rightPop}}<div class-rshell-right-pop {{#if ._rightPopA}}{{yield ._rightPopA}}{{/if}}>{{yield ._rightPop}}</div>{{/if}}
@@ -136,7 +137,7 @@
   });
 
   const parts = ['top', 'bottom', 'center', 'left', 'right', 'left-pop', 'right-pop'];
-  const skipAttrs = ['hidden', 'primary', 'over', 'popped'];
+  const skipAttrs = ['hidden', 'primary', 'over', 'popped', 'overflow', 'forced'];
   function construct() {
     const cmp = this.component;
     if ( !cmp ) return;
@@ -170,6 +171,10 @@
               a = e.m.find(a => a.n === 'popped');
               if (a) attrs.push({ t: 13, n: name, f: a.f });
             }
+            a = e.m.find(a => a.n === 'overflow');
+            if (a) attrs.push({ t: 13, n: `${name}Overflow`, f: a.f });
+            a = (e.e === 'left' || e.e === 'right') && e.m.find(a => a.n === 'forced');
+            if (a) attrs.push({ t: 13, n: `_${name}Over`, f: a.f });
           }
         }
       }
@@ -409,6 +414,10 @@
   .rshell-has-left.rshell-has-right.rshell-left-hidden.rshell-right-hidden > .rshell-center {
     width: 100%;
     left: 0;
+  }
+
+  .rshell-overflow {
+    overflow: visible;
   }
   `;
 </script>
