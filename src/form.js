@@ -37,9 +37,9 @@ export function style(data) {
       -1px -1px ${data('form.color.accentActive') || data('fga1') || '#07e'};` : ''}
   }
 
-  label.field > input,
-  label.field > select,
-  label.field > textarea
+  label.field input,
+  label.field select,
+  label.field textarea
   {
     display: block;
     border-width: ${data('form.boxy') ? '0.0625em' : '0 0 0.0625em 0'};
@@ -61,20 +61,20 @@ export function style(data) {
   }` : ''}
 
   ${!data('form.boxy') ? `label.field:hover > input,
-  label.field:hover > select,
+  label.field:hover select,
   label.field.file:hover:after {
     box-shadow: 0 1px 0 0 ${data('form.color.accent') || data('fg1') || '#222'};
   }
-  label.field.check:hover > input:before,
-  label.field.radio:hover > input:before,
+  label.field.check:hover input:before,
+  label.field.radio:hover input:before,
   label.field.textarea:hover {
     box-shadow: 1px 1px ${data('form.color.accent') || data('fg1') || '#222'},
       -1px 1px ${data('form.color.accent') || data('fg1') || '#222'},
       1px -1px ${data('form.color.accent') || data('fg1') || '#222'},
       -1px -1px ${data('form.color.accent') || data('fg1') || '#222'};
   }
-  label.field.check.focus > input:before,
-  label.field.radio.focus > input:before {
+  label.field.check.focus input:before,
+  label.field.radio.focus input:before {
     box-shadow: 1px 1px ${data('form.color.accentActive') || data('fga1') || '#07e'},
       -1px 1px ${data('form.color.accentActive') || data('fga1') || '#07e'},
       1px -1px ${data('form.color.accentActive') || data('fga1') || '#07e'},
@@ -86,13 +86,13 @@ export function style(data) {
       1px -1px ${data('form.color.accentActive') || data('fga1') || '#07e'},
       -1px -1px ${data('form.color.accentActive') || data('fga1') || '#07e'};
   }
-  label.field.check > input:checked:before,
-  label.field.radio > input:checked:before {
+  label.field.check input:checked:before,
+  label.field.radio input:checked:before {
     box-shadow: 0px 1px ${data('form.color.accent') || data('fg1') || '#222'},
       -1px 0px ${data('form.color.accent') || data('fg1') || '#222'};
   }
-  label.field.check.focus > input:checked:before,
-  label.field.radio.focus > input:checked:before {
+  label.field.check.focus input:checked:before,
+  label.field.radio.focus input:checked:before {
     box-shadow: 0px 1px ${data('form.color.accentActive') || data('fga1') || '#07e'},
       -1px 0px ${data('form.color.accentActive') || data('fga1') || '#07e'};
   }` : ''}
@@ -102,7 +102,7 @@ export function style(data) {
     cursor: pointer;
   }
 
-  label.field.check > input, label.field.radio > input {
+  label.field.check input, label.field.radio input {
     width: 1em;
     height: 1em;
     border: none;
@@ -111,7 +111,7 @@ export function style(data) {
     box-shadow: none;
   }
 
-  label.field > select {
+  label.field select {
     padding-right: 2em;
   }
 
@@ -134,13 +134,13 @@ export function style(data) {
     pointer-events: none;
   }
 
-  label.field > textarea {
+  label.field textarea {
     font-size: 1.4em;
     border: none;
   }
 
-  label.field.check > input:before,
-  label.field.radio > input:before {
+  label.field.check input:before,
+  label.field.radio input:before {
     content: '';
     display: block;
     border: 1px solid ${data('form.color.accent') || data('fg1') || '#222'};
@@ -152,13 +152,13 @@ export function style(data) {
     margin-top: -0.125em;
   }
 
-  label.field.check.focus > input:before,
-  label.field.radio.focus > input:before {
+  label.field.check.focus input:before,
+  label.field.radio.focus input:before {
     border-color: ${data('form.color.accentActive') || data('fga1') || '#07e'};
   }
 
-  label.field.check > input:checked:before,
-  label.field.radio > input:checked:before {
+  label.field.check input:checked:before,
+  label.field.radio input:checked:before {
     height: 0.7em;
     width: 1.3em;
     border-width: 2px;
@@ -167,18 +167,23 @@ export function style(data) {
     transform: rotate(-50deg);
   }
 
-  label.field.check > input,
+  label.field.check input,
   label.field > select {
     -moz-appearance: none;
     -webkit-appearance: none;
   }
 
-  label.field > input:focus,
-  label.field > select:focus,
+  label.field input:focus,
+  label.field select:focus,
   label.field.file.focus:after
   {
     border-color: ${data('form.color.accentActive') || data('fga1') || '#07e'};
     ${!data('form.boxy') ? `box-shadow: 0 1px 0 0 ${data('form.color.accentActive') || data('fga1') || '#07e'};` : ''}
+  }
+
+  label.field input[type=checkbox]:focus,
+  label.field input[type=radio]:focus {
+    box-shadow: none;
   }
 
   label.field.file.focus:after {
@@ -210,13 +215,13 @@ export function style(data) {
     transition-property: color, border-bolor, box-shadow;
   }
 
-  label.field.button > button {
+  label.field.button button {
     position: relative;
     top: 1.2em;
     font-size: 1.2em;
   }
 
-  label.field.plain > div {
+  label.field.plain div {
     position: absolute;
     font-size: 1.2em;
     top: 2.28em;
@@ -238,9 +243,11 @@ export function field(node) {
   const ctx = this.getContext(node);
   let cls = [];
 
-  let isField, isCheck, isRadio, isArea, isSelect, isFile, isButton, isPlain;
+  let isField, isCheck, isRadio, isArea, isSelect, isFile, isButton, isPlain, isInput;
 
   function invalidate() {
+    setup();
+
     isField = !!~node.className.indexOf('field');
     if (!isField) cls.push('field');
 
@@ -265,7 +272,25 @@ export function field(node) {
     isPlain = !!node.querySelector('div');
     if (isPlain) cls.push('plain');
 
+    isInput = !isCheck && !isRadio && !isFile && !!node.querySelector('input');
+    if (isInput) cls.push('input');
+
     node.className += (node.className.length ? ' ' : '') + cls.join(' ');
+  }
+
+  function setup() {
+    let cls = node.className;
+
+    if (!isField) cls = cls.replace(/\bfield\b/, '').trim();
+    if (isCheck) cls = cls.replace(/\bcheck\b/, '').trim();
+    if (isRadio) cls = cls.replace(/\bradio\b/, '').trim();
+    if (isArea) cls = cls.replace(/\btextarea\b/, '').trim();
+    if (isSelect) cls = cls.replace(/\bselect\b/, '').trim();
+    if (isFile) cls = cls.replace(/\bfile\/b/, '').trim();
+    if (isButton) cls = cls.replace(/\bbutton\/b/, '').trim();
+    if (isPlain) cls = cls.replace(/\bplain\/b/, '').trim();
+    
+    node.className = cls;
   }
 
   const focus = ctx.listen('focusin', focused);
@@ -278,15 +303,7 @@ export function field(node) {
     invalidate,
     teardown() {
       let cls = node.className;
-
-      if (!isField) cls = cls.replace(/\bfield\b/, '').trim();
-      if (isCheck) cls = cls.replace(/\bcheck\b/, '').trim();
-      if (isRadio) cls = cls.replace(/\bradio\b/, '').trim();
-      if (isArea) cls = cls.replace(/\btextarea\b/, '').trim();
-      if (isSelect) cls = cls.replace(/\bselect\b/, '').trim();
-      if (isFile) cls = cls.replace(/\bfile\/b/, '').trim();
-      if (isButton) cls = cls.replace(/\bbutton\/b/, '').trim();
-      if (isPlain) cls = cls.replace(/\bplain\/b/, '').trim();
+      setup();
       cls = cls.replace(/\bfocus\b/, '').trim();
 
       focus.cancel();
