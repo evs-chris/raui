@@ -1,19 +1,31 @@
-<div class-rmenu {{yield extra-attributes}}>
-  {{>items}}
+<div {{yield extra-attributes}} class-rmenu-wrapper class-rmenu-vertical="!~/horizontal" class-rmenu-horizontal="~/horizontal">
+  <div class-rmenu><div class-rmenu-inner>
+    {{>items}}
+  </div></div>
 </div>
 
 <template id="items">
+  {{#if .shrink}}
+    <div class-rmenu-popout-close on-click="@context.toggle('.open'), false"></div>
+  {{/if}}
   {{#each .items}}
   {{#if .condition === undefined || (typeof .condition === 'boolean' && .condition) || (typeof .condition === 'string' && ~/[.condition]) || (typeof .condition === 'function' && .condition())}}
     <div
       class-rmenu-entry
       {{#if !.type || .type === 'item'}}class-rmenu-item{{elseif .type === 'section'}}class-rmenu-section{{elseif .type === 'container'}}class-rmenu-container{{/if}}
       class-rmenu-expanded=".open"
-      expand-in-out
+      class-rmenu-popout="(!.type || .type === 'item') && .popout"
+      {{#if .popout}}
+        pop-in-out
+        {{#if .open}}on-clickout="@.popAllIn(@context)"{{/if}}
+      {{else}}
+        expand-in-out
+      {{/if}}
       {{#if .refPartial}}{{>.refPartial}}{{elseif typeof .ref === 'string'}}as-ref=".ref"{{/if}}
       {{#if .attrsPartial}}{{yield .attrsPartial}}{{/if}}
     >
       {{>.type || 'item'}}
+      {{#if !.type || .type === 'item'}}{{@._itemRendered(@context)}}{{/if}}
     </div>
   {{/if}}
   {{/each}}
@@ -26,8 +38,8 @@
     {{#if .left}}<div class-menu-left>{{{.left}}}</div>{{elseif .leftPartial}}<div class-rmenu-left>{{yield .leftPartial}}</div>{{/if}}
     <div
       class-rmenu-title
-      {{#if typeof .action === 'function'}}on-click="this.action()"
-      {{elseif .actionPartial}}{{yield .actionPartial}}
+      {{#if typeof .action === 'function'}}on-click=".action()" on-click="@._actioned()"
+      {{elseif .actionPartial}}{{yield .actionPartial}} on-click="@._actioned()"
       {{elseif .items.length}}on-click="@context.toggle('.open'), false"{{/if}}
     >
       {{#if .title}}{{{.title}}}{{elseif .titlePartial}}{{yield .titlePartial}}{{/if}}
@@ -42,7 +54,7 @@
 
 <template id="children">
   {{#if .items.length && (.open || .type === 'section')}}
-  <div class-rmenu-items expand-in-out>
+  <div class-rmenu-items {{#if !.popout}}expand-in-out{{else}}pop-in-out{{/if}}>
     {{>items}}
   </div>
   {{/if}}
@@ -62,6 +74,7 @@
 <script>
   import Ractive from 'ractive';
   import expand from './transition-expand';
+  import clickout from './event-clickout';
   import globalRegister from './globalRegister';
 
   export class Menu extends Ractive {
@@ -112,6 +125,26 @@
         }, null);
       }
     }
+
+    popAllIn(ctx) {
+      ctx = ctx || this.getContext();
+      const items = ctx.get('items');
+      if (ctx.get('open')) ctx.set('open', false);
+      const path = ctx.resolve('items');
+      for (let i = 0; i < items.length; i++) {
+        close(this, `${path}.${i}`);
+      }
+    }
+
+    _actioned() {
+      this.fire('action');
+      this.popAllIn();      
+    }
+
+    _itemRendered(ctx) {
+      setTimeout(() => this.fire('item', ctx, this.getHandle(ctx)));
+      return '';
+    }
   }
 
   // TODO: api handles, active elements, and ids
@@ -129,7 +162,7 @@
       }
     },
     attributes: [],
-    use: [expand()],
+    use: [expand(), clickout()],
     decorators: {
       ref(node, name) {
         const r = this;
@@ -152,6 +185,57 @@
         r.refs[nm] = handle;
 
         return handle;
+      }
+    },
+    transitions: {
+      pop(t, params) {
+        const p = t.processParams(params, { duration: 200, easing: 'easeInOut' });
+        let shrink;
+
+        if (t.isIntro) {
+          const rect = t.node.getBoundingClientRect();
+          function findParent() {
+            let n = t.node.parentNode;
+            while (n && n.classList) {
+              if (n.classList.contains('rmenu')) return n;
+              else if (n.parentNode.classList.contains('rmenu-popout')) return n;
+              n = n.parentNode;
+            }
+          }
+          if (rect.left + rect.width > window.innerWidth) {
+            t.node.classList.add('rmenu-shrink');
+            shrink = true;
+            setTimeout(() => this.getContext(t.node).set('.shrink', true));
+            findParent().style.overflowX = 'hidden';
+          } else if (t.node.classList.contains('rmenu-shrink')) {
+            setTimeout(() => this.getContext(t.node).set('.shrink', false));
+            findParent().style.overflowX = '';
+          } else {
+            findParent().style.overflowX = '';
+          }
+        } else {
+          shrink = t.node.classList.contains('rmenu-shrink');
+        }
+
+        if (t.isIntro) {
+          if (shrink) {
+            t.setStyle('left', '100%');
+            return t.animateStyle('left', 0, p);
+          } else {
+            t.setStyle('left', 0);
+            t.setStyle('z-index', -1);
+            return t.animateStyle('left', '100%', p);
+          }
+        } else {
+          if (shrink) {
+            t.setStyle('left', 0);
+            return t.animateStyle('left', '100%', p);
+          } else {
+            t.setStyle('left', '100%');
+            t.setStyle('z-index', -1);
+            return t.animateStyle('left', 0, p);
+          }
+        }
       }
     }
   });
@@ -200,6 +284,8 @@
           }
         } else if (a.n === 'open') {
           res.open = true;
+        } else if (a.n === 'popout') {
+          res.popout = true;
         } else if (el.e === 'container' && a.n === 'pad') {
           res.pad = true;
         } else {
@@ -290,6 +376,15 @@
       else return this.set(`.active`, v);
     }
 
+    get ref() {
+      if (this.removed) return;
+      return this.item.ref;
+    }
+
+     set ref(v) {
+       return this.set('.ref', v);
+     }
+
     addItem(item, idx) {
       if (this.removed) return false;
       const items = `${this.keypath}.items`;
@@ -333,6 +428,17 @@
     }
   }
 
+  function close(instance, path) {
+    const item = instance.get(path);
+    if (item.open && item.popout) instance.toggle(`${path}.open`);
+    let items;
+    if (items = instance.get(`${path}.items`)) {
+      for (let i = 0; i < items.length; i++) {
+        close(instance, `${path}.items.${i}`);
+      }
+    }
+  }
+
   export function plugin(opts = {}) {
     return function({ instance }) {
       instance.components[opts.name || 'menu'] = Menu;
@@ -346,11 +452,27 @@
 
 <script rel="css">
   const base = `
+  .rmenu-wrapper {
+    position: relative;
+    z-index: 1;
+  }
+  .rmenu-wrapper.rmenu-vertical {
+    min-height: 100%;
+  }
   .rmenu {
     ${data('menu.font') ? `font-family: ${data('menu.font')};` : ''}
     color: ${data('menu.fg') || '#fefefe'};
     background-color: ${data('menu.bg') || '#444'};
-    min-height: 100%;
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+  }
+  .rmenu-inner {
+    width: 100%;
+    height: 100%;
+    overflow-y: auto;
   }
   .rmenu-item {
     border-top: 1px solid transparent;
@@ -397,7 +519,7 @@
     top: 0.25em;
     content: ' ';
     transform: rotate(45deg);
-    transition: transform 0.2s ease-in-out, top 0.2s ease-in-out;
+    transition: transform 0.2s ease-in-out, top 0.2s ease-in-out, left 0.2s ease-in-out;
     box-sizing: border-box;
     border-width: 0.25em;
     border-style: solid;
@@ -406,6 +528,56 @@
   }
   .rmenu-expanded > .rmenu-main > .rmenu-expand:before {
     top: -0.25em;
+  }
+
+  .rmenu-popout > .rmenu-items {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: ${data('menu.popout.bg') || data('menu.fg') || '#fefefe'};
+    color: ${data('menu.popout.fg') || data('menu.bg') || '#444'};
+    box-sizing: border-box;
+    border: 1px solid;
+    z-index: -1;
+    transition: box-shadow 0.2s ease-in-out;
+  }
+  .rmenu-popout.rmenu-expanded > .rmenu-items {
+    left: 100%;
+    z-index: initial;
+    box-shadow: 0.2em 0 0.2em rgba(0, 0, 0, 0.2);
+  }
+
+  .rmenu-popout > .rmenu-items.rmenu-shrink {
+    left: 100%;
+    z-index: 1;
+  }
+  .rmenu-popout.rmenu-expanded > .rmenu-items.rmenu-shrink {
+    left: 0;
+  }
+
+  .rmenu-popout > .rmenu-main > .rmenu-expand:before {
+    transform: rotate(-45deg);
+    top: 0.4em;
+  }
+
+  .rmenu-popout.rmenu-expanded > .rmenu-main > .rmenu-expand:before {
+    transform: rotate(135deg);
+    left: 0.75em;
+  }
+
+  .rmenu-popout > .rmenu-items .rmenu-popout > .rmenu-items {
+    height: calc(100% + 2px);
+    width: calc(100% + 1px);
+    top: -1px;
+  }
+
+  .rmenu-popout-close:after {
+    color:  ${data('menu.popout.close') || 'rgba(0, 0, 0, 0.3)'};
+    content: '\\274c Close';
+    display: block;
+    padding: 0.5em 0.5em 0.1em 0.5em;
   }
 
   .rmenu-title {
