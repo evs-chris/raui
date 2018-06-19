@@ -110,6 +110,7 @@
 </script>
 
 <script rel="css">
+  const primary = Object.assign({}, data('raui.primary'), data('raui.toast.primary'));
   return `
   .rtoast {
     position: absolute;
@@ -154,27 +155,27 @@
     flex-shrink: 2;
     align-items: center;
     border-radius: 2px;
-    color: ${data('toast.fg') || data('bg1') || '#fff'};
-    background-color: ${data('toast.bg') || data('fg1') || '#222'};
+    color: ${primary.bg || '#fff'};
+    background-color: ${primary.fg || '#222'};
     box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.14), 0 1px 5px 0 rgba(0, 0, 0, 0.12), 0 3px 1px -2px rgba(0, 0, 0, 0.2);
     opacity: 0.95;
   }
 
   .rtoast-success {
-    color: ${data('toast.success.fg') || '#f9f9f9'};
-    background-color: ${data('toast.success.bg') || '#4caf50'};
+    color: ${data('raui.toast.success.fg') || '#f9f9f9'};
+    background-color: ${data('raui.toast.success.bg') || '#4caf50'};
   }
   .rtoast-info {
-    color: ${data('toast.info.fg') || '#f9f9f9'};
-    background-color: ${data('toast.info.bg') || '#07e'};
+    color: ${data('raui.toast.info.fg') || '#f9f9f9'};
+    background-color: ${data('raui.toast.info.bg') || '#07e'};
   }
   .rtoast-warn {
-    color: ${data('toast.warn.fg') || '#222'};
-    background-color: ${data('warn.success.bg') || '#ffc107'};
+    color: ${data('raui.toast.warn.fg') || '#222'};
+    background-color: ${data('raui.warn.success.bg') || '#ffc107'};
   }
   .rtoast-error {
-    color: ${data('toast.error.fg') || '#f9f9f9'};
-    background-color: ${data('toast.error.bg') || '#ff5252'};
+    color: ${data('raui.toast.error.fg') || '#f9f9f9'};
+    background-color: ${data('raui.toast.error.bg') || '#ff5252'};
   }
   `;
 </script>

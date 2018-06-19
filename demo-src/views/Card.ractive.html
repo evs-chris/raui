@@ -1,4 +1,4 @@
-<tabs flat pad class-secondary fill height=dynamic>
+<tabs flat pad class-alt fill height=dynamic>
   <tab title=Intro><marked>
     This is your fairly standard Material card de-boilerplated a bit as a macro. It has sections for an avatar, title, subtitle, image, content, footer, and actions. It tries to adapt pleasantly to any elements being absent, so it's useful for everything from a box around some text, to a section wrapper in forms, to full-fledged cards displaying an image with actions.
 
@@ -19,9 +19,11 @@
     * `subtitle: string` - The subtitle to display on the card
     * `avatar: string` - The URL to an avatar to display on the card
     * `avatar-round: string | boolean` - The URL to an avatar to display on the card as rounded, or if a boolean, whether to display the `avatar` as rounded. This appears next to the title.
+    * `popout: boolean = false` - Whether the avatar, if supplied, should pop out of the top of the card.
     * `image: string` - The URL to an image to display on the card. This appears between the title and the content, taking up the full width of the card.
     * `image-alt: string` - An `alt` string for the image.
-    `no-pad: boolean` - Whether to pad the content of the card. This is useful for using other containers, like tabs, as the content of the card.
+    * `no-pad: boolean` - Whether to pad the content of the card. This is useful for using other containers, like tabs, as the content of the card.
+    * `section: boolean = false` - Whether the card should more resemble a section group than a card. This is useful for making form sections stand out more.
 
     ### Children
 
@@ -37,52 +39,95 @@
     * `footer` - appears below content
     * `action` - zero or more actions to add to the bottom of the card. Handle activation by supplying an `on-click` event listener.
   </marked></tab>
-  <tab title=Example>
-    <div as-grid>
-      <div class="row row-s1-2 row-m1-4">
-        <label as-field>
-            Title<input value="{{.title}}" />
-          </label>
-          <label as-field>
-            Subtitle<input value="{{.subtitle}}" />
-          </label>
-          <label as-field>
-            Avatar<input value="{{.avatar}}" />
-          </label>
-          <label as-field>
-            <input type="checkbox" checked="{{.round}}" /> Round avatar?
-          </label>
-          <label as-field>
-            Image<input value="{{.image}}" />
-          </label>
-          <label as-field>
-            Image Alt<input value="{{.alt}}" />
-          </label>
-          <label as-field>
-            <input type="checkbox" checked="{{.share}}" /> Share button?
-          </label>
-          <label as-field class-t1>
-            Content<textarea>{{.content}}</textarea>
-          </label>
-      </div>
+  <tab as-grid title=Example>
+    <div class="row row-s1-2 row-m1-4">
+      <label as-field>
+        Title<input value="{{.title}}" />
+      </label>
+      <label as-field>
+        Subtitle<input value="{{.subtitle}}" />
+      </label>
+      <label as-field>
+        Avatar<input value="{{.avatar}}" />
+      </label>
+      <label as-field>
+        <input type="checkbox" checked="{{.round}}" /> Round avatar?
+      </label>
+      <label as-field>
+          <input type="checkbox" checked="{{.popout}}" /> Popout?
+        </label>
+      <label as-field>
+        Image<input value="{{.image}}" />
+      </label>
+      <label as-field>
+        Image Alt<input value="{{.alt}}" />
+      </label>
+      <label as-field>
+        <input type="checkbox" checked="{{.share}}" /> Share button?
+      </label>
+      <label as-field>
+        <input type="checkbox" checked="{{.section}}" /> Section?
+      </label>
+      <label as-field>
+        <input type="checkbox" checked="{{.flat}}" /> Flat?
+      </label>
+      <label as-field>
+        <input type="checkbox" checked="{{.margin}}" /> Margin?
+      </label>
+      <label as-field class-t1>
+        Content<textarea lazy=1000>{{.content}}</textarea>
+      </label>
     </div>
     
     <marked>
       ### Template:
       ```handlebars
-      <card title="{{.title}}" subtitle="{{.subtitle}}" avatar="{{.avatar}}" avatar-round="{{.round}}" image="{{.image}}" image-alt="{{.alt}}" style-max-width="30em">
-        {{{.content}}}
+      <card title="{{.title}}" subtitle="{{.subtitle}}" avatar="{{.avatar}}" avatar-round="{{.round}}" image="{{.image}}" image-alt="{{.alt}}" section="{{.section}}" flat="{{.flat}}" popout="{{.popout}}" style-max-width="30em" margin="{{.margin}}">
+        <avatar image="{{.avatar}}" round="{{.round}}" />
+        {{>{ template: .content }}}
         <action on-click="console.log('Liked!')" title="Like this breed on FriendFace">Like</action>
         {{#if ^^/share}}<action on-click="console.log('Shared!')" title="Share this breed on FriendFace">Share</action>{{/if}}
       </card>
       ```
       ### Result:
     </marked>
-    <card title="{{.title}}" subtitle="{{.subtitle}}" avatar="{{.avatar}}" avatar-round="{{.round}}" image="{{.image}}" image-alt="{{.alt}}" style-max-width="30em">
-      {{{.content}}}
+    <card title="{{.title}}" subtitle="{{.subtitle}}" avatar="{{.avatar}}" avatar-round="{{.round}}" image="{{.image}}" image-alt="{{.alt}}" section="{{.section}}" flat="{{.flat}}" popout="{{.popout}}" style-max-width="30em" margin="{{.margin}}">
+      <avatar image="{{.avatar}}" round="{{.round}}" />
+      {{>{ template: .content }}}
       <action on-click="console.log('Liked!')" title="Like this breed on FriendFace">Like</action>
       {{#if ^^/share}}<action on-click="console.log('Shared!')" title="Share this breed on FriendFace">Share</action>{{/if}}
     </card>
+    
+    <br/>
+    <label as-field>Avatar Content<textarea lazy=1000>{{.avatarContent}}</textarea></label>
+    <marked>
+      Here's the same card with the avatar content as a template.
+      ### Template:
+      ```handlebars
+      <card title="{{.title}}" subtitle="{{.subtitle}}" image="{{.image}}" image-alt="{{.alt}}" section="{{.section}}" flat="{{.flat}}" popout="{{.popout}}" style-max-width="30em" margin="{{.margin}}">
+        <avatar>{{>{ template: .avatarContent }}}</avatar>
+        {{>{ template: .content}}}
+        <action on-click="console.log('Liked!')" title="Like this breed on FriendFace">Like</action>
+        {{#if ^^/share}}<action on-click="console.log('Shared!')" title="Share this breed on FriendFace">Share</action>{{/if}}
+      </card>
+      ```
+      ### Result:
+    </marked>
+    <card title="{{.title}}" subtitle="{{.subtitle}}" image="{{.image}}" image-alt="{{.alt}}" section="{{.section}}" flat="{{.flat}}" popout="{{.popout}}" style-max-width="30em" margin="{{.margin}}">
+      <avatar>{{>{ template: .avatarContent }}}</avatar>
+      {{>{ template: .content}}}
+      <action on-click="console.log('Liked!')" title="Like this breed on FriendFace">Like</action>
+      {{#if ^^/share}}<action on-click="console.log('Shared!')" title="Share this breed on FriendFace">Share</action>{{/if}}
+    </card>
+    <marked>
+      Try your own card here:
+    </marked>
+    
+    <br/>
+    <label as-field><textarea lazy=1000>{{.play}}</textarea></label>
+    <br/>
+    {{>{ template: .play }}}
+    <br/>
   </tab>
 </tabs>
 
@@ -107,7 +152,10 @@
         image: 'https://material.angular.io/assets/img/examples/shiba2.jpg',
         alt: 'Shiba Inu',
         content: '<p>The Shiba Inu is the smallest of the six original and distinct spitz breeds of dog from Japan. A small, agile dog that copes very well with mountainous terrain, the Shiba Inu was originally bred for hunting.</p>',
-        share: true
+        avatarContent: '<div style="background: linear-gradient(to top, #027de1, #47abdd); border-radius: 0.5em; width: 100%; height: 100%; box-shadow: 2px 2px 16px rgba(0, 0, 0, 0.15)"></div>',
+        share: true,
+        play: '<card title="Play"><input value="{{.thing}}" />Do all the things you want to do {{.thing}}</card>',
+        thing: 'here'
       };
     }
   });

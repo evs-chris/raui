@@ -1,4 +1,4 @@
-<tabs flat pad class-secondary fill height=dynamic>
+<tabs flat pad class-alt fill height=dynamic>
   <tab title=Intro><marked>
     Material forms a little bit polarizing, but this decorator tries to take a fairly unobtrusive approach. You wrap your input element in a `label` with the `field` decorator, and the decorator handles the rest based on the content of the label. Handling for fields includes plain inputs, checkboxes, selects, buttons, and textareas.
 
@@ -19,6 +19,7 @@
     _None_
   </marked></tab>
   <tab title=Example>
+    <label as-field><input type=checkbox on-change="@.constructor.Ractive.styleSet('raui.form.boxy', !@.constructor.Ractive.styleGet('raui.form.boxy'))" /> Boxy forms?</label>
     <marked>
       ### Template:
 
@@ -43,6 +44,7 @@
     <div as-grid>
       <div class-row>
         <label as-field class-t1-3>Input field<input /></label>
+        <label as-field class-t1-3><button>Button</button></label>
         <label as-field class-t1-3>Select field<select><option>option1</option><option>option2</option><options>option2</options></select></label>
         <label as-field class-t1-3><input type="checkbox" /> Checkbox</label>
         <label as-field class-t1-3>Another field<input /></label>

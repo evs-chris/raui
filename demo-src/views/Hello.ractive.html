@@ -1,4 +1,4 @@
-<tabs flat pad class-secondary fill height=dynamic transition=fade>
+<tabs flat pad class-alt fill height=dynamic transition=fade>
   <tab title="Intro"><marked>
     <div style="text-align: center;"><img src="./raui.svg" style="width: 150px; text-align: center;" alt="pronounced like Maui" /></div>
 
@@ -83,8 +83,42 @@
 
     Here's the list:
 
+    * Color - A Color class and functions that take CSS colors and help you mangle them by lightening, desaturating, etc
     * Button - Just a style helper to make `<button>`s more Material
     * Toast - A toasting system that can be installed on any old Ractive instance
+  </marked></tab>
+  <tab title="Theming"><marked>
+    RaUI makes use of Ractive's CSS function support to make its components relatively themeable. There are specific variables available for many aspects of each component, that fall back to general variables and _hopefully_ sensible defaults. Colors are managed in groups with `raui.primary` being the only default. Any additional themes will have classes added to each component's styles to match and should be listed in a `raui.themes` list. The variables for additional themes should be set on the root ractive style data in an object with the same name as the theme. Additional themes can also be overridden at the component level e.g. `raui.tabs.secondary` will be based on `raui.secondary` automatically, with the more specific settings taking precedent.
+
+    The color variables come in sets of four: `fg`, `bg`, `bc`, `fga`, and `bga` - foreground, background, border color, alternate foreground, and alternate background. The border color can apply to borders or other widget interstitials, as can the alternate background, and the fore- and background colors should all be reasonably legible against each other. Each theme can have `active` and `disabled` sets as well, and if missing, they will fall back to the main set.
+
+    ### Variables
+
+    * `fg` - a foreground (text) color (`#222`)
+    * `bg` - a background color (`#fff`)
+    * `bc` - a border color (`#ccc`)
+    * `fga` - an alternate foreground color (`#07e`)
+    * `bga` - an alternate background color (`#f4f4f4`)
+    * `active`
+      * `fg` - an active foreground (text) color (`#07e`)
+      * `bg` - an active background color (`#fff`)
+      * `bc` - an active border color (`#777`)
+      * `fga` - an active accent foreground color (`#222`)
+      * `bga` - an alternate background color (`#f4f4f4`)
+    * `disabled`
+      * `fg` - a disabled foreground (text) color (`#999`)
+      * `bg` - a disabled background color (`#eee`)
+      * `bc` - a disabled border color (`#ddd`)
+      * `fga` - a disabled alternate foreground color (`#07e`)
+      * `bga` - a disabled alternate background color (`#f4f4f4`)
+    * `radius` - the border radius to use on widget-y things (`0.2em`)
+    * `duration` - the default duration for configurable transitions (`0.2s`)
+    * `easing` - the default transition timing function for configurable transitions (`ease-in-out`)
+
+    Themes can be overridden at the component level using a theme variable name assigned to the component style namespace e.g. `raui.appbar.primary.bg` to override the primary `bg` for the `appbar`. Note that with some components, the background color is used as the foreground color.
+
+    Some components come with additional variations that can be activated simply by added a class to the component root. These variations typically do things like invert the fore- and background colors.
+
   </marked></tab>
 </tabs>
 

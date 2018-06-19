@@ -1,7 +1,7 @@
 {{#await codemirror}}
   Loading CodeMirror...
 {{then}}
-<tabs flat pad class-secondary fill height=dynamic>
+<tabs flat pad class-alt fill height=dynamic>
   <tab title=Intro><marked>
     The `codemirror` decorator turns an element into a [CodeMirror](https://codemirror.net) editor. Since this requires an external library, it is packaged as a plugin constructor that will accept a `CodeMirror` singleton as an option. If no `CodeMirror` option is supplied, the decorator will try to use the global `CodeMirror` and throw an error if none is found.
 

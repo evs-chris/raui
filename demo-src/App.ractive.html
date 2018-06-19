@@ -1,5 +1,5 @@
 <shell>
-  <left bind-hidden="menu.hidden">
+  <left bind-hidden="menu.hidden" bind-forced="menu.over" overflow>
     <menu>
       <container pad class-logo><h1 style-text-align=center><img src="./raui.svg" alt="raui logo" />RaUI</h1></container>
       <item ref=Hello>
@@ -89,12 +89,16 @@
 
         const builtins = ['Hello', 'AceEditor', 'AppBar', 'Button', 'Card', 'Click', 'CodeMirror', 'Expand', 'Fade', 'Form', 'Grid', 'JSONEditor', 'Keys', 'Marked', 'MaskedInput', 'Menu', 'ScrollSpy', 'Shell', 'Split', 'Swipe', 'Table', 'Tabs', 'Toast', 'Toggle', 'Window'];
 
-        menu.once('complete', () => {
-          builtins.forEach(r => {
-            const item = menu.getHandle(r);
-            item.active = () => host.currentId === r;
-            item.action = () => this.fire('launch', {}, r);
-          });
+        menu.on('item', (ctx, handle) => {
+          if (~builtins.indexOf(handle.ref)) {
+            const r = handle.ref;
+            handle.active = () => host.currentId === r;
+            handle.action = () => this.fire('launch', {}, r)
+          }
+        });
+
+        menu.on('action', () => {
+          this.get('menu.over') && this.toggle('menu.hidden');
         });
 
         const wins = this.winMenu = this.menu.addItem({ title: 'Open Windows', type: 'section', condition: false });
@@ -198,19 +202,22 @@
   }
 
   svg#gh {
-    fill: #fff;
     transition: fill 0.3s ease-in-out;
     position: relative;
     width: 1.5em;
     height: 1.5em;
     top: 0.2em;
   }
-
-  .rmenu-active svg#gh {
-    fill: #07e;
-  }
 </style>
 
 <script rel="css">
-  return gridStyle(data);
+  return `svg#gh {
+    fill: ${data('raui.primary.bg') || '#fff'};
+  }
+
+  .rmenu-active svg#gh {
+    fill: ${data('raui.primary.fga') || '#07e'};
+  }
+  ` +
+  gridStyle(data);
 </script>

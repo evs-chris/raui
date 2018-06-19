@@ -394,54 +394,60 @@
 </style>
 
 <script rel="css">
+  const handle = Object.assign({
+    bg: 'rgba(0, 0, 0, 0.1)',
+    fg: 'rgba(0, 0, 0, 0.4)',
+    width: 14
+  }, data('raui.split.handle'));
+
   return `
   .rsplit > .rsplit-sep {
-    background-color: ${data('split.handle.bg') || 'rgba(0, 0, 0, 0.1)'};
-    color: ${data('split.handle.fg') || 'rgba(0, 0, 0, 0.4)'};
+    background-color: ${handle.bg};
+    color: ${handle.fg};
   }
 
   .rsplit.rsplit-vertical > .rsplit-sep {
-    width: ${data('split.handle.width') || 14}px;
+    width: ${handle.width}px;
     height: 100%;
   }
 
   .rsplit.rsplit-horizontal > .rsplit-sep {
-    height: ${data('split.handle.width') || 14}px;
+    height: ${handle.width}px;
     width: 100%;
   }
 
   .rsplit > .rsplit-sep {
-    font-size: ${data('split.handle.width') || 14}px;
+    font-size: ${handle.width}px;
   }
 
   .rsplit > .rsplit-sep .rsplit-sep-max-btn,
   .rsplit > .rsplit-sep .rsplit-sep-min-btn {
-    border-width: ${(data('split.handle.width') || 14) / 2}px;
+    border-width: ${handle.width / 2}px;
   }
 
   .rsplit.rsplit-horizontal > .rsplit-sep .rsplit-sep-max-btn {
-    top: ${(data('split.handle.width') || 14) / 4}px;
+    top: ${handle.width / 4}px;
     border-right-color: transparent;
     border-bottom-color: transparent;
     border-left-color: transparent;
   }
 
   .rsplit.rsplit-horizontal > .rsplit-sep .rsplit-sep-min-btn {
-    bottom: ${(data('split.handle.width') || 14) / 4}px;
+    bottom: ${handle.width / 4}px;
     border-top-color: transparent;
     border-right-color: transparent;
     border-left-color: transparent;
   }
 
   .rsplit.rsplit-vertical > .rsplit-sep .rsplit-sep-max-btn {
-    left: ${(data('split.handle.width') || 14) / 4}px;
+    left: ${handle.width / 4}px;
     border-top-color: transparent;
     border-right-color: transparent;
     border-bottom-color: transparent;
   }
 
   .rsplit.rsplit-vertical > .rsplit-sep .rsplit-sep-min-btn {
-    right: ${(data('split.handle.width') || 14) / 4}px;
+    right: ${handle.width / 4}px;
     border-top-color: transparent;
     border-bottom-color: transparent;
     border-left-color: transparent;

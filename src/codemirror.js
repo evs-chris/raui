@@ -13,7 +13,7 @@ export default function init(initOpts = {}) {
       div.setAttribute('style', "overflow: hidden; position: relative; width: 3px; height: 0px;");
       const input = document.createElement('input');
       input.setAttribute('type', 'password');
-      input.setAttribute('style', 'position: absolute; padding: 0; width: 1000px; height: 1em; outline: none; border 1px solid black; display: inline-block;');
+      input.setAttribute('style', 'position: absolute; padding: 0; width: 1000px; height: 1em; outline: none; display: inline-block;');
       div.appendChild(input);
       this.wrapper = div;
       this.textarea = input;

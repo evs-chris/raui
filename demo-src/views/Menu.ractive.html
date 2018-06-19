@@ -1,4 +1,4 @@
-<tabs flat pad class-secondary fill height=dynamic>
+<tabs flat pad class-alt fill height=dynamic>
   <tab title=Intro><marked>
     This is a vertical menu that supports items with nested children, titled sections, and containers with any old content. Horizontal menus tend not to scale well at all below a certain width, and nobody likes horizontal scrolling. This type of menu pairs well with the side containers of the shell and a nice cabernet.
 
@@ -127,7 +127,7 @@
             <left>L</left>
             <right>R</right>
           </item>
-          <item>
+          <item popout>
             <title>With Children</title>
             <right>#</right>
             <item title="Child 1" />
@@ -170,14 +170,23 @@
           <left>L</left>
           <right>R</right>
         </item>
-        <item>
+        <item popout>
           <title>With Children</title>
           <right>#</right>
           <item title="Child 1" />
           <item title="Child 2" />
-          <item title="Babies with babies">
+          <item popout title="Babies with babies">
             <item title="Grandchild 1" />
             <item title="Grandchild 2" />
+            <item title="Further Offspring" popout>
+              <item title="Great Grandchild 1" />
+              <item title="Great Grandchild 2" />
+              <item title="Great Grandchild 3" />
+            </item>
+          </item>
+          <item title="Child 4">
+            <item title="Grandchild 3" />
+            <item title="Grandchild 4" />
           </item>
         </item>
       </section>

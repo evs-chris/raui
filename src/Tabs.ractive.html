@@ -7,7 +7,7 @@
       <div class-rtabs-right>
         {{#each .tabs}}{{#if .right}}{{>tab}}{{/if}}{{/each}}
       </div>
-      <div class-rtabs-indicator style-left="{{.selectedLeft}}px" {{#if .selectedRight !== undefined}}style-right="{{.selectedRight}}px"{{/if}} />
+      {{#unless @style.raui.tabs.boxy}}<div class-rtabs-indicator style-left="{{.selectedLeft}}px" {{#if .selectedRight !== undefined}}style-right="{{.selectedRight}}px"{{/if}} />{{/unless}}
       </div>
   </div>
   <div class-rtabs-content-wrapper>
@@ -62,6 +62,7 @@
     }
 
     updateIndicator() {
+      if (this.get('@style.raui.tabs.boxy')) return;
       const node = this._tabs[this.get('selected')];
 
       if (node) {
@@ -289,6 +290,9 @@
 </script>
 
 <script rel="css">
+  const primary = Object.assign({}, data('raui.primary'), data('raui.tabs.primary'));
+  const tabs = Object.assign({ selected: {}, indicator: {} }, data('raui.tabs'));
+  const boxy = data('raui.tabs.boxy');
   return `
   .rtabs {
     position: relative;
@@ -300,66 +304,61 @@
   .rtabs-tab-window {
     overflow-y: hidden;
     overflow-x: auto;
-    box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.14),
+    ${!boxy ? `box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.14),
       0 1px 5px 0 rgba(0, 0, 0, 0.12),
       0 3px 1px -2px rgba(0, 0, 0, 0.2);
-    color: ${data('tabs.tab.fg') || data('fg1') || '#222'};
-    background-color: ${data('tabs.tab.bg') || data('bg1') || '#fff'};
+      color: ${primary.fg || '#222'};
+    background-color: ${primary.bg || '#fff'};` :
+    `border-color: ${primary.bc || '#ccc'};
+    border-style: solid;
+    border-width: 1px 1px 0 1px;
+    color: ${primary.fg || '#222'};
+    background-color: ${primary.bga || '#f4f4f4'};
+    `}
     position: relative;
     flex-shrink: 0;
   }
-  .secondary > .rtabs-tab-window {
-    color: ${data('fg2') || '#fff'};
-    background-color: ${data('bg2') || '#07e'};
-  }
-  .alt1 > .rtabs-tab-window {
-    color: ${data('alt1.fg1') || '#222'};
-    background-color: ${data('alt1.bg1') || '#fff'};
-  }
-  .alt1.secondary > .rtabs-tab-window {
-    color: ${data('alt1.fg2') || '#222'};
-    background-color: ${data('alt1.bg2') || '#fff'};
-  }
-  .alt2 > .rtabs-tab-window {
-    color: ${data('alt2.fg1') || '#222'};
-    background-color: ${data('alt2.bg1') || '#fff'};
-  }
-  .alt2.secondary > .rtabs-tab-window {
-    color: ${data('alt2.fg2') || '#222'};
-    background-color: ${data('alt2.bg2') || '#fff'};
-  }
+  .alt > .rtabs-tab-window {
+    color: ${primary.bg || '#fff'};
+    background-color: ${primary.fga || '#07e'};
+  }${boxy ? `
+  .alt > .rtabs-tab-window .rtabs-tab {
+    color: ${primary.bg || '#fff'};
+    background-color: ${primary.fga || '#07e'};
+  }` : ''}
 
   .rtabs-flat > .rtabs-tab-window {
     box-shadow: none;
+    border-width: 0;
   }
-  .rtabs-flat > .rtabs-tab-window:after {
+  ${!boxy ? `.rtabs-flat > .rtabs-tab-window:after {
     content: '';
     height: 0.15em;
     position: absolute;
     bottom: 0px;
     width: 100%;
     display: block;
-    background-color: ${data('tabs.tab.fg') || data('bga1') || '#ccc'};
+    background-color: ${primary.bga || '#f4f4f4'};
   }
-  .rtabs-flat.secondary > .rtabs-tab-window:after {
-    background-color: ${data('tabs.tab.fg') || data('bga2') || '#07e'};
+  .rtabs-flat.alt > .rtabs-tab-window:after {
+    background-color: ${primary.fga || '#07e'};
+  }` : `
+  .rtabs-flat > .rtabs-tab-window {
+    background-color: ${primary.bg || '#fff'};
   }
-  .rtabs-flat.alt1 > .rtabs-tab-window:after {
-    background-color: ${data('alt1.bga1') || '#222'};
+  .alt.rtabs-flat > .rtabs-tab-window {
+    background-color: ${primary.fga || '#07e'};
   }
-  .rtabs-flat.alt1.secondary > .rtabs-tab-window:after {
-    background-color: ${data('alt1.bga2') || '#222'};
-  }
-  .rtabs-flat.alt2 > .rtabs-tab-window:after {
-    background-color: ${data('alt2.bga1') || '#222'};
-  }
-  .rtabs-flat.alt2.secondary > .rtabs-tab-window:after {
-    background-color: ${data('alt2.bga2') || '#222'};
-  }
+  .rtabs-flat > .rtabs-tab-window .rtabs-tab {
+    border-top-width: 1px;
+  }`}
 
   .rtabs-center.rtabs-left {
     text-align: center;
-  }
+  }${boxy ? `
+  .rtabs-center > .rtabs-tab:first-child {
+    border-left-width: 1px;
+  }` : ''}
 
   .rtabs-pad {
     padding: 1em;
@@ -374,9 +373,11 @@
     display: table;
     position: relative;
     min-width: 100%;
-    overflow-x: auto;
-    overflow-y: hidden;
-    white-space: nowrap;
+    white-space: nowrap;${boxy ? `
+    border-style: solid;
+    border-width: 0 0 1px 0;
+    border-color: ${primary.bc || '#ccc'};
+    line-height: 1.5em;` : ''}
   }
 
   .rtabs-tab {
@@ -384,17 +385,29 @@
     box-sizing: border-box;
     padding: 0.5em 1em;
     height: 2.5em;
-    cursor: pointer;
-    opacity: 0.9;
     transition: opacity 0.2s ease-in-out;
     user-select: none;
+    cursor: pointer;${!boxy ? `
+    opacity: 0.9;` : `
+    border-color: ${primary.bc || '#ccc'};
+    border-style: solid;
+    border-width: 0 1px 1px 0;
+    margin-bottom: -1px;
+    color: ${primary.fg || '#222'};
+    background-color: ${primary.bga || '#f4f4f4'};
+    `}
   }
   .rtabs-tab:hover {
     opacity: 1;
   }
 
-  .rtabs-selected {
-    opacity: 1;
+  .rtabs-selected${boxy ? `,
+  .alt > .rtabs-tab-window .rtabs-selected` : ''} {
+    opacity: 1;${boxy ? `
+    border-bottom-color: ${primary.bg || '#fff'};
+    background-color: ${tabs.selected.bg || primary.bg || '#fff'};${tabs.selected.indicator ? `
+    background-image: linear-gradient(to bottom, ${tabs.indicator.color || primary.fga || '#07e'}, ${primary.bg || '#fff'} 3px);` : ''}
+    color: ${tabs.selected.fg || primary.fg || '#222' };` : ''}
   }
 
   .rtabs-disabled {
@@ -427,24 +440,12 @@
     position: absolute;
     bottom: 0;
     height: 0.15em;
-    background-color: ${data('tabs.indicator.color') || data('fga1') || '#07e'};
+    background-color: ${tabs.indicator.color || primary.fga || '#07e'};
     z-index: 2;
   }
 
-  .secondary > .rtabs-tab-window .rtabs-indicator {
-    background-color: ${data('fga2') || '#fff'};
-  }
-  .alt1 > .rtabs-tab-window .rtabs-indicator {
-    background-color: ${data('alt1.fga1') || 'darkblue'};
-  }
-  .alt1.secondary > .rtabs-tab-window .rtabs-indicator {
-    background-color: ${data('alt1.fga2') || 'darkblue'};
-  }
-  .alt2 > .rtabs-tab-window .rtabs-indicator {
-    background-color: ${data('alt2.fga1') || 'darkblue'};
-  }
-  .alt2.secondary > .rtabs-tab-window .rtabs-indicator {
-    background-color: ${data('alt2.fga2') || 'darkblue'};
+  .alt > .rtabs-tab-window .rtabs-indicator {
+    background-color: ${primary.bg || '#fff'};
   }
 
   .rtabs-going-left .rtabs-indicator {
@@ -472,18 +473,10 @@
   }
 
   .rtabs {
-    color: ${data('tabs.content.fg') || data('fg1') || '#222'};
-    background-color: ${data('tabs.content.bg') || data('bg1') || '#fff'};
+    color: ${primary.fg || '#222'};
+    background-color: ${primary.bg || '#fff'};
   }
-  .rtabs.alt1 {
-    color: ${data('alt1.fg1') || '#222'};
-    background-color: ${data('alt1.bg1') || '#fff'};
-  }
-  rtabs.alt2 {
-    color: ${data('alt2.fg1') || '#222'};
-    background-color: ${data('alt2.bg1') || '#fff'};
-  }
-
+  
   .rtabs-contents {
     list-style: none;
     padding: 0;
@@ -543,5 +536,6 @@
     padding: 1em;
     box-sizing: border-box;
   }
-  `
+  `;
+  // TODO: other themes
 </script>

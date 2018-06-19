@@ -1,6 +1,21 @@
-<tabs flat pad class-secondary fill height=dynamic>
+<tabs flat pad class-alt fill height=dynamic>
   <tab title=Intro><marked>
-    The button helper is just a CSS function that gives you Material `<button>`s. When passed to an instance, the styles will be registered with `Ractive.addCSS`, and when passed to a constructor (component), they will augment the existing `css` for the constructor.
+    The button helper is just a CSS function that gives you Material-ish `<button>`s. When passed to an instance, the styles will be registered with `Ractive.addCSS`, and when passed to a constructor (component), they will augment the existing `css` for the constructor.
+  </marked></tab>
+  <tab title=API><marked>
+    A button with the `flat` class applied will invert the fore and background colors and remove the shadow so that the button flattens into its background component.
+    
+    ### Namespace
+
+    `button`
+
+    ### Variables
+
+    * `invert` - use `fg` rather than `alt` as background
+    * `fg` - inverted background
+    * `bg` - foreground
+    * `alt` - default background
+    * `radius` - border radius
   </marked></tab>
   <tab title=Usage><marked>
     ```javascript
@@ -28,7 +43,7 @@
   </marked></tab>
   <tab title=Example>
     <button>Material Button</button> <button class-flat>A Flat Button</button> <button>A Third Button</button> <button class-round>+</button><br/>
-    <button style="color: #fff; background-color: #07e;">Colorful</button>
+    <button style="color: #fff; background-color: rgb(5, 165, 0);">Colorful</button>
   </tab>
 </tabs>
 

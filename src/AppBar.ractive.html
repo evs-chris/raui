@@ -48,14 +48,19 @@
 </script>
 
 <script rel="css">
+  const primary = Object.assign({}, data('raui.primary'), data('raui.appbar.primary'));
   return `
   .rappbar {
     display: flex;
     padding: 1em;
-    background-color: ${data('appbar.bg') || data('bg2') || '#07e'};
-    color: ${data('appbar.fg') || data('fg2') || '#f9f9f9'};
+    background-color: ${primary.fga || '#07e'};
+    color: ${primary.bg || '#fff'};
     position: relative;
     justify-content: space-between;
+  }
+
+  .rappbar.alt {
+    background-color: ${primary.fg || '#222'};
   }
 
   .rappbar-left {
@@ -77,10 +82,10 @@
     bottom: 0;
     left: 0;
     width: 100%;
-    height: 0.5em;
+    height: 0.75em;
     opacity: 0;
     transition: opacity 0.3s ease-in-out;
-    background: linear-gradient(to left, ${data('appbar.wait.color1') || 'rgba(255, 255, 255, 0.7)'}, ${data('appbar.wait.color2') || 'rgba(0, 0, 0, 0.1)'}, ${data('appbar.wait.color1') || 'rgba(255, 255, 255, 0.7)'});
+    background: linear-gradient(to left, ${data('raui.appbar.wait.color1') || 'rgba(255, 255, 255, 0.7)'}, ${data('raui.appbar.wait.color2') || 'rgba(0, 0, 0, 0.1)'}, ${data('raui.appbar.wait.color1') || 'rgba(255, 255, 255, 0.7)'});
     background-size: 600% 600%;
     animation: rappbar-roll 10s linear infinite;
     animation-play-state: paused;
@@ -96,5 +101,15 @@
     50% { background-position: 100% 50%; }
     100% { background-position: 0% 50%; }
   }
-  `;
+  ` + (data('raui.themes') || []).map(t => {
+    const theme = Object.assign({}, primary, data(`raui.${t}`), data(`raui.appbar.${t}`));
+    return `.rappbar.${t} {
+      background-color: ${theme.fga || '#07e'};
+      color: ${theme.bg || primary.bg || '#fff'};
+    }
+    .rappbar.${t}.alt {
+      background-color: ${theme.fg || '#222'}
+    }
+    `;
+  });
 </script>

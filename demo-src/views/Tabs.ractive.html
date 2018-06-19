@@ -1,4 +1,4 @@
-<tabs flat pad class-secondary height=dynamic>
+<tabs flat pad class-alt height=dynamic>
   <tab title="Intro"><marked>
     This is a pretty standard tab component that behaves about how you'd expect a tab component to behave. The component is named `tabs` by default, though you can change that when installing it as a plugin or in the components registry. The tabs have a few different switches that make them behave better in certain environments, like a flex box, where the container should fill any available space, or in inline content, where the container should only be as large as the current content requires.
 
@@ -47,6 +47,7 @@
     * `tabs.indicator.color` - `fga1`, `#07e` - color for indicator
   </marked></tab>
   <tab title="Example">
+    <label as-field><input type="checkbox" on-change="@.constructor.Ractive.styleSet('raui.tabs.boxy', !@.constructor.Ractive.styleGet('raui.tabs.boxy'))" /> Boxy tabs?</label>
     <marked>
     ### Template:
     ```handlebars

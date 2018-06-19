@@ -540,7 +540,7 @@
       0;
   }
 
-  const colAttrs = ['label', 'type', 'filter', 'hidden', 'sort'];
+  const colAttrs = ['label', 'type', 'filter', 'hidden', 'sort', 'no-pad'];
   const cell = /^[a-z]{1,3}[0-9]+(?:-[0-9]+)?$/;
   const empty = [];
   function construct() {
@@ -604,6 +604,11 @@
           else col.hidden = false;
           if (typeof col.hidden === 'string') col.hidden = false;
 
+          col.noPad = attrs.find(a => a.n === 'no-pad');
+          if (col.noPad && col.noPad.f === 0) col.noPad = 0;
+          else if (col.noPad && typeof col.noPad.f === 'object') col.noPad = map(col.noPad);
+          else delete col.noPad;
+
           col.attrs = attrs.filter(a => !~colAttrs.indexOf(a.n));
 
           // handle inline grid sizes without requiring the class prefix
@@ -648,9 +653,11 @@
       });
 
       const row = [{ t: 7, e: 'tr', f: columns.filter(c => c.hidden !== true).map(c => {
-        const td = { t: 7, e: 'td', f: c.content, m: c.attrs };
-        if (c.type) td.m.unshift({ t: 13, n: `class-rtable-${c.type}-column` });
-        if (!td.m.find(a => a.n === 'title')) td.m.unshift({ t: 13, n: 'title', f: c.content });
+        const td = { t: 7, e: 'td', f: [{ t: 16, r: `~/columns.${columns.indexOf(c)}.content`, c: { r: '.' } }], m: c.attrs.slice() };
+        if (c.type) td.m.unshift({ t: 13, n: `class-rtable-${c.type}-column` }, { t: 13, n: 'class-rtable-column' });
+        if (!td.m.find(a => a.n === 'title')) td.m.unshift({ t: 13, n: 'title', f: c.content.find(e => e.e) ? c.label : c.content });
+        if (c.noPad === 0) td.m.push({ t: 13, n: 'class-rtable-no-pad' });
+        else if (c.noPad) td.m.push({ t: 13, n: 'class-rtable-no-pad', f: c.noPad });
         let res = td;
 
         if (c.hidden && c.hidden.r) {
@@ -698,10 +705,12 @@
       });
 
       const row = [{ t: 7, e: 'div', f: columns.filter(c => c.hidden !== true).map(c => {
-        const div = { t: 7, e: 'div', f: [{ t: 7, e: 'div', f: c.content }], m: c.attrs };
+        const div = { t: 7, e: 'div', f: [{ t: 7, e: 'div', f: [{ t: 16, r: `~/columns.${columns.indexOf(c)}.content`, c: { r: '.' } }] }], m: c.attrs.slice() };
         if (c.type) div.m.unshift({ t: 13, n: `class-rtable-${c.type}-column` });
         div.m.push({ t: 13, n: 'class-rtable-column' });
-        if (!div.m.find(a => a.n === 'title')) div.m.unshift({ t: 13, n: 'title', f: c.content });
+        if (!div.m.find(a => a.n === 'title')) div.m.unshift({ t: 13, n: 'title', f: c.content.find(e => e.e) ? c.label : c.content });
+        if (c.noPad === 0) div.m.push({ t: 13, n: 'class-rtable-no-pad' });
+        else if (c.noPad) div.m.push({ t: 13, n: 'class-rtable-no-pad', f: c.noPad });
         let res = div;
 
         if (c.hidden && c.hidden.r) {
@@ -796,6 +805,9 @@
 </script>
 
 <script rel="css">
+  const primary = Object.assign({}, data(`raui.primary`), data(`raui.table.primary`));
+  const active = Object.assign({}, primary, data('raui.primary.active'), data('raui.table.primary.active'));
+  const table = Object.assign({ selected: {} }, data('raui.table'));
   return `
   .rtable {
     display: flex;
@@ -828,6 +840,9 @@
     overflow: inherit;
     text-overflow: inherit;
   }
+  .rtable-row > .rtable-no-pad > div {
+    padding: 0;
+  }
 
   .rtable-auto td,
   .rtable-auto .row > *,
@@ -851,7 +866,7 @@
   }
 
   .rtable-header {
-    border-bottom: 1px solid ${data('table.divider') || data('table.fg') || data('fg1') || '#d2d2d2'};
+    border-bottom: 1px solid ${table.divider || primary.bc || '#ccc'};
     text-align: left;
   }
 
@@ -868,41 +883,41 @@
   }
 
   .rtable-row {
-    color: ${data('table.fg') || data('fg1') || '#000'};
-    border-bottom: 1px solid ${data('table.divider') || data('table.fg') || data('fg1') || '#d2d2d2'};
-    background-color: ${data('table.odd') || data('bg1') || '#f9f9f9'};
+    color: ${primary.fg || '#222'};
+    border-bottom: 1px solid ${table.divider || primary.bc || '#ccc'};
+    background-color: ${table.even || primary.bga || '#f4f4f4'};
     transition: 0.2s ease-in-out;
     transition-property: background-color, color;
   }
   .rtable-row:nth-child(odd) {
-    background-color: ${data('table.odd') || data('bga1') || '#fcfcfc'};
+    background-color: ${table.odd || primary.bg || '#fff'};
   }
   .rtable-row:last-of-type {
     border-bottom: none;
   }
   .rtable-row:hover {
-    background-color: ${data('table.over') || '#eee'};
+    background-color: ${table.over || active.bg || '#eee'};
   }
 
   .rtable-row.rtable-selected {
-    background-color: ${data('table.selected.bg') || data('bg2') || 'rgba(0, 119, 238, 0.12)'};
-    color: ${data('table.selected.fg') || data('fg2') || '#000'};
+    background-color: ${table.selected.bg || 'rgba(0, 119, 238, 0.12)'};
+    color: ${table.selected.fg || primary.fg || '#222'};
   }
   .rtable-row.rtable-selected:nth-child(odd) {
-    background-color: ${data('table.selected.odd') || data('bga2') || 'rgba(0, 119, 238, 0.1)'};
+    background-color: ${table.selected.odd || 'rgba(0, 119, 238, 0.1)'};
   }
 
   .rtable-border .rtable-row .rtable-column:nth-child(n+2),
   .rtable-border .rtable-group .rtable-column:nth-child(n+2) {
-    border-left: 1px solid ${data('table.divider') || data('table.fg') || data('fg1') || '#d2d2d2'};
+    border-left: 1px solid ${table.divider || primary.bc || '#ccc'};
   }
 
   .rtable-border .rtable-row-expand {
-    border-top: 1px solid ${data('table.divider') || data('table.fg') || data('fg1') || '#d2d2d2'};
+    border-top: 1px solid ${table.divider || primary.bc || '#ccc'};
   }
 
   .rtable-group {
-    border-bottom: 2px solid ${data('table.divider') || data('table.fg') || data('fg1') || '#d2d2d2'};
+    border-bottom: 2px solid ${table.divider || primary.bc || '#ccc'};
   }
 
   .rtable-top {
@@ -954,7 +969,7 @@
   .rtable-select:before {
     content: '';
     display: block;
-    border: 2px solid ${data('table.fg') || data('fg1') || '#222'};
+    border: 2px solid ${primary.fg || '#222'};
     width: 1em;
     height: 1em;
     box-sizing: border-box;
@@ -964,7 +979,7 @@
   .rtable-select:checked:before {
     height: 0.7em;
     width: 1.3em;
-    border-color: ${data('table.selected.fg') || data('fg2') || '#000'};
+    border-color: ${primary.fga || '#07e'};
     border-top-color: transparent;
     border-right-color: transparent;
     transform: rotate(-50deg);
@@ -975,9 +990,14 @@
     width: 2.5em;
   }
   .rtable-select-header .rtable-select:checked:before {
-    border-color: ${data('table.fg') || data('fg1') || '#222'};
+    border-color: ${primary.fg || '#222'};
     border-top-color: transparent;
     border-right-color: transparent;
+  }
+
+  .rtable-column button, .rtable-column .btn {
+    font-size: 0.8em;
+    padding: 0.25em 0.5em;
   }
   ` + (data('table.includeGrid') !== false ? gridStyle(data) : '');
 </script>

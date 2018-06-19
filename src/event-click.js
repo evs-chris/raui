@@ -156,6 +156,7 @@ class Handler {
       this.fire(event, x, y, true);
     }, timeout);
 
+    if (!this.bubble) event.stopPropagation();
     return this.bubble;
   }
 
@@ -217,6 +218,7 @@ class Handler {
       this.fire(event, x, y, true);
     }, timeout);
 
+    if (!this.bubble) event.stopPropagation();
     return this.bubble;
   }
 

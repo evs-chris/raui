@@ -1,27 +1,29 @@
-<div class-rcard {{>extra-attributes}} class-rcard-no-pad="_card.noPad">
-  {{#if _card.titleP || _card.subtitleP || _card.avatarP || _card.title || _card.subtitle || (_card.avatar && typeof _card.avatar === 'string')}}
-    <div class-rcard-header>
-      {{#if _card.avatar && typeof _card.avatar === 'string'}}<div class-rcard-avatar>
-        <div class-rcard-avatar-inner style-background-image="url({{_card.avatar}})" class-rcard-avatar-round="_card.round" />
+<div class-rcard-wrapper {{>extra-attributes}} class-rcard-margin="_card.margin">
+  <div class-rcard class-rcard-no-pad="_card.noPad" class-rcard-section="_card.section" class-rcard-flat="'flat' in _card ? _card.flat : @style.card.flat" class-rcard-deep="'flat' in _card ? !_card.flat : !@style.card.flat" class-rcard-popout="_card.popout">
+    {{#if _card.titleP || _card.subtitleP || _card.avatarP || _card.title || _card.subtitle || (_card.avatar && typeof _card.avatar === 'string')}}
+      <div class-rcard-header>
+        {{#if _card.avatar && typeof _card.avatar === 'string'}}<div class-rcard-avatar class-rcard-avatar-round="_card.round">
+          <div class-rcard-avatar-inner style-background-image="url({{_card.avatar}})" />
+        </div>
+        {{elseif _card.avatarP}}<div class-rcard-avatar {{#if _card.avatarA}}{{>_card.avatarA}}{{/if}}>{{>_card.avatarP}}</div>{{/if}}
+        <div class-rcard-titles class-rcard-with-sub="_card.subtitle || _card.subtitleP">
+          {{#if _card.title}}<div class-rcard-title>{{_card.title}}</div>
+          {{else}}<div class-rcard-title {{#if _card.titleA}}{{>_card.titleA}}{{/if}}>{{>_card.titleP}}</div>{{/if}}
+          {{#if _card.subtitle}}<div class-rcard-subtitle>{{_card.subtitle}}</div>
+          {{elseif _card.subtitleP}}<div class-rcard-subtitle {{#if _card.subtitleA}}{{>_card.subtitleA}}{{/if}}>{{>_card.subtitleP}}</div>{{/if}}
+        </div>
       </div>
-      {{elseif _card.avatarP}}<div class-rcard-avatar {{#if _card.avatarA}}{{>_card.avatarA}}{{/if}}>{{>_card.avatarP}}</div>{{/if}}
-      <div class-rcard-titles class-rcard-with-sub="_card.subtitle || _card.subtitleP">
-        {{#if _card.title}}<div class-rcard-title>{{_card.title}}</div>
-        {{else}}<div class-rcard-title {{#if _card.titleA}}{{>_card.titleA}}{{/if}}>{{>_card.titleP}}</div>{{/if}}
-        {{#if _card.subtitle}}<div class-rcard-subtitle>{{_card.subtitle}}</div>
-        {{elseif _card.subtitleP}}<div class-rcard-subtitle {{#if _card.subtitleA}}{{>_card.subtitleA}}{{/if}}>{{>_card.subtitleP}}</div>{{/if}}
+    {{/if}}
+    {{#if _card.image}}<div class-rcard-image><img src="{{_card.image}}" alt="{{_card.alt}}"/></div>
+    {{elseif _card.imageP}}<div class-rcard-image {{#if _card.imageA}}{{>_card.imageA}}{{/if}}>{{>_card.imageP}}</div>{{/if}}
+    {{#if _card.contentP}}<div class-rcard-content>{{>_card.contentP}}</div>{{/if}}
+    {{#if _card.footerP}}<div class-rcard-footer {{#if _card.footerA}}{{>_card.footerA}}{{/if}}>{{>_card.footerP}}</div>{{/if}}
+    {{#if _card.actions.length}}
+      <div class-rcard-actions>
+        {{#each _card.actions}}{{#if .P}}{{>.P}}{{else}}<button {{>.attrs}}>{{>.content}}</button>{{/if}}{{/each}}
       </div>
-    </div>
-  {{/if}}
-  {{#if _card.image}}<div class-rcard-image><img src="{{_card.image}}" alt="{{_card.alt}}"/></div>
-  {{elseif _card.imageP}}<div class-rcard-image {{#if _card.imageA}}{{>_card.imageA}}{{/if}}>{{>_card.imageP}}</div>{{/if}}
-  {{#if _card.contentP}}<div class-rcard-content>{{>_card.contentP}}</div>{{/if}}
-  {{#if _card.footerP}}<div class-rcard-footer {{#if _card.footerA}}{{>_card.footerA}}{{/if}}>{{>_card.footerP}}</div>{{/if}}
-  {{#if _card.actions.length}}
-    <div class-rcard-actions>
-      {{#each _card.actions}}{{#if .P}}{{>.P}}{{else}}<button {{>.attrs}}>{{>.content}}</button>{{/if}}{{/each}}
-    </div>
-  {{/if}}
+    {{/if}}
+  </div>
 </div>
 
 <script>
@@ -43,7 +45,8 @@
     }, {
       cssId: 'rm-card',
       css: $CSS,
-      attributes: ['title', 'subtitle', 'image', 'avatar', 'avatar-round', 'no-pad', 'image-alt']
+      noCssTransform: true,
+      attributes: ['title', 'subtitle', 'image', 'avatar', 'avatar-round', 'no-pad', 'image-alt', 'section', 'flat', 'popout', 'margin']
     }
   );
 
@@ -66,11 +69,23 @@
         data.subtitleP = n.f;
       }
       else if (n.e === 'avatar') {
+        let img;
         if (n.m) {
-          data.avatarA = n.m.filter(a => a.n !== 'round');
-          if (n.m.find(a => a.n === 'round')) data.avatarA.push({ t: 13, n: 'class-rcard-avatar-round' });
+          data.avatarA = n.m.filter(a => a.n !== 'round' && a.n !== 'image' && a.n !== 'popout');
+          let a;
+          if (a = n.m.find(a => a.n === 'round')) {
+            if (a.f === 0) data.avatarA.push({ t: 13, g: 1, n: 'class', f: 'rcard-avatar-round' });
+            else data.avatarA.push({ t: 13, n: 'class-rcard-avatar-round', f: a.f });
+          }
+          if (a = n.m.find(a => a.n === 'image')) img = a.f;
         }
-        data.avatarP = n.f;
+
+        if (img) {
+          data.avatarP = [{ t: 7, e: 'div', m: [{ t: 13, n: 'class',f: 'rcard-avatar-inner', g: 1 }, { n: 'style-background-image', f: [ 'url(', ...img, ')' ], t: 13 }] }];
+          if (img.length === 1 && img[0].t === 2) data.avatarP = [Object.assign({}, img[0], { t: 4, n: 50, f: data.avatarP })];
+        } else if (n.f && n.f.length) {
+          data.avatarP = n.f;
+        }
       }
       else if (n.e === 'footer') {
         data.footerA = n.m;
@@ -94,13 +109,13 @@
     data.contentP = content;
   }
 
-  const keys = ['title', 'subtitle', 'image']
+  const keys = ['title', 'subtitle', 'image', 'section', 'flat', 'popout', 'margin']
   function updateAttrs(h) {
-    keys.forEach(k => h.set(`@local.${k}`, h.attributes[k]));
-    h.set('@local.round', h.attributes['avatar-round']);
-    h.set('@local.avatar', h.attributes.avatar || h.attributes['avatar-round']);
-    h.set('@local.alt', h.attributes['image-alt']);
-    h.set('@local.noPad', h.attributes['no-pad']);
+    keys.forEach(k => k in h.attributes && h.set(`@local.${k}`, h.attributes[k]));
+    'avatar-round' in h.attributes && h.set('@local.round', h.attributes['avatar-round']);
+    'avatar' in h.attributes && h.set('@local.avatar', h.attributes.avatar || h.attributes['avatar-image']);
+    'image-alt' in h.attributes && h.set('@local.alt', h.attributes['image-alt']);
+    'no-pad' in h.attributes && h.set('@local.noPad', h.attributes['no-pad']);
   }
 
   export function plugin(opts = {}) {
@@ -115,13 +130,33 @@
 </script>
 
 <script rel="css">
+  const primary = Object.assign({}, data('raui.primary'), data('raui.card.primary'));
   return `
+  .rcard-margin {
+    padding: 0.5em;
+    box-sizing: border-box;
+  }
   .rcard {
     display: block;
-    color: ${data('card.fg') || data('fg1') || '#222'};
-    background-color: ${data('card.bg') || data('bg1') || '#fff'};
+    color: ${primary.fg || '#222'};
+    background-color: ${primary.bg || '#fff'};
+    border-radius: ${primary.radius || '0.2em'};
+    transition-duration: ${primary.duration || '0.2s'};
+    transition-timing-function: ${primary.easing || 'ease-in-out'};
+    transition-property: box-shadow, border, background-color, color, margin, padding;
+  }
+
+  .rcard-section {
+    overflow: hidden;
+  }
+
+  .rcard-deep {
     box-shadow: 0 2px 2px rgba(0, 0, 0, 0.24), 0 0 2px rgba(0, 0, 0, 0.12);
-    border-radius: 2px;
+    border: none;
+  }
+  .rcard-flat {
+    border: 0.0625em solid ${primary.bc || '#ccc'};
+    box-shadow: none;
   }
 
   .rcard-no-pad > .rcard-content {
@@ -139,20 +174,73 @@
   .rcard-header {
     display: flex;
     height: 3em;
+    transition-duration: ${primary.duration || '0.2s'};
+    transition-timing-function: ${primary.easing || 'ease-in-out'};
+    transition-property: color, background-color, padding, height;
+  }
+
+  .rcard-section > .rcard-header {
+    background-color: ${primary.fga || '#07e'};
+    color: ${primary.bg || '#fff'};
+    height: auto;
+  }
+
+  .rcard-section > .rcard-header:first-of-type {
+    padding: 0.5em 1em;
   }
 
   .rcard-avatar {
     width: 3em;
+    height: 3em;
     margin-right: 1em;
+    transition-duration: ${primary.duration || '0.2s'};
+    transition-timing-function: ${primary.easing || 'ease-in-out'};
+    transition-property: width, height, bottom;
   }
 
   .rcard-avatar-inner {
     height: 100%;
     background-size: cover;
+    transition-duration: ${primary.duration || '0.2s'};
+    transition-timing-function: ${primary.easing || 'ease-in-out'};
+    transition-property: border-radius, box-shadow;
   }
 
-  .rcard-avatar-round {
+  .rcard-avatar-round .rcard-avatar-inner {
     border-radius: 100%;
+  }
+
+  .rcard-popout {
+    margin-top: 2em;
+  }
+  .rcard-section.rcard-popout {
+    overflow: visible;
+  }
+  .rcard-popout > .rcard-header {
+    position: relative;
+  }
+  .rcard-section.rcard-popout > .rcard-header {
+    border-radius: ${primary.easing || '0.2em'} ${primary.radius || '0.2em'} 0 0;
+  }
+  .rcard-popout > .rcard-header .rcard-avatar {
+    position: absolute;
+    bottom: 0;
+    width: 6em;
+    height: 6em;
+  }
+  .rcard-popout > .rcard-header .rcard-avatar ~ .rcard-titles {
+    margin-left: 7em;
+  }
+  .rcard-popout.rcard-section > .rcard-header .rcard-avatar {
+    bottom: 0.5em;
+    width: 3.75em;
+    height: 3.75em;
+  }
+  .rcard-popout.rcard-section > .rcard-header .rcard-avatar ~ .rcard-titles {
+    margin-left: 5em;
+  }
+  .rcard-popout.rcard-deep > .rcard-header .rcard-avatar-inner {
+    box-shadow: 0 2px 2px rgba(0, 0, 0, 0.24), 0 0 2px rgba(0, 0, 0, 0.12);
   }
 
   .rcard-titles {
@@ -161,12 +249,14 @@
     flex-direction: column;
     justify-content: center;
     line-height: 1em;
+    transition-duration: ${primary.duration || '0.2s'};
+    transition-timing-function: ${primary.easing || 'ease-in-out'};
+    transition-property: margin;
   }
 
   .rcard-with-sub {
     justify-content: space-evenly;
   }
-
   .rcard-with-sub > .rcard-title {
     font-size: 1.2em;
   }
@@ -178,6 +268,19 @@
   .rcard-subtitle {
     opacity: 0.7;
     font-size: 1em;
+  }
+
+  .rcard-section > .rcard-header .rcard-titles {
+    line-height: 1.2em;
+  }
+  .rcard-section > .rcard-header .rcard-with-sub {
+    line-height: 1em;
+  }
+  .rcard-section > .rcard-header .rcard-with-sub > .rcard-title {
+    font-size: 1.1em;
+  }
+  .rcard-section > .rcard-header .rcard-title {
+    font-size: 1.2em;
   }
 
   .rcard > div:first-of-type.rcard-image {
@@ -209,8 +312,8 @@
     transition-property: box-shadow, opacity, background-color;
     font-size: 1em;
     line-height: 1.5em;
-    background-color: ${data('button.flat.bg') || data('bg1') || '#fefefe'};
-    color: ${data('button.flat.fg') || data('fg1') || '#222'};
+    background-color: ${primary.bg || '#fff'};
+    color: ${primary.fg || '#222'};
     vertical-align: middle;
     min-height: 2.25em;
     outline: 0;
@@ -219,6 +322,7 @@
     overflow: hidden;
     font-weight: 500;
     -webkit-tap-highlight-color: transparent;
+    box-shadow: none;
   }
 
   .rcard-actions > button[disabled], .btn.disabled {
@@ -272,4 +376,5 @@
     transition: none;
   }
   `;
+  // TODO: other themes
 </script>

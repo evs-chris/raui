@@ -272,8 +272,9 @@
 </script>
 
 <script rel="css">
-  const left = data('shell.left.width') || data('menu.width') || '18em';
-  const right = data('shell.right.width') || data('menu.width') || '18em';
+  const left = data('raui.shell.left.width') || data('raui.menu.width') || '18em';
+  const right = data('raui.shell.right.width') || data('raui.menu.width') || '18em';
+  const primary = Object.assign({}, data('raui.primary'), data('raui.shell.primary'));
   return `
   .rshell {
     width: 100%;
@@ -293,12 +294,12 @@
     opacity: 0;
     background-color: #000;
     z-index: -1;
-    transition: opacity ${data('shell.slide.ms') || 400}ms ease-in-out, z-index 0s linear ${data('shell.slide.ms') || 400}ms;
+    transition: opacity ${data('raui.shell.slide.ms') || 400}ms ease-in-out, z-index 0s linear ${data('raui.shell.slide.ms') || 400}ms;
   }
   .rshell-modal.rshell-blocked {
     opacity: 0.5;
     z-index: 3;
-    transition: opacity ${data('shell.slide.ms') || 400}ms ease-in-out, z-index 0s linear;
+    transition: opacity ${data('raui.shell.slide.ms') || 400}ms ease-in-out, z-index 0s linear;
   }
   .rshell-main {
     width: 100%;
@@ -322,8 +323,8 @@
     height: 100%;
     overflow: auto;
     z-index: 4;
-    background-color: ${data('shell.menu.bg') || data('bg1') || 'inherit'};
-    transition: transform ${data('shell.slide.ms') || 400}ms ease-in-out;
+    background-color: ${primary.bg || 'inherit'};
+    transition: transform ${data('raui.shell.slide.ms') || 400}ms ease-in-out;
   }
   .rshell-left {
     left: 0;
@@ -352,7 +353,7 @@
 
   .rshell-left-pop, .rshell-right-pop {
     z-index: 5;
-    transition: transform ${data('shell.slide.ms') || 400}ms ease-in-out;
+    transition: transform ${data('raui.shell.slide.ms') || 400}ms ease-in-out;
     position: absolute;
     top: 0;
     bottom: 0;
@@ -378,7 +379,7 @@
     left: 0;
     z-index: 1;
     box-sizing: border-box;
-    transition: left ${data('shell.slide.ms') || 400}ms ease-in-out, width ${data('shell.slide.ms') || 400}ms ease-in-out;
+    transition: left ${data('raui.shell.slide.ms') || 400}ms ease-in-out, width ${data('raui.shell.slide.ms') || 400}ms ease-in-out;
     height: 100%;
     width: 100%;
     flex-grow: 1;
@@ -420,4 +421,5 @@
     overflow: visible;
   }
   `;
+  // TODO: other themes
 </script>

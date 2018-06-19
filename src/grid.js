@@ -117,7 +117,7 @@ export function grid(node, options) {
 }
 
 export function style(data, optDefaults) {
-  const defs = data('break') || optDefaults || defaults;
+  const defs = data('raui.grid.break') || optDefaults || defaults;
 
   let out = `.row > * { position: relative; width: 100%; transition-duration: 0.2s; transition-timing-function: ease-in-out; transition-property: width, padding, margin; box-sizing: border-box; }
 .grid { display: block; }
@@ -149,8 +149,8 @@ export function style(data, optDefaults) {
       for (let i = 1; i < u; i++) {
         str = '' + ((i / u) * 100);
         str = str.substr(0, str.indexOf('.') + 3);
-        rows += `\n${greater[size.key].map(s => `.${s} > .row-${name}${i}-${u} > *, ${s} > .row-${name}-n${i}-${u} > *`).join(', ')} { width: ${str}%; }`;
-        cols += `\n${greater[size.key].map(s => `.${s} > .${name}${i}-${u}, .${s} > .row > .${name}${i}-${u}, .${s} .${name}-n${i}-${u}, .${s} > .row > .${name}-n${i}-${u}`).join(', ')} { width: ${str}%; }`;
+        rows += `\n${greater[size.key].map(s => `.${s} > .row-${name}${i}-${u} > *, .${s} .row-${name}-n${i}-${u} > *, .${s} .row-${name}-n${i}-${u} > *`).join(', ')} { width: ${str}%; }`;
+        cols += `\n${greater[size.key].map(s => `.${s} > .${name}${i}-${u}, .${s} > .row > .${name}${i}-${u}, .${s} .${name}-n${i}-${u}, .${s} .row > .${name}-n${i}-${u}`).join(', ')} { width: ${str}%; }`;
       }
     });
   });

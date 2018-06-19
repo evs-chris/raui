@@ -108,6 +108,7 @@
     css: $CSS,
     cssId: 'rwindow',
     noCssTransform: true,
+    delegate: false,
     decorators: {
       tracked(node, id) {
         this[id] = node;
@@ -1039,6 +1040,8 @@
 </script>
 
 <script rel="css">
+  const primary = Object.assign({}, data('raui.primary'), data('raui.window.primary'));
+  const window = Object.assign({ host: {}, title: {} }, data('raui.window'));
   return `
   .rwhost {
     position: relative;
@@ -1062,7 +1065,7 @@
     box-sizing: border-box;
     flex-grow: 2;
     overflow: auto;
-    background-color: ${data('window.host.bg') || data('bg1') || '#fff'};
+    background-color: ${window.host.bg || primary.bg || '#fff'};
     z-index: 1;
   }
 
@@ -1097,7 +1100,7 @@
   }
 
   .rwindow-wrapper.rwindow-resizable {
-    padding: ${data('window.handleSize') || 7}px;
+    padding: ${window.handleSize || 7}px;
   }
 
   .rwindow-topmost > .rwindow {
@@ -1125,16 +1128,16 @@
   .rwindow {
     position: relative;
     box-sizing: border-box;
-    background-color: ${data('window.bg') || data('bg1') || '#f9f9f9'};
-    color: ${data('window.fg') || data('fg1') || '#222'};
+    background-color: ${window.bg || primary.bg || '#fff'};
+    color: ${window.fg || primary.fg || '#222'};
     box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.14), 0 1px 5px 0 rgba(0, 0, 0, 0.12), 0 3px 1px -2px rgba(0, 0, 0, 0.2);
     border-radius: 2px;
     overflow: hidden;
     width: 100%;
     height: 100%;
     opacity: 0.8;
-    min-width: ${data('window.minWidth') || '2em'};
-    min-height: ${data('window.minHeight') || '2em'};
+    min-width: ${window.minWidth || '6em'};
+    min-height: ${window.minHeight || '6em'};
     transition: box-shadow 0.4s ease-in-out, opacity 0.4s ease-in-out;
   }
   .rwindow-max > .rwindow {
@@ -1144,8 +1147,8 @@
 
   .rwindow-pane-top,
   .rwindow-max-top {
-    background-color: ${data('window.title.bg') || data('bg2') || '#07e'};
-    color: ${data('window.title.fg') || data('fg2') || '#fff'};
+    background-color: ${window.title.bg || primary.fga || '#07e'};
+    color: ${window.title.fg || primary.bg || '#fff'};
     flex-shrink: 0;
   }
 
@@ -1187,7 +1190,7 @@
     display: flex;
     flex-shrink: 0;
     padding: 0.5em;
-    border-top: 1px solid ${data('window.title.bg') || data('bg2') || '#07e'};
+    border-top: 1px solid ${window.title.bg || primary.fga || '#07e'};
   }
   .rwindow-buttons.no-buttons {
     display: none;
@@ -1273,6 +1276,6 @@
     transform-origin: center left;
     position: absolute;
   }
-  ${typeof data('extra-window') === 'function' ? data('extra-window').call(this, data) : ''}
+  ${typeof data('raui.window.extra') === 'function' ? data('raui.window.extra').call(this, data) : ''}
   `;
 </script>

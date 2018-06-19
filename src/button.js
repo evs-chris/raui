@@ -1,4 +1,5 @@
 export function button(data) {
+  const primary = Object.assign({}, data('raui.primary'), data('raui.button.primary'), { disabled: Object.assign({}, data('raui.primary.disabled'), data('raui.button.primary.disabled')) });
   return `
     button, .btn {
       text-decoration: none;
@@ -7,7 +8,7 @@ export function button(data) {
       cursor: pointer;
       user-select: none;
       border: none;
-      border-radius: 2px;
+      border-radius: ${primary.radius || '0.2em'};
       padding: 0 2rem;
       box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.14),
         0 1px 5px 0 rgba(0, 0, 0, 0.12),
@@ -16,8 +17,8 @@ export function button(data) {
       transition-property: box-shadow, opacity, background-color;
       font-size: 1em;
       line-height: 1.5em;
-      background-color: ${data('button.bg') || data('bg2') || '#ddd'};
-      color: ${data('button.fg') || data('fg2') || '#222'};
+      background-color: ${primary.fga || '#07e'};
+      color: ${primary.bg || '#fff'};
       vertical-align: middle;
       min-height: 2.25em;
       outline: 0;
@@ -25,6 +26,10 @@ export function button(data) {
       position: relative;
       overflow: hidden;
       -webkit-tap-highlight-color: transparent;
+      font-family: inherit;
+    }
+    button.alt, .btn.alt {
+      background-color: ${primary.fg || '#222'};
     }
 
     button[disabled], .btn.disabled {
@@ -42,29 +47,12 @@ export function button(data) {
     }
 
     button.flat, .btn.flat {
-      background-color: ${data('button.flat.bg') || data('bg1') || '#fefefe'};
-      color: ${data('button.flat.fg') || data('fg1') || '#222'};
+      background-color: transparent;
+      color: ${primary.fg || '#222'};
       box-shadow: none;
     }
-
-    button.alt1, .btn.alt1 {
-      bakcground-color: ${data('alt1.bg2') || '#ddd'};
-      color: ${data('alt1.fg2') || '#222'};
-    }
-
-    button.alt1.flat, .btn.alt1.flat {
-      background-color: ${data('alt1.bg1') || '#fefefe'};
-      color: ${data('alt1.fg1') || '#222'};
-    }
-
-    button.alt2, .btn.alt2 {
-      bakcground-color: ${data('alt2.bg2') || '#ddd'};
-      color: ${data('alt2.fg2') || '#222'};
-    }
-
-    button.alt2.flat, .btn.alt2.flat {
-      background-color: ${data('alt2.bg1') || '#fefefe'};
-      color: ${data('alt2.fg1') || '#222'};
+    button.flat.alt, .btn.flat.alt {
+      color: ${primary.fga || '#07e'};
     }
 
     button:hover, .btn:hover {
@@ -130,7 +118,24 @@ export function button(data) {
       opacity: 1;
       transition: none;
     }
-  `;
+  ` + (data('raui.themes') || []).map(t => {
+    const theme = Object.assign({}, primary, data(`raui.${t}`), data(`raui.button.${t}`), { diabled: Object.assign({}, primary.disabled, data(`raui.${t}.disabled`), data(`raui.button.${t}.disabled`))});
+    return `.btn.${t}, button.${t} {
+      background-color: ${heme.fga || '#07e'};
+      color: ${theme.bg || '#fff'};
+    }
+    button.${t}.alt, .btn.${t}.alt {
+      background-color: ${theme.fg || '#222'};
+    }
+    .btn.flat.${t}, button.flat.${t} {
+      background-color: ${theme.bg || '#fff'};
+      color: ${theme.fg || '#222'};
+    }
+    button.flat.${t}.alt, .btn.flat.${t}.alt {
+      color: ${theme.fga || '#07e'};
+    }
+    `;
+  });
 }
 
 export function plugin() {

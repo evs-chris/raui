@@ -12,7 +12,7 @@
     {{#each .}}
     <div class-rje-entry>
       <span class-rje-key {{#if ~/editable}}on-click="@.set('keys.' + ~/escapeKey(@keypath), @key), @.deferFocus(@node)"{{else}}on-click="@.toClipboard(@keypath.substr(5))"{{/if}}>
-        <span class-rje-str>
+        <span class-rje-str class-rje-edit="~/editable && typeof ~/keys[@keypath] === 'string'">
           {{#if typeof ~/keys[@keypath] === 'string'}}
             <textarea rows="{{#if @key.indexOf('\n') !== -1 || ~/keys[@keypath].indexOf('\n') !== -1}}5{{else}}1{{/if}}" on-keyup="@event.which === 27 && @.renameKey(@keypath, ~/keys[@keypath])">{{~/keys[@keypath]}}</textarea>
           {{else}}
@@ -67,7 +67,7 @@
 </template>
 
 <template id="string">
-  <span class-rje-str on-click="@.startEdit(@keypath, @node)">{{#if ~/editable && ~/edits[@keypath]}}<textarea rows="{{#if this.indexOf('\n') !== -1}}5{{else}}1{{/if}}" on-keyup="@event.which === 27 && @.stopEdit(@keypath)">{{.}}</textarea>{{else}}<pre>{{.}}</pre>{{/if}}</span><span class-rje-close />{{#if ~/editable && ~/edits[@keypath]}}{{>editorEnd}}{{/if}}
+  <span class-rje-str class-rje-edit="~/editable && ~/edits[@keypath]" on-click="@.startEdit(@keypath, @node)">{{#if ~/editable && ~/edits[@keypath]}}<textarea rows="{{#if this.indexOf('\n') !== -1}}5{{else}}1{{/if}}" on-keyup="@event.which === 27 && @.stopEdit(@keypath)">{{.}}</textarea>{{else}}<pre>{{.}}</pre>{{/if}}</span><span class-rje-close />{{#if ~/editable && ~/edits[@keypath]}}{{>editorEnd}}{{/if}}
 </template>
 
 <template id="number">
@@ -95,7 +95,7 @@
 </template>
 
 <template id="changeType">
-  <select on-change="@.changeType(@keypath)" twoway="false" value="{{~/getType(.)}}">
+  <select on-change="@.changeType(@keypath)" twoway="false" value="{{~/getType(.)}}" title="change type">
     <option>string</option>
     <option>number</option>
     <option>boolean</option>
@@ -194,6 +194,7 @@
     }
 
     startEdit(path, node) {
+      if (!this.get('editable')) return;
       path = `edits.${Ractive.escapeKey(path)}`;
       if (this.get(path)) return; // already editing
       this.set(path, true);
@@ -317,6 +318,7 @@
     box-sizing: border-box;
     opacity: 0.3;
     transition: opacity 0.3s ease-in-out;
+    vertical-align: top;
   }
   .rje-wrapper select:hover, .rje-wrapper input:hover,
   .rje-wrapper select:focus, .rje-wrapper input:focus {
@@ -346,6 +348,9 @@
   .rje-value > * {
     vertical-align: top;
   }
+  .rje-value > .rje-close {
+    margin-right: 1em;
+  }
 
   .rje-value-expanded {
     display: block; 
@@ -353,7 +358,7 @@
   }
   .rje-value-expanded > .rje-obj,
   .rje-value-expanded > .rje-array {
-    border-left: 1px dotted transparent;
+    border-left: 1px dotted #f4f4f4;
     transition: border-left-color 0.2s ease-in-out;
     margin: 0 0 1.5em 0.25em;
     position: relative;
@@ -371,6 +376,12 @@
     bottom: -1.5em;
     left: -1em;
     width: 2em;
+  }
+  .rje-root.rje-value-expanded > * > .rje-close {
+    left: -0.25em;
+  }
+  .rje-root > * > .rje-ellipsis {
+    margin-left: -1.25em;
   }
 
   .rje-open, .rje-close, .rje-ellipsis {
@@ -459,6 +470,9 @@
     text-align: left;
     top: 0;
   }
+  .rje-edit:before, .rje-edit:after {
+    margin-top: -0.5em;
+  }
 
   .rje-obj {
     display: inline-block;
@@ -466,8 +480,8 @@
 
   .rje-icon {
     width: 1.3em;
-    height: 1.3em;
-    line-height: 1.3em;   
+    height: 1.6em;
+    line-height: 1.6em;   
     min-height: auto;
     box-sizing: border-box;
     padding: 0;

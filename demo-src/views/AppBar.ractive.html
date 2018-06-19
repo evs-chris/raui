@@ -1,4 +1,4 @@
-<tabs flat pad class-secondary fill height=dynamic>
+<tabs flat pad class-alt fill height=dynamic>
   <tab title=Intro><marked>
     An `AppBar` is a pretty simple component. It's designed to go across the top (or bottom if you're feeling funky) of an app and have a little information about the rest of what's on the screen along with whatever interactive elements are needed, like a hamburger to get at a nav menu or a kebab to get at a popup menu. An AppBar can be used at the top of a window host to show the window title and controls when the window is maximized - either via user action or responsive constraint. The AppBar can also show a "wait spinner" in the form of a gradient line across the bottom so you can give the user some visual feedback that _something_ is happening.
 
@@ -31,6 +31,19 @@
 
     * `wait(wait: boolean)` - show or hide the wait spinner
     * `waiting: boolean` - gets/sets whether the wait spinner is showing
+
+    ### Theming
+
+    #### Namespace
+
+    `appbar`
+
+    #### Variables
+
+    * `invert` - use `fg` as background rather than `alt`
+    * `fg` - inverted background
+    * `bg` - foreground
+    * `alt` - default background
   </marked></tab>
   <tab title=Example>
     <marked>

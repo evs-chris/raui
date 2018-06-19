@@ -451,6 +451,7 @@
 </script>
 
 <script rel="css">
+  const primary = Object.assign({}, data('raui.primary'), data('raui.menu.primary'));
   const base = `
   .rmenu-wrapper {
     position: relative;
@@ -460,14 +461,18 @@
     min-height: 100%;
   }
   .rmenu {
-    ${data('menu.font') ? `font-family: ${data('menu.font')};` : ''}
-    color: ${data('menu.fg') || '#fefefe'};
-    background-color: ${data('menu.bg') || '#444'};
+    ${data('raui.menu.font') ? `font-family: ${data('raui.menu.font')};` : ''}
+    color: ${primary.bg || '#fff'};
+    background-color: ${primary.fga || '#222'};
     position: absolute;
     top: 0;
     bottom: 0;
     left: 0;
     right: 0;
+  }
+  .rmenu-wrapper.alt > .rmenu {
+    color: ${primary.fga || '#222'};
+    background-color: ${primary.bg || '#fff'};
   }
   .rmenu-inner {
     width: 100%;
@@ -480,8 +485,8 @@
     transition: border 0.2s ease-in-out;
   }
   .rmenu-expanded {
-    border-top: 1.5px solid ${data('menu.fgdim') || data('fgdim') || 'rgba(255, 255, 255, 0.3)'};
-    border-bottom: 1.5px solid ${data('menu.fgdim') || data('fgdim') || 'rgba(255, 255, 255, 0.3)'};
+    border-top: 0.0625em solid ${primary.bc || '#ccc'};
+    border-bottom: 0.0625em solid ${primary.bc || '#ccc'};
   }
   .rmenu-main {
     width: 100%;
@@ -494,8 +499,12 @@
     padding: 0.2em 0;
   }
   .rmenu-main.rmenu-active {
-    color: ${data('menu.fgActive') || data('fga1') || '#07e'};
-    background-color: ${data('menu.bgActive') || data('bg1') || '#dfdfdf'};
+    color: ${primary.fga || '#07e'};
+    background-color: ${primary.bg || '#fff'};
+  }
+  .rmenu-wrapper.alt .rmenu-main.rmenu.active {
+    color: ${primary.bg || '#fff'};
+    background-color: ${primary.fga || '#07e'};
   }
   .rmenu-items {
     display: block;
@@ -536,8 +545,8 @@
     top: 0;
     width: 100%;
     height: 100%;
-    background-color: ${data('menu.popout.bg') || data('menu.fg') || '#fefefe'};
-    color: ${data('menu.popout.fg') || data('menu.bg') || '#444'};
+    background-color: ${primary.bg || '#fff'};
+    color: ${primary.fg || '#222'};
     box-sizing: border-box;
     border: 1px solid;
     z-index: -1;
@@ -574,8 +583,8 @@
   }
 
   .rmenu-popout-close:after {
-    color:  ${data('menu.popout.close') || 'rgba(0, 0, 0, 0.3)'};
-    content: '\\274c Close';
+    color:  ${primary.bc || '#ccc'};
+    content: '\\274c  Close';
     display: block;
     padding: 0.5em 0.5em 0.1em 0.5em;
   }
@@ -615,6 +624,6 @@
     top: 0.5em;
   }
   `;
-
+  // TODO: other themes
   return base;
 </script>
