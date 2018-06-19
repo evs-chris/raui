@@ -170,6 +170,7 @@ System.register([], function (exports, module) {
           this$1.fire(event, x, y, true);
         }, timeout);
 
+        if (!this.bubble) { event.stopPropagation(); }
         return this.bubble;
       };
 
@@ -233,6 +234,7 @@ System.register([], function (exports, module) {
           this$1.fire(event, x, y, true);
         }, timeout);
 
+        if (!this.bubble) { event.stopPropagation(); }
         return this.bubble;
       };
 

@@ -125,7 +125,7 @@ System.register(['./chunk2.js'], function (exports, module) {
       }
 
       function style(data, optDefaults) {
-        var defs = data('break') || optDefaults || defaults;
+        var defs = data('raui.grid.break') || optDefaults || defaults;
 
         var out = ".row > * { position: relative; width: 100%; transition-duration: 0.2s; transition-timing-function: ease-in-out; transition-property: width, padding, margin; box-sizing: border-box; }\n.grid { display: block; }\n.grid .row { display: flex; flex-wrap: wrap; min-height: fit-content; width: 100%; }\n.grid .row.row-pad > * { padding: " + (data('grid.padding') || '0.5em') + "; }\n.grid .row > .pad { display: flex; flex-direction: column; padding: " + (data('grid.padding') || '0.5em') + "; box-sizing: border-box; }";
 
@@ -153,8 +153,8 @@ System.register(['./chunk2.js'], function (exports, module) {
             var loop = function ( i ) {
               str = '' + ((i / u) * 100);
               str = str.substr(0, str.indexOf('.') + 3);
-              rows += "\n" + (greater[size.key].map(function (s) { return ("." + s + " > .row-" + name + i + "-" + u + " > *, " + s + " > .row-" + name + "-n" + i + "-" + u + " > *"); }).join(', ')) + " { width: " + str + "%; }";
-              cols += "\n" + (greater[size.key].map(function (s) { return ("." + s + " > ." + name + i + "-" + u + ", ." + s + " > .row > ." + name + i + "-" + u + ", ." + s + " ." + name + "-n" + i + "-" + u + ", ." + s + " > .row > ." + name + "-n" + i + "-" + u); }).join(', ')) + " { width: " + str + "%; }";
+              rows += "\n" + (greater[size.key].map(function (s) { return ("." + s + " > .row-" + name + i + "-" + u + " > *, ." + s + " .row-" + name + "-n" + i + "-" + u + " > *, ." + s + " .row-" + name + "-n" + i + "-" + u + " > *"); }).join(', ')) + " { width: " + str + "%; }";
+              cols += "\n" + (greater[size.key].map(function (s) { return ("." + s + " > ." + name + i + "-" + u + ", ." + s + " > .row > ." + name + i + "-" + u + ", ." + s + " ." + name + "-n" + i + "-" + u + ", ." + s + " .row > ." + name + "-n" + i + "-" + u); }).join(', ')) + " { width: " + str + "%; }";
             };
 
             for (var i = 1; i < u; i++) loop( i );
