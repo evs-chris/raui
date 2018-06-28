@@ -127,7 +127,7 @@ System.register(['./chunk2.js'], function (exports, module) {
       function style(data, optDefaults) {
         var defs = data('raui.grid.break') || optDefaults || defaults;
 
-        var out = ".row > * { position: relative; width: 100%; transition-duration: 0.2s; transition-timing-function: ease-in-out; transition-property: width, padding, margin; box-sizing: border-box; }\n.grid { display: block; }\n.grid .row { display: flex; flex-wrap: wrap; min-height: fit-content; width: 100%; }\n.grid .row.row-pad > * { padding: " + (data('grid.padding') || '0.5em') + "; }\n.grid .row > .pad { display: flex; flex-direction: column; padding: " + (data('grid.padding') || '0.5em') + "; box-sizing: border-box; }";
+        var out = ".row > * { position: relative; width: 100%; transition-duration: 0.2s; transition-timing-function: ease-in-out; transition-property: width, padding, margin; box-sizing: border-box; }\n.grid { display: block; }\n.grid .row { display: flex; flex-wrap: wrap; min-height: fit-content; width: 100%; }\n.grid .row.row-pad > * { padding: " + (data('raui.grid.padding') || '0.5em') + "; }\n.grid .row > .pad { display: flex; flex-direction: column; padding: " + (data('raui.grid.padding') || '0.5em') + "; box-sizing: border-box; }";
 
         var str;
 
@@ -146,7 +146,7 @@ System.register(['./chunk2.js'], function (exports, module) {
         points.reverse().forEach(function (size) {
           var name = size.prefix || size.key[0];
 
-          out += "\n" + (greater[size.key].map(function (s) { return ("." + s + " > ." + name + "0, ." + s + " ." + name + "-n0"); }).join(', ')) + " { width: 0; overflow: hidden; }";
+          out += "\n" + (greater[size.key].map(function (s) { return ("." + s + " > ." + name + "0, ." + s + " > .row > ." + name + "0, ." + s + " ." + name + "-n0"); }).join(', ')) + " { width: 0; overflow: hidden; }";
 
           size.units.forEach(function (u) {
             cols += "\n" + (greater[size.key].map(function (s) { return ("." + s + " > " + name + "1, ." + s + " > .row > ." + name + "1, ." + s + " " + name + "-n1"); }).join(', ')) + " { width: 100%; }";
