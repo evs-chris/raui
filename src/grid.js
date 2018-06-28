@@ -122,8 +122,8 @@ export function style(data, optDefaults) {
   let out = `.row > * { position: relative; width: 100%; transition-duration: 0.2s; transition-timing-function: ease-in-out; transition-property: width, padding, margin; box-sizing: border-box; }
 .grid { display: block; }
 .grid .row { display: flex; flex-wrap: wrap; min-height: fit-content; width: 100%; }
-.grid .row.row-pad > * { padding: ${data('grid.padding') || '0.5em'}; }
-.grid .row > .pad { display: flex; flex-direction: column; padding: ${data('grid.padding') || '0.5em'}; box-sizing: border-box; }`;
+.grid .row.row-pad > * { padding: ${data('raui.grid.padding') || '0.5em'}; }
+.grid .row > .pad { display: flex; flex-direction: column; padding: ${data('raui.grid.padding') || '0.5em'}; box-sizing: border-box; }`;
 
   let str;
 
@@ -142,7 +142,7 @@ export function style(data, optDefaults) {
   points.reverse().forEach(size => {
     const name = size.prefix || size.key[0];
 
-    out += `\n${greater[size.key].map(s => `.${s} > .${name}0, .${s} .${name}-n0`).join(', ')} { width: 0; overflow: hidden; }`;
+    out += `\n${greater[size.key].map(s => `.${s} > .${name}0, .${s} > .row > .${name}0, .${s} .${name}-n0`).join(', ')} { width: 0; overflow: hidden; }`;
 
     size.units.forEach(u => {
       cols += `\n${greater[size.key].map(s => `.${s} > ${name}1, .${s} > .row > .${name}1, .${s} ${name}-n1`).join(', ')} { width: 100%; }`;

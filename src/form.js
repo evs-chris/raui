@@ -29,7 +29,7 @@ export function style(data) {
     border-radius: ${primary.radius || '0.2em'};
     box-shadow: none;
     transition-property: color, border-color, box-shadow;
-  label.field.check.focus > input:before  margin: 0.8em 0.2em;
+    margin: 0.8em 0.2em;
     min-height: auto;
   }
 
