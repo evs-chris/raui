@@ -37,6 +37,7 @@
         * `ref: string` - the id for this item. You can get an API handle to items using their `ref`, if supplied. If this is an expression, it will automatically be mapped into the containing menu.
         * `active: boolean | Handle -> boolean` - whether or not the item is currently active. This lets your application notify the menu when something changes states without involving the menu.
         * `open` - if preset, the item will start in an open state if it has children
+        * `disabled: boolean = true` - whether or not the menu item should be disabled
       * #### Children
         * `title` - any children are collected into a partial and yielded in the title section of the item
         * `left` - any children are collected into a partial and yielded in the left section of the item
@@ -70,6 +71,7 @@
     * `condition: boolean | () => boolean` - if the condition results in `true`, the item will be rendered
     * `active: boolean | Handle => boolean` - if the condition results in `true`, the item will be flagged as active
     * `action: () => void` - the function to call when the item is activated
+    * `disabled: boolean` - whether or not the item is disabled
     * `ref: string` - register this item with the id `ref`
     * `left: string` - an HTML string to render in the left section of the item if it is `type: 'item'`
     * `right: string` - an HTML string to render in the right section of the item if it is `type: 'item'`
@@ -96,6 +98,9 @@
     <label as-field>
       Title<select value="{{.title}}"><option>Things</option><option>Spoons</option><option>Former Wrestling Champions</option></select>
     </label>
+    <label as-field>
+      <input type="checkbox" checked="{{.disabled}}" /> Disable the Dinosaur?
+    </label>
     <marked>
       ### Template:
       ```handlebars
@@ -112,7 +117,7 @@
           <item open>
             <title>Big Things</title>
             <item title="Elephant" on-action="console.log('Pfrrrrrrrrrrbbbbt')" />
-            <item title="Dinosaur" on-action="console.log('Raaaawwwwrr')" />
+            <item title="Dinosaur" disabled="{{.disabled}}" on-action="console.log('Raaaawwwwrr')" />
             <item title="The Rock" on-action="console.log('Do you smell what the Rock is cooking?')" />
           </item>
           <item title="Clicky Things" on-action="console.log('I have an action and children, which may not be the best UX, but sometimes it\'s better than an extra set of menu items.')">
@@ -155,7 +160,7 @@
         <item open>
           <title>Big Things</title>
           <item title="Elephant" on-action="console.log('Pfrrrrrrrrrrbbbbt')" />
-          <item title="Dinosaur" on-action="console.log('Raaaawwwwrr')" />
+          <item title="Dinosaur" disabled="{{.disabled}}" on-action="console.log('Raaaawwwwrr')" />
           <item title="The Rock" on-action="console.log('Do you smell what the Rock is cooking?')" />
         </item>
         <item title="Clicky Things" on-action="console.log('I have an action and children, which may not be the best UX, but sometimes it\'s better than an extra set of menu items.')">

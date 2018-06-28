@@ -34,13 +34,14 @@
 <template id="item">
   <div class-rmenu-main
     {{#if .activeRef}}class-rmenu-active="~/[.activeRef]"{{elseif typeof .active === 'function'}}class-rmenu-active=".active.length ? .active(@.getHandle(@context)) : .active()"{{elseif typeof .active === 'boolean'}}class-rmenu-active=".active"{{/if}}
+    {{#if .disabled != null}}class-rmenu-disabled=".disabled"{{elseif .disabledRef}}class-rmenu-disabled="~/[.disabledRef]"{{/if}}
   >
     {{#if .left}}<div class-menu-left>{{{.left}}}</div>{{elseif .leftPartial}}<div class-rmenu-left>{{yield .leftPartial}}</div>{{/if}}
     <div
       class-rmenu-title
-      {{#if typeof .action === 'function'}}on-click=".action()" on-click="@._actioned()"
+      {{#unless .disabled || (.disabledRef && ~/[.disabledRef])}}{{#if typeof .action === 'function'}}on-click=".action()" on-click="@._actioned()"
       {{elseif .actionPartial}}{{yield .actionPartial}} on-click="@._actioned()"
-      {{elseif .items.length}}on-click="@context.toggle('.open'), false"{{/if}}
+      {{elseif .items.length}}on-click="@context.toggle('.open'), false"{{/if}}{{/unless}}
     >
       {{#if .title}}{{{.title}}}{{elseif .titlePartial}}{{yield .titlePartial}}{{/if}}
     </div>
@@ -288,6 +289,14 @@
           res.popout = true;
         } else if (el.e === 'container' && a.n === 'pad') {
           res.pad = true;
+        } else if (a.n === 'disabled') {
+          if (a.f && a.f.length === 1 && a.f[0].t === 2) {
+            const cnd = `_cnd${attrs.length}`;
+            res.disabledRef = cnd;
+            attrs.push({ t: 13, n: cnd, f: a.f });
+          } else if (a.f === 0) {
+            res.disabled = true;
+          }
         } else {
           as.push(a);
         }
@@ -322,8 +331,8 @@
         }
       });
 
-        if (!res.titlePartial && title) res.titlePartial = { t: title };
-        title = null;
+      if (!res.titlePartial && title) res.titlePartial = { t: title };
+      title = null;
 
       return res;
     }
@@ -374,6 +383,16 @@
       const item = this.item;
       if (item.activeRef) return this.menu.set(item.activeRef, v);
       else return this.set(`.active`, v);
+    }
+
+    get disabled() {
+      if (this.removed) return;
+      return this.get('.disabled');
+    }
+
+    set disabled(v) {
+      if (this.removed) return;
+      return this.set('.disabled', v);
     }
 
     get ref() {
@@ -484,12 +503,17 @@
     border-bottom: 1px solid transparent;
     transition: border 0.2s ease-in-out;
   }
+  .rmenu-disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
   .rmenu-expanded {
     border-top: 0.0625em solid ${primary.bc || '#ccc'};
     border-bottom: 0.0625em solid ${primary.bc || '#ccc'};
   }
   .rmenu-main {
     width: 100%;
+    height: 100%;
     box-sizing: border-box;
     user-select: none;
     transition: 0.3s ease-in-out;
@@ -497,6 +521,7 @@
     display: flex;
     align-items: center;
     padding: 0.2em 0;
+    min-height: 2em;
   }
   .rmenu-main.rmenu-active {
     color: ${primary.fga || '#07e'};
@@ -596,6 +621,9 @@
     cursor: pointer;
     padding: 0 0.5em;
     flex-grow: 1;
+  }
+  .rmenu-disabled > .rmenu-title {
+    cursor: not-allowed;
   }
   .rmenu-item h1, .rmenu-item h2, .rmenu-item h3, .rmenu-item h4 {
     margin: 0;

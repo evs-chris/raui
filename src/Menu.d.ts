@@ -20,6 +20,7 @@ export interface Handle {
   item: MenuItem;
 
   keypath: string;
+  disabled: boolean;
   action: () => void;
   active: boolean | ((Handle) => boolean);
   addItem(item: MenuItem, index?: number): Handle;
