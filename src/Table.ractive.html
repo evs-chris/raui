@@ -87,6 +87,9 @@
 
   const sortRE = /^([-+])?([^\s]+)$/;
 
+  // TODO: filters and sorts bound in and with type-specific ops
+  // TODO: working virtual table
+
   export class Table extends Ractive {
     constructor(opts) { super(opts); }
 
@@ -383,7 +386,8 @@
         allowSelectAll: true,
         showGroups: true,
         allowGroupSelect: true,
-        expanded: null
+        expanded: null,
+        minPerPage: 10
       }
     },
     computed: {
@@ -464,6 +468,8 @@
             else per = 30; // TODO: virtual table/auto size
           }
 
+          if (per < this.get('minPerPage')) per = this.get('minPerPage');
+
           if (offset * per > rows.length) setTimeout(() => this.set('page', 0), 0);
 
           return rows.slice(per * offset, per * offset + per);
@@ -479,6 +485,7 @@
           if (typeof per !== 'number' && isNaN(per)) {
             per = this.get('_paginate');
           }
+          if (per < this.get('minPerPage')) per = this.get('minPerPage');
 
           if (!per) return;
 
@@ -836,9 +843,10 @@
   .rtable-group > div > div,
   .rtable-header > div > div,
   .rtable-row > div > div {
-    padding: 0.5em;
+    padding: 0.4em 0.3em 0.2em 0.3em;
     overflow: inherit;
     text-overflow: inherit;
+    line-height: 1em;
   }
   .rtable-row > .rtable-no-pad > div {
     padding: 0;
@@ -963,6 +971,7 @@
 
   .rtable-select {
     width: 0;
+    height: 0;
     outline: none;
     margin-left: -1em;
   }
@@ -972,6 +981,8 @@
     border: 2px solid ${primary.fg || '#222'};
     width: 1em;
     height: 1em;
+    margin-left: 0.1em;
+    margin-top: -0.9em;
     box-sizing: border-box;
     transition: 0.2s ease-in-out;
     transition-property: transform, border-color, height, width;
@@ -987,7 +998,10 @@
   .row > .rtable-select-header,
   .row > .rtable-select-row {
     text-align: center;
-    width: 2.5em;
+    width: 1.5em;
+  }
+  .rtable-select-header .rtable-select:before {
+    margin-top: -1em;
   }
   .rtable-select-header .rtable-select:checked:before {
     border-color: ${primary.fg || '#222'};
@@ -996,8 +1010,10 @@
   }
 
   .rtable-column button, .rtable-column .btn {
-    font-size: 0.8em;
-    padding: 0.25em 0.5em;
+    font-size: 0.75em;
+    padding: 0 0.5em;
+    margin: 0.2em 0.5em;
+    min-height: 0;
   }
   ` + (data('table.includeGrid') !== false ? gridStyle(data) : '');
 </script>
