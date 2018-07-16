@@ -33,7 +33,7 @@
 
 <template id="item">
   <div class-rmenu-main
-    {{#if .activeRef}}class-rmenu-active="~/[.activeRef]"{{elseif typeof .active === 'function'}}class-rmenu-active=".active.length ? .active(@.getHandle(@context)) : .active()"{{elseif typeof .active === 'boolean'}}class-rmenu-active=".active"{{/if}}
+    {{#if .activeRef}}class-rmenu-active="~/[.activeRef]"{{elseif typeof .active === 'function'}}class-rmenu-active=".active.length ? .active(@.getHandle(@context)) : .active()"{{elseif typeof .active === 'boolean'}}class-rmenu-active=".active"{{elseif .popout}}class-rmenu-active='@.childActive(@keypath)'{{/if}}
     {{#if .disabled != null}}class-rmenu-disabled=".disabled"{{elseif .disabledRef}}class-rmenu-disabled="~/[.disabledRef]"{{/if}}
   >
     {{#if .left}}<div class-menu-left>{{{.left}}}</div>{{elseif .leftPartial}}<div class-rmenu-left>{{yield .leftPartial}}</div>{{/if}}
@@ -41,13 +41,13 @@
       class-rmenu-title
       {{#unless .disabled || (.disabledRef && ~/[.disabledRef])}}{{#if typeof .action === 'function'}}on-click=".action()" on-click="@._actioned()"
       {{elseif .actionPartial}}{{yield .actionPartial}} on-click="@._actioned()"
-      {{elseif .items.length}}on-click="@context.toggle('.open'), false"{{/if}}{{/unless}}
+      {{elseif .items.length}}on-click="@.popSiblingsIn(@context), @context.toggle('.open'), false"{{/if}}{{/unless}}
     >
       {{#if .title}}{{{.title}}}{{elseif .titlePartial}}{{yield .titlePartial}}{{/if}}
     </div>
     {{#if .right}}<div class-menu-right>{{{.right}}}</div>{{elseif .rightPartial}}<div class-rmenu-right>{{yield .rightPartial}}</div>{{/if}}
     {{#if .items && .items.length && @.visibleItems(.items)}}
-    <div class-rmenu-expand on-click="@context.toggle('.open'), false" expand-in-out={ axis: 'x' } />
+    <div class-rmenu-expand on-click="@.popSiblingsIn(@context), @context.toggle('.open'), false" expand-in-out={ axis: 'x' } />
     {{/if}}
   </div>
   {{>children}}
@@ -137,6 +137,19 @@
       }
     }
 
+    popSiblingsIn(ctx) {
+      const items = ctx.get('../');
+      const me = ctx.resolve();
+      if (items) {
+        for (let i = 0; i < items.length; i++) {
+          if (me === ctx.resolve(`../${i}`)) continue;
+          if (items[i].open) {
+            ctx.toggle(`../${i}.open`);
+          }
+        }
+      }
+    }
+
     _actioned() {
       this.fire('action');
       this.popAllIn();      
@@ -145,6 +158,16 @@
     _itemRendered(ctx) {
       setTimeout(() => this.fire('item', ctx, this.getHandle(ctx)));
       return '';
+    }
+
+    // TODO: handle active fn with context param
+    childActive(path) {
+      const item = this.get(path);
+      if (item && item.items) {
+        for (let i = 0; i < item.items.length; i++) {
+          if (this.get(`${path}.items.${i}.active`) === true || (typeof item.items[i].active === 'function' && item.items[i].active()) || (this.get(`${path}.items.${i}.activeRef`) && this.get(item.items[i].activeRef)) || this.childActive(`${path}.items.${i}`)) return true;
+        }
+      }
     }
   }
 
@@ -527,10 +550,15 @@
     color: ${primary.fga || '#07e'};
     background-color: ${primary.bg || '#fff'};
   }
+  .rmenu-popout .rmenu-entry .rmenu-main.rmenu-active {
+    color: ${primary.bg || '#fff'};
+    background-color: ${primary.fg || '#222'};
+  }
   .rmenu-wrapper.alt .rmenu-main.rmenu.active {
     color: ${primary.bg || '#fff'};
     background-color: ${primary.fga || '#07e'};
   }
+
   .rmenu-items {
     display: block;
   }
