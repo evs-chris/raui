@@ -18,9 +18,9 @@
 <template id="window">
   {{#if ~/control.show}}
   <div class-rwindow-wrapper as-tracked=`wrapper`
-    {{#if ~/root.max || ~/root.userMax || ~/control.max}}
+    {{#if (~/root.max || ~/root.userMax || ~/control.max) && !~/control.dialog}}
       {{#unless ~/control.autosize || ~/control.dialog}}style-top="0" style-left="0" style-width="100%" style-height="100%"{{/unless}}
-      class-rwindow-max="!~/control.dialog"
+      class-rwindow-max
       window-out
     {{else}}
       {{#if ~/control.resizable}}
@@ -57,7 +57,7 @@
   <div class-rwindow-pane-top as-tracked=`top`>
     {{>title}}
     <div class-rwindow-controls>
-      {{#if ~/control.minimize}}<div class-rwindow-minimize on-click="@.hide()"></div>{{/if}}
+      {{#if !~/control.dialog && ~/control.minimize}}<div class-rwindow-minimize on-click="@.hide()"></div>{{/if}}
       {{#if !~/control.dialog && ~/control.maximize}}<div class-rwindow-maximize on-click="@.maximize()"></div>{{/if}}
       {{#if ~/control.close}}<div class-rwindow-close on-click="@.close()"></div>{{/if}}
     </div>
@@ -66,9 +66,9 @@
   <div class-rwindow-content as-tracked=`content` class-rwindow-pad="~/control.pad" class-rwindow-flex="~/control.flex" {{#if ~/control.autosize}}style-overflow=visible{{/if}}>{{>contents}}</div>
   {{#if ~/buttons}}
     <div class-rwindow-buttons class-no-buttons="!~/visibleButtons">
-      <div class-rwindow-left-buttons>{{#each ~/leftButtons}}{{#if .partial}}{{>.partial}}{{else}}<button on-click=".action()" {{#if .class}}class="{{.class}}"{{/if}}>{{.label}}</button>{{/if}}{{/each}}</div>
-      <div class-rwindow-center-buttons>{{#each ~/centerButtons}}{{#if .partial}}{{>.partial}}{{else}}<button on-click=".action()" {{#if .class}}class="{{.class}}"{{/if}}>{{.label}}</button>{{/if}}{{/each}}</div>
-      <div class-rwindow-right-buttons>{{#each ~/rightButtons}}{{#if .partial}}{{>.partial}}{{else}}<button on-click=".action()" {{#if .class}}class="{{.class}}"{{/if}}>{{.label}}</button>{{/if}}{{/each}}</div>
+      <div class-rwindow-left-buttons>{{#each ~/leftButtons}}{{#if .partial}}{{>.partial}}{{else}}<button as-button on-click=".action.call(@)" {{#if .class}}class="{{.class}}"{{/if}}>{{.label}}</button>{{/if}}{{/each}}</div>
+      <div class-rwindow-center-buttons>{{#each ~/centerButtons}}{{#if .partial}}{{>.partial}}{{else}}<button as-button on-click=".action.call(@)" {{#if .class}}class="{{.class}}"{{/if}}>{{.label}}</button>{{/if}}{{/each}}</div>
+      <div class-rwindow-right-buttons>{{#each ~/rightButtons}}{{#if .partial}}{{>.partial}}{{else}}<button as-button on-click=".action.call(@)" {{#if .class}}class="{{.class}}"{{/if}}>{{.label}}</button>{{/if}}{{/each}}</div>
     </div>
   {{/if}}
   <div class-rwindow-pane-bottom>
@@ -234,14 +234,15 @@
           this.splice(`windows.${escape(blocking)}.blockers`, blockers.indexOf(window.id), 1);
         }
         this.detachChild(window).then(() => window.teardown());
+        this.set(`windows.${escape(window.id)}.index`, -1);
+        this.raise();
         this.set(`windows.${escape(window.id)}`, undefined);
         delete this.get('windows')[window.id];
-        this.raise();
       });
 
       this.update(`windows.${escape(window.id)}.id`, { force: true });
 
-      return promise;
+      return promise.then(() => window);
     }
 
     getWindow(id) {
@@ -310,8 +311,9 @@
 
       top = sets['topLevel'];
       if (top && top !== last && this.get('currentMax') && this.rendered) {
+        const leaving = this.get(`windows.${escape(last)}`);
         wnd = this.getWindow(top);
-        wnd.transition('window', wnd.find('div'), { intro: true });
+        if (!leaving || !leaving.dialog || (leaving.blocking && leaving.blocking !== top)) wnd.transition('window', wnd.find('div'), { intro: true });
       }
     }
 
@@ -333,10 +335,15 @@
       if (blocking) {
         const key = `windows.${escape(blocking)}`;
         const blocked = this.get(key);
-        const max = (this.get('max') || blocked.max) && !blocked.dialog;
+        const max = local.max || (!local.dialog && (this.get('max') || this.get('userMax')));
+        const bmax = blocked.max || this.get('userMax') || this.get('max');
+        const bw = bmax ? this.host.clientWidth : this.sizeInPx(`${blocked.width}em`);
+        const bh = bmax ? this.host.clientHeight : this.sizeInPax(`${blocked.height}em`);
+        const bl = bmax ? 0 : blocked.left;
+        const bt = bmax ? 0 : blocked.top;
 
-        left = ((max ? maxw : this.sizeInPx(blocked.width + 'em')) / 2) + (max ? 0 : blocked.left) - (this.sizeInPx(local.width + 'em') / 2);
-        top = ((max ? maxh : this.sizeInPx(blocked.height + 'em')) / 2) + (max ? 0 : blocked.top) - (this.sizeInPx(local.height + 'em') / 2);
+        left = (max ? maxw : bw / 2) + (max ? 0 : bl) - (this.sizeInPx(`${local.width}em`) / 2);
+        top = (max ? maxh : bh / 2) + (max ? 0 : bt) - (this.sizeInPx(`${local.height}em`) / 2);
       }
 
       // place in 3x3 grid
@@ -652,6 +659,8 @@
     }
     get pad () { return this.get('pad'); }
     set pad (v) { this.set('pad', v); }
+    get buttons () { return this.get('buttons'); }
+    set buttons (v) { return this.set('buttons', v); }
 
     close(force) {
       if (force !== true) {
@@ -1135,7 +1144,6 @@
     overflow: hidden;
     width: 100%;
     height: 100%;
-    opacity: 0.8;
     min-width: ${window.minWidth || '6em'};
     min-height: ${window.minHeight || '6em'};
     transition: box-shadow 0.4s ease-in-out, opacity 0.4s ease-in-out;

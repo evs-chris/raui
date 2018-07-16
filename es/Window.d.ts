@@ -1,1 +1,1 @@
-export { default, InitOpts, ExtendOpts, Window, WindowOpts, Control, Position, Placement, Host, PluginOpts } from '../src/Window';
+export { default, InitOpts, ExtendOpts, Window, WindowOpts, WindowButton, Control, Position, Placement, Host, PluginOpts } from '../src/Window';
