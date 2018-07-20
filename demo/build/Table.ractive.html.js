@@ -1,4 +1,4 @@
-System.register(['ractive', './chunk6.js', './chunk7.js', './chunk2.js', './chunk9.js'], function (exports, module) {
+System.register(['ractive', './chunk6.js', './chunk7.js', './chunk2.js', './chunk10.js'], function (exports, module) {
   'use strict';
   var Ractive$1, grid, style, click, expand, globalRegister, Window, split;
   return {
