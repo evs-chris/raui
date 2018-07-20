@@ -51,9 +51,9 @@ System.register([], function (exports, module) {
             if (typeof opts.value === 'string') {
               handles.observers.push(ctx.observe(opts.value, function (v) {
                 if (!v) { v = defaultDate; }
+                groups.value = v;
                 updateDate(v, groups);
                 node.value = printDate(groups);
-                groups.value = v;
               }));
             } else { groups.value = getDateValue(opts.date || defaultDate); }
 
@@ -234,7 +234,7 @@ System.register([], function (exports, module) {
 
             return {
               teardown: function teardown() {
-                handles.obeservers.forEach(function (o) { return o.cancel(); });
+                handles.observers.forEach(function (o) { return o.cancel(); });
                 handles.listeners.forEach(function (o) { return o.cancel(); });
               }
             }
@@ -449,7 +449,7 @@ System.register([], function (exports, module) {
       }
 
       function revalue(groups) {
-        var v = groups.value;
+        var v = groups.value || new Date();
         var nums = [v.getFullYear(), v.getMonth() + 1, v.getDate(), v.getHours(), v.getMinutes(), v.getSeconds(), v.getMilliseconds()];
 
         groups.forEach(function (g) {
