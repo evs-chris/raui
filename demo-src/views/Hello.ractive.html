@@ -1,5 +1,6 @@
 <tabs flat pad class-alt fill height=dynamic transition=fade>
-  <tab title="Intro"><marked>
+  <tab title="Intro">
+    <marked>
     <div style="text-align: center;"><img src="./raui.svg" style="width: 150px; text-align: center;" alt="pronounced like Maui" /></div>
 
     <a href="https://github.com/evs-chris/raui" target=_blank>RaUI</a> is a set of components and plugins for <a href="https://ractive.js.org" target=_blank>Ractive.js</a> that can be handy for heavier web applications. Some of them are a bit unusual for modern web applications, but they try to stick close to <a href="https://material.io/" target=_blank>Material</a> guidelines by default where it makes sense. They also do their best to stay completely responsive from iPhone 4-sized screens all the way up to 50+" 4k monitors.
@@ -55,6 +56,7 @@
 
     * AceEditor - Turns an element into an Ace editor
     * CodeMirror - Turns an element into a CodeMirror editor
+    * Date - Turns an input into a date/time editor
     * Form - A few helpers to make your forms slightly more convenient to author
     * Grid - An internally responsive, adjustable grid
     * Marked - A macro and decorator combo that renders its contents via `marked` Markdown
@@ -125,16 +127,20 @@
 <script>
   import { Window } from 'cmp/Window';
   import click from 'cmp/event-click';
+  import date from 'cmp/date';
 
   export default Window.extend({
     template: $TEMPLATE,
-    use: [click({ name: 'clickh', count: 1, hold: true })],
+    use: [click({ name: 'clickh', count: 1, hold: true }), date()],
     options: {
       title: 'Hello, RaUI',
       resizable: true,
       width: '48em',
       height: '30em',
       flex: true
+    },
+    data() {
+      return { date: new Date() }
     }
   });
 </script>

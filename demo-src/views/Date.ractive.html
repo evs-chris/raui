@@ -1,0 +1,70 @@
+<tabs flat pad class-alt fill height=dynamic>
+  <tab title=Intro><marked>
+    This decorator converts an input into a date/time editor based on a mask. Each group within the input gets focus independently, and invalid values are moved to the nearest valid value automatically. The binding is always lazy.
+
+    Within the input, `tab` and `enter` will switch between fields, with `enter` wrapping and `tab` leaving the input from the last field. The left and right arrows will also jump to the next field when at the edge of a field. The up and down arrows will cycle the value of the selected field. Number keys will change the current value, and any other single char key will accept the value in the current field and move to the next field.
+
+    There is also support for two-digit years, where any two-digit year more than twenty years in the future is assumed to be from last century e.g. 99 is 1999, 37 is 2037, and 40 is 1940.
+
+    Months, days, hours, minutes, and seconds will automatically complete on a single number if there's no possibility that another number could be input e.g. 2 through 9 for a month or 3 through 9 for an hour.
+
+    Any characters in the mask that aren't reserved are left as literals. This means you can split up your date with `.`, or `-`, or `/`, or whatever makes you happy. Fields are required to have non-reserved characters between them so that the decorator can determine which field is currently focused based on cursor position within the input.
+  </marked></tab>
+  <tab title=Usage><marked>
+    ### Plugin Options
+
+    All options are optional.
+
+    * `name: string = 'marked'` - the name to use when registering the plugin as a macro and decorator
+    * `mask: string = 'yyyy-MM-dd'` - the mask to use for the editor. The mask chars are based on the java SimpleDateFormat as follows:
+      * `y` - year
+      * `M` - month
+      * `d` - day of month
+      * `H` - hour of day (24)
+      * `m` - minute
+      * `s` - second
+      * `S` - millisecond
+    * `time: string = '00:00:00.000'` - the default time to use as a starting point for an undefined base value
+    * `date: string = '0000-01-01'` - the default date to use as a starting point for an undefined base value
+
+    ### Decorator options
+
+    The decorator will also accept an options object:
+
+    * `mask: string` - overrides the plugin mask for this field
+    * `value: keypath` - the keypath to which the date should be bound
+
+    Alternatively, you can pass just a keypath string as an argument.
+  </marked></tab>
+  <tab title=Example>
+    <marked>
+      ### Template:
+      ```handlebars
+      <input as-date=`.date` />
+      <input as-date="{ value: '.date', mask: 'yyyy-MM-dd HH:mm:ss.SSS' }" />
+      <input as-date="{ value: '.date', mask: 'HH:mm:ss'}" />
+      ```
+      ### Result:
+    </marked>
+
+    <input as-date=`.date` />
+    <input as-date="{ value: '.date', mask: 'yyyy-MM-dd HH:mm:ss.SSS' }" />
+    <input as-date="{ value: '.date', mask: 'HH:mm:ss'}" />
+  </tab>
+</tabs>
+
+<script>
+  import { Window } from 'cmp/Window';
+  import date from 'cmp/date';
+
+  export default Window.extend({
+    template: $TEMPLATE,
+    use: [date()],
+    options: {
+      title: 'Decorator :: Date',
+      resizable: true, flex: true,
+      width: '48em', height: '30em'
+    }
+  });
+</script>
+    

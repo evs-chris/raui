@@ -23,6 +23,7 @@
       <item open><h3>Decorators</h3>
         <item ref=AceEditor>Ace Editor</item>
         <item ref=CodeMirror>CodeMirror</item>
+        <item ref=Date>Date</item>
         <item ref=Form>Form</item>
         <item ref=Grid>Grid</item>
         <item ref=Marked>Marked</item>
@@ -87,7 +88,7 @@
 
         host.set('userMax', true);
 
-        const builtins = ['Hello', 'AceEditor', 'AppBar', 'Button', 'Card', 'Click', 'CodeMirror', 'Expand', 'Fade', 'Form', 'Grid', 'JSONEditor', 'Keys', 'Marked', 'MaskedInput', 'Menu', 'ScrollSpy', 'Shell', 'Split', 'Swipe', 'Table', 'Tabs', 'Toast', 'Toggle', 'Window'];
+        const builtins = ['Hello', 'AceEditor', 'AppBar', 'Button', 'Card', 'Click', 'CodeMirror', 'Date', 'Expand', 'Fade', 'Form', 'Grid', 'JSONEditor', 'Keys', 'Marked', 'MaskedInput', 'Menu', 'ScrollSpy', 'Shell', 'Split', 'Swipe', 'Table', 'Tabs', 'Toast', 'Toggle', 'Window'];
 
         menu.on('item', (ctx, handle) => {
           if (~builtins.indexOf(handle.ref)) {
