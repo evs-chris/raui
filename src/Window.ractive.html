@@ -177,6 +177,8 @@
     get placement () { return this.get('placement'); }
     set placement (v) { return this.set('placement', v); }
 
+    get windows () { return Object.keys(this.get('windows')); }
+
     addWindow(window, opts) {
       const options = Object.assign({}, this.defaults, window.options, window.get('options'), opts);
 
@@ -671,6 +673,8 @@
       }
 
       this.fire('close');
+
+      return true;
     }
 
     maximize() {

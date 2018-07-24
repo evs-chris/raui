@@ -35,6 +35,7 @@
 
     * `current: Window` - get the top-level window
     * `currentId: string` - get the id of the top-level window
+    * `windows: string[]` - get the list of all window ids
     * `addWindow(window: Window, options)` - add the given window to the host. Options are applied over the default options for the host and any options supplied by the window extension or constructor.
       * `id: string` - the id to use for the window. If not supplied, one will be generated from a monotonically incrementing sequence.
       * `show: boolean = true` - whether to display the window immediately

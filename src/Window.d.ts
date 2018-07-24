@@ -75,6 +75,8 @@ export class Host<T extends Host<T> = Host<any>> extends Ractive<Host> implement
   defaults?: WindowOpts;
   placement?: Placement;
 
+  get windows(): string[];
+
   addWindow<T extends Window>(window: T, opts?: WindowOpts): Promise<T>;
   getWindow(id: string): Window;
   rasie(window: string | Window, show: boolean);
