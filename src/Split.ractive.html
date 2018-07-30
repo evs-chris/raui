@@ -5,7 +5,7 @@
       {{#if ~/vertical}}style-width="calc({{.curSize}}% - {{@last * (@style.split.handle.width || 14) / (@last + 1)}}px)"{{else}}style-height="calc({{.curSize}}% - {{@last * (@style.split.handle.width || 14) / (@last + 1)}}px)"{{/if}}
       {{#if .attrs}}{{yield .attrs}}{{/if}}
     >
-      {{yield .content}}
+      {{yield .content}}{{#if ~/draggable && ~/dragging}}<div class-rsplit-block />{{/if}}
     </div>
     {{#if @index !== @last}}
       <div class-rsplit-sep {{#if 'draggable' in . ? .draggable : ~/draggable}}as-sizeHandle="~/vertical, @index"{{/if}}>
@@ -339,6 +339,15 @@
 
   .rsplit.rsplit-horizontal > .rsplit-split {
     width: 100%;
+  }
+
+  .rsplit-block {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 999;
   }
 
   .rsplit.rsplit-draggable.rsplit-vertical > .rsplit-sep {
