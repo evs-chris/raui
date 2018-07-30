@@ -31,6 +31,7 @@
     {{elseif !.button}}on-click=['select', @index]{{/if}}
     as-registered="@index"
     {{#if .extraTab}}{{yield .extraTab}}{{/if}}
+    data-tab-index="{{@index}}"
   >
     {{#if typeof .title === 'string'}}{{title}}{{elseif .title}}{{yield .title}}{{/if}}
     {{#if .closable && !.button}}<div class-rtabs-close on-click=['close', @index]>&times;</div>{{/if}}
@@ -64,6 +65,7 @@
     updateIndicator() {
       if (this.get('@style.raui.tabs.boxy')) return;
       const node = this._tabs[this.get('selected')];
+      if (!node || !node.offsetParent) return;
 
       if (node) {
         const start = this.get('selectedLeft');
