@@ -53,9 +53,11 @@ export default function init(initOpts = {}) {
     });
 
     function resize() {
-      editor.display.wrapper.style.height = '20px';
-      editor.display.wrapper.style.height = `${editor.display.wrapper.parentNode.clientHeight}px`;
-      editor && editor.refresh();
+      if (editor) {
+        editor.display.wrapper.style.height = '20px';
+        editor.display.wrapper.style.height = `${editor.display.wrapper.parentNode.clientHeight}px`;
+        editor.refresh();
+      }
     }
     const listener = ctx.get('@.root').on('*.resize', resize);
 
@@ -73,7 +75,7 @@ export default function init(initOpts = {}) {
             lock = true;
             if (editor.getValue() !== v) {
               const cur = editor.getCursor();
-              editor.setValue(v);
+              editor.setValue(typeof v === 'string' ? v : '');
               editor.setCursor(cur);
             }
             lock = false;
