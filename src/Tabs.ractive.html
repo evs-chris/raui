@@ -2,10 +2,10 @@
   <div class-rtabs-tab-window {{#if .direction === 'left'}}class-rtabs-going-left{{else}}class-rtabs-going-right{{/if}}>
     <div class-rtabs-tabs>
       <div class-rtabs-left class-rtabs-center="~/center">
-        {{#each .tabs}}{{#unless .right}}{{>tab}}{{/unless}}{{/each}}
+        {{#each .tabs}}{{#if !.right && !@._hidden(@index)}}{{>tab}}{{/if}}{{/each}}
       </div>
       <div class-rtabs-right>
-        {{#each .tabs}}{{#if .right}}{{>tab}}{{/if}}{{/each}}
+        {{#each .tabs}}{{#if .right && !@._hidden(@index)}}{{>tab}}{{/if}}{{/each}}
       </div>
       {{#unless @style.raui.tabs.boxy}}<div class-rtabs-indicator style-left="{{.selectedLeft}}px" {{#if .selectedRight !== undefined}}style-right="{{.selectedRight}}px"{{/if}} />{{/unless}}
       </div>
@@ -99,9 +99,15 @@
     select(idx) {
       this.fire('select', {}, idx);
     }
+
+    _hidden(idx) {
+      const hidden = this.get(`tabs.${idx}.hidden`);
+      if (typeof hidden === 'string') return this.get(hidden);
+      else return hidden;
+    }
   }
 
-  const tabAttrs = ['closable', 'disabled', 'title', 'right', 'button', 'no-pad'];
+  const tabAttrs = ['closable', 'disabled', 'title', 'right', 'button', 'no-pad', 'hidden'];
 
   // TODO: api handles
   Ractive.extendWith(Tabs, {
@@ -114,8 +120,8 @@
       return {
         tabs: [],
         rightTabs: [],
-        selected: 0,
-        selectedContent: 0,
+        selected: -1,
+        selectedContent: -1,
         opacity: 1
       }
     },
@@ -123,11 +129,22 @@
       construct,
       config() {
         if ( this._tabs ) this.set('tabs', (this.get('tabs') || []).concat(this._tabs), { shuffle: true });
+        const tabs = this.get('tabs');
+        const xs = this.indicatorObservers = [];
+        tabs.forEach(t => {
+          if (typeof t.hidden === 'string') xs.push(this.observe(t.hidden, () => setTimeout(() => this.updateIndicator()), { init: false, defer: true }));
+        });
+        xs.push(this.observe('tabs.*.hidden', () => setTimeout(() => this.updateIndicator()), { init: false, defer: true }));
+
+        this.once('render', () => {
+          if (this.get('selected') === -1) this.select(0);
+        })
       },
       select,
       close,
       teardown() {
         instances.splice(instances.indexOf(this), 1);
+        this.indicatorObservers.forEach(o => o.cancel());
       },
       render() {
         this._resizeListener = this.root.on('*.resize', () => this.updateIndicator());
@@ -138,6 +155,21 @@
           this._resizeListener.cancel();
           this._resizeListener = null;
         }
+      }
+    },
+    observe: {
+      selected: {
+        handler(v) {
+          const hidden = this._hidden(v);
+          const tabs = this.get('tabs');
+          if (hidden) setTimeout(() => {
+            const trans = this.get('transition');
+            this.set('transition', '');
+            this.select(v + 1 >= tabs.length ? 0 : v + 1);
+            this.set('transition', trans);
+          });
+        },
+        init: false
       }
     },
     decorators: {
@@ -192,6 +224,10 @@
               tab.padRef = cnd;
               attrs.push({ t: 13, n: cnd, f: a.f });
             }
+          } else if (a.n === 'hidden' && a.f && a.f.length === 1 && a.f[0].t === 2) {
+            const cnd = `_cnd${attrs.length}`;
+            tab.hidden = cnd;
+            attrs.push({ t: 13, n: cnd, f: a.f });
           } else {
             tab[a.n] = a.f === 0 ? true : typeof a.f === 'string' ? a.f : { t: a.f };
           }
@@ -221,7 +257,6 @@
   function select(ctx, idx) {
     const current = this.get('selected');
     const prs = [];
-    const node = this.find('.contents');
     const trans = this.get('transition');
 
     if (current !== idx) {
@@ -293,8 +328,14 @@
 
 <script rel="css">
   const primary = Object.assign({}, data('raui.primary'), data('raui.tabs.primary'));
-  const tabs = Object.assign({ selected: {}, indicator: {} }, data('raui.tabs'));
-  const boxy = data('raui.tabs.boxy');
+  primary.selected = Object.assign({}, data('raui.tabs.selected'), data('raui.tabs.primary.selected'));
+  primary.indicator = Object.assign({}, data('raui.tabs.indicator'), data('raui.tabs.primary.indicator'));
+  const themes = (data('raui.themes') || []).slice();
+  (data('raui.tabs.themes') || []).forEach(t => {
+    if (!~themes.indexOf(t)) themes.push(t);
+  });
+  const boxy = data('raui.tabs.boxy') || data('raui.tabs.primary.boxy');
+
   return `
   .rtabs {
     position: relative;
@@ -309,7 +350,7 @@
     ${!boxy ? `box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.14),
       0 1px 5px 0 rgba(0, 0, 0, 0.12),
       0 3px 1px -2px rgba(0, 0, 0, 0.2);
-      color: ${primary.fg || '#222'};
+    color: ${primary.fg || '#222'};
     background-color: ${primary.bg || '#fff'};` :
     `border-color: ${primary.bc || '#ccc'};
     border-style: solid;
@@ -407,9 +448,9 @@
   .alt > .rtabs-tab-window .rtabs-selected` : ''} {
     opacity: 1;${boxy ? `
     border-bottom-color: ${primary.bg || '#fff'};
-    background-color: ${tabs.selected.bg || primary.bg || '#fff'};${tabs.selected.indicator ? `
-    background-image: linear-gradient(to bottom, ${tabs.indicator.color || primary.fga || '#07e'}, ${primary.bg || '#fff'} 3px);` : ''}
-    color: ${tabs.selected.fg || primary.fg || '#222' };` : ''}
+    background-color: ${primary.selected.bg || primary.bg || '#fff'};${primary.indicator ? `
+    background-image: linear-gradient(to bottom, ${primary.indicator.color || primary.fga || '#07e'}, ${primary.bg || '#fff'} 3px);` : ''}
+    color: ${primary.selected.fg || primary.fg || '#222' };` : ''}
   }
 
   .rtabs-disabled {
@@ -442,7 +483,7 @@
     position: absolute;
     bottom: 0;
     height: 0.15em;
-    background-color: ${tabs.indicator.color || primary.fga || '#07e'};
+    background-color: ${primary.indicator.color || primary.fga || '#07e'};
     z-index: 2;
   }
 
@@ -538,6 +579,77 @@
     padding: 1em;
     box-sizing: border-box;
   }
+  ` + themes.map(t => {
+    const theme = Object.assign({}, data('raui.primary'), data('raui.tabs.primary'), data(`raui.${t}`), data(`raui.tabs.${t}`));
+    theme.selected = Object.assign({}, data('raui.tabs.selected'), data('raui.tabs.primary.selected'), data(`raui.tabs.${t}.selected`));
+    theme.indicator = Object.assign({}, data('raui.tabs.indicator'), data('raui.tabs.primary.indicator'), data(`raui.tabs.${t}.indicator`));
+    const boxy = 'boxy' in theme ? theme.boxy : data('raui.tabs.boxy');
+
+    return `.rtabs.${t} > .rtabs-tab-window {
+    ${!boxy ? `box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.14),
+      0 1px 5px 0 rgba(0, 0, 0, 0.12),
+      0 3px 1px -2px rgba(0, 0, 0, 0.2);
+    color: ${theme.fg || '#222'};
+    background-color: ${theme.bg || '#fff'};` :
+    `border-color: ${theme.bc || '#ccc'};
+    color: ${theme.fg || '#222'};
+    background-color: ${theme.bga || '#f4f4f4'};
+    `}
+  }
+  .rtabs.${t}.alt > .rtabs-tab-window {
+    color: ${theme.bg || '#fff'};
+    background-color: ${theme.fga || '#07e'};
+  }${boxy ? `
+  .rtabs.${t}.alt > .rtabs-tab-window .rtabs-tab {
+    color: ${theme.bg || '#fff'};
+    background-color: ${theme.fga || '#07e'};
+  }` : ''}
+
+  ${!boxy ? `.rtabs-flat.${t} > .rtabs-tab-window:after {
+    background-color: ${theme.bga || '#f4f4f4'};
+  }
+  .rtabs-flat.alt.${t} > .rtabs-tab-window:after {
+    background-color: ${theme.fga || '#07e'};
+  }` : `
+  .rtabs-flat.${t} > .rtabs-tab-window {
+    background-color: ${theme.bg || '#fff'};
+  }
+  .alt.rtabs-flat.${t} > .rtabs-tab-window {
+    background-color: ${theme.fga || '#07e'};
+  }`}
+
+  ${boxy ? `.rtabs.${t} > .rtabs-tab-window .rtabs-tabs {
+    border-color: ${theme.bc || '#ccc'};
+  }` : ''}
+
+  .rtabs.${t} > .rtabs-tab-window > .rtabs-tab {
+    cursor: pointer;${!boxy ? '' : `
+    border-color: ${theme.bc || '#ccc'};
+    color: ${theme.fg || '#222'};
+    background-color: ${theme.bga || '#f4f4f4'};
+    `}
+  }
+
+  .rtabs.${t} > .rtabs-tab-window .rtabs-selected${boxy ? `,
+  .rtabs.${t}.alt > .rtabs-tab-window .rtabs-selected` : ''} {${boxy ? `
+    border-bottom-color: ${them.bg || '#fff'};
+    background-color: ${theme.selected.bg || theme.bg || '#fff'};${theme.indicator ? `
+    background-image: linear-gradient(to bottom, ${theme.indicator.color || theme.fga || '#07e'}, ${theme.bg || '#fff'} 3px);` : ''}
+    color: ${theme.selected.fg || theme.fg || '#222' };` : ''}
+  }
+
+  .rtabs.${t} > .rtabs-tab-window .rtabs-indicator {
+    background-color: ${theme.indicator.color || theme.fga || '#07e'};
+  }
+
+  .rtabs.${t}.alt > .rtabs-tab-window .rtabs-indicator {
+    background-color: ${theme.bg || '#fff'};
+  }
+
+  .rtabs.${t} {
+    color: ${theme.fg || '#222'};
+    background-color: ${theme.bg || '#fff'};
+  }
   `;
-  // TODO: other themes
+  }).join('\n');
 </script>
