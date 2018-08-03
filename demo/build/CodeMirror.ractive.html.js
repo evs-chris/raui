@@ -68,9 +68,11 @@ System.register(['./chunk2.js', './chunk10.js', './chunk11.js'], function (expor
           });
 
           function resize() {
-            editor.display.wrapper.style.height = '20px';
-            editor.display.wrapper.style.height = (editor.display.wrapper.parentNode.clientHeight) + "px";
-            editor && editor.refresh();
+            if (editor) {
+              editor.display.wrapper.style.height = '20px';
+              editor.display.wrapper.style.height = (editor.display.wrapper.parentNode.clientHeight) + "px";
+              editor.refresh();
+            }
           }
           var listener = ctx.get('@.root').on('*.resize', resize);
 
@@ -88,7 +90,7 @@ System.register(['./chunk2.js', './chunk10.js', './chunk11.js'], function (expor
                   lock = true;
                   if (editor.getValue() !== v) {
                     var cur = editor.getCursor();
-                    editor.setValue(v);
+                    editor.setValue(typeof v === 'string' ? v : '');
                     editor.setCursor(cur);
                   }
                   lock = false;

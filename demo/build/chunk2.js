@@ -247,7 +247,7 @@ System.register(['ractive'], function (exports, module) {
         Host.prototype = Object.create( Base && Base.prototype );
         Host.prototype.constructor = Host;
 
-        var prototypeAccessors = { current: { configurable: true },currentId: { configurable: true },placement: { configurable: true } };
+        var prototypeAccessors = { current: { configurable: true },currentId: { configurable: true },placement: { configurable: true },windows: { configurable: true } };
 
         prototypeAccessors.current.get = function () {
           var top = this.get('topLevel');
@@ -261,6 +261,8 @@ System.register(['ractive'], function (exports, module) {
 
         prototypeAccessors.placement.get = function () { return this.get('placement'); };
         prototypeAccessors.placement.set = function (v) { return this.set('placement', v); };
+
+        prototypeAccessors.windows.get = function () { return Object.keys(this.get('windows')); };
 
         Host.prototype.addWindow = function addWindow (window, opts) {
           var this$1 = this;
@@ -764,6 +766,8 @@ System.register(['ractive'], function (exports, module) {
           }
 
           this.fire('close');
+
+          return true;
         };
 
         Window.prototype.maximize = function maximize () {
