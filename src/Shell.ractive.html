@@ -1,4 +1,4 @@
-<div class-rshell {{yield extra-attributes}} as-tracked=`outer` class-rshell-left-popped=".leftPop" class-rshell-right-popped=".rightPop">
+<div class-rshell {{yield extra-attributes}} as-tracked=`outer` class-rshell-left-popped=".leftPop" class-rshell-right-popped=".rightPop" class-rshell-top-popped=".topPop" class-rshell-bottom-popped=".bottomPop">
   <div class-rshell-sizer as-tracked=`sizer` />
   <div class-rshell-main>
     {{#if ._top}}<div class-rshell-top class-rshell-overflow="~/topOverflow" {{#if ._topA}}{{yield ._topA}}{{/if}}>{{yield ._top}}</div>{{/if}}
@@ -40,6 +40,8 @@
   </div>
   {{#if ._leftPop}}<div class-rshell-left-pop {{#if ._leftPopA}}{{yield ._leftPopA}}{{/if}}>{{yield ._leftPop}}</div>{{/if}}
   {{#if ._rightPop}}<div class-rshell-right-pop {{#if ._rightPopA}}{{yield ._rightPopA}}{{/if}}>{{yield ._rightPop}}</div>{{/if}}
+  {{#if ._bottomPop}}<div class-rshell-bottom-pop {{#if ._bottomPopA}}{{yield ._bottomPopA}}{{/if}}>{{yield ._bottomPop}}</div>{{/if}}
+  {{#if ._topPop}}<div class-rshell-top-pop {{#if ._topPopA}}{{yield ._topPopA}}{{/if}}>{{yield ._topPop}}</div>{{/if}}
 </div>
 
 <script>
@@ -91,7 +93,7 @@
         return this.get('_right') && (this.get('rightOver') || this.get('_rightOver'));
       },
       blocked() {
-        return (this.get('blockableLeft') && !(this.get('leftHidden')) || (this.get('blockableRight') && !this.get('rightHidden'))) || this.get('leftPop') || this.get('rightPop');
+        return (this.get('blockableLeft') && !(this.get('leftHidden')) || (this.get('blockableRight') && !this.get('rightHidden'))) || this.get('leftPop') || this.get('rightPop') || this.get('topPop') || this.get('bottomPop');
       }
     },
     on: {
@@ -136,7 +138,7 @@
     }
   });
 
-  const parts = ['top', 'bottom', 'center', 'left', 'right', 'left-pop', 'right-pop'];
+  const parts = ['top', 'bottom', 'center', 'left', 'right', 'left-pop', 'right-pop', 'top-pop', 'bottom-pop'];
   const skipAttrs = ['hidden', 'primary', 'over', 'popped', 'overflow', 'forced'];
   function construct() {
     const cmp = this.component;
@@ -151,7 +153,7 @@
 
     tpl.forEach(e => {
       if (~parts.indexOf(e.e)) {
-        const name = e.e === 'left-pop' ? 'leftPop' : e.e === 'right-pop' ? 'rightPop' : e.e;
+        const name = e.e === 'left-pop' ? 'leftPop' : e.e === 'right-pop' ? 'rightPop' : e.e === 'top-pop' ? 'topPop' : e.e === 'bottom-pop' ? 'bottomPop' : e.e;
         items[`_${name}`] = { t: e.f };
         if (e.m) {
           const as = e.m.filter(a => !~skipAttrs.indexOf(a.n));
@@ -349,30 +351,53 @@
   }
   .rshell-left-popped > .rshell-main > .rshell-middle > .rshell-left,
   .rshell-left-popped > .rshell-main > .rshell-middle > .rshell-right,
+  .rshell-top-popped > .rshell-main > .rshell-middle > .rshell-left,
+  .rshell-top-popped > .rshell-main > .rshell-middle > .rshell-right,
+  .rshell-bottom-popped > .rshell-main > .rshell-middle > .rshell-left,
+  .rshell-bottom-popped > .rshell-main > .rshell-middle > .rshell-right,
   .rshell-right-popped > .rshell-main > .rshell-middle > .rshell-left,
   .rshell-right-popped > .rshell-main > .rshell-middle > .rshell-right {
     z-index: 2;
   }
 
-  .rshell-left-pop, .rshell-right-pop {
+  .rshell-left-pop, .rshell-right-pop, .rshell-top-pop, .rshell-bottom-pop {
     z-index: 5;
     transition: transform ${data('raui.shell.slide.ms') || 400}ms ease-in-out;
     position: absolute;
+  }
+  .rshell-left-pop, .rshell-right-pop {
     top: 0;
     bottom: 0;
+    max-width: 100%;
+    overflow: auto;
   }
+  .rshell-top-pop, .rshell-bottom-pop {
+    left: 0;
+    right: 0;
+    max-height: 100%;
+    overflow: auto;
+  }
+
   .rshell-left-pop {
     transform: translateX(-100%);
   }
-  .rshell-left-popped > .rshell-left-pop {
-    transform: none;
-  }
-
   .rshell-right-pop {
     transform: translateX(100%);
     right: 0;
   }
-  .rshell-right-popped > .rshell-right-pop {
+  .rshell-top-pop {
+    top: 0;
+    transform: translateY(-100%);
+  }
+  .rshell-bottom-pop {
+    bottom: 0;
+    transform: translateY(100%);
+  }
+
+  .rshell-left-popped > .rshell-left-pop,
+  .rshell-right-popped > .rshell-right-pop,
+  .rshell-top-popped > .rshell-top-pop,
+  .rshell-bottom-popped > .rshell-bottom-pop {
     transform: none;
   }
 

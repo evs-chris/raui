@@ -37,7 +37,13 @@
       * #### Attributes
         * `popped: boolean` - trigger to display the right popup section
     * `top` - the content to display across the top of all side-by-side sections
+    * `top-pop` - the content to display in the top popup section. An anchor would be ideal for installing dynamic content.
+      * #### Attributes
+        * `popped: boolean` - trigger to display the top popup section
     * `bottom` - the content to display across the bottom of all side-by-side sections
+    * `bottom-pop` - the content to display in the bottom popup section. An anchor would be ideal for installing dynamic content.
+      * #### Attributes
+        * `popped: boolean` - trigger to display the bottom popup section
 
     ### API
 
@@ -75,6 +81,13 @@
         <label as-field>
           <input type="checkbox" checked="{{.rightPop}}" /> Right pop popped
         </label>
+        <label as-field>
+          <input type="checkbox" checked="{{.topPop}}" /> Top pop popped
+        </label>
+        <label as-field>
+          <input type="checkbox" checked="{{.bottomPop}}" /> Bottom pop popped
+        </label>
+        <label as-field><textarea>{{.bottomPopHTML}}</textarea></label>
         <marked>
           ### Template:
           ```handlebars
@@ -86,6 +99,8 @@
             <center style-background-color='#fafafa'>In the middle</center>
             <left-pop popped="{{.leftPop}}" style="background-color: #fff; width: 50%;">Pop on the left</left-pop>
             <right-pop popped="{{.rightPop}}" style="background-color: #fff; width: 50%;">Pop on the right</right-pop>
+            <top-pop popped="{{.topPop}}" style="background-color: #fff; height: 50%;">Pop on the top</top-pop>
+            <bottom-pop popped="{{.bottomPop}}" style="background-color: #fff;">{{{.bottomPopHTML}}}</bottom-pop>
           </shell>
           ```
           ### Result:
@@ -101,6 +116,8 @@
             <center style-background-color='#fafafa'>In the middle</center>
             <left-pop popped="{{.leftPop}}" style="background-color: #fff; width: 50%;">Pop on the left</left-pop>
             <right-pop popped="{{.rightPop}}" style="background-color: #fff; width: 50%;">Pop on the right</right-pop>
+            <top-pop popped="{{.topPop}}" style="background-color: #fff; height: 50%;">Pop on the top</top-pop>
+            <bottom-pop popped="{{.bottomPop}}" style="background-color: #fff;">{{{.bottomPopHTML}}}</bottom-pop>
           </shell>
           <div minimize></div>
         </split>
@@ -125,7 +142,8 @@
     },
     data() {
       return {
-        zoom: '100'
+        zoom: '100',
+        bottomPopHTML: '<h1>Bottom Pop</h1>\n<p>You can put any old content here. You can also use an &lt;#anchor&gt; or macro partial here for nice dynamic templating.</p>'
       }
     }
   });
