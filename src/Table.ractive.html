@@ -17,7 +17,7 @@
 <template id="table">
   <table {{yield extra-attributes}}>
     {{>table-head}}
-    {{#each ~/visibleRows}}
+    {{#each ~/visibleRows, ~/items as source}}
       {{>table-row}}
     {{/each}}
     {{#if !~/rows.length}}<tr class-rtable-row><td colspan="{{~/columns.length + (~/allowSelect ? 1 : 0)}}">{{yield empty}}</td></tr>{{/if}}
@@ -30,7 +30,7 @@
 <template id="grid">
   <div {{yield extra-attributes}} as-grid>
     {{>grid-head}}
-    {{#each ~/visibleRows}}
+    {{#each ~/visibleRows, ~/items as source}}
       {{>grid-row}}
     {{/each}}
     {{#if !~/rows.length}}<div class-rtable-row class-row class-t1>{{yield empty}}</div>{{/if}}
@@ -87,7 +87,10 @@
 
   const sortRE = /^([-+])?([^\s]+)$/;
 
-  // TODO: filters and sorts bound in and with type-specific ops
+  function isString(v) { return typeof v === 'string'; }
+  function isNumber(v) { return typeof v === 'number'; }
+  function isObject(v) { return typeof v === 'object'; }
+
   // TODO: working virtual table
 
   export class Table extends Ractive {
@@ -116,7 +119,7 @@
       const col = this.get(`columns.${idx}`);
       if (!col || !(col.sort || col.filter)) return;
       let sort = col.sort || col.filter;
-      if (typeof sort === 'string' && sort[0] === '~') sort = this.get(sort);
+      if (isString(sort) && sort[0] === '~') sort = this.get(sort);
 
       const multi = ev.ctrlKey;
       let sorts = this.get('sort');
@@ -258,6 +261,42 @@
     }
   }
 
+  function columnGetter(table, col) {
+    if (!table || !col) return;
+    const getters = table._getters || (table._getters = {});
+    let v = col.filter;
+    if (isString(v) && v.indexOf('~/') === 0) v = table.get(v);
+    let k = Array.isArray(v) ? v.join('.') : isString(v) ? v : false;
+    if (!k) return;
+
+    if (!getters[k]) {
+      if (isString(v)) v = Ractive.splitKeypath(v);
+      getters[k] = (obj) => applyPath(obj, v);
+    }
+
+    return getters[k];
+  }
+
+  function fieldGetter(table, field) {
+    if (!table || !field) return;
+    const getters = table._getters || (table._getters = {});
+    let v = field.path;
+    if (isString(v) && v.indexOf('~/') === 0) v = table.get(v);
+    let k = Array.isArray(v) ? v.join('.') : isString(v) ? v : false;
+
+    if (k) {
+      if (!getters[k]) {
+        if (isString(v)) v = Ractive.splitKeypath(v);
+        getters[k] = (obj) => applyPath(obj, v);
+      }
+      return getters[k];
+    } else {
+      v = field.value;
+      if (isString(v) && v.indexOf('~/') === 0) v = table.get(v);
+      if (typeof v === 'function') return v;
+    }
+  }
+
   Ractive.extendWith(Table, {
     template: $TEMPLATE,
     css: $CSS,
@@ -275,11 +314,8 @@
     on: {
       construct,
       config() {
-        if (this._items) this.set(this._items);
-        if (this._table_row) this.partials['table-row'] = this._table_row;
-        if (this._table_head) this.partials['table-head'] = this._table_head;
-        if (this._grid_row) this.partials['grid-row'] = this._grid_row;
-        if (this._grid_head) this.partials['grid-head'] = this._grid_head;
+        this.set(this._init.sets);
+        Object.assign(this.partials, this._init.partials);
       },
       render() {
         if (this._autoObserver) this._autoObserver.fire();
@@ -370,7 +406,7 @@
             this._autoObserver.cancel();
           }
 
-          if (typeof v === 'number') {
+          if (isNumber(v)) {
             this.set('_paginate', v);
           }
         },
@@ -393,53 +429,108 @@
     computed: {
       rows: {
         get() {
-          const cols = this.viewmodel.value.columns.filter(c => c.filter).map(c => {
-            let v = c.filter;
-            if (v.indexOf('~/') === 0) v = this.get(v);
-            if (typeof v === 'string') v = Ractive.splitKeypath(v);
-            if (!Array.isArray(v)) return;
-            return v;
-          }).filter(c => c);
+          const columns = this.viewmodel.value.columns;
+          const fields = this.viewmodel.value.fields;
+
+          const cols = columns.filter(c => c.filter).map(c => columnGetter(this, c)).filter(c => c);
+
           let list = this.get('items') || [];
           const src = list;
+
           let filter = this.get('filter');
           let sort = this.get('sort');
 
-          // TODO: object filter with operators targeting specific cols e.g. age > 20
-          if (typeof filter === 'string') {
-            const nocase = filter === filter.toLowerCase() || filter === filter.toUpperCase();
-            const re = new RegExp(filter, nocase ? 'i' : '');
+          if (isObject(filter) && !Array.isArray(filter)) filter = [filter];
+
+          if (filter instanceof RegExp || isString(filter)) {
+            const nocase = filter === '' + filter.toLowerCase() || filter === '' + filter.toUpperCase();
+            const re = isString(filter) ? new RegExp(filter, nocase ? 'i' : '') : filter;
             list = list.filter(l => {
               let i = cols.length;
               while (i--) {
-                const v = applyPath(l, cols[i]);
-                if (re.test(v)) return true;
+                const v = l && cols[i](l);
+                if (v && isString(v) && re.test(v)) return true;
               }
-              return false;
             });
-          } else if (filter instanceof RegExp) {
-            list = list.filter(l => {
-              let i = cols.length;
-              while (i--) {
-                const v = applyPath(l, cols[i]);
-                if (l && typeof v === 'string' && filter.test(v)) return true;
+          } else if (Array.isArray(filter)) {
+            const flts = filter.map(f => {
+              const flt = { op: f.op || '=', value: f.value || '' };
+              if (f.id) {
+                let field = columns.find(c => c.id === f.id);
+                if (field) {
+                  flt.get = columnGetter(this, field);
+                  if (flt.get) {
+                    flt.type = field.type || 'string';
+                  } else field = 0;
+                }
+                
+                if (!field) {
+                  field = fields.find(c => c.id === f.id);
+                  if (field) {
+                    flt.get = fieldGetter(this, field);
+                    flt.type = field.type || 'string';
+                  }
+                }
               }
+              return flt;
+            });
+
+            const recache = {};
+            list = list.filter(l => {
+              return flts.reduce((ok, flt) => {
+                if (!ok || !flt.get || !l) return false;
+                const v = flt.get(l);
+                if (flt.op === '=' || flt.op === '==') {
+                  if (flt.type === 'number' || flt.type === 'date') return +v == +flt.value;
+                  return v == flt.value;
+                } else if (flt.op === '>') {
+                  return v > flt.value;
+                } else if (flt.op === '>=') {
+                  return v >= flt.value;
+                } else if (flt.op === '<') {
+                  return v < flt.value;
+                } else if (flt.op === '<=') {
+                  return v <= flt.value;
+                } else if (flt.op === 'like' || flt.op === 'notlike') {
+                  let res = flt.op === 'like' ? true : false;
+                  if (isString(flt.value)) {
+                    const re = recache[flt.value] || (recache[flt.value] = new RegExp(`.*${flt.value.replace(/\s+/g, '.*')}.*`, 'gi'));
+                    res = re.test(v);
+                  } else if (isRegex(flt.value)) {
+                    res = flt.value.test(v);
+                  }
+                  return flt.op === 'like' ? res : !res;
+                } else if (flt.op === 'contains') {
+                  if (Array.isArray(v)) return !!~v.indexOf(flt.value);
+                }
+                return ok;
+              }, true);
             });
           }
 
-          if (typeof sort === 'string') sort = [sort];
+          if (isString(sort) || (isObject(sort) && !Array.isArray(sort))) sort = [sort];
 
           if (Array.isArray(sort)) {
-            sort = sort.map(f => ({
-              dir: f[0] === '-' ? -1 : 1,
-              path: Ractive.splitKeypath(f[0] === '-' || f[0] === '+' ? f.substr(1) : f)
-            }));
+            sort = sort.map(f => {
+              if (isString(f)) {
+                return {
+                  dir: f[0] === '-' ? -1 : 1,
+                  get: fieldGetter(this, { path: f[0] === '-' || f[0] === '+' ? f.substr(1) : f })
+                };
+              } else if (f) {
+                return {
+                  dir: isNumber(f.dir) ? f.dir : f.dir === 'desc' ? -1 : 1,
+                  get: (f.id && (columnGetter(this, columns.find(c => c.id === f.id)) || fieldGetter(this, fields.find(c => c.id === f.id)))) || 
+                       (f.path && (fieldGetter(this, { path: f.path, value: f.value })))
+                };
+              }
+            }).filter(s => s && s.get);
 
             list.sort((a, b) => {
               let aa, bb, p;
               for (let i = 0; i < sort.length; i++) {
-                aa = applyPath(a, sort[i].path);
-                bb = applyPath(b, sort[i].path);
+                aa = sort[i].get(a);
+                bb = sort[i].get(b);
                 p = sort[i].dir * compare(aa, bb);
 
                 if (p !== 0) return p;
@@ -518,7 +609,7 @@
           let last, cur;
           const res = {};
           for (let i = 0; i < rows.length; i++) {
-            cur = rows[i][this._by];
+            cur = rows[i][this._init.by];
             if (cur != last) res[i] = 1;
             last = cur;
           }
@@ -547,7 +638,7 @@
       0;
   }
 
-  const colAttrs = ['label', 'type', 'filter', 'hidden', 'sort', 'no-pad'];
+  const colAttrs = ['label', 'type', 'filter', 'hidden', 'sort', 'no-pad', 'id'];
   const cell = /^[a-z]{1,3}[0-9]+(?:-[0-9]+)?$/;
   const empty = [];
   function construct() {
@@ -574,19 +665,25 @@
 
     function grabColumns(tpl) {
       const columns = [];
+      const fields = [];
 
       tpl.forEach(e => {
-        if (e.e === 'column') {
+        if (e.e === 'column' || e.e === 'col') {
           const col = {};
           const attrs = e.m || empty;
+          let attr;
           col.index = columns.length;
           columns.push(col);
 
           col.content = (e.f || []).filter(e => e.e !== 'edit');
 
+          attr = attrs.find(a => a.n === 'id');
+          if (attr && isString(attr.f)) col.id = attr.f;
+
           col.label = attrs.find(a => a.n === 'label');
           if (col.label && col.label.f) col.label = map(col.label);
           if (!col.label) col.label = '';
+          if (!col.id) col.id = col.label;
           if (!Array.isArray(col.label)) col.label = [col.label];
 
           col.type = attrs.find(a => a.n === 'type');
@@ -607,13 +704,13 @@
 
           col.hidden = attrs.find(a => a.n === 'hidden');
           if (col.hidden && col.hidden.f === 0) col.hidden = true;
-          else if (col.hidden && typeof col.hidden.f === 'object') col.hidden = map(col.hidden);
+          else if (col.hidden && isObject(col.hidden.f)) col.hidden = map(col.hidden);
           else col.hidden = false;
-          if (typeof col.hidden === 'string') col.hidden = false;
+          if (isString(col.hidden)) col.hidden = false;
 
           col.noPad = attrs.find(a => a.n === 'no-pad');
           if (col.noPad && col.noPad.f === 0) col.noPad = 0;
-          else if (col.noPad && typeof col.noPad.f === 'object') col.noPad = map(col.noPad);
+          else if (col.noPad && isObject(col.noPad.f)) col.noPad = map(col.noPad);
           else delete col.noPad;
 
           col.attrs = attrs.filter(a => !~colAttrs.indexOf(a.n));
@@ -624,18 +721,42 @@
               col.attrs[i] = { t: 13, n: `class-${a.n}` };
             }
           });
+        } else if (e.e === 'field') {
+          const field = {};
+          const attrs = e.m || empty;
+          let a;
+
+          a = attrs.find(a => a.n === 'path');
+          if (isString(a)) field.path = a;
+          else if (a && a.f) field.path = map(a);
+
+          a = attrs.find(a => a.n === 'value');
+          if (a && a.f) field.value = map(a);
+          
+          a = attrs.find(a => a.n === 'type');
+          if (isString(a)) field.type = a;
+          else if (a && a.f) field.type = map(a);
+
+          a = attrs.find(a => a.n === 'id');
+          if (isString(a.f)) field.id = a.f;
+
+          a = attrs.find(a => a.n === 'label');
+          if (isString(a)) field.label = a;
+          else if (a && a.f) field.label = map(a);
+          if (!field.id) field.id = field.label;
+
+          fields.push(field);
         }
       });
 
-      return columns;
+      return { fields, columns };
     }
 
     rowEl = tpl.find(e => e.e === 'row');
     groupEl = tpl.find(e => e.e === 'group');
-
-    const columns = grabColumns(tpl);
     
-    this._items = { columns };
+    this._init = { sets: grabColumns(tpl), partials: {} };
+    const columns = this._init.sets.columns;
 
     const sortKey = '[_0._setSort(_1,_2)]';
     
@@ -683,8 +804,8 @@
         t: 4, n: 50, r: '~/allowSelect', f: [{ t: 7, e: 'th', m: [{ t: 13, n: 'class-rtable-select-row' }, { t: 70, n: ['click'], f: { r: ['@this', '.', '@event'], s: '[_0._select(_1,_2),false]' } }], f: [{ t: 7, e: 'input', m: [{ t: 73, v: 't', f: 'false' }, { t: 13, n: 'type', f: 'checkbox' }, { t: 13, n: 'checked', f: [{ t: 2, x: { r: ['~/selections', '.'], s: '~_0.indexOf(_1)' } }] }, { t: 13, n: 'class-rtable-select' }] }] }]
       });
 
-      this._table_row = row;
-      this._table_head = header;
+      this._init.partials['table-row'] = row;
+      this._init.partials['table-head'] = header;
     }
 
     // grid
@@ -746,7 +867,7 @@
 
       // group
       let by;
-      if (groupEl && groupEl.m && (by = groupEl.m.find(a => a.n === 'by')) && (typeof by.f === 'string' || (by.length === 1 && by[0].t === 2))) {
+      if (groupEl && groupEl.m && (by = groupEl.m.find(a => a.n === 'by')) && (isString(by.f) || (by.length === 1 && by[0].t === 2))) {
         const group = {
           t: 4, n: 50, f: [{
             t: 7, e: 'div', m: [
@@ -758,9 +879,9 @@
           x: { s: `_0&&_1[(_1&&(_2*_3+_4))||_4]`, r: [ '~/showGroups', '~/groups', '~/page', '~/pagination.per', '@index' ] }
         };
         row.unshift(group);
-        this._by = by.f;
+        this._init.by = by.f;
 
-        const parts = grabColumns(groupEl.f).filter(c => c.hidden !== true).map(c => {
+        const parts = grabColumns(groupEl.f).columns.filter(c => c.hidden !== true).map(c => {
           const div = { t: 7, e: 'div', f: [{ t: 7, e: 'div', f: c.content }], m: c.attrs };
           if (c.type) div.m.unshift({ t: 13, n: `class-rtable-${c.type}-column` });
           div.m.push({ t: 13, n: 'class-rtable-column' });
@@ -792,8 +913,8 @@
         group.f[0].f = parts;
       }
 
-      this._grid_row = row;
-      this._grid_head = header;
+      this._init.partials['grid-row'] = row;
+      this._init.partials['grid-head'] = header;
 
       if (mappings && this.component) this.component.mappings = mappings;
     }
