@@ -98,7 +98,7 @@
 
     allSelected() {
       const sel = this.get('selections');
-      const visible = this.get('visibleRows');
+      const visible = this.get('paginate') === 'virtual' ? this.get('rows') : this.get('visibleRows');
 
       for (let i = 0; i < visible.length; i++) {
         if (!~sel.indexOf(visible[i])) return false;
@@ -330,7 +330,7 @@
             selected: item
           });
         } else {
-          sel = this.get('visibleRows').slice();
+          sel = (this.get('paginate') === 'virtual' ? this.get('rows') : this.get('visibleRows')).slice();
           item = sel[0];
           this.set({
             selections: sel,
