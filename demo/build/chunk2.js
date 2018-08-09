@@ -208,19 +208,21 @@ System.register(['ractive'], function (exports, module) {
             var overflow = parent.style ? parent.style.overflow : '';
 
             if (parent.style) { parent.style.overflow = 'hidden'; }
-
             if (t.isIntro || p.intro) {
               t.setStyle({
                 transform: 'translate(30%, 0px) scale(1.1, 1.1)',
                 opacity: 0
               });
-              t.animateStyle({
-                transform: 'none',
-                opacity: 1
-              }, p).then(function () {
-                windowTrans = false;
-                t.complete();
-                if (parent.style) { parent.style.overflow = overflow; }
+              setTimeout(function () {
+                t.animateStyle({
+                  transform: 'none',
+                  opacity: 1
+                }, p).then(function () {
+                  t.setStyle('opacity', 1);
+                  windowTrans = false;
+                  t.complete();
+                  if (parent.style) { parent.style.overflow = overflow; }
+                });
               });
             } else {
               t.setStyle({
