@@ -4,20 +4,20 @@
   class-rtable-fixed="~/fixed"
   class-rtable-border="~/border"
 >
-  <div class-rtable-top>
+  <div class-rtable-top {{#if ~/paginate === 'virtual'}}on-scroll="scroll"{{/if}}>
     {{#if ~/display === 'grid'}}
       {{>grid}}
     {{else}}
       {{>table}}
     {{/if}}
   </div>
-  {{>pagination}}
+  {{#if ~/paginate !== 'virtual'}}{{>pagination}}{{/if}}
 </div>
 
 <template id="table">
-  <table {{yield extra-attributes}}>
+  <table {{yield extra-attributes}} {{#if ~/paginate === 'virtual'}}style-margin-top="{{~/virtual.above}}px" style-margin-bottom="{{~/virtual.below}}px"{{/if}}>
     {{>table-head}}
-    {{#each ~/visibleRows, ~/items as source}}
+    {{#each ~/visibleRows, ~/items as source, true as shuffle}}
       {{>table-row}}
     {{/each}}
     {{#if !~/rows.length}}<tr class-rtable-row><td colspan="{{~/columns.length + (~/allowSelect ? 1 : 0)}}">{{yield empty}}</td></tr>{{/if}}
@@ -28,9 +28,10 @@
 </template>
 
 <template id="grid">
-  <div {{yield extra-attributes}} as-grid>
+  <div {{yield extra-attributes}} as-grid {{#if ~/paginate === 'virtual'}}style-margin-top="{{~/virtual.above}}px" style-margin-bottom="{{~/virtual.below}}px"{{/if}}>
     {{>grid-head}}
-    {{#each ~/visibleRows, ~/items as source}}
+    {{#if ~/virtual.offset % 2 === 1}}<div class-row style-display=none />{{/if}}
+    {{#each ~/visibleRows, ~/items as source, true as shuffle}}
       {{>grid-row}}
     {{/each}}
     {{#if !~/rows.length}}<div class-rtable-row class-row class-t1>{{yield empty}}</div>{{/if}}
@@ -76,6 +77,7 @@
   />
   {{#if ~/selections.indexOf(.)}}...{{/if}}
   {{#if . === ~/expanded}}...{{/if}}
+  {{#if ~/virtual.offset > 0}}...{{/if}}
 </template>
 
 <script>
@@ -90,8 +92,6 @@
   function isString(v) { return typeof v === 'string'; }
   function isNumber(v) { return typeof v === 'number'; }
   function isObject(v) { return typeof v === 'object'; }
-
-  // TODO: working virtual table
 
   export class Table extends Ractive {
     constructor(opts) { super(opts); }
@@ -354,13 +354,14 @@
     observe: {
       paginate: {
         handler(v) {
-          if (v === 'auto' || v instanceof Ractive) {
+          if (v === 'auto' || v === 'virtual' || v instanceof Ractive) {
             if (this._autoObserver) this._autoObserver.cancel(); // may be changing instances
+            if (this._scrollListener) this._scrollListener.cancel();
 
-            const root = v === 'auto' ? this.root : v;
+            const root = v === 'auto' || v === 'virtual' ? this.root : v;
 
             const fn = () => {
-              if (!this.fragment.rendered) return;
+              if (!this.rendered) return;
               const top = this.find('.rtable-top');
               if (!top) return;
               if (!this.get('items.length')) {
@@ -385,8 +386,10 @@
                 rows = Array.apply(null, this.findAll('.rtable-row')).map(r => r.offsetHeight);
               }
               const avg = Math.ceil(rows.reduce((a, c) => a + c, 0) / rows.length);
+              this._avgSize = avg;
 
-              this.set('_paginate', Math.floor((top.clientHeight - header.offsetHeight) / avg));
+              const fit = Math.floor((top.clientHeight - header.offsetHeight) / avg);
+              this.set('_paginate', v === 'virtual' ? fit * 3 : fit);
 
               fn.last = size;
             };
@@ -397,13 +400,85 @@
               tm = setTimeout(() => {
                 fn();
                 tm = null;
+                if (this._scrollListener) this._scrollListener.fn();
               }, 300);
             }
 
             this._autoObserver = root.on('*.resize', fnd);
             this._autoObserver.fire = fnd;
-          } else if (this._autoObserver) {
-            this._autoObserver.cancel();
+
+            if (v === 'virtual') {
+              let ready = true;
+              let lock = false;
+              let delay = 0;
+              const fn = () => {
+                if (!this.rendered) return;
+                const node = this.find('.rtable-top');
+                if (!ready) {
+                  if (delay < 3) {
+                    delay++;
+                    ready = true;
+                    return setTimeout(fn, 20);
+                  }
+                }
+
+                ready = false;
+                delay = 0;
+
+                const top = node.scrollTop;
+                const offset = this.get('virtual.offset');
+                let visible = this.get('_paginate');
+                const page = visible / 3;
+                const count = this.get('rows.length');
+                if (visible > count) visible = count;
+                const avg = this._avgSize;
+                let first = Math.floor(top / avg);
+                const hardFirst = first;
+                if (first + visible > count) first = count - visible;
+                
+                // check to see if the rendered area is approaching an edge
+                if (!isNumber(offset) || (first < offset && offset < page) || (offset + visible >= count && hardFirst >= offset) || first < offset - page || hardFirst > offset + page) {
+                  let amtAbove = first - page;
+                  if (amtAbove < 0) amtAbove = first === 0 ? 0 : first - 1;
+                  let above = amtAbove * avg;
+                  if (above < avg) above = 0;
+                  let below = (count - (hardFirst + visible)) * avg;
+                  if (below < avg) below = 0;
+                  
+                  this.set({
+                    'virtual.above': above,
+                    'virtual.below': below,
+                    'virtual.offset': first
+                  });
+                }
+
+                lock = false;
+              };
+              const scroll = this._scrollListener = this.on('scroll', ({ node }) => {
+                if (ready) ready = false;
+                else if (!lock) {
+                  ready = true;
+                  lock = true;
+                  setTimeout(fn, 40);
+                }
+              });
+              this._scrollListener.fn = fn;
+
+              scroll.observer = this.observe('rows.length', () => {
+                fn();
+              }, { init: false, strict: true });
+
+              const cancel = scroll.cancel;
+              scroll.cancel = () => {
+                cancel();
+                scroll.observer.cancel();
+              }
+            }
+
+            fnd();
+          } else {
+            if (this._autoObserver) this._autoObserver.cancel();
+            if (this._scrollListener) this._scrollListener.cancel();
           }
 
           if (isNumber(v)) {
@@ -548,29 +623,36 @@
       visibleRows: {
         get() {
           const rows = this.get('rows');
-          let per = this.get('paginate');
+          const paginate = this.get('paginate');
+          let per = paginate;
           const intPer = this.get('_paginate');
           let offset = this.get('page') || 0;
+          const virtual = this.get('virtual');
 
           if (!per) return rows;
 
           if (typeof per !== 'number' && isNaN(+per)) {
-            if (per === 'auto' || per instanceof Ractive) per = intPer || 1;
+            if (per === 'auto' || per === 'virtual' || per instanceof Ractive) per = intPer || 1;
             else per = 30; // TODO: virtual table/auto size
           }
 
           if (per < this.get('minPerPage')) per = this.get('minPerPage');
 
-          if (offset * per > rows.length) setTimeout(() => this.set('page', 0), 0);
-
-          return rows.slice(per * offset, per * offset + per);
+          if (paginate === 'virtual') {
+            offset = (virtual && virtual.offset) || 0;
+            return rows.slice(offset, offset + per);
+          } else {
+            if (offset * per > rows.length) setTimeout(() => this.set('page', 0), 0);
+            return rows.slice(per * offset, per * offset + per);
+          }
         }
       },
       pagination: {
         get() {
           const items = this.get('items') || empty;
           const rows = this.get('rows');
-          let per = this.get('paginate');
+          const paginate = this.get('paginate');
+          let per = paginate;
           const offset = this.get('page') || 0;
 
           if (typeof per !== 'number' && isNaN(per)) {
@@ -586,6 +668,10 @@
             total,
             per
           };
+
+          if (paginate === 'virtual') {
+            info.height = this._avg * rows.length;
+          }
 
           if (info.total > 14) {
             const arr = info.array = [];
@@ -762,7 +848,7 @@
     
     // table
     {
-      const header = [{ t: 7, e: 'tr', m: [{ t: 13, n: 'class-rtable-header' }], f: columns.filter(c => c.hidden !== true).map(c => {
+      const header = [{ t: 7, e: 'tr', m: [{ t: 13, n: 'class-rtable-header' }, { t: 4, f: [{ n: 'style-opacity', f: '0', t: 13 }], n: 50, x: { r: ['~/virtual.offset'] , s: '_0>0' } }], f: columns.filter(c => c.hidden !== true).map(c => {
         const th = { t: 7, e: 'th', f: c.label, m: [{ t: 13, n: 'class-rtable-header' }, { t: 4, n: 53, r: `~/columns.${c.index}`, f: [{ t: 70, n: ['click'], f: { r: ['@this', '.index', '@event'], s: sortKey } }] }].concat(c.attrs) };
         if (c.type) th.m.push({ t: 13, n: `class-rtable-${c.type}-column` });
         if (c.filter || c.sort) th.m.push({ t: 13, n: 'class-rtable-sortable' });
@@ -824,7 +910,7 @@
         return res;
       }), 
       m: [
-        { t: 13, n: 'class-row' }, { t: 13, n: 'class-rtable-header' }
+        { t: 13, n: 'class-row' }, { t: 13, n: 'class-rtable-header' }, { t: 4, f: [{ n: 'style-opacity', f: '0', t: 13 }], n: 50, x: { r: ['~/virtual.offset'] , s: '_0>0' } }
       ] }];
 
       // selectall
