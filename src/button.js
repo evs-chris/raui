@@ -1,5 +1,10 @@
 export function button(data) {
   const primary = Object.assign({}, data('raui.primary'), data('raui.button.primary'), { disabled: Object.assign({}, data('raui.primary.disabled'), data('raui.button.primary.disabled')) });
+  const themes = (data('raui.themes') || []).slice();
+  (data('raui.button.themes') || []).forEach(t => {
+    if (!~themes.indexOf(t)) themes.push(t);
+  });
+
   return `
     button, .btn {
       text-decoration: none;
@@ -118,10 +123,10 @@ export function button(data) {
       opacity: 1;
       transition: none;
     }
-  ` + (data('raui.themes') || []).map(t => {
+  ` + themes.map(t => {
     const theme = Object.assign({}, primary, data(`raui.${t}`), data(`raui.button.${t}`), { diabled: Object.assign({}, primary.disabled, data(`raui.${t}.disabled`), data(`raui.button.${t}.disabled`))});
     return `.btn.${t}, button.${t} {
-      background-color: ${heme.fga || '#07e'};
+      background-color: ${theme.fga || '#07e'};
       color: ${theme.bg || '#fff'};
     }
     button.${t}.alt, .btn.${t}.alt {
