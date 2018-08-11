@@ -41,13 +41,13 @@
       class-rmenu-title
       {{#unless .disabled || (.disabledRef && ~/[.disabledRef])}}{{#if typeof .action === 'function'}}on-click=".action()" on-click="@._actioned()"
       {{elseif .actionPartial}}{{yield .actionPartial}} on-click="@._actioned()"
-      {{elseif .items.length}}on-click="@.popSiblingsIn(@context), @context.toggle('.open'), false"{{/if}}{{/unless}}
+      {{elseif .items.length}}on-click=".popout && @.popSiblingsIn(@context), @context.toggle('.open'), false"{{/if}}{{/unless}}
     >
       {{#if .title}}{{{.title}}}{{elseif .titlePartial}}{{yield .titlePartial}}{{/if}}
     </div>
     {{#if .right}}<div class-menu-right>{{{.right}}}</div>{{elseif .rightPartial}}<div class-rmenu-right>{{yield .rightPartial}}</div>{{/if}}
     {{#if .items && .items.length && @.visibleItems(.items)}}
-    <div class-rmenu-expand on-click="@.popSiblingsIn(@context), @context.toggle('.open'), false" expand-in-out={ axis: 'x' } />
+    <div class-rmenu-expand on-click=".popout && @.popSiblingsIn(@context), @context.toggle('.open'), false" expand-in-out={ axis: 'x' } />
     {{/if}}
   </div>
   {{>children}}
@@ -138,12 +138,12 @@
     }
 
     popSiblingsIn(ctx) {
-      const items = ctx.get('../');
       const me = ctx.resolve();
+      const items = ctx.get('../');
       if (items) {
         for (let i = 0; i < items.length; i++) {
           if (me === ctx.resolve(`../${i}`)) continue;
-          if (items[i].open) {
+          if (items[i].open && items[i].popout) {
             ctx.toggle(`../${i}.open`);
           }
         }
