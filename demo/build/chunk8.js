@@ -12,15 +12,20 @@ System.register([], function (exports, module) {
 
         var defaultMask = options.mask || 'yyyy-MM-dd';
         var defaultTime = options.time || '00:00:00.000';
-        var defaultDate = options.date || new Date('0000-01-01T' + defaultTime);
+        var defaultDate = options.date || (function () { return new Date('0000-01-01T' + defaultTime); });
+        if (typeof defaultDate !== 'function') {
+          var dt = defaultDate;
+          defaultDate = function () { return dt; };
+        }
 
         return function(ref) {
           var instance = ref.instance;
 
-          instance.decorators[options.name || 'date'] = function(/** @type { HTMLInputElement } */ node, opts) {
+          instance.decorators[options.name || 'date'] = function(/** @type { HTMLInputElement } */ node, opts, other) {
             if ( opts === void 0 ) opts = {};
 
             if (typeof opts === 'string') { opts = { value: opts }; }
+            if (typeof other === 'string') { opts.mask = other; }
             var ctx = this.getContext(node);
             var mask = opts.mask || defaultMask;
             var handles = { observers: [], listeners: [] };
@@ -50,12 +55,12 @@ System.register([], function (exports, module) {
             
             if (typeof opts.value === 'string') {
               handles.observers.push(ctx.observe(opts.value, function (v) {
-                if (!v) { v = defaultDate; }
+                if (!v) { v = defaultDate(); }
                 groups.value = v;
                 updateDate(v, groups);
                 node.value = printDate(groups);
               }));
-            } else { groups.value = getDateValue(opts.date || defaultDate); }
+            } else { groups.value = getDateValue(opts.date || defaultDate()); }
 
             function sendValue() {
               if (typeof opts.value === 'string') {
@@ -104,6 +109,14 @@ System.register([], function (exports, module) {
             }));
 
             handles.listeners.push(ctx.listen('blur', function () {
+              if (pending) {
+                var group = groupForPos(groups, node.selectionStart);
+                checkPending(node, group);
+                revalue(groups);
+                updateDisplay(group);
+                redraw(node, groups);
+                pending = false;
+              }
               sendValue();
             }));
 
@@ -204,13 +217,7 @@ System.register([], function (exports, module) {
 
               if (step && !reval && pending) {
                 reval = true;
-                group.value = +(currentInput(node, group)[1] || 1);
-                if (group.type === 'M') { group.value--; }
-                else if (group.type === 'y' && group.value < 100) {
-                  var yr = (new Date()).getFullYear() + '';
-                  if (group.value - +(yr.substr(2)) < 20) { group.value = +(yr.substr(0, 2) + '00') + group.value; }
-                  else { group.value = +(yr.substr(0, 2) + '00') - 100 + group.value; }
-                }
+                checkPending(node, group);
               }
 
               if (reval) {
@@ -429,7 +436,7 @@ System.register([], function (exports, module) {
       function getDateValue(thing) {
         var v = thing;
         if (typeof v === 'function') { v = thing(); }
-        if (typeof v === 'string') { try { v = Date.parse(v); } catch (e) {} }
+        if (typeof v === 'string') { try { v = Date.parse(v); } catch (e) { return defaultDate(); } }
         if (Object.toString.call(Object, v) === '[object Date]') { return v; }
         else { return origin; }
       }
@@ -543,6 +550,16 @@ System.register([], function (exports, module) {
             }
             return;
           }
+        }
+      }
+
+      function checkPending(node, group) {
+        group.value = +(currentInput(node, group)[1] || 1);
+        if (group.type === 'M') { group.value--; }
+        else if (group.type === 'y' && group.value < 100) {
+          var yr = (new Date()).getFullYear() + '';
+          if (group.value - +(yr.substr(2)) < 20) { group.value = +(yr.substr(0, 2) + '00') + group.value; }
+          else { group.value = +(yr.substr(0, 2) + '00') - 100 + group.value; }
         }
       }
 
