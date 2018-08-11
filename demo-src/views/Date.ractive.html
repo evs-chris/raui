@@ -34,13 +34,14 @@
     * `mask: string` - overrides the plugin mask for this field
     * `value: keypath` - the keypath to which the date should be bound
 
-    Alternatively, you can pass just a keypath string as an argument.
+    Alternatively, you can pass just a keypath string, optionally followed by a mask.
   </marked></tab>
   <tab title=Example>
     <marked>
       ### Template:
       ```handlebars
       <input as-date=`.date` />
+      <input as-date="'.date', 'MM'" />
       <input as-date="{ value: '.date', mask: 'yyyy-MM-dd HH:mm:ss.SSS' }" />
       <input as-date="{ value: '.date', mask: 'HH:mm:ss'}" />
       ```
@@ -48,6 +49,7 @@
     </marked>
 
     <input as-date=`.date` />
+    <input as-date="'.date', 'MM'" />
     <input as-date="{ value: '.date', mask: 'yyyy-MM-dd HH:mm:ss.SSS' }" />
     <input as-date="{ value: '.date', mask: 'HH:mm:ss'}" />
   </tab>

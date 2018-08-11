@@ -4,11 +4,16 @@
 export default function plugin(options = {}) {
   const defaultMask = options.mask || 'yyyy-MM-dd';
   const defaultTime = options.time || '00:00:00.000';
-  const defaultDate = options.date || new Date('0000-01-01T' + defaultTime);
+  let defaultDate = options.date || (() => new Date('0000-01-01T' + defaultTime));
+  if (typeof defaultDate !== 'function') {
+    const dt = defaultDate;
+    defaultDate = () => dt;
+  }
 
   return function({ instance }) {
-    instance.decorators[options.name || 'date'] = function(/** @type { HTMLInputElement } */ node, opts = {}) {
+    instance.decorators[options.name || 'date'] = function(/** @type { HTMLInputElement } */ node, opts = {}, other) {
       if (typeof opts === 'string') opts = { value: opts };
+      if (typeof other === 'string') opts.mask = other;
       const ctx = this.getContext(node);
       const mask = opts.mask || defaultMask;
       const handles = { observers: [], listeners: [] };
@@ -38,12 +43,12 @@ export default function plugin(options = {}) {
       
       if (typeof opts.value === 'string') {
         handles.observers.push(ctx.observe(opts.value, v => {
-          if (!v) v = defaultDate;
+          if (!v) v = defaultDate();
           groups.value = v;
           updateDate(v, groups);
           node.value = printDate(groups)
         }));
-      } else groups.value = getDateValue(opts.date || defaultDate);
+      } else groups.value = getDateValue(opts.date || defaultDate());
 
       function sendValue() {
         if (typeof opts.value === 'string') {
@@ -90,6 +95,14 @@ export default function plugin(options = {}) {
       }));
 
       handles.listeners.push(ctx.listen('blur', () => {
+        if (pending) {
+          const group = groupForPos(groups, node.selectionStart);
+          checkPending(node, group);
+          revalue(groups);
+          updateDisplay(group);
+          redraw(node, groups);
+          pending = false;
+        }
         sendValue();
       }));
 
@@ -184,13 +197,7 @@ export default function plugin(options = {}) {
 
         if (step && !reval && pending) {
           reval = true;
-          group.value = +(currentInput(node, group)[1] || 1);
-          if (group.type === 'M') group.value--;
-          else if (group.type === 'y' && group.value < 100) {
-            const yr = (new Date()).getFullYear() + '';
-            if (group.value - +(yr.substr(2)) < 20) group.value = +(yr.substr(0, 2) + '00') + group.value;
-            else group.value = +(yr.substr(0, 2) + '00') - 100 + group.value;
-          }
+          checkPending(node, group);
         }
 
         if (reval) {
@@ -410,7 +417,7 @@ const origin = new Date('0000-01-01T00:00:00');
 function getDateValue(thing) {
   let v = thing;
   if (typeof v === 'function') v = thing();
-  if (typeof v === 'string') try { v = Date.parse(v); } catch (e) {}
+  if (typeof v === 'string') try { v = Date.parse(v); } catch (e) { return defaultDate(); }
   if (Object.toString.call(Object, v) === '[object Date]') return v;
   else return origin;
 }
@@ -524,5 +531,15 @@ function revalue(groups) {
       }
       return;
     }
+  }
+}
+
+function checkPending(node, group) {
+  group.value = +(currentInput(node, group)[1] || 1);
+  if (group.type === 'M') group.value--;
+  else if (group.type === 'y' && group.value < 100) {
+    const yr = (new Date()).getFullYear() + '';
+    if (group.value - +(yr.substr(2)) < 20) group.value = +(yr.substr(0, 2) + '00') + group.value;
+    else group.value = +(yr.substr(0, 2) + '00') - 100 + group.value;
   }
 }
