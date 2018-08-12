@@ -17,6 +17,7 @@
       {{elseif .transition === 'slide'}}
         class-rtabs-trans-slide
       {{/if}}
+      on-scroll="@.stopHorizontalScroll(@node)"
     >
       <div class-rtabs-contents style-opacity="{{~/opacity}}" style-left="{{.selectedContent * -100}}%" class-rtabs-pad="~/pad">{{#each .tabs}}{{>tab-content}}{{/each}}</div>
     </div>
@@ -104,6 +105,10 @@
       const hidden = this.get(`tabs.${idx}.hidden`);
       if (typeof hidden === 'string') return this.get(hidden);
       else return hidden;
+    }
+
+    stopHorizontalScroll(node) {
+      if (node.scrollLeft) node.scrollLeft = 0;
     }
   }
 
@@ -547,6 +552,7 @@
   .rtabs-tab-content {
     display: inline-block;
     width: 100%;
+    overflow: auto;
     vertical-align: top;
     white-space: initial;
     transition: opacity 0.1s ease-in-out;
