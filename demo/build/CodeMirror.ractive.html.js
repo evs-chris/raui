@@ -75,6 +75,7 @@ System.register(['./chunk2.js', './chunk10.js', './chunk11.js'], function (expor
             }
           }
           var listener = ctx.get('@.root').on('*.resize', resize);
+          window.addEventListener('resize', resize);
 
           function bind() {
             var cur = editor.getCursor();
@@ -118,6 +119,7 @@ System.register(['./chunk2.js', './chunk10.js', './chunk11.js'], function (expor
               if (editor.toTextEditor) { editor.toTextEditor(); }
               editor = null;
               listener.cancel();
+              window.removeEventListener('resize', resize);
             },
             update: function update(options) {
               if (typeof options === 'string') { options = { bind: options }; }
