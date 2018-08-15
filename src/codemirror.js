@@ -60,6 +60,7 @@ export default function init(initOpts = {}) {
       }
     }
     const listener = ctx.get('@.root').on('*.resize', resize);
+    window.addEventListener('resize', resize);
 
     function bind() {
       const cur = editor.getCursor();
@@ -103,6 +104,7 @@ export default function init(initOpts = {}) {
         if (editor.toTextEditor) editor.toTextEditor();
         editor = null;
         listener.cancel();
+        window.removeEventListener('resize', resize);
       },
       update(options) {
         if (typeof options === 'string') options = { bind: options };

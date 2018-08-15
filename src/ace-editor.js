@@ -69,11 +69,13 @@ export default function makeAceEditor(opts = {}) {
     }
 
     const listener = ctx.get('@.root').on('*.resize', handle.resize);
+    window.addEventListener('resize', handle.resize);
 
     handle.teardown = function() {
       editor.off('change');
       editor.destroy();
       listener.cancel();
+      window.removeEventListener('resize', handle.resize);
       node.classList.remove('ace-editor');
     };
 
