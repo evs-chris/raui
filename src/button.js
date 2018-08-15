@@ -124,7 +124,7 @@ export function button(data) {
       transition: none;
     }
   ` + themes.map(t => {
-    const theme = Object.assign({}, primary, data(`raui.${t}`), data(`raui.button.${t}`), { diabled: Object.assign({}, primary.disabled, data(`raui.${t}.disabled`), data(`raui.button.${t}.disabled`))});
+    const theme = Object.assign({}, primary, data(`raui.${t}`), data(`raui.button.${t}`), { disabled: Object.assign({}, primary.disabled, data(`raui.${t}.disabled`), data(`raui.button.${t}.disabled`))});
     return `.btn.${t}, button.${t} {
       background-color: ${theme.fga || '#07e'};
       color: ${theme.bg || '#fff'};
