@@ -34,8 +34,8 @@ export class Window<T extends Window<T> = Window<any>> extends Ractive<T> {
   size(width: string | number, height: string | number): void;
   move(top: string | number, left: string | number): void;
 
-	static extend<T extends Window<T>>(opts?: ExtendOpts<T>): Static<Ractive<Ractive & T>>;
-	static extendWith<U extends Window<U>, V extends InitOpts<U> = InitOpts<U>, W extends ExtendOpts<U> = ExtendOpts<U>>(c: Constructor<U, V>, opts?: W): void;
+	static extend<U>(opts?: ExtendOpts<Window & U>): Static<Window<Window & U>>;
+	static extendWith<U extends Window<U>, V extends InitOpts<U> = InitOpts<U>, W extends ExtendOpts<U> = ExtendOpts<U>>(c: Constructor<U, V>, opts?: W): Static<Ractive<Ractive & T>>;
 }
 
 export interface WindowOpts {
@@ -75,7 +75,7 @@ export class Host<T extends Host<T> = Host<any>> extends Ractive<Host> implement
   defaults?: WindowOpts;
   placement?: Placement;
 
-  get windows(): string[];
+  readonly windows: string[];
 
   addWindow<T extends Window>(window: T, opts?: WindowOpts): Promise<T>;
   getWindow(id: string): Window;
