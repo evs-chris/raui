@@ -4,7 +4,7 @@ export function expand(t, params) {
   const p = t.processParams(params, { duration: 200, easing: 'easeInOut' });
   t.setStyle('overflow', 'hidden');
   const axis = p.axis === 'x' ? 'width' : 'height';
-  if (t.isIntro) {
+  if (t.isIntro || p.intro) {
     const val = t.getStyle(axis);
     t.setStyle(axis, 0);
     t.setStyle('opacity', 0);
