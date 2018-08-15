@@ -27,7 +27,7 @@
       * `number` - the page size is set to the given number
       * `'auto'` - the table will calculate the number of rows that it can display without causing its container to require a scroll bar (or at the very least have minimal scrolling) when no rows are expanded
     * `display: 'grid' | 'table' = 'grid'` - Whether to render as a grid or an HTML table
-    * `allowSelect: boolean = true` - Whether to show the select checkbox on individual rows. You have to account for the size (3em) of the select when laying out grid sizes.
+    * `allowSelect: boolean = true` - Whether to show the select checkbox on individual rows.
     * `allowSelectAll: boolean = true` - Whether to show the select all checkbox in the header to allow selecting all displayed - and all total - rows.
     
     ### Children
@@ -44,19 +44,33 @@
     <split>
       <pane size=30>
         <div style-padding="1em">
+        <div>
+          <label as-field>Filter<input value="{{filter}}" lazy=300 ></label>
+          <label as-field>Mode<select value="{{mode}}">
+            <option value="grid">Grid</option>
+            <option value="table">Table</option>
+          </select></label>
+          <label as-field><input type="checkbox" checked="{{border}}" />Border</label>
+          <label as-field><input type="checkbox" checked="{{select}}" />Select</label>
+          <label as-field><input type="checkbox" checked="{{selectAll}}" />Select All</label>
+          <label as-field><input type="checkbox" checked="{{groups}}" />Show Groups</label>
+          <label as-field><input type="checkbox" checked="{{groupSelect}}" />Group Select</label>
+          <label as-field>Pagination<select value="{{paginate}}"><option>auto</option><option>virtual</option><option>fixed</option><option value="{{null}}">none</option></select></label>
+          {{#if paginate === 'fixed'}}<label as-field>Items per page<input type="number" value="{{pages}}" /></label>{{/if}}
+        </div>
         <marked>
           The table below is populated with 2,000 objects in the form `{ foo, bar, bat }` that are based on randomly generated strings (foo, bar) and booleans (bat).
 
           ### Template:
           ```handlebars
-          <data-table bind-items bind-filter bind-border bind-paginate="paginate === 'fixed' ? pages : paginate" bind-allowSelect="select" bind-allowSelectAll="selectAll" paginate=auto on-selected="console.log($1)">
+          <data-table bind-display=mode bind-items bind-filter bind-border bind-paginate="paginate === 'fixed' ? pages : paginate" bind-allowSelect="select" bind-allowSelectAll="selectAll" paginate=auto on-selected="console.log($1)">
             <row>
               <h3>Extra stuff goes here</h3>
               <p>I have a {{.foo}} that is {{.bar}}.</p>
             </row>
-            <column t7-8 s3-8 m1-3 label="Foo" filter=foo>{{.foo}}</column>
-            <column t0 s3-8 m1-3 label="Bar" filter=bar>{{.bar}}</column>
-            <column t0 m1-5 label="???">{{.bat ? 'Yep' : 'Nope'}}</column>
+            <column t1 s1-2 m1-3 label="Foo" filter=foo>{{.foo}}</column>
+            <column t0 s1-2 m1-3 label="Bar" filter=bar>{{.bar}}</column>
+            <column t0 m1-3 label="???">{{.bat ? 'Yep' : 'Nope'}}</column>
             <group by=bat select="{{groupSelect}}" show="{{groups}}">
               <column t7-8>{{.bat ? 'Yeps' : 'Nopes'}}</column>
             </group>
@@ -66,24 +80,14 @@
         </marked>
         </div>
       </pane><pane style-display=flex style-flex-direction=column>
-        <div>
-          <label as-field>Filter<input value="{{filter}}" lazy=300 ></label>
-          <label as-field><input type="checkbox" checked="{{border}}" />Border</label>
-          <label as-field><input type="checkbox" checked="{{select}}" />Select</label>
-          <label as-field><input type="checkbox" checked="{{selectAll}}" />Select All</label>
-          <label as-field><input type="checkbox" checked="{{groups}}" />Show Groups</label>
-          <label as-field><input type="checkbox" checked="{{groupSelect}}" />Group Select</label>
-          <label as-field>Pagination<select value="{{paginate}}"><option>auto</option><option>virtual</option><option>fixed</option><option value="{{null}}">none</option></select></label>
-          {{#if paginate === 'fixed'}}<label as-field>Items per page<input type="number" value="{{pages}}" /></label>{{/if}}
-        </div>
-        <data-table bind-items bind-filter bind-border bind-paginate="paginate === 'fixed' ? pages : paginate" bind-allowSelect="select" bind-allowSelectAll="selectAll" paginate=auto on-selected="console.log($1)">
+        <data-table bind-display=mode bind-items bind-filter bind-border bind-paginate="paginate === 'fixed' ? pages : paginate" bind-allowSelect="select" bind-allowSelectAll="selectAll" paginate=auto on-selected="console.log($1)">
           <row>
             <h3>Extra stuff goes here</h3>
             <p>I have a {{.foo}} that is {{.bar}}.</p>
           </row>
-          <column t7-8 s3-8 m1-3 label="Foo" filter=foo>{{.foo}}</column>
-          <column t0 s3-8 m1-3 label="Bar" filter=bar>{{.bar}}</column>
-          <column t0 m1-5 label="???">{{.bat ? 'Yep' : 'Nope'}}</column>
+          <column t1 s1-2 m1-3 label="Foo" filter=foo>{{.foo}}</column>
+          <column t0 s1-2 m1-3 label="Bar" filter=bar>{{.bar}}</column>
+          <column t0 m1-3 label="???">{{.bat ? 'Yep' : 'Nope'}}</column>
           <field id=when path=when type=date />
           <group by=bat select="{{groupSelect}}" show="{{groups}}">
             <column t7-8><strong>{{.bat ? 'Yeps' : 'Nopes'}}</strong></column>

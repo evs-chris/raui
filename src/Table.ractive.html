@@ -30,7 +30,7 @@
 <template id="grid">
   <div {{yield extra-attributes}} as-grid {{#if ~/paginate === 'virtual'}}style-margin-top="{{~/virtual.above}}px" style-margin-bottom="{{~/virtual.below}}px"{{/if}}>
     {{>grid-head}}
-    {{#if ~/virtual.offset % 2 === 1}}<div class-row style-display=none />{{/if}}
+    {{#if ~/virtual.offset % 2 === 1}}<div class-rtable-row-wrap style-display=none />{{/if}}
     {{#each ~/visibleRows, ~/items as source, true as shuffle}}
       {{>grid-row}}
     {{/each}}
@@ -111,8 +111,23 @@
 
     _expand(idx) {
       const which = this.get('visibleRows')[idx];
-      if (this.get('expanded') === which) this.set('expanded', null);
-      else this.set('expanded', which);
+      const current = this.get('expanded');
+      const expanded = this.find('.rtable-row-expand');
+      if (expanded) {
+        this.transition('expand', expanded, { outro: true }).then(() => {
+          if (current === which) this.set('expanded', null);
+          else {
+            this.set('expanded', which);
+            this.transition('expand', this.find('.rtable-row-expand'), { intro: true });
+          }
+        });
+      } else {
+        if (which === current) this.set('expanded', null);
+        else {
+          this.set('expanded', which);
+          this.transition('expand', this.find('.rtable-row-expand'), { intro: true });
+        }
+      }
     }
 
     _setSort(idx, ev) {
@@ -380,16 +395,22 @@
               const header = this.find('.rtable-header');
               if (!header) return;
 
-              let rows = Array.apply(null, this.findAll('.rtable-row')).map(r => r.offsetHeight);
-              if (rows.length < 2) {
-                this.set('_paginate', Math.floor(top.clientHeight / header.offsetHeight));
-                rows = Array.apply(null, this.findAll('.rtable-row')).map(r => r.offsetHeight);
+              let rows = Array.apply(null, this.findAll('.rtable-live')).map(r => r.offsetHeight);
+              if (rows.length < 5) {
+                let auto = Math.floor(top.clientHeight / header.offsetHeight);
+                if (auto < 5) auto = 5;
+                this.set('_paginate', auto);
+                rows = Array.apply(null, this.findAll('.rtable-live')).map(r => r.offsetHeight);
               }
               const avg = Math.ceil(rows.reduce((a, c) => a + c, 0) / rows.length);
               this._avgSize = avg;
 
-              const fit = Math.floor((top.clientHeight - header.offsetHeight) / avg);
-              this.set('_paginate', v === 'virtual' ? fit * 3 : fit);
+              let fit = Math.floor((top.clientHeight - header.offsetHeight) / avg);
+              if (v === 'virtual') {
+                fit = fit * 5;
+                if (fit < 50) fit = 50;
+              }
+              this.set('_paginate', fit);
 
               fn.last = size;
             };
@@ -410,61 +431,91 @@
             if (v === 'virtual') {
               let ready = true;
               let lock = false;
-              let delay = 0;
+              let raf = false;
               const fn = () => {
                 if (!this.rendered) return;
                 const node = this.find('.rtable-top');
                 if (!ready) {
-                  if (delay < 3) {
-                    delay++;
-                    ready = true;
-                    return setTimeout(fn, 20);
-                  }
+                  ready = true;
+                  return setTimeout(fn, 14);
                 }
 
-                ready = false;
-                delay = 0;
+                if (!raf) {
+                  raf = true;
+                  return requestAnimationFrame(fn);
+                } else {
+                  raf = false;
+                  ready = false;
 
-                const top = node.scrollTop;
-                const offset = this.get('virtual.offset');
-                let visible = this.get('_paginate');
-                const page = visible / 3;
-                const count = this.get('rows.length');
-                if (visible > count) visible = count;
-                const avg = this._avgSize;
-                let first = Math.floor(top / avg);
-                const hardFirst = first;
-                if (first + visible > count) first = count - visible;
-                
-                // check to see if the rendered area is approaching an edge
-                if (!isNumber(offset) || (first < offset && offset < page) || (offset + visible >= count && hardFirst >= offset) || first < offset - page || hardFirst > offset + page) {
-                  let amtAbove = first - page;
-                  if (amtAbove < 0) amtAbove = first === 0 ? 0 : first - 1;
-                  let above = amtAbove * avg;
-                  if (above < avg) above = 0;
-                  let below = (count - (hardFirst + visible)) * avg;
-                  if (below < avg) below = 0;
+                  const top = node.scrollTop;
+                  const virtual = this.get('virtual') || {};
+                  let offset = virtual.offset;
+                  let visible = this.get('_paginate');
+                  const page = visible / 5;
+                  const count = this.get('rows.length');
+                  if (visible > count) visible = count;
+                  const avg = this._avgSize;
+                  const pageSize = page * avg;
+                  let wnd = Math.floor(top / avg);
+                  let first = wnd - page;
+                  if (first < 0) first = 0;
+                  const hardFirst = first;
+                  if (first + visible > count) first = count - visible;
                   
-                  this.set({
-                    'virtual.above': above,
-                    'virtual.below': below,
-                    'virtual.offset': first
-                  });
-                }
+                  // check to see if the rendered area is approaching an edge
+                  if (!isNumber(offset) || isNaN(offset) || top < virtual.top + pageSize || top > virtual.bottom - pageSize - pageSize || offset > 0 && top < avg * page) {
+                    let amtAbove = hardFirst;
+                    let amtBelow = count - hardFirst - visible;
+                    if (amtAbove < 0) {
+                      amtBelow += amtAbove * -1;
+                      amtAbove = 0;
+                    } else if (amtAbove > count - visible) {
+                      amtAbove = count - visible;
+                    }
+                    if (amtBelow < 0) amtBelow = 0;
 
-                lock = false;
+                    const above = amtAbove * avg;
+                    const below = amtBelow * avg;
+
+                    let vis, next;
+                    if (first < offset + visible && first > offset - visible) {
+                      if (first > offset) vis = this.findAll('.rtable-live')[first - offset];
+                      else vis = this.findAll('.rtable-live')[offset - first];
+                    }
+
+                    if (vis && first > 0) next = vis.offsetTop;
+
+                    this.set({
+                      'virtual.above': above,
+                      'virtual.below': below,
+                      'virtual.offset': first
+                    });
+
+                    if (typeof next === 'number') {
+                      if (next !== vis.offsetTop) this.set('virtual.above', above + Math.abs(next - vis.offsetTop));
+                    }
+
+                    this.set({
+                      'virtual.top': this.get('virtual.above'),
+                      'virtual.bottom': node.scrollHeight - below
+                    });
+                  }
+
+                  lock = false;
+                }
               };
               const scroll = this._scrollListener = this.on('scroll', ({ node }) => {
                 if (ready) ready = false;
                 else if (!lock) {
                   ready = true;
                   lock = true;
-                  setTimeout(fn, 40);
+                  setTimeout(fn, 15);
                 }
               });
               this._scrollListener.fn = fn;
 
               scroll.observer = this.observe('rows.length', () => {
+                this.set('virtual.offset', null);
                 fn();
               }, { init: false, strict: true });
 
@@ -896,7 +947,12 @@
 
     // grid
     {
-      const header = [{ t: 7, e: 'div', f: columns.filter(c => c.hidden !== true).map(c => {
+      const header = [{ t: 7, e: 'div', m: [
+        { t: 13, n: 'class-rtable-row-wrap' },
+        { t: 13, n: 'class-row-wrap' },
+        { t: 13, n: 'class-rtable-header' },
+        { t: 4, f: [{ n: 'style-opacity', f: '0', t: 13 }], n: 50, x: { r: ['~/virtual.offset'] , s: '_0>0' } }
+      ], f: [{ t: 7, e: 'div', f: columns.filter(c => c.hidden !== true).map(c => {
         const div = { t: 7, e: 'div', f: [{ t: 7, e: 'div', f: c.label }], m: [{ t: 4, n: 53, r: `~/columns.${c.index}`, f: [{ t: 70, n: ['click'], f: { r: ['@this', '.index', '@event'], s: sortKey } }] }, { t: 13, n: 'title', f: c.label }].concat(c.attrs.filter(a => a.n !== 'title')) };
         if (c.type) div.m.push({ t: 13, n: `class-rtable-${c.type}-column` });
         if (c.filter || c.sort) div.m.push({ t: 13, n: 'class-rtable-sortable' });
@@ -910,15 +966,20 @@
         return res;
       }), 
       m: [
-        { t: 13, n: 'class-row' }, { t: 13, n: 'class-rtable-header' }, { t: 4, f: [{ n: 'style-opacity', f: '0', t: 13 }], n: 50, x: { r: ['~/virtual.offset'] , s: '_0>0' } }
-      ] }];
+        { t: 13, n: 'class-row' }
+      ] }] }];
 
       // selectall
       header[0].f.unshift({
         t: 4, n: 50, r: '~/allowSelect', f: [{ t: 7, e: 'div', m: [{ t: 13, n: 'class-rtable-select-header' }, { t: 13, n: 'class-rtable-column' }, { t: 13, n: 'title', f: [{ t: 2, r: 'selections.length' }, ' items selected']}], f: [{ t: 7, e: 'div', f: [{ t: 4, n: 50, r: '~/allowSelectAll', f: [{ t: 7, e: 'input', m: [{ t: 73, v: 't', f: 'false' }, { t: 13, n: 'type', f: 'checkbox' }, { t: 13, n: 'checked', f: [{ t: 2, x: { r: ['@this'], s: '_0.allSelected()' } }] }, { t: 70, n: ['click'], f: 'selectAll' }, { t: 13, n: 'class-rtable-select' }] }] }] }] }]
       });
 
-      const row = [{ t: 7, e: 'div', f: columns.filter(c => c.hidden !== true).map(c => {
+      const row = [{ t: 7, e: 'div', m: [
+        { t: 13, n: 'class-rtable-row-wrap' },
+        { t: 13, n: 'class-row-wrap' },
+        { t: 13, n: 'class-rtable-live' },
+        { t: 13, n: 'class-rtable-selected', f: [{ t: 2, x: { r: ['~/selections', '.'], s: '~_0.indexOf(_1)' } }] }
+      ], f: [{ t: 7, e: 'div', f: columns.filter(c => c.hidden !== true).map(c => {
         const div = { t: 7, e: 'div', f: [{ t: 7, e: 'div', f: [{ t: 16, r: `~/columns.${columns.indexOf(c)}.content`, c: { r: '.' } }] }], m: c.attrs.slice() };
         if (c.type) div.m.unshift({ t: 13, n: `class-rtable-${c.type}-column` });
         div.m.push({ t: 13, n: 'class-rtable-column' });
@@ -934,22 +995,21 @@
         return res;
       }), m: [
         { t: 13, n: 'class-row' }, { t: 13, n: 'class-rtable-row' },
-        { t: 13, n: 'class-rtable-selected', f: [{ t: 2, x: { r: ['~/selections', '.'], s: '~_0.indexOf(_1)' } }] },
         { t: 70, n: (rowEl && rowEl.f ? ['dblclickd'] : ['click', 'dblclick']), f: { r: ['~/rows', '~/visibleRows', '.'], s: `[['selected',_2,_0.indexOf(_2),_1.indexOf(_2)]]` } }
-      ].concat((rowEl && rowEl.m) || empty) }];
+      ].concat((rowEl && rowEl.m) || empty) }] }];
+
+      // expando rows
+      if (rowEl && rowEl.f) {
+        row[0].f[0].f.push({ t: 4, n: 50, x: { r: ['.', '~/expanded'], s: '_0===_1' }, f: [
+          { t: 7, e: 'div', f: [{ t: 7, e: 'div', f: rowEl.f }], m: [{ t: 13, n: 'class-t1' }, { t: 13, n: 'class-rtable-row-expand' }] }
+        ] });
+        row[0].f[0].m.push({ t: 70, n: ['clickd'], f: { r: ['@this', '@index'], s: '[_0._expand(_1)]' } });
+      }
 
       // select
       row[0].f.unshift({
         t: 4, n: 50, r: '~/allowSelect', f: [{ t: 7, e: 'div', m: [{ t: 13, n: 'class-rtable-select-row' }, { t: 13, n: 'class-rtable-column' }, { t: 70, n: ['clickd'], f: { r: ['@this', '.', '@event'], s: '[_0._select(_1,_2),false]' } }], f: [{ t: 7, e: 'div', f: [{ t: 7, e: 'input', m: [{ t: 73, v: 't', f: 'false' }, { t: 13, n: 'type', f: 'checkbox' }, { t: 13, n: 'checked', f: [{ t: 2, x: { r: ['~/selections', '.'], s: '~_0.indexOf(_1)' } }] }, { t: 13, n: 'class-rtable-select' }, { t: 70, n: ['click'], f: { r: [], s: '[false]' } }] }] }] }]
       });
-
-      // expando rows
-      if (rowEl && rowEl.f) {
-        row[0].f.push({ t: 4, n: 50, x: { r: ['.', '~/expanded'], s: '_0===_1' }, f: [
-          { t: 7, e: 'div', f: [{ t: 7, e: 'div', f: rowEl.f }], m: [{ t: 13, n: 'class-t1' }, { t: 13, n: 'class-rtable-row-expand' }, { t: 72, n: 'expand', v: 't0' }] }
-        ] });
-        row[0].m.push({ t: 70, n: ['clickd'], f: { r: ['@this', '@index'], s: '[_0._expand(_1)]' } });
-      }
 
       // group
       let by;
@@ -1069,24 +1129,11 @@
     white-space: nowrap;
   }
 
-  .rtable-header > div {
-    font-weight: bold;
-  }
-
   .rtable-number-column {
     text-align: right;
   }
   .rtable-date-column {
     text-align: right;
-  }
-
-  .rtable-header {
-    border-bottom: 1px solid ${table.divider || primary.bc || '#ccc'};
-    text-align: left;
-  }
-
-  .rtable-header > th {
-    padding: 0.3em 0.5em 1em 0.5em;
   }
 
   .rtable-sortable {
@@ -1097,42 +1144,68 @@
     -webkit-user-select: none;
   }
 
-  .rtable-row {
+  .grid .row.rtable-row, .grid .rtable-header > .row {
+    width: auto;
+    width: min-content;
+    flex-grow: 1;
+  }
+
+  .rtable-row-wrap {
     color: ${primary.fg || '#222'};
     border-bottom: 1px solid ${table.divider || primary.bc || '#ccc'};
     background-color: ${table.even || primary.bga || '#f4f4f4'};
     transition: 0.2s ease-in-out;
     transition-property: background-color, color;
   }
-  .rtable-row:nth-child(odd) {
+  .rtable-row-wrap:nth-child(odd) {
     background-color: ${table.odd || primary.bg || '#fff'};
   }
-  .rtable-row:last-of-type {
+  .rtable-row-wrap:last-of-type {
     border-bottom: none;
   }
-  .rtable-row:hover {
+  .rtable-row-wrap:hover {
     background-color: ${table.over || active.bg || '#eee'};
   }
 
-  .rtable-row.rtable-selected {
+  .rtable-row-wrap.rtable-selected {
     background-color: ${table.selected.bg || 'rgba(0, 119, 238, 0.12)'};
     color: ${table.selected.fg || primary.fg || '#222'};
   }
-  .rtable-row.rtable-selected:nth-child(odd) {
+  .rtable-row-wrap.rtable-selected:nth-child(odd) {
     background-color: ${table.selected.odd || 'rgba(0, 119, 238, 0.1)'};
   }
 
-  .rtable-border .rtable-row .rtable-column:nth-child(n+2),
+  .rtable-row-wrap {
+    display: flex;
+    flex-wrap: wrap;
+    flex-grow: 1;
+  }
+
+  .rtable-border .rtable-row-wrap .rtable-column:nth-child(n+2),
   .rtable-border .rtable-group .rtable-column:nth-child(n+2) {
     border-left: 1px solid ${table.divider || primary.bc || '#ccc'};
   }
 
   .rtable-border .rtable-row-expand {
     border-top: 1px solid ${table.divider || primary.bc || '#ccc'};
+    width: 100%;
   }
 
   .rtable-group {
     border-bottom: 2px solid ${table.divider || primary.bc || '#ccc'};
+  }
+
+  .rtable-header {
+    font-weight: bold;
+  }
+
+  .rtable-header.rtable-row-wrap {
+    border-bottom: 2px solid ${table.divider || primary.bc || '#ccc'};
+    text-align: left;
+  }
+
+  .rtable-header > th {
+    padding: 0.3em 0.5em 1em 0.5em;
   }
 
   .rtable-top {
@@ -1140,6 +1213,7 @@
     flex-shrink: 1;
     overflow-y: auto;
     margin: 0.5em 0;
+    position: relative;
   }
 
   .rtable-bottom {
@@ -1202,8 +1276,8 @@
     border-right-color: transparent;
     transform: rotate(-50deg);
   }
-  .row > .rtable-select-header,
-  .row > .rtable-select-row {
+  .rtable-row-wrap > .rtable-select-header,
+  .rtable-row-wrap > .rtable-select-row {
     text-align: center;
     width: 1.5em;
   }
