@@ -147,11 +147,15 @@ export function style(data, optDefaults) {
     size.units.forEach(u => {
       cols += `
 ${greater[size.key].map(s => wrappers.map(w => `.${s} > ${w}.${name}1, .${s} > ${w}.row > .${name}1, .${s} .${name}-n1`).join(', ')).join(', ')} { display: initial; width: 100%; }
-${greater[size.key].map(s => wrappers.map(w => `.${s} > ${w}.${name}0, .${s} > ${w}.row > .${name}0, .${s} .${name}-n0`).join(', ')).join(', ')} { display: none; }`;
+${greater[size.key].map(s => wrappers.map(w => `.${s} > ${w}.${name}0, .${s} > ${w}.row > .${name}0, .${s} .${name}-n0, .${s} .row-${name}-n0 > *`).join(', ')).join(', ')} { display: none; }`;
+      rows += `
+${greater[size.key].map(s => `.${s} .row-${name}-n1 > *`).join(', ')} { display: intial; width: 100%; }
+${greater[size.key].map(s => `.${s} .row-${name}-n0 > *`).join(', ')} { display: none; }`;
+
       for (let i = 1; i < u; i++) {
         str = '' + ((i / u) * 100);
         str = str.substr(0, str.indexOf('.') + 3);
-        rows += `\n${greater[size.key].map(s => wrappers.map(w => `.${s} > ${w}.row-${name}${i}-${u} > *, .${s} .row-${name}-n${i}-${u} > *, .${s} .row-${name}-n${i}-${u} > *`).join(', ')).join(', ')} { display: initial; width: ${str}%; }`;
+        rows += `\n${greater[size.key].map(s => wrappers.map(w => `.${s} > ${w}.row-${name}${i}-${u} > *, .${s} .row-${name}-n${i}-${u} > *, .${s} .row > .${name}-n${i}-${u} > *`).join(', ')).join(', ')} { display: initial; width: ${str}%; }`;
         cols += `\n${greater[size.key].map(s => wrappers.map(w => `.${s} > ${w}.${name}${i}-${u}, .${s} > ${w}.row > .${name}${i}-${u}, .${s} .${name}-n${i}-${u}, .${s} .row > .${name}-n${i}-${u}`).join(', ')).join(', ')} { display: initial; width: ${str}%; }`;
       }
     });
