@@ -342,7 +342,7 @@
         const max = local.max || (!local.dialog && (this.get('max') || this.get('userMax')));
         const bmax = blocked.max || this.get('userMax') || this.get('max');
         const bw = bmax ? this.host.clientWidth : this.sizeInPx(`${blocked.width}em`);
-        const bh = bmax ? this.host.clientHeight : this.sizeInPax(`${blocked.height}em`);
+        const bh = bmax ? this.host.clientHeight : this.sizeInPx(`${blocked.height}em`);
         const bl = bmax ? 0 : blocked.left;
         const bt = bmax ? 0 : blocked.top;
 
@@ -386,6 +386,7 @@
     }
 
     sizeInPx(size) {
+      if (!this.sizer) return parseFloat(size) * 16;
       this.sizer.style.width = typeof size === 'number' ? `${size}px` : size;
       return this.sizer.clientWidth;
     }
@@ -507,7 +508,7 @@
     cssId: 'window-host',
     noIntro: true,
     observe: {
-      '@style'() {
+      '@style.raui.window.maxFrom'() {
         initMediaListener(this);
       },
       topLevel(v) {
@@ -578,17 +579,19 @@
   function initMediaListener(r) {
     if (r._media) {
       r._media.fn();
-    } else if (r.get('@style.window.maxFrom')) {
+    } else {
       r._media = {};
       r._media.fn = () => {
-        const max = r.sizeInPx(r.get('@style.window.maxFrom'));
+        if (!r.host) return;
+        const max = r.sizeInPx(r.get('@style.raui.window.maxFrom'));
         const trans = r.transitionsEnabled;
         r.transitionsEnabled = false;
         r.set('max', r.host.clientWidth <= max);
+        r.set('dimensions', { clientWidth: r.host.clientWidth, clientHeight: r.host.clientHeight });
         r.transitionsEnabled = trans;
       };
       r._media.handle = r.root.on('*.resize', r._media.fn);
-      setTimeout(r._media.fn, 0);
+      setTimeout(r._media.fn);
     }
   }
 
@@ -1037,6 +1040,43 @@
         const wnd = this.constructor;
         if (wnd._btns && !this.get('buttons.length')) this.set('buttons', wnd._btns);
       }
+    },
+    observe: {
+      'control.max root.max root.userMax control.width control.height root.dimensions.clientHeight root.dimensions.clientWidth': {
+        handler(v, o, k) {
+          const max = this.get('control.max') || this.get('root.userMax') || this.get('root.max');
+          const actual = this.get('control.actual') || {};
+
+          if (max) {
+            if (!actual.max) {
+              const root = this.wrapper;
+              if (this.wrapper) {
+                this.set(
+                  'control.actual',
+                  { width: this.host.sizeInEm(this.wrapper.clientWidth), height: this.host.sizeInEm(this.wrapper.clientHeight), max }
+                );
+              }
+            } else if (~k.indexOf('client') && typeof v === 'number') {
+              if (~k.indexOf('Width')) this.set('control.actual.width', this.host.sizeInEm(v));
+              else if (~k.indexOf('Height')) this.set('control.actual.height', this.host.sizeInEm(v));
+            }
+          } else {
+            if (typeof v === 'number') {
+              if (~k.indexOf('width')) this.set('control.actual.width', v);
+              else if (~k.indexOf('height')) this.set('control.actual.height', v);
+            }
+
+            if (actual.max) {
+              this.set(
+                'control.actual',
+                { width: this.get('control.width'), height: this.get('control.width'), max }
+              );
+            }
+            this.set('control.actual.max', false);
+          }
+        },
+        init: false, defer: true
+      }
     }
   });
 
@@ -1056,7 +1096,9 @@
 
 <script rel="css">
   const primary = Object.assign({}, data('raui.primary'), data('raui.window.primary'));
-  const window = Object.assign({ host: {}, title: {} }, data('raui.window'));
+  primary.action = Object.assign({}, data('raui.window.action'), data('raui.window.primary.action'));
+  primary.host = Object.assign({}, data('raui.window.host'), data('raui.window.primary.host'));
+  primary.title = Object.assign({}, data('raui.window.title'), data('raui.window.primary.title'));
   return `
   .rwhost {
     position: relative;
@@ -1080,7 +1122,7 @@
     box-sizing: border-box;
     flex-grow: 2;
     overflow: auto;
-    background-color: ${window.host.bg || primary.bg || '#fff'};
+    background-color: ${primary.host.bg || primary.bg || '#fff'};
     z-index: 1;
   }
 
@@ -1115,7 +1157,7 @@
   }
 
   .rwindow-wrapper.rwindow-resizable {
-    padding: ${window.handleSize || 7}px;
+    padding: ${primary.handleSize || 7}px;
   }
 
   .rwindow-topmost > .rwindow {
@@ -1143,15 +1185,15 @@
   .rwindow {
     position: relative;
     box-sizing: border-box;
-    background-color: ${window.bg || primary.bg || '#fff'};
-    color: ${window.fg || primary.fg || '#222'};
+    background-color: ${primary.bg || '#fff'};
+    color: ${primary.fg || '#222'};
     box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.14), 0 1px 5px 0 rgba(0, 0, 0, 0.12), 0 3px 1px -2px rgba(0, 0, 0, 0.2);
     border-radius: 2px;
     overflow: hidden;
     width: 100%;
     height: 100%;
-    min-width: ${window.minWidth || '6em'};
-    min-height: ${window.minHeight || '6em'};
+    min-width: ${primary.minWidth || '6em'};
+    min-height: ${primary.minHeight || '6em'};
     transition: box-shadow 0.4s ease-in-out, opacity 0.4s ease-in-out;
   }
   .rwindow-max > .rwindow {
@@ -1161,8 +1203,8 @@
 
   .rwindow-pane-top,
   .rwindow-max-top {
-    background-color: ${window.title.bg || primary.fga || '#07e'};
-    color: ${window.title.fg || primary.bg || '#fff'};
+    background-color: ${primary.title.bg || primary.fga || '#07e'};
+    color: ${primary.title.fg || primary.bg || '#fff'};
     flex-shrink: 0;
   }
 
@@ -1204,7 +1246,9 @@
     display: flex;
     flex-shrink: 0;
     padding: 0.5em;
-    border-top: 1px solid ${window.title.bg || primary.fga || '#07e'};
+    border-top: 1px solid ${primary.action.bc || primary.bc || '#ccc'};
+    background-color: ${primary.action.bg || primary.bg || '#fff'};
+    color: ${primary.action.fg || primary.fg || '#222'};
   }
   .rwindow-buttons.no-buttons {
     display: none;
