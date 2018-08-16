@@ -452,9 +452,9 @@
   .rtabs-selected${boxy ? `,
   .alt > .rtabs-tab-window .rtabs-selected` : ''} {
     opacity: 1;${boxy ? `
+    font-weight: bold;
     border-bottom-color: ${primary.bg || '#fff'};
-    background-color: ${primary.selected.bg || primary.bg || '#fff'};${primary.indicator ? `
-    background-image: linear-gradient(to bottom, ${primary.indicator.color || primary.fga || '#07e'}, ${primary.bg || '#fff'} 3px);` : ''}
+    background-color: ${primary.selected.bg || primary.bg || '#fff'};
     color: ${primary.selected.fg || primary.fg || '#222' };` : ''}
   }
 

@@ -54,7 +54,7 @@ export function style(data) {
     border-color: ${primary.bc || '#ccc'};
     border-style: solid;
     box-sizing: border-box;
-    background-color: transparent;
+    background-color: ${boxy ? primary.bg || '#fff' : 'transparent'};
     transition: 0.2s ease-in-out;
     transition-property: box-shadow, color;
     outline: none;

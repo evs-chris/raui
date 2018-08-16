@@ -151,8 +151,8 @@
   }
 
   .rcard-deep {
-    box-shadow: 0 2px 2px rgba(0, 0, 0, 0.24), 0 0 2px rgba(0, 0, 0, 0.12);
-    border: none;
+    box-shadow: ${primary.shadow || '0 1px 4px 0 rgba(0,0,0,0.14)'};
+    border: 1px solid ${primary.bc || '#ccc'};
   }
   .rcard-flat {
     border: 0.0625em solid ${primary.bc || '#ccc'};
@@ -186,7 +186,10 @@
   }
 
   .rcard-section > .rcard-header:first-of-type {
-    padding: 0.5em 1em;
+    padding: ${primary.headerPadding || '0.5em 1em'};${primary.headerGradient ? `
+    background: ${primary.headerGradient};
+    color: ${primary.fg || '#222'};
+    border-bottom: 1px solid ${primary.bc || '#ccc'};` : ''}
   }
 
   .rcard-avatar {

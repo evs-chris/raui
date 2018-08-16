@@ -494,6 +494,7 @@
 
 <script rel="css">
   const primary = Object.assign({}, data('raui.primary'), data('raui.menu.primary'));
+  primary.popout = Object.assign({}, data('raui.menu.popout'), data('raui.menu.primary.popout'));
   const base = `
   .rmenu-wrapper {
     position: relative;
@@ -505,7 +506,7 @@
   .rmenu {
     ${data('raui.menu.font') ? `font-family: ${data('raui.menu.font')};` : ''}
     color: ${primary.bg || '#fff'};
-    background-color: ${primary.fga || '#222'};
+    background-color: ${primary.fg || '#222'};
     position: absolute;
     top: 0;
     bottom: 0;
@@ -526,6 +527,10 @@
     border-bottom: 1px solid transparent;
     transition: border 0.2s ease-in-out;
   }
+  .rmenu-item:hover > .rmenu-main {
+    background-color: ${primary.fga || '#07e'};
+    color: ${primary.bg || '#fff'};
+  }
   .rmenu-disabled {
     opacity: 0.5;
     cursor: not-allowed;
@@ -533,6 +538,14 @@
   .rmenu-expanded {
     border-top: 0.0625em solid ${primary.bc || '#ccc'};
     border-bottom: 0.0625em solid ${primary.bc || '#ccc'};
+  }
+  .rmenu-popout.rmenu-expanded {
+    border-top: 1px solid transparent;
+    border-bottom: 1px solid transparent;
+  }
+  .rmenu-popout .rmenu-popout.rmenu-expanded {
+    background-color: ${primary.popout.bga || primary.bg || '#fff'};
+    color: ${primary.popout.fg || primary.fg || '#222'};
   }
   .rmenu-main {
     width: 100%;
@@ -546,17 +559,21 @@
     padding: 0.2em 0;
     min-height: 2em;
   }
-  .rmenu-main.rmenu-active {
+  .rmenu-main.rmenu-active, .rmenu-item:hover > .rmenu-main.rmenu-active {
     color: ${primary.fga || '#07e'};
     background-color: ${primary.bg || '#fff'};
   }
-  .rmenu-popout .rmenu-entry .rmenu-main.rmenu-active {
-    color: ${primary.bg || '#fff'};
-    background-color: ${primary.fg || '#222'};
+  .rmenu-popout .rmenu-entry .rmenu-main.rmenu-active, .rmenu-popout .rmenu-item:hover > .rmenu-main.rmenu-active {
+    color: ${primary.popout.bg || primary.bg || '#fff'};
+    background-color: ${primary.popout.fga || primary.fga || '#07e'};
   }
   .rmenu-wrapper.alt .rmenu-main.rmenu.active {
     color: ${primary.bg || '#fff'};
-    background-color: ${primary.fga || '#07e'};
+    background-color: ${primary.fg || '#222'};
+  }
+  .rmenu-popout .rmenu-items .rmenu-item:hover > .rmenu-main {
+    background-color: ${primary.popout.bga || '#f4f4f4'};
+    color: ${primary.popout.fg || '#222'};
   }
 
   .rmenu-items {
@@ -598,8 +615,8 @@
     top: 0;
     width: 100%;
     height: 100%;
-    background-color: ${primary.bg || '#fff'};
-    color: ${primary.fg || '#222'};
+    background-color: ${primary.popout.bg || primary.bg || '#fff'};
+    color: ${primary.popout.fg || primary.fg || '#222'};
     box-sizing: border-box;
     border: 1px solid;
     z-index: -1;
@@ -636,10 +653,11 @@
   }
 
   .rmenu-popout-close:after {
-    color:  ${primary.bc || '#ccc'};
+    color:  ${primary.popout.fga || primary.fga || '#07e'};
     content: '\\274c  Close';
     display: block;
-    padding: 0.5em 0.5em 0.1em 0.5em;
+    padding: 0.5em;
+    cursor: pointer;
   }
 
   .rmenu-title {
@@ -658,13 +676,23 @@
   }
 
   .rmenu-section {
-    padding: 0.75em 0;
+    padding: 0 0 0.75em 0;
   }
   .rmenu-section > .rmenu-main {
     cursor: default;
     font-size: 0.75em;
     opacity: 0.7;
     margin-bottom: 0.25em;
+  }
+  .rmenu-popout .rmenu-section > .rmenu-main > .rmenu-title {
+    font-size: 1.5em;
+    text-align: center;
+    padding: 0.75em;
+    opacity: 1;
+    font-weight: bold;
+    color: ${primary.popout.fg || primary.fg || '#222'};
+    background-color: ${primary.popout.bga || primary.bga || '#f4f4f4'};
+    border-bottom: 1px solid ${primary.popout.bc || primary.bc || '#ccc'};
   }
 
   .rmenu-container {
