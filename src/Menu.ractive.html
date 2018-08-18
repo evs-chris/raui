@@ -6,7 +6,7 @@
 
 <template id="items">
   {{#if .shrink}}
-    <div class-rmenu-popout-close on-click="@context.toggle('.open'), false"></div>
+    <div class-rmenu-popout-close on-click="@.popAllIn(@keypath), false">&#x274c;  Close</div>
   {{/if}}
   {{#each .items}}
   {{#if .condition === undefined || (typeof .condition === 'boolean' && .condition) || (typeof .condition === 'string' && ~/[.condition]) || (typeof .condition === 'function' && .condition())}}
@@ -17,7 +17,7 @@
       class-rmenu-popout="(!.type || .type === 'item') && .popout"
       {{#if .popout}}
         pop-in-out
-        {{#if .open}}on-clickout="@.popAllIn(@context)"{{/if}}
+        {{#if .open}}on-clickout="@.popAllIn(@keypath)"{{/if}}
       {{else}}
         expand-in-out
       {{/if}}
@@ -55,7 +55,7 @@
 
 <template id="children">
   {{#if .items.length && (.open || .type === 'section')}}
-  <div class-rmenu-items {{#if !.popout}}expand-in-out{{else}}pop-in-out{{/if}}>
+  <div class-rmenu-items {{#if !.popout}}expand-in-out{{else}}pop-in-out{{/if}} class-rmenu-shrink=".shrink">
     {{>items}}
   </div>
   {{/if}}
@@ -127,14 +127,15 @@
       }
     }
 
-    popAllIn(ctx) {
-      ctx = ctx || this.getContext();
-      const items = ctx.get('items');
-      if (ctx.get('open')) ctx.set('open', false);
-      const path = ctx.resolve('items');
-      for (let i = 0; i < items.length; i++) {
-        close(this, `${path}.${i}`);
+    popAllIn(path) {
+      if (!path) path = '';
+      const items = this.get(`${path}.items`);
+      if (items) {
+        for (let i = 0; i < items.length; i++) {
+          this.popAllIn(`${path}.items.${i}`);
+        }
       }
+      if (this.get(`${path}.open`)) this.set(`${path}.open`, false);
     }
 
     popSiblingsIn(ctx) {
@@ -214,7 +215,8 @@
     transitions: {
       pop(t, params) {
         const p = t.processParams(params, { duration: 200, easing: 'easeInOut' });
-        let shrink;
+        const ctx = this.getContext(t.node);
+        let shrink = ctx.get('.shrink');
 
         if (t.isIntro) {
           const rect = t.node.getBoundingClientRect();
@@ -227,18 +229,18 @@
             }
           }
           if (rect.left + rect.width > window.innerWidth) {
-            t.node.classList.add('rmenu-shrink');
+            setTimeout(() => ctx.set('.shrink', true));
             shrink = true;
-            setTimeout(() => this.getContext(t.node).set('.shrink', true));
             findParent().style.overflowX = 'hidden';
-          } else if (t.node.classList.contains('rmenu-shrink')) {
-            setTimeout(() => this.getContext(t.node).set('.shrink', false));
+          } else if (shrink) {
+            setTimeout(() => ctx.set('.shrink', false));
             findParent().style.overflowX = '';
+            shrink = false;
           } else {
             findParent().style.overflowX = '';
           }
         } else {
-          shrink = t.node.classList.contains('rmenu-shrink');
+          setTimeout(() => ctx.set('shrink', false));
         }
 
         if (t.isIntro) {
@@ -618,12 +620,12 @@
     background-color: ${primary.popout.bg || primary.bg || '#fff'};
     color: ${primary.popout.fg || primary.fg || '#222'};
     box-sizing: border-box;
-    border: 1px solid;
+    border-right: 1px solid ${primary.popout.bc || primary.bc || '#ccc'};
     z-index: -1;
     transition: box-shadow 0.2s ease-in-out;
   }
   .rmenu-popout.rmenu-expanded > .rmenu-items {
-    left: 100%;
+    left: calc(100% + 1px);
     z-index: initial;
     box-shadow: 0.2em 0 0.2em rgba(0, 0, 0, 0.2);
   }
@@ -651,10 +653,12 @@
     width: calc(100% + 1px);
     top: -1px;
   }
+  .rmenu-popout > .rmenu-items .rmenu-popout > .rmenu-items.rmenu-shrink {
+    height: 100%;
+  }
 
-  .rmenu-popout-close:after {
+  .rmenu-popout-close {
     color:  ${primary.popout.fga || primary.fga || '#07e'};
-    content: '\\274c  Close';
     display: block;
     padding: 0.5em;
     cursor: pointer;
@@ -693,6 +697,7 @@
     color: ${primary.popout.fg || primary.fg || '#222'};
     background-color: ${primary.popout.bga || primary.bga || '#f4f4f4'};
     border-bottom: 1px solid ${primary.popout.bc || primary.bc || '#ccc'};
+    border-top: 1px solid ${primary.popout.bc || primary.bc || '#ccc'};
   }
 
   .rmenu-container {
