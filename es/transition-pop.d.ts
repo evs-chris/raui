@@ -1,0 +1,1 @@
+export { default, pop, PluginOpts } from '../src/transition-pop';

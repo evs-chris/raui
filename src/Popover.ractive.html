@@ -1,0 +1,374 @@
+{{#if _popped}}
+<div
+  class-rpop-wrapper
+  class-rpop-with-tail="position.tail"
+  class="rpop-{{where || 'below'}} rpop-align-{{align || 'middle'}}"
+  {{#if position}}style-top="{{position.popTop}}px" style-left="{{position.popLeft}}px"
+  {{else}}
+    {{#if top}}style-top="{{top}}"{{/if}}{{#if left}}style-left="{{left}}"{{/if}}
+  {{/if}}
+  pop-out="{ dir: where || 'below' }"
+  {{#if clickClose}}on-click="@.toggle('popped')"{{/if}}
+  {{#unless noClickout}}on-clickout="@.toggle('popped')"{{/unless}}
+  {{yield extra-attributes}}
+>
+  {{#if ~/tail}}
+    <div class-rpop-tail
+      {{#if position.tailTop}}style-top="{{position.tailTop + (position.vert ? 1 : 0)}}px"{{/if}}
+      {{#if position.tailBottom}}style-bottom="{{position.tailBottom + (position.vert ? 1 : 0)}}px"{{/if}}
+      {{#if position.tailLeft}}style-left="{{position.tailLeft + (position.vert ? 0 : 1)}}px"{{/if}}
+      {{#if position.tailRight}}style-right="{{position.tailRight + (position.vert ? 0 : 1)}}px"{{/if}}
+    />
+    <div class-rpop-tail-outer
+      {{#if position.tailTop}}style-top="{{position.tailTop - 2}}px"{{/if}}
+      {{#if position.tailBottom}}style-bottom="{{position.tailBottom - 2}}px"{{/if}}
+      {{#if position.tailLeft}}style-left="{{position.tailLeft - 2}}px"{{/if}}
+      {{#if position.tailRight}}style-right="{{position.tailRight - 2}}px"{{/if}}
+    />
+  {{/if}}
+  <div class-rpop>
+    {{yield content}}
+  </div>
+</div>
+{{/if}}
+
+<script>
+  import Ractive from 'ractive';
+  import pop from './transition-pop';
+  import clickout from './event-clickout';
+
+  function noop() {}
+  let source;
+
+  export class Popover extends Ractive {
+    constructor(opts) { super(opts); }
+
+    position(node) {
+      const source = node || this.source;
+      const popped = this.get('popped');
+      if (!source || !popped) return;
+
+      const wrapper = this.find('div');
+
+      if (source && wrapper && wrapper.offsetParent) {
+        const parent = wrapper.offsetParent;
+        const offset = parent.getBoundingClientRect();
+        const local = wrapper.getBoundingClientRect();
+        const target = source.getBoundingClientRect();
+        const where = this.get('where') || 'below';
+        const align = this.get('align') || 'middle';
+        const tail = this.get('tail');
+        const vert = where === 'above' || where === 'below';
+        const fit = this.get('fit');
+
+        let offx = where === 'above' || where === 'below' ? 0 : where === 'left' ? -local.width - 4 : target.width + 4;
+        let offy  = where === 'left' || where === 'right' ? -target.height : where === 'above' ? -target.height - local.height - 4 : 4;
+
+        if (align === 'middle') {
+          if (where === 'below' || where === 'above') offx -= (local.width - target.width) / 2;
+          else if (where === 'left' || where === 'right') offy -= (local.height - target.height) / 2;
+        } else if (align === 'end') {
+          if (where === 'below' || where === 'above') offx += target.width - local.width;
+          else if (where === 'left' || where === 'right') offy += target.height - local.height;
+        }
+
+        let pos = {
+          popTop: target.bottom - offset.top + offy,
+          popLeft: target.left - offset.left + offx,
+          tail,
+          vert: where === 'above' || where === 'below'
+        }
+
+        if (parent.scrollTop) pos.popTop += parent.scrollTop;
+        if (parent.scrollLeft) pos.popLeft += parent.scrollLeft;
+
+        if (tail) {
+          if (where === 'above') {
+            pos.tailBottom = -10;
+          } else if (where === 'below') {
+            pos.tailTop = -10;
+          } else if (where === 'left') {
+            pos.tailRight = -10;
+          } else if (where === 'right') {
+            pos.tailLeft = -10;
+          }
+
+          if (align === 'start') {
+            if (where === 'above' || where === 'below') pos.tailLeft = Math.floor(target.width / 2) - 10;
+            else if (where === 'left' || where === 'right') pos.tailTop = Math.floor(target.height / 2) - 10;
+          } else if (align === 'end') {
+            if (where === 'above' || where === 'below') pos.tailRight = Math.floor(target.width / 2) - 10;
+            else if (where === 'left' || where === 'right') pos.tailBottom = Math.floor(target.height / 2) - 10;
+          } else if (align === 'middle') {
+            if (where === 'above' || where === 'below') pos.tailLeft = Math.floor(local.width / 2) - 10;
+            else if (where === 'left' || where === 'right') pos.tailTop = Math.floor(local.height / 2) - 10;
+          }
+        }
+
+        if (fit) {
+          const owidth = parent.scrollWidth;
+          const oheight = parent.scrollHeight;
+
+          if (pos.popLeft + local.width > owidth) {
+            const diff = pos.popLeft - (owidth - local.width);
+            pos.popLeft -= diff;
+            if (vert && pos.tailLeft) pos.tailLeft += diff;
+            if (vert && pos.tailRight) pos.tailRight -= diff;
+          }
+
+          if (pos.popLeft < 0) {
+            const diff = -1 * pos.popLeft;
+            pos.popLeft += diff;
+            if (vert && pos.tailLeft) pos.tailLeft -= diff;
+            if (vert && pos.tailRight) pos.tailRight += diff;
+          }
+
+          if (pos.popTop + local.height > oheight) {
+            const diff = pos.popTop - (oheight - local.height);
+            pos.popTop -= diff;
+            if (!vert && pos.tailTop) pos.tailTop += diff;
+            if (!vert && pos.tailBottom) pos.tailBottom -= diff;
+          }
+
+          if (pos.popTop < 0) {
+            const diff = -1 * pos.popTop;
+            pos.popTop += diff;
+            if (!vert && pos.tailTop) pos.tailTop -= diff;
+            if (!vert && pos.tailBottom) pos.tailBottom += diff;
+          }
+        }
+
+        this.set('position', pos);
+      } else {
+        this.set('position', null);
+      }
+    }
+
+    show(node) {
+      this.source = node;
+      this.set('popped', true);
+    }
+
+    hide() {
+      this.set('popped', false);
+    }
+  }
+
+  Ractive.extendWith(Popover, {
+    attributes: ['popped', 'tail', 'where', 'align', 'top', 'left', 'fit', 'clickClose', 'noClickout'],
+    use: [pop(), clickout()],
+    template: $TEMPLATE,
+    css: $CSS,
+    cssId: 'rpop',
+    noCssTransform: true,
+    observe: {
+      popped(v) {
+        if (v && source) this.source = source;
+        setTimeout(() => {
+          if (this.get('popped') === v) this.set('_popped', v);
+        }, 100);
+      },
+      _popped: {
+        handler(v) {
+          if (v) {
+            this.position();
+            this.transition('pop', this.find('div'), { intro: true, dir: this.get('where') || 'below' });
+          } else {
+            this.source = null;
+          }
+        },
+        defer: true
+      },
+      'align where tail fit': {
+        handler() { this.position() },
+        defer: true
+      }
+    }
+  });
+
+  export function trigger(options = {}) {
+    return function({ instance }) {
+      instance.decorators[options.name || 'pop'] = function(node, path, opts = {}) {
+        if (!path) return { teardown: noop };
+        const ctx = this.getContext(node);
+        let clicked, hover;
+
+        function listener(ev) {
+          if (ev.type === 'mouseover' && ctx.get(path)) return;
+
+          if (ev.type !== 'click' || !hover || clicked) {
+            const init = source;
+            source = node;
+            ctx.toggle(path);
+            source = init;
+          }
+
+          if (hover && ev.type === 'click') {
+            clicked = ctx.observeOnce(path, () => {
+              clicked = null;
+            });
+          }
+        }
+
+        function out(ev) {
+          if (!clicked) {
+            ctx.set(path, false);
+          }
+        }
+
+        if ('click' in opts ? opts.click : options.click !== false) {
+          ctx.listen('click', listener);
+        }
+
+        if ('hover' in opts ? opts.hover : options.hover) {
+          hover = 1;
+          ctx.listen('mouseover', listener);
+          ctx.listen('mouseout', out);
+        }
+
+        return {
+          teardown() {
+            ctx.unlisten('click', listener);
+            if (hover) {
+              ctx.unlisten('mouseover', listener);
+              ctx.unlisten('mouseout', out);
+              if (clicked) clicked.cancel();
+            }
+          }
+        }
+      }
+    };
+  }
+
+  export default function plugin(options = {}) {
+    return function({ instance }) {
+      instance.components[options.name || 'pop'] = Popover;
+      const opts = Object.assign({}, options);
+      opts.name = opts.trigger || opts.name;
+      trigger(opts)({ instance });
+    }
+  }
+</script>
+
+<script rel="css">
+  const primary = Object.assign({}, data('raui.primary'), data('raui.pop.primary'));
+  const themes = (data('raui.themes') || []).slice();
+  (data('raui.pop.themes') || []).forEach(t => {
+    if (!~themes.indexOf(t)) themes.push(t);
+  });
+  return `
+  .rpop-wrapper {
+    position: absolute;
+    display: inline-block;
+    z-index: 11;
+    transition-property: top, left, padding;
+    transition-timing-function: ease-in-out;
+    transition-duration: 0.3s;
+  }
+  .rpop-with-tail.rpop-above {
+    padding-bottom: 10px;
+  }
+  .rpop-with-tail.rpop-below {
+    padding-top: 10px;
+  }
+  .rpop-with-tail.rpop-left {
+    padding-right: 10px;
+  }
+  .rpop-with-tail.rpop-right {
+    padding-left: 10px;
+  }
+
+  .rpop {
+    position: relative;
+    box-shadow: 0 1px 4px 0 rgba(0,0,0,0.24);
+    border: 1px solid #ccc;
+    border-radius: 0.2em;
+    background-color: ${primary.bg || '#fff'};
+    color: ${primary.fg || '#222'};
+    padding: 0.5em;
+    z-index: 2;
+  }
+
+  .rpop-tail, .rpop-tail-outer {
+    z-index: 3;
+    width: 0;
+    height: 0;
+    position: absolute;
+    border-style: solid;
+    border-width: 10px;
+    border-color: transparent;
+    transition-property: top, left, bottom, right, border-color;
+    transition-timing-function: ease-in-out;
+    transition-duration: 0.3s;
+  }
+  .rpop-tail-outer {
+    z-index: 1;
+    border-width: 12px;
+    border-color: transparent;
+  }
+
+  .rpop-below .rpop-tail {
+    border-bottom-color: ${primary.bg || '#fff'};
+  }
+  .rpop-below .rpop-tail-outer {
+    border-bottom-color: ${primary.bc || '#ccc'};
+  }
+
+  .rpop-above .rpop-tail {
+    border-top-color: ${primary.bg || '#fff'};
+  }
+  .rpop-above .rpop-tail-outer {
+    border-top-color: ${primary.bc || '#ccc'};
+  }
+
+  .rpop-left .rpop-tail {
+    border-left-color: ${primary.bg || '#fff'};
+  }
+  .rpop-left .rpop-tail-outer {
+    border-left-color: ${primary.bc || '#ccc'};
+  }
+  
+  .rpop-right .rpop-tail {
+    border-right-color: ${primary.bg || '#fff'};
+  }
+  .rpop-right .rpop-tail-outer {
+    border-right-color: ${primary.bc || '#ccc'};
+  }
+  ` + themes.map(t => {
+    const theme = Object.assign({}, data('raui.primary'), data('raui.pop.primary'), data(`raui.${t}`), data(`raui.pop.${t}`));
+    return `
+  .${t} .rpop {
+    background-color: ${theme.bg || '#fff'};
+    color: ${theme.fg || '#222'};
+  }
+
+  .${t}.rpop-below .rpop-tail {
+    border-bottom-color: ${theme.bg || '#fff'};
+  }
+  .${t}.rpop-below .rpop-tail-outer {
+    border-bottom-color: ${theme.bc || '#ccc'};
+  }
+
+  .${t}.rpop-above .rpop-tail {
+    border-top-color: ${theme.bg || '#fff'};
+  }
+  .${t}.rpop-above .rpop-tail-outer {
+    border-top-color: ${theme.bc || '#ccc'};
+  }
+
+  .${t}.rpop-left .rpop-tail {
+    border-left-color: ${theme.bg || '#fff'};
+  }
+  .${t}.rpop-left .rpop-tail-outer {
+    border-left-color: ${theme.bc || '#ccc'};
+  }
+  
+  .${t}.rpop-right .rpop-tail {
+    border-right-color: ${theme.bg || '#fff'};
+  }
+  .${t}.rpop-right .rpop-tail-outer {
+    border-right-color: ${theme.bc || '#ccc'};
+  }
+  `;
+  });
+</script>

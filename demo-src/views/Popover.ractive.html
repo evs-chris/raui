@@ -1,0 +1,116 @@
+<tabs pad fill height=dynamic flat class-alt flex>
+    <tab title="Intro"><marked>
+      Do you need to pop up some more info, or maybe an interactive form? You can probably use a popover for that.
+      
+      The Raui popover is a fairly simple component with a companion decorator. The component, named `pop` by default, takes your content and packages it into an absolutely positioned wrapper. The decorator, which takes the same name, again, `pop` by default, as the component, is used to toggle the variable that manages showing and hiding the popover content. The decorator is necessary to track the source for the popover, which is needed for positioning.
+    </marked></tab>
+    <tab title="Usage"><marked>
+      ### Plugin options
+  
+      All options are optional.
+  
+      * `name: string = 'shell'` - the name to use when installing the plugin as a component and decorator
+  
+      ## Component
+
+      ### Attributes
+  
+      * `popped: boolean` - the binding used to trigger show/hide
+      * `tail: boolean` - whether or not the popover should have a tail
+      * `where: 'below'|'above'|'left'|'right' = 'below'` - where the popover should appear relative to the trigger
+      * `align: 'start'|'middle'|'end' = 'middle' - how to align the popover with the trigger - start to start (top or left), middle to middle, or end to end (right or bottom)
+      * `fit: boolean` - whether to try to keep the popover within the bounds of its offset parent. Be careful if you are using a lot of positioned small containers.
+      * `clickClose: boolean` - whether to close the popover when it is clicked
+      * `noClickout: boolean` - if `false` (the default), clicking outside of the popover will close it.
+  
+      ### API
+  
+      * `position(node?: Element)` - adjust the popover position, optionally relative to a specific node
+      * `show(trigger: Element)` - show the popover as if it were triggered by the given element
+      * `hide()` - hide the popover
+
+      ## Decorator
+  
+    </marked></tab>
+    <tab title="Example" no-pad>
+      <split>
+        <div style="padding: 1em;" size=20>
+          <label as-field>Where<select value="{{.where}}"><option>below</option><option>above</option><option>left</option><option>right</option></select></label>
+          <label as-field>Align<select value="{{.align}}"><option>middle</option><option>start</option><option>end</option></select></label>
+          <label as-field><input type="checkbox" checked="{{.tail}}" /> Tail?</label>
+          <label as-field><input type="checkbox" checked="{{.fit}}" /> Fit in container?</label>
+          <label as-field><input type=checkbox checked="{{.popped}}" twoway=false on-change="hover" />Popped?</label>
+          <label as-field><input type=checkbox checked="{{.click}}" />Click to close?</label>
+          <label as-field><input type=checkbox checked="{{.noClick}}" />No clickout close?</label>
+          <label as-field><textarea>{{.template}}</textarea></label>
+          <marked>
+            ### Template:
+            ```handlebars
+              <button style="position: absolute; left: 5%; top: 5%; width: 6em;" as-pop=`.popped`>Pop</button>
+            <button style="position: absolute; right: 5%; top: 5%; width: 6em;" as-pop=`.popped`>Pop</button>
+            <div as-pophover=`.popped` id="hover" style="position: absolute; left: 5%; top: calc(50% - 1em); height: 2em; width: 4em; border: 1px solid #ccc; border-radius: 4px; padding: 0.2em;">Hover</div>
+            <button style="position: absolute; right: calc(50% - 3em); top: calc(50% - 1em); width: 6em;" as-pop=`.popped`>Pop</button>
+            <button style="position: absolute; left: 5%; bottom: 5%; width: 6em;" as-pop=`.popped`>Pop</button>
+            <button style="position: absolute; right: 5%; bottom: 5%; width: 6em;" as-pop=`.popped`>Pop</button>
+            <pop fit="{{.fit}}" popped="{{.popped}}" tail="{{.tail}}" where="{{.where}}" align="{{.align}}" clickClose="{{.click}}" noClickout="{{.noClick}}">{{>@.tpl(.template)}}</pop>
+            <button style="position: absolute; left: 195%; top: 195%; width: 6em;" as-pop=`.popped`>Pop</button>
+            ```
+            ### Result:
+          </marked>
+        </div>
+        <div>
+          <button style="position: absolute; left: 5%; top: 5%; width: 6em;" as-pop=`.popped`>Pop</button>
+          <button style="position: absolute; right: 5%; top: 5%; width: 6em;" as-pop=`.popped`>Pop</button>
+          <div as-pophover=`.popped` id="hover" style="position: absolute; left: 5%; top: calc(50% - 1em); height: 2em; width: 4em; border: 1px solid #ccc; border-radius: 4px; padding: 0.2em;">Hover</div>
+          <button style="position: absolute; right: calc(50% - 3em); top: calc(50% - 1em); width: 6em;" as-pop=`.popped`>Pop</button>
+          <button style="position: absolute; left: 5%; bottom: 5%; width: 6em;" as-pop=`.popped`>Pop</button>
+          <button style="position: absolute; right: 5%; bottom: 5%; width: 6em;" as-pop=`.popped`>Pop</button>
+          <pop fit="{{.fit}}" popped="{{.popped}}" tail="{{.tail}}" where="{{.where}}" align="{{.align}}" clickClose="{{.click}}" noClickout="{{.noClick}}">{{>@.tpl(.template)}}</pop>
+          <button style="position: absolute; left: 195%; top: 195%; width: 6em;" as-pop=`.popped`>Pop</button>
+        </div>
+      </split>
+    </tab>
+  </tabs>
+  
+  <script>
+    import { Window } from 'cmp/Window';
+    import pop, { trigger } from 'cmp/Popover';
+    import split from 'cmp/Split';
+    import Ractive from 'ractive';
+  
+    export default Window.extend({
+      template: $TEMPLATE,
+      cssId: 'demo-pop',
+      use: [pop(), split(), trigger({ name: 'pophover', hover: true })],
+      options: {
+        title: 'Components :: Popover',
+        width: '40em', height: '30em',
+        flex: true
+      },
+      on: {
+        hover() {
+          if (!this.get('popped')) this.findComponent('pop').show(document.getElementById('hover'));
+          else this.set('popped', false);
+        }
+      },
+      data() {
+        return {
+          template: `<marked>
+  ## Look!
+
+  It's some markdown content!
+
+  And it's poppin'!
+</marked>`,
+          noClick: true,
+          fit: true
+        };
+      },
+      tpl(tpl) {
+        return Ractive.parse(tpl, {
+          interpolate: { marked: false },
+          preserveWhitespace: { marked: true }
+        });
+      }
+    });
+  </script>

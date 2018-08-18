@@ -1,0 +1,1 @@
+export { default, trigger, Popover, PluginOpts } from '../src/Popover';

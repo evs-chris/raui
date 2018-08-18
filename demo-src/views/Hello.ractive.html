@@ -15,7 +15,7 @@
 
     This project started life as a handful of components extracted from various common projects and was unnamed for a while. It then got the name `ractive-materialish` from the fact that it tried to clone bits of Material design into usable Ractive components. As it started to stray a bit from Material in a few style options, I decided that I'd rather be in Maui writing my Ractive UI components, so I jammed them together, why not? Also, RUI is already taken on npm... thanks React.
 
-    ### Usage  
+    ### Usage
 
     There are a few different ways to use raui:
     
@@ -42,6 +42,7 @@
     * Card - A material-ish card that's mostly just a boilerplate macro
     * JSONEditor - An object editor tree
     * Menu - A side menu with expanding sections and raw embeds
+    * Popover - Your basic popover
     * Shell - A responsive app shell with slide-y out-y sides
     * Split - A multi-paned splitter in vertical and horizontal flavors
     * Table - A grid-like table with built-in filtering, sorting, and pagination
@@ -128,10 +129,11 @@
   import { Window } from 'cmp/Window';
   import click from 'cmp/event-click';
   import date from 'cmp/date';
+  import popover from 'cmp/Popover';
 
   export default Window.extend({
     template: $TEMPLATE,
-    use: [click({ name: 'clickh', count: 1, hold: true }), date()],
+    use: [click({ name: 'clickh', count: 1, hold: true }), date(), popover()],
     options: {
       title: 'Hello, RaUI',
       resizable: true,
