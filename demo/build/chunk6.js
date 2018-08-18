@@ -1,200 +1,446 @@
-System.register(['./chunk2.js'], function (exports, module) {
+System.register(['ractive', './chunk2.js', './chunk5.js'], function (exports, module) {
   'use strict';
-  var globalRegister;
+  var Ractive$1, expand, globalRegister, clickout;
   return {
     setters: [function (module) {
+      Ractive$1 = module.default;
+    }, function (module) {
+      expand = module.default$1;
       globalRegister = module.default;
+    }, function (module) {
+      clickout = module.default;
     }],
     execute: function () {
 
-      exports('style', style);
-      exports('grid', grid);
-      var el;
-      function sizer() {
-        if (!el) {
-          el = document.createElement('div');
-          document.body.appendChild(el);
+      var Menu = (function (Ractive) {
+        function Menu(opt) {
+          Ractive.call(this, opts);
+          this.refs = {};
         }
-        return el;
-      }
 
-      var defaults = {
-        tiny: {
-          units: [ 2, 3, 4, 5, 6, 8 ],
-          max: '0',
-          value: 0
-        },
-        xsmall: {
-          units: [ 2, 3, 4, 5, 6, 8, 10, 12 ],
-          max: '20em',
-          prefix: 'xs',
-          value: 10
-        },
-        small: {
-          units: [ 2, 3, 4, 5, 6, 8, 10, 12 ],
-          max: '36em',
-          value: 20
-        },
-        medium: {
-          units: [ 2, 3, 4, 5, 6, 8, 10, 12 ],
-          max: '48em',
-          value: 30
-        },
-        large: {
-          units: [ 2, 3, 4, 5, 6, 8, 10, 12, 20, 24 ],
-          max: '64em',
-          value: 40
-        },
-        xlarge: {
-          units: [ 2, 3, 4, 5, 6, 8, 10, 12, 20, 24, 32 ],
-          max: '100em',
-          value: 50
-        },
-        ginormous: {
-          units: [ 2, 3, 4, 5, 6, 8, 10, 12, 20, 24, 32, 64 ],
-          max: '150em',
-          value: 60
-        }
-      };
+        if ( Ractive ) Menu.__proto__ = Ractive;
+        Menu.prototype = Object.create( Ractive && Ractive.prototype );
+        Menu.prototype.constructor = Menu;
 
-      var regexps = { 'grid grid-root': /\bgrid grid-root\b/g };
-      var spaces = /\s+/g;
-      function grid(node, options) {
-        var ctx = this.getContext(node);
-        var owner = this;
-        var points;
-        var opts = options || {};
-        var breaks;
+        Menu.prototype.addItem = function addItem (item, idx) {
+          if (typeof idx === 'number') {
+            this.splice('items', idx, 0, item);
+          } else {
+            this.push('items', item);
+          }
 
-        function resize() {
-          var size = node.clientWidth;
+          return new Handle(this, null, item);
+        };
 
-          if (!opts.type || opts.type === 'class') {
-            var match, max = -1;
-            for (var k in points) {
-              if (points[k] <= size) {
-                regexps[k].lastIndex = -1;
-                if (points[k] > max) {
-                  match = k;
-                  max = points[k];
-                }
-              }
-              node.className = node.className.replace(regexps[k], '').trim();
+        Menu.prototype.visibleItems = function visibleItems (items) {
+          var this$1 = this;
+
+          return items.filter(function (i) { return i.condition !== false && (typeof i.condition !== 'string' || this$1.get(i.condition) !== false); }).length;
+        };
+
+        Menu.prototype.getHandle = function getHandle (what) {
+          var this$1 = this;
+
+          var ctx;
+          if (typeof what === 'string') {
+            if (this.refs[what]) {
+              ctx = this.refs[what].ctx;
+            } else {
+              var el = this.find(what);
+              if (el) { ctx = this.getContext(el); }
+            }
+          } else if (what && what.parentNode) {
+            ctx = this.getContext(what);
+          } else if (what && what.decorators) {
+            ctx = what;
+          }
+
+          if (ctx) {
+            var path = [ctx.get()];
+            var str = '../../';
+            while (ctx.resolve(str) !== '') {
+              path.unshift(ctx.get(str));
+              str += '../../';
             }
 
-            if (!regexps[match].test(node.className)) { node.className += " " + match; }
-
-            if (opts.value) { ctx.set(opts.value, breaks[match].value); }
-            if (opts.name) { ctx.set(opts.name, match); }
-
-            node.className = node.className.replace(spaces, ' ');
-          }
-        }
-
-        function settings() {
-          var s = sizer();
-          breaks = owner.get('@style.break') || defaults;
-          points = {};
-          for (var k in breaks) {
-            s.style.width = breaks[k].max;
-            points[k] = s.clientWidth;
-            if (!regexps[k]) { regexps[k] = new RegExp(("\\b" + k + "\\b"), 'g'); }
-          }
-          s.style.width = 0;
-          resize();
-        }
-
-        var listener = this.root.on('*.resize', resize);
-        var observer = this.observe('@style.break', settings);
-
-        node.className += ' grid grid-root';
-        settings();
-
-        return {
-          update: function update(options) {
-            // TODO: if type changes, undo whatever the original did first
-            opts = options || {};
-            resize();
-          },
-          teardown: function teardown() {
-            node.className = node.className.replace(regexps['grid grid-root'], '').trim();
-            listener.cancel();
-            observer.cancel();
+            return path.reduce(function (a, c) {
+              return new Handle(this$1, a, c);
+            }, null);
           }
         };
-      }
 
-      function style(data, optDefaults) {
-        var defs = data('raui.grid.break') || optDefaults || defaults;
-        var wrappers = (data('raui.grid.wrappers') || ['.row-wrap > ', '.row-wrap > .row-wrap > ']).slice();
-        wrappers.unshift('');
+        Menu.prototype.popAllIn = function popAllIn (path) {
+          var this$1 = this;
 
-        var out = ".row > * { position: relative; width: 100%; transition-duration: 0.2s; transition-timing-function: ease-in-out; transition-property: width, padding, margin; box-sizing: border-box; }\n.grid { display: block; }\n.grid .row { display: flex; flex-wrap: wrap; min-height: fit-content; width: 100%; }\n.grid .row.row-pad > * { padding: " + (data('raui.grid.padding') || '0.5em') + "; }\n.grid .row > .pad { display: flex; flex-direction: column; padding: " + (data('raui.grid.padding') || '0.5em') + "; box-sizing: border-box; }";
+          if (!path) { path = ''; }
+          var items = this.get((path + ".items"));
+          if (items) {
+            for (var i = 0; i < items.length; i++) {
+              this$1.popAllIn((path + ".items." + i));
+            }
+          }
+          if (this.get((path + ".open"))) { this.set((path + ".open"), false); }
+        };
 
-        var str;
+        Menu.prototype.popSiblingsIn = function popSiblingsIn (ctx) {
+          var me = ctx.resolve();
+          var items = ctx.get('../');
+          if (items) {
+            for (var i = 0; i < items.length; i++) {
+              if (me === ctx.resolve(("../" + i))) { continue; }
+              if (items[i].open && items[i].popout) {
+                ctx.toggle(("../" + i + ".open"));
+              }
+            }
+          }
+        };
 
-        var points = Object.keys(defs).map(function (k) { return (defs[k].key = k) && defs[k]; });
-        points.sort(function (l, r) { return l.value > r.value ? 1 : l.value < r.value ? -1 : 0; });
-        var greater = {};
+        Menu.prototype._actioned = function _actioned () {
+          this.fire('action');
+          this.popAllIn();      
+        };
 
+        Menu.prototype._itemRendered = function _itemRendered (ctx) {
+          var this$1 = this;
 
-        points.reverse().reduce(function (a, c) {
-          a.push(c.key);
-          greater[c.key] = a.slice();
-          return a;
-        }, []);
+          setTimeout(function () { return this$1.fire('item', ctx, this$1.getHandle(ctx)); });
+          return '';
+        };
 
-        var rows = '', cols = '';
-        points.reverse().forEach(function (size) {
-          var name = size.prefix || size.key[0];
+        // TODO: handle active fn with context param
+        Menu.prototype.childActive = function childActive (path) {
+          var this$1 = this;
 
-          size.units.forEach(function (u) {
-            cols += "\n" + (greater[size.key].map(function (s) { return wrappers.map(function (w) { return ("." + s + " > " + w + "." + name + "1, ." + s + " > " + w + ".row > ." + name + "1, ." + s + " ." + name + "-n1"); }).join(', '); }).join(', ')) + " { display: initial; width: 100%; }\n" + (greater[size.key].map(function (s) { return wrappers.map(function (w) { return ("." + s + " > " + w + "." + name + "0, ." + s + " > " + w + ".row > ." + name + "0, ." + s + " ." + name + "-n0"); }).join(', '); }).join(', ')) + " { display: none; }";
-            var loop = function ( i ) {
-              str = '' + ((i / u) * 100);
-              str = str.substr(0, str.indexOf('.') + 3);
-              rows += "\n" + (greater[size.key].map(function (s) { return wrappers.map(function (w) { return ("." + s + " > " + w + ".row-" + name + i + "-" + u + " > *, ." + s + " .row-" + name + "-n" + i + "-" + u + " > *, ." + s + " .row-" + name + "-n" + i + "-" + u + " > *"); }).join(', '); }).join(', ')) + " { display: initial; width: " + str + "%; }";
-              cols += "\n" + (greater[size.key].map(function (s) { return wrappers.map(function (w) { return ("." + s + " > " + w + "." + name + i + "-" + u + ", ." + s + " > " + w + ".row > ." + name + i + "-" + u + ", ." + s + " ." + name + "-n" + i + "-" + u + ", ." + s + " .row > ." + name + "-n" + i + "-" + u); }).join(', '); }).join(', ')) + " { display: initial; width: " + str + "%; }";
+          var item = this.get(path);
+          if (item && item.items) {
+            for (var i = 0; i < item.items.length; i++) {
+              if (this$1.get((path + ".items." + i + ".active")) === true || (typeof item.items[i].active === 'function' && item.items[i].active()) || (this$1.get((path + ".items." + i + ".activeRef")) && this$1.get(item.items[i].activeRef)) || this$1.childActive((path + ".items." + i))) { return true; }
+            }
+          }
+        };
+
+        return Menu;
+      }(Ractive$1));
+
+      // TODO: api handles, active elements, and ids
+      Ractive$1.extendWith(Menu, {
+        template: {v:4,t:[{t:7,e:"div",m:[{t:13,n:"class",f:"rmenu-wrapper",g:1},{t:16,r:"extra-attributes"},{n:"class-rmenu-vertical",t:13,f:[{t:2,x:{r:["~/horizontal"],s:"!_0"}}]},{n:"class-rmenu-horizontal",t:13,f:[{t:2,r:"~/horizontal"}]}],f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rmenu",g:1}],f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rmenu-inner",g:1}],f:[{t:8,r:"items"}]}]}]}],e:{"!_0":function (_0){return(!_0);},"_0&&(_1||_2===\"section\")":function (_0,_1,_2){return(_0&&(_1||_2==="section"));},"_0?_3.active(_1.getHandle((_2))):_3.active()":function (_0,_1,_2,_3){return(_0?_3.active(_1.getHandle((_2))):_3.active());},"typeof _0===\"function\"":function (_0){return(typeof _0==="function");},"typeof _0===\"boolean\"":function (_0){return(typeof _0==="boolean");},"_0.childActive(_1)":function (_0,_1){return(_0.childActive(_1));},"_0!=null":function (_0){return(_0!=null);},"[_0.action()]":function (_0){return([_0.action()]);},"[_0._actioned()]":function (_0){return([_0._actioned()]);},"[_0&&_1.popSiblingsIn((_2)),(_2).toggle(\".open\"),false]":function (_0,_1,_2){return([_0&&_1.popSiblingsIn((_2)),(_2).toggle(".open"),false]);},"_0||(_1&&_2[_1])":function (_0,_1,_2){return(_0||(_1&&_2[_1]));},"[{axis:\"x\"}]":function (){return([{axis:"x"}]);},"_2&&_0&&_1.visibleItems(_2)":function (_0,_1,_2){return(_2&&_0&&_1.visibleItems(_2));},"[_0.popAllIn(_1),false]":function (_0,_1){return([_0.popAllIn(_1),false]);},"!_0||_0===\"item\"":function (_0){return(!_0||_0==="item");},"_0===\"section\"":function (_0){return(_0==="section");},"_0===\"container\"":function (_0){return(_0==="container");},"(!_0||_0===\"item\")&&_1":function (_0,_1){return((!_0||_0==="item")&&_1);},"[_0.popAllIn(_1)]":function (_0,_1){return([_0.popAllIn(_1)]);},"[_0]":function (_0){return([_0]);},"typeof _0===\"string\"":function (_0){return(typeof _0==="string");},"_0||\"item\"":function (_0){return(_0||"item");},"_0._itemRendered((_1))":function (_0,_1){return(_0._itemRendered((_1)));},"_1===undefined||(typeof _1===\"boolean\"&&_1)||(typeof _1===\"string\"&&_0[_1])||(typeof _1===\"function\"&&_2.condition())":function (_0,_1,_2){return(_1===undefined||(typeof _1==="boolean"&&_1)||(typeof _1==="string"&&_0[_1])||(typeof _1==="function"&&_2.condition()));}},p:{container:[{t:4,f:[{t:4,f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rmenu-container-pad",g:1}],f:[{t:3,r:".content"}]}],n:50,r:".pad"},{t:4,f:[{t:3,r:".content"}],n:51,l:1}],n:50,r:".content"},{t:4,f:[{t:4,f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rmenu-container-pad",g:1}],f:[{t:16,r:".contentPartial"}]}],n:50,r:".pad"},{t:4,f:[{t:16,r:".contentPartial"}],n:51,l:1}],n:50,r:".contentPartial",l:1}],section:[{t:7,e:"div",m:[{t:13,n:"class",f:"rmenu-main",g:1}],f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rmenu-title",g:1}],f:[{t:4,f:[{t:2,r:".title"}],n:50,r:".title"},{t:4,f:[{t:16,r:".titlePartial"}],n:50,r:".titlePartial",l:1}]}]}," ",{t:8,r:"children"}],children:[{t:4,f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rmenu-items",g:1},{t:4,f:[{n:"expand",t:72,v:"t0"}],n:50,x:{r:[".popout"],s:"!_0"}},{t:4,f:[{n:"pop",t:72,v:"t0"}],n:51,l:1},{n:"class-rmenu-shrink",t:13,f:[{t:2,r:".shrink"}]}],f:[{t:8,r:"items"}]}],n:50,x:{r:[".items.length",".open",".type"],s:"_0&&(_1||_2===\"section\")"}}],item:[{t:7,e:"div",m:[{t:13,n:"class",f:"rmenu-main",g:1},{t:4,f:[{n:"class-rmenu-active",t:13,f:[{t:2,rx:{r:"~/",m:[{t:30,n:".activeRef"}]}}]}],n:50,r:".activeRef"},{t:4,f:[{n:"class-rmenu-active",t:13,f:[{t:2,x:{r:[".active.length","@this","@context","."],s:"_0?_3.active(_1.getHandle((_2))):_3.active()"}}]}],n:50,x:{r:[".active"],s:"typeof _0===\"function\""},l:1},{t:4,f:[{n:"class-rmenu-active",t:13,f:[{t:2,r:".active"}]}],n:50,x:{r:[".active"],s:"typeof _0===\"boolean\""},l:1},{t:4,f:[{n:"class-rmenu-active",t:13,f:[{t:2,x:{r:["@this","@keypath"],s:"_0.childActive(_1)"}}]}],n:50,r:".popout",l:1},{t:4,f:[{n:"class-rmenu-disabled",t:13,f:[{t:2,r:".disabled"}]}],n:50,x:{r:[".disabled"],s:"_0!=null"}},{t:4,f:[{n:"class-rmenu-disabled",t:13,f:[{t:2,rx:{r:"~/",m:[{t:30,n:".disabledRef"}]}}]}],n:50,r:".disabledRef",l:1}],f:[{t:4,f:[{t:7,e:"div",m:[{t:13,n:"class",f:"menu-left",g:1}],f:[{t:3,r:".left"}]}],n:50,r:".left"},{t:4,f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rmenu-left",g:1}],f:[{t:16,r:".leftPartial"}]}],n:50,r:".leftPartial",l:1}," ",{t:7,e:"div",m:[{t:13,n:"class",f:"rmenu-title",g:1},{t:4,f:[{t:4,f:[{n:["click"],t:70,f:{r:["."],s:"[_0.action()]"}},{n:["click"],t:70,f:{r:["@this"],s:"[_0._actioned()]"}}],n:50,x:{r:[".action"],s:"typeof _0===\"function\""}},{t:4,f:[{t:16,r:".actionPartial"},{n:["click"],t:70,f:{r:["@this"],s:"[_0._actioned()]"}}],n:50,r:".actionPartial",l:1},{t:4,f:[{n:["click"],t:70,f:{r:[".popout","@this","@context"],s:"[_0&&_1.popSiblingsIn((_2)),(_2).toggle(\".open\"),false]"}}],n:50,r:".items.length",l:1}],n:51,x:{r:[".disabled",".disabledRef","~/"],s:"_0||(_1&&_2[_1])"}}],f:[{t:4,f:[{t:3,r:".title"}],n:50,r:".title"},{t:4,f:[{t:16,r:".titlePartial"}],n:50,r:".titlePartial",l:1}]}," ",{t:4,f:[{t:7,e:"div",m:[{t:13,n:"class",f:"menu-right",g:1}],f:[{t:3,r:".right"}]}],n:50,r:".right"},{t:4,f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rmenu-right",g:1}],f:[{t:16,r:".rightPartial"}]}],n:50,r:".rightPartial",l:1}," ",{t:4,f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rmenu-expand",g:1},{n:["click"],t:70,f:{r:[".popout","@this","@context"],s:"[_0&&_1.popSiblingsIn((_2)),(_2).toggle(\".open\"),false]"}},{n:"expand",t:72,f:{r:[],s:"[{axis:\"x\"}]"},v:"t0"}]}],n:50,x:{r:[".items.length","@this",".items"],s:"_2&&_0&&_1.visibleItems(_2)"}}]}," ",{t:8,r:"children"}],items:[{t:4,f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rmenu-popout-close",g:1},{n:["click"],t:70,f:{r:["@this","@keypath"],s:"[_0.popAllIn(_1),false]"}}],f:["❌ Close"]}],n:50,r:".shrink"}," ",{t:4,f:[{t:4,f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rmenu-entry",g:1},{t:4,f:[{n:"class-rmenu-item",t:13}],n:50,x:{r:[".type"],s:"!_0||_0===\"item\""}},{t:4,f:[{n:"class-rmenu-section",t:13}],n:50,x:{r:[".type"],s:"_0===\"section\""},l:1},{t:4,f:[{n:"class-rmenu-container",t:13}],n:50,x:{r:[".type"],s:"_0===\"container\""},l:1},{n:"class-rmenu-expanded",t:13,f:[{t:2,r:".open"}]},{n:"class-rmenu-popout",t:13,f:[{t:2,x:{r:[".type",".popout"],s:"(!_0||_0===\"item\")&&_1"}}]},{t:4,f:[{n:"pop",t:72,v:"t0"},{t:4,f:[{n:["clickout"],t:70,f:{r:["@this","@keypath"],s:"[_0.popAllIn(_1)]"}}],n:50,r:".open"}],n:50,r:".popout"},{t:4,f:[{n:"expand",t:72,v:"t0"}],n:51,l:1},{t:4,f:[{t:8,r:".refPartial"}],n:50,r:".refPartial"},{t:4,f:[{n:"ref",t:71,f:{r:[".ref"],s:"[_0]"}}],n:50,x:{r:[".ref"],s:"typeof _0===\"string\""},l:1},{t:4,f:[{t:16,r:".attrsPartial"}],n:50,r:".attrsPartial"}],f:[{t:8,x:{r:[".type"],s:"_0||\"item\""}}," ",{t:4,f:[{t:2,x:{r:["@this","@context"],s:"_0._itemRendered((_1))"}}],n:50,x:{r:[".type"],s:"!_0||_0===\"item\""}}]}],n:50,x:{r:["~/",".condition","."],s:"_1===undefined||(typeof _1===\"boolean\"&&_1)||(typeof _1===\"string\"&&_0[_1])||(typeof _1===\"function\"&&_2.condition())"}}],n:52,r:".items"}]}},
+        css: function(data) { return [(function(data) {
+         var primary = Object.assign({}, data('raui.primary'), data('raui.menu.primary'));
+         primary.popout = Object.assign({}, data('raui.menu.popout'), data('raui.menu.primary.popout'));
+         var base = "\n   .rmenu-wrapper {\n     position: relative;\n     z-index: 1;\n   }\n   .rmenu-wrapper.rmenu-vertical {\n     min-height: 100%;\n   }\n   .rmenu {\n     " + (data('raui.menu.font') ? ("font-family: " + (data('raui.menu.font')) + ";") : '') + "\n     color: " + (primary.bg || '#fff') + ";\n     background-color: " + (primary.fg || '#222') + ";\n     position: absolute;\n     top: 0;\n     bottom: 0;\n     left: 0;\n     right: 0;\n   }\n   .rmenu-wrapper.alt > .rmenu {\n     color: " + (primary.fga || '#222') + ";\n     background-color: " + (primary.bg || '#fff') + ";\n   }\n   .rmenu-inner {\n     width: 100%;\n     height: 100%;\n     overflow-y: auto;\n   }\n   .rmenu-item {\n     border-top: 1px solid transparent;\n     border-bottom: 1px solid transparent;\n     transition: border 0.2s ease-in-out;\n   }\n   .rmenu-item:hover > .rmenu-main {\n     background-color: " + (primary.fga || '#07e') + ";\n     color: " + (primary.bg || '#fff') + ";\n   }\n   .rmenu-disabled {\n     opacity: 0.5;\n     cursor: not-allowed;\n   }\n   .rmenu-expanded {\n     border-top: 0.0625em solid " + (primary.bc || '#ccc') + ";\n     border-bottom: 0.0625em solid " + (primary.bc || '#ccc') + ";\n   }\n   .rmenu-popout.rmenu-expanded {\n     border-top: 1px solid transparent;\n     border-bottom: 1px solid transparent;\n   }\n   .rmenu-popout .rmenu-popout.rmenu-expanded {\n     background-color: " + (primary.popout.bga || primary.bg || '#fff') + ";\n     color: " + (primary.popout.fg || primary.fg || '#222') + ";\n   }\n   .rmenu-main {\n     width: 100%;\n     height: 100%;\n     box-sizing: border-box;\n     user-select: none;\n     transition: 0.3s ease-in-out;\n     transition-property: color, background-color;\n     display: flex;\n     align-items: center;\n     padding: 0.2em 0;\n     min-height: 2em;\n   }\n   .rmenu-main.rmenu-active, .rmenu-item:hover > .rmenu-main.rmenu-active {\n     color: " + (primary.fga || '#07e') + ";\n     background-color: " + (primary.bg || '#fff') + ";\n   }\n   .rmenu-popout .rmenu-entry .rmenu-main.rmenu-active, .rmenu-popout .rmenu-item:hover > .rmenu-main.rmenu-active {\n     color: " + (primary.popout.bg || primary.bg || '#fff') + ";\n     background-color: " + (primary.popout.fga || primary.fga || '#07e') + ";\n   }\n   .rmenu-wrapper.alt .rmenu-main.rmenu.active {\n     color: " + (primary.bg || '#fff') + ";\n     background-color: " + (primary.fg || '#222') + ";\n   }\n   .rmenu-popout .rmenu-items .rmenu-item:hover > .rmenu-main {\n     background-color: " + (primary.popout.bga || '#f4f4f4') + ";\n     color: " + (primary.popout.fg || '#222') + ";\n   }\n \n   .rmenu-items {\n     display: block;\n   }\n   .rmenu-right {\n     padding-right: 0.4em;  \n   }\n   .rmenu-left {\n     padding-left: 0.4em;\n   }\n   .rmenu-expand {\n     width: 1.5em;\n     height: 1.5em;\n     padding-left: 0.5em;\n     cursor: pointer;\n     position: relative;\n   }\n   .rmenu-expand:before {\n     position: absolute;\n     display: inline-block;\n     top: 0.25em;\n     content: ' ';\n     transform: rotate(45deg);\n     transition: transform 0.2s ease-in-out, top 0.2s ease-in-out, left 0.2s ease-in-out;\n     box-sizing: border-box;\n     border-width: 0.25em;\n     border-style: solid;\n     border-left-color: transparent;\n     border-top-color: transparent;\n   }\n   .rmenu-expanded > .rmenu-main > .rmenu-expand:before {\n     top: -0.25em;\n   }\n \n   .rmenu-popout > .rmenu-items {\n     position: absolute;\n     left: 0;\n     top: 0;\n     width: 100%;\n     height: 100%;\n     background-color: " + (primary.popout.bg || primary.bg || '#fff') + ";\n     color: " + (primary.popout.fg || primary.fg || '#222') + ";\n     box-sizing: border-box;\n     border-right: 1px solid " + (primary.popout.bc || primary.bc || '#ccc') + ";\n     z-index: -1;\n     transition: box-shadow 0.2s ease-in-out;\n   }\n   .rmenu-popout.rmenu-expanded > .rmenu-items {\n     left: calc(100% + 1px);\n     z-index: initial;\n     box-shadow: 0.2em 0 0.2em rgba(0, 0, 0, 0.2);\n   }\n \n   .rmenu-popout > .rmenu-items.rmenu-shrink {\n     left: 100%;\n     z-index: 1;\n   }\n   .rmenu-popout.rmenu-expanded > .rmenu-items.rmenu-shrink {\n     left: 0;\n   }\n \n   .rmenu-popout > .rmenu-main > .rmenu-expand:before {\n     transform: rotate(-45deg);\n     top: 0.4em;\n   }\n \n   .rmenu-popout.rmenu-expanded > .rmenu-main > .rmenu-expand:before {\n     transform: rotate(135deg);\n     left: 0.75em;\n   }\n \n   .rmenu-popout > .rmenu-items .rmenu-popout > .rmenu-items {\n     height: calc(100% + 2px);\n     width: calc(100% + 1px);\n     top: -1px;\n   }\n   .rmenu-popout > .rmenu-items .rmenu-popout > .rmenu-items.rmenu-shrink {\n     height: 100%;\n   }\n \n   .rmenu-popout-close {\n     color:  " + (primary.popout.fga || primary.fga || '#07e') + ";\n     display: block;\n     padding: 0.5em;\n     cursor: pointer;\n   }\n \n   .rmenu-title {\n     white-space: nowrap;\n     overflow: hidden;\n     text-overflow: ellipsis;\n     cursor: pointer;\n     padding: 0 0.5em;\n     flex-grow: 1;\n   }\n   .rmenu-disabled > .rmenu-title {\n     cursor: not-allowed;\n   }\n   .rmenu-item h1, .rmenu-item h2, .rmenu-item h3, .rmenu-item h4 {\n     margin: 0;\n   }\n \n   .rmenu-section {\n     padding: 0 0 0.75em 0;\n   }\n   .rmenu-section > .rmenu-main {\n     cursor: default;\n     font-size: 0.75em;\n     opacity: 0.7;\n     margin-bottom: 0.25em;\n   }\n   .rmenu-popout .rmenu-section > .rmenu-main > .rmenu-title {\n     font-size: 1.5em;\n     text-align: center;\n     padding: 0.75em;\n     opacity: 1;\n     font-weight: bold;\n     color: " + (primary.popout.fg || primary.fg || '#222') + ";\n     background-color: " + (primary.popout.bga || primary.bga || '#f4f4f4') + ";\n     border-bottom: 1px solid " + (primary.popout.bc || primary.bc || '#ccc') + ";\n     border-top: 1px solid " + (primary.popout.bc || primary.bc || '#ccc') + ";\n   }\n \n   .rmenu-container {\n     box-sizing: border-box;\n   }\n \n   .rmenu-container-pad {\n     padding: 0.3em 0.3em 0.8em 0.3em;\n   }\n \n   .rmenu-expanded > .rmenu-main > .rmenu-expand:before {\n     transform: rotate(-135deg);\n     top: 0.5em;\n   }\n   ";
+         // TODO: other themes
+         return base;
+      }).call(this, data)].join(' '); },
+        cssId: 'menu',
+        noCssTransform: true,
+        noIntro: true,
+        nestedTransitions: false,
+        on: {
+          construct: construct,
+          config: function config() {
+            if ( this._items ) { this.set('items', (this.get('items') || []).concat(this._items), { shuffle: true }); }
+          }
+        },
+        attributes: [],
+        use: [expand(), clickout()],
+        decorators: {
+          ref: function ref(node, name) {
+            var r = this;
+            var nm = name;
+            if (!r.refs) { r.refs = {}; }
+
+            var handle = {
+              update: function update(name) {
+                if (r.refs[nm] === handle) { delete r.refs[nm]; }
+                nm = name;
+                r.refs[nm] = handle;
+              },
+              teardown: function teardown() {
+                if (r.refs[nm] === handle) { delete r.refs[nm]; }
+              }
             };
 
-            for (var i = 1; i < u; i++) loop( i );
+            handle.ctx = r.getContext(node);
+
+            r.refs[nm] = handle;
+
+            return handle;
+          }
+        },
+        transitions: {
+          pop: function pop(t, params) {
+            var p = t.processParams(params, { duration: 200, easing: 'easeInOut' });
+            var ctx = this.getContext(t.node);
+            var shrink = ctx.get('.shrink');
+
+            if (t.isIntro) {
+              var rect = t.node.getBoundingClientRect();
+              function findParent() {
+                var n = t.node.parentNode;
+                while (n && n.classList) {
+                  if (n.classList.contains('rmenu')) { return n; }
+                  else if (n.parentNode.classList.contains('rmenu-popout')) { return n; }
+                  n = n.parentNode;
+                }
+              }
+              if (rect.left + rect.width > window.innerWidth) {
+                setTimeout(function () { return ctx.set('.shrink', true); });
+                shrink = true;
+                findParent().style.overflowX = 'hidden';
+              } else if (shrink) {
+                setTimeout(function () { return ctx.set('.shrink', false); });
+                findParent().style.overflowX = '';
+                shrink = false;
+              } else {
+                findParent().style.overflowX = '';
+              }
+            } else {
+              setTimeout(function () { return ctx.set('shrink', false); });
+            }
+
+            if (t.isIntro) {
+              if (shrink) {
+                t.setStyle('left', '100%');
+                return t.animateStyle('left', 0, p);
+              } else {
+                t.setStyle('left', 0);
+                t.setStyle('z-index', -1);
+                return t.animateStyle('left', '100%', p);
+              }
+            } else {
+              if (shrink) {
+                t.setStyle('left', 0);
+                return t.animateStyle('left', '100%', p);
+              } else {
+                t.setStyle('left', '100%');
+                t.setStyle('z-index', -1);
+                return t.animateStyle('left', 0, p);
+              }
+            }
+          }
+        }
+      });
+
+      function construct() {
+        var cmp = this.component;
+        if ( !cmp ) { return; }
+
+        var tpl = cmp.template.f || [];
+        var attrs = cmp.template.m ? cmp.template.m.slice() : [];
+        var t = cmp.template;
+        cmp.template = { e: t.e, f: t.f, t: t.t, m: attrs };
+
+        function item(el) {
+          if (el.e !== 'item' && el.e !== 'section' && el.e !== 'container') { return; }
+
+          var res = {};
+          var as = [];
+          var title;
+
+          if (el.e !== 'item') { res.type = el.e; }
+
+          el.m && el.m.forEach(function (a) {
+            if (a.n === 'title') {
+              if (typeof a.f === 'string') { res.title = a.f; }
+              else { res.titlePartial = { t: a.f }; }
+            } else if (a.t === 70 && a.n[0] === 'action') { // events
+              res.actionPartial = { t: [{ n: ['click'], f: a.f, t: a.t }] };
+            } else if (a.n === 'guard' && a.f && a.f.length === 1 && a.f[0].t === 2) {
+              var cnd = "_cnd" + (attrs.length);
+              res.condition = cnd;
+              attrs.push({ t: 13, n: cnd, f: a.f });
+            } else if (a.n === 'ref') {
+              if (typeof a.f === 'string') {
+                res.ref = a.f;
+              } else if (a.f && a.f.length === 1 && a.f[0].t === 2) {
+                var cnd$1 = "_cnd" + (attrs.length);
+                attrs.push({ t: 13, n: cnd$1, f: a.f });
+                res.refPartials = { t:[{ t: 71, n: 'ref', f: { r: cnd$1, s: '[_0]' } }] };
+              }
+            } else if (a.n === 'active') {
+              if (a.f && a.f.length === 1 && a.f[0].t === 2) {
+                var cnd$2 = "_cnd" + (attrs.length);
+                res.activeRef = cnd$2;
+                attrs.push({ t: 13, n: cnd$2, f: a.f });
+              }
+            } else if (a.n === 'open') {
+              res.open = true;
+            } else if (a.n === 'popout') {
+              res.popout = true;
+            } else if (el.e === 'container' && a.n === 'pad') {
+              res.pad = true;
+            } else if (a.n === 'disabled') {
+              if (a.f && a.f.length === 1 && a.f[0].t === 2) {
+                var cnd$3 = "_cnd" + (attrs.length);
+                res.disabledRef = cnd$3;
+                attrs.push({ t: 13, n: cnd$3, f: a.f });
+              } else if (a.f === 0) {
+                res.disabled = true;
+              }
+            } else {
+              as.push(a);
+            }
           });
+
+          if (as.length) { res.attrsPartial = { t: as }; }
+
+          if (el.e === 'container') {
+            res.contentPartial = { t: el.f };
+            res.attrsPartial = as;
+            return res;
+          }
+
+          el.f && el.f.forEach(function (e) {
+            if (e.e === 'title') {
+              if (e.f.length === 1 && typeof e.f[0] === 'string') { res.title = e.f[0]; }
+              else { res.titlePartial = { t: e.f }; }
+            }
+            else if (e.e === 'item' || e.e === 'section' || e.e === 'container') {
+              var i = item(e);
+              if (i) { (res.items || (res.items = [])).push(i); }
+            }
+            else if (e.e === 'left') {
+              res.leftPartial = { t: e.f };
+            }
+            else if (e.e === 'right') {
+              res.rightPartial = { t: e.f };
+            }
+            else {
+              if (!title) { title = []; }
+              title.push(e);
+            }
+          });
+
+          if (!res.titlePartial && title) { res.titlePartial = { t: title }; }
+          title = null;
+
+          return res;
+        }
+
+        var list = [];
+        tpl.forEach(function (e) {
+          var i = item(e);
+          if (i) { list.push(i); }
         });
 
-        out += rows + cols;
-
-        return out;
+        this._items = list;
       }
 
-      grid.style = style;
+      var Handle = function Handle(menu, parent, item) {
+        this.menu = menu;
+        this.parent = parent;
+        this.item = item;
+      };
+
+      var prototypeAccessors = { keypath: { configurable: true },action: { configurable: true },active: { configurable: true },disabled: { configurable: true },ref: { configurable: true } };
+
+      prototypeAccessors.keypath.get = function () {
+        if (this.removed) { return; }
+        if (!this.parent) { return ("items." + (this.menu.get('items').indexOf(this.item))); }
+        var path = this.parent.keypath + '.items';
+        var parent = this.menu.get(path);
+        return (path + "." + (parent.indexOf(this.item)));
+      };
+
+      prototypeAccessors.action.get = function () {
+        if (this.removed) { return; }
+        return this.item.action;
+      };
+
+      prototypeAccessors.action.set = function (v) {
+        return this.set('.action', v);
+      };
+
+      prototypeAccessors.active.get = function () {
+        if (this.removed) { return; }
+        var item = this.item;
+        if (item.activeRef) { return this.menu.get(item.activeRef); }
+        else if (typeof item.active === 'function') { return item.active(); }
+        else { return item.active; }
+      };
+
+      prototypeAccessors.active.set = function (v) {
+        if (this.removed) { return; }
+        var item = this.item;
+        if (item.activeRef) { return this.menu.set(item.activeRef, v); }
+        else { return this.set(".active", v); }
+      };
+
+      prototypeAccessors.disabled.get = function () {
+        if (this.removed) { return; }
+        return this.get('.disabled');
+      };
+
+      prototypeAccessors.disabled.set = function (v) {
+        if (this.removed) { return; }
+        return this.set('.disabled', v);
+      };
+
+      prototypeAccessors.ref.get = function () {
+        if (this.removed) { return; }
+        return this.item.ref;
+      };
+
+       prototypeAccessors.ref.set = function (v) {
+         return this.set('.ref', v);
+       };
+
+      Handle.prototype.addItem = function addItem (item, idx) {
+        if (this.removed) { return false; }
+        var items = (this.keypath) + ".items";
+        if (typeof idx === 'number') {
+          this.menu.splice(items, 0, idx, item);
+        } else {
+          this.menu.push(items, item);
+        }
+        return new Handle(this.menu, this, item);
+      };
+
+      Handle.prototype.open = function open () {
+        if (this.removed) { return false; }
+        this.menu.set(((this.keypath) + ".open"), true);
+      };
+
+      Handle.prototype.close = function close () {
+        if (this.removed) { return false; }
+        this.menu.set(((this.keypath) + ".open"), false);
+      };
+
+      Handle.prototype.remove = function remove () {
+        if (this.removed) { return false; }
+        var parentPath = (this.parent ? this.parent.keypath + '.' : '') + "items";
+        var parent = this.menu.get(parentPath);
+        this.menu.splice(parentPath, parent.indexOf(this.item), 1);
+        this.removed = true;
+        return true;
+      };
+
+      Handle.prototype.get = function get (keypath) {
+        if (this.removed) { return false; }
+        var key = keypath.replace(/^[\.\/]*/, '');
+        return this.menu.get(((this.keypath) + "." + key));
+      };
+
+      Handle.prototype.set = function set (keypath, value) {
+        if (this.removed) { return false; }
+        var key = keypath.replace(/^[\.\/]*/, '');
+        return this.menu.set(((this.keypath) + "." + key), value);
+      };
+
+      Object.defineProperties( Handle.prototype, prototypeAccessors );
 
       function plugin(opts) {
         if ( opts === void 0 ) opts = {};
 
         return function(ref) {
-          var Ractive = ref.Ractive;
           var instance = ref.instance;
 
-          // if an extension, offer to include style
-          if (!Ractive.isInstance(instance)) {
-            if (opts.includeStyle) {
-              if (instance === Ractive) {
-                Ractive.addCSS('grid-decorator', style);
-              } else {
-                var css = instance.css;
-                instance.css = function(data) {
-                  var res = typeof css !== "function" ? css || "" : css(data);
-                  return res + style(data, opts.defaults);
-                };
-              }
-            }
-          }
-
-          instance.decorators[opts.name || 'grid'] = grid;
+          instance.components[opts.name || 'menu'] = Menu;
         }
       }
 
-      globalRegister('grid', 'decorators', grid);
+      globalRegister('RMMenu', 'components', Menu);
       exports('default', plugin);
 
     }

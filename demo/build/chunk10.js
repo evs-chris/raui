@@ -1,304 +1,45 @@
-System.register(['ractive', './chunk2.js'], function (exports, module) {
+System.register(['./chunk2.js', 'ractive', './chunk5.js'], function (exports, module) {
   'use strict';
-  var Ractive$1, globalRegister;
+  var globalRegister, Ractive$1, clickout;
   return {
     setters: [function (module) {
+      globalRegister = module.default;
+    }, function (module) {
       Ractive$1 = module.default;
     }, function (module) {
-      globalRegister = module.default;
+      clickout = module.default;
     }],
     execute: function () {
 
-      var Split = (function (Ractive) {
-        function Split(opts) { Ractive.call(this, opts); }
+      exports('default', plugin$1);
+      exports('trigger', trigger);
+      function pop(t, params) {
+        if ( params === void 0 ) params = {};
 
-        if ( Ractive ) Split.__proto__ = Ractive;
-        Split.prototype = Object.create( Ractive && Ractive.prototype );
-        Split.prototype.constructor = Split;
+        var p = t.processParams(params, { duration: 400, easing: 'easeInOut' });
+        params.dir = params.dir || false;
+        var distance = params.distance || '20px';
+        var scale = params.scale || '0.9';
+        var dir = params.dir === 'above' ? ("translateY(" + distance + ")") :
+          params.dir === 'left' ? ("translateX(" + distance + ")") :
+          params.dir === 'right' ? ("translateX(-" + distance + ")") :
+          ("translateY(-" + distance + ")");
 
-        Split.prototype._adjustSizes = function _adjustSizes () {
-          var this$1 = this;
-
-          this._sizing = true;
-          var splits = this.get('splits');
-          var count = 0;
-          var used = 0;
-
-          splits.forEach(function (s) {
-            var size = s.sizePath ? +this$1.get(s.sizePath) : s.size;
-            if (s.curSize === undefined) {
-              if (s.min) {
-                s.curSize = 0;
-                s.lastSize = Math.floor(100 / splits.length);
-              } else {
-                s.curSize = size;
-                used += size;
-                count++;
-              }
-            } else if (s.min && s.curSize) {
-              s.lastSize = s.curSize;
-              s.curSize = 0;
-            } else if (!s.min && !s.curSize && s.lastSize) {
-              used += s.lastSize;
-              s.curSize = s.lastSize;
-              s.lastSize = false;
-            } else if (size && !s.min && s.lastSet && s.lastSet !== size) {
-              s.curSize = size;
-              s.lastSize = false;
-              used += size;
-            } else if (s.curSize) {
-              used += s.curSize;
-              count++;
-            } else if (!s.curSize && !s.min) {
-              s.curSize = 0.1;
-              count++;
-            }
-          });
-
-          var offset = (100 - used) / (count || 1);
-
-          var sets = {};
-          splits.forEach(function (s, i) {
-            setTimeout(function () {
-              var sizing = this$1._sizing;
-              this$1._sizing = true;
-              this$1.set(s.sizePath ? s.sizePath : ("splits." + i + ".size"), s.curSize);
-              this$1._sizing = sizing;
-            });
-            sets[("splits." + i + ".curSize")] = (s.lastSize === false || s.min) ? s.curSize : s.curSize + offset;
-            sets[("splits." + i + ".lastSet")] = sets[("splits." + i + ".curSize")];
-            if (!s.lastSize) { s.lastSize = null; }
-          });
-
-          this.set(sets);
-          setTimeout(function () { return this$1.fire('resize'); }, 320);
-          this._sizing = false;
-        };
-
-        Split.prototype.maximize = function maximize (idx) {
-          if (this.get(("splits." + idx + ".min"))) { this.toggle(("splits." + idx + ".min")); }
-          else { this.toggle(("splits." + (idx + 1) + ".min")); }
-          this._adjustSizes();
-        };
-
-        Split.prototype.minimize = function minimize (idx) {
-          if (this.get(("splits." + (idx + 1) + ".min"))) { this.toggle(("splits." + (idx + 1) + ".min")); }
-          else { this.toggle(("splits." + idx + ".min")); }
-          this._adjustSizes();
-        };
-
-        return Split;
-      }(Ractive$1));
-
-      Ractive$1.extendWith(Split, {
-        template: {v:4,t:[{t:7,e:"div",m:[{t:13,n:"class",f:"rsplit",g:1},{n:"class-rsplit-vertical",t:13,f:[{t:2,r:"vertical"}]},{n:"class-rsplit-horizontal",t:13,f:[{t:2,x:{r:["vertical"],s:"!_0"}}]},{n:"class-rsplit-draggable",t:13,f:[{t:2,r:"draggable"}]},{t:16,r:"extra-attributes"}],f:[{t:4,f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rsplit-split",g:1},{t:4,f:[{n:"style-transition",f:"width 0.3s ease-in-out, height 0.3s ease-in-out",t:13}],n:51,r:"~/dragging"},{t:4,f:[{n:"style-width",f:["calc(",{t:2,r:".curSize"},"% - ",{t:2,x:{r:["@style.split.handle.width","@last"],s:"_1*(_0||14)/(_1+1)"}},"px)"],t:13}],n:50,r:"~/vertical"},{t:4,f:[{n:"style-height",f:["calc(",{t:2,r:".curSize"},"% - ",{t:2,x:{r:["@style.split.handle.width","@last"],s:"_1*(_0||14)/(_1+1)"}},"px)"],t:13}],n:51,l:1},{t:4,f:[{t:16,r:".attrs"}],n:50,r:".attrs"}],f:[{t:16,r:".content"},{t:4,f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rsplit-block",g:1}]}],n:50,x:{r:["~/draggable","~/dragging"],s:"_0&&_1"}}]}," ",{t:4,f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rsplit-sep",g:1},{t:4,f:[{n:"sizeHandle",t:71,f:{r:["~/vertical","@index"],s:"[_0,_1]"}}],n:50,x:{r:[".",".draggable","~/draggable"],s:"\"draggable\" in _0?_1:_2"}}],f:[{t:4,f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rsplit-sep-max",g:1},{n:["click"],t:70,f:{r:["@this","@index"],s:"[_0.maximize(_1)]"}}],f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rsplit-sep-max-btn",g:1}]}]}],n:50,x:{r:[".",".maximizable","~/maximizable",".min","@index","../"],s:"\"maximizable\" in _0?_1:_2&&(_3||!_5[_4+1].min)"}}," ",{t:4,f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rsplit-sep-min",g:1},{n:["click"],t:70,f:{r:["@this","@index"],s:"[_0.minimize(_1)]"}}],f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rsplit-sep-min-btn",g:1}]}]}],n:50,x:{r:[".",".minimizable","~/minimizable",".min"],s:"\"minimizable\" in _0?_1:_2&&!_3"}}]}],n:50,x:{r:["@index","@last"],s:"_0!==_1"}}],n:52,r:"splits"}]}],e:{"!_0":function (_0){return(!_0);},"_1*(_0||14)/(_1+1)":function (_0,_1){return(_1*(_0||14)/(_1+1));},"_0&&_1":function (_0,_1){return(_0&&_1);},"[_0,_1]":function (_0,_1){return([_0,_1]);},"\"draggable\" in _0?_1:_2":function (_0,_1,_2){return("draggable" in _0?_1:_2);},"[_0.maximize(_1)]":function (_0,_1){return([_0.maximize(_1)]);},"\"maximizable\" in _0?_1:_2&&(_3||!_5[_4+1].min)":function (_0,_1,_2,_3,_4,_5){return("maximizable" in _0?_1:_2&&(_3||!_5[_4+1].min));},"[_0.minimize(_1)]":function (_0,_1){return([_0.minimize(_1)]);},"\"minimizable\" in _0?_1:_2&&!_3":function (_0,_1,_2,_3){return("minimizable" in _0?_1:_2&&!_3);},"_0!==_1":function (_0,_1){return(_0!==_1);}}}, css: function(data) { return [" .rsplit { position: absolute; width: 100%; height: 100%; flex-grow: 1; display: flex; } .rsplit.rsplit-vertical { flex-direction: row; } .rsplit.rsplit-horizontal { flex-direction: column; } .rsplit > .rsplit-split { display: inline-block; overflow: auto; position: relative; } .rsplit.rsplit-vertical > .rsplit-split { height: 100%; } .rsplit.rsplit-horizontal > .rsplit-split { width: 100%; } .rsplit-block { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 999; } .rsplit.rsplit-draggable.rsplit-vertical > .rsplit-sep { cursor: ew-resize; } .rsplit.rsplit-draggable.rsplit-horizontal > .rsplit-sep { cursor: ns-resize; } .rsplit > .rsplit-sep { display: flex; justify-content: center; overflow: hidden; touch-action: none; flex-shrink: 0; } .rsplit.rsplit-vertical > .rsplit-sep { flex-direction: column; } .rsplit > .rsplit-sep .rsplit-sep-max, .rsplit > .rsplit-sep .rsplit-sep-min { text-align: center; display: inline-block; position: relative; cursor: pointer; } .rsplit.rsplit-horizontal > .rsplit-sep .rsplit-sep-max, .rsplit.rsplit-horizontal > .rsplit-sep .rsplit-sep-min { width: 3em; height: 100%; margin: 0 1em; } .rsplit.rsplit-vertical > .rsplit-sep .rsplit-sep-max, .rsplit.rsplit-vertical > .rsplit-sep .rsplit-sep-min { width: 100%; height: 1em; padding: 1em 0; margin: 0.5em 0; } .rsplit > .rsplit-sep .rsplit-sep-max-btn, .rsplit > .rsplit-sep .rsplit-sep-min-btn { display: inline-block; border-style: solid; position: relative; width: 0; height: 0; box-sizing: border-box; }", (function(data) {
-         var handle = Object.assign({
-           bg: 'rgba(0, 0, 0, 0.1)',
-           fg: 'rgba(0, 0, 0, 0.4)',
-           width: 14
-         }, data('raui.split.handle'));
-       
-         return ("\n   .rsplit > .rsplit-sep {\n     background-color: " + (handle.bg) + ";\n     color: " + (handle.fg) + ";\n   }\n \n   .rsplit.rsplit-vertical > .rsplit-sep {\n     width: " + (handle.width) + "px;\n     height: 100%;\n   }\n \n   .rsplit.rsplit-horizontal > .rsplit-sep {\n     height: " + (handle.width) + "px;\n     width: 100%;\n   }\n \n   .rsplit > .rsplit-sep {\n     font-size: " + (handle.width) + "px;\n   }\n \n   .rsplit > .rsplit-sep .rsplit-sep-max-btn,\n   .rsplit > .rsplit-sep .rsplit-sep-min-btn {\n     border-width: " + (handle.width / 2) + "px;\n   }\n \n   .rsplit.rsplit-horizontal > .rsplit-sep .rsplit-sep-max-btn {\n     top: " + (handle.width / 4) + "px;\n     border-right-color: transparent;\n     border-bottom-color: transparent;\n     border-left-color: transparent;\n   }\n \n   .rsplit.rsplit-horizontal > .rsplit-sep .rsplit-sep-min-btn {\n     bottom: " + (handle.width / 4) + "px;\n     border-top-color: transparent;\n     border-right-color: transparent;\n     border-left-color: transparent;\n   }\n \n   .rsplit.rsplit-vertical > .rsplit-sep .rsplit-sep-max-btn {\n     left: " + (handle.width / 4) + "px;\n     border-top-color: transparent;\n     border-right-color: transparent;\n     border-bottom-color: transparent;\n   }\n \n   .rsplit.rsplit-vertical > .rsplit-sep .rsplit-sep-min-btn {\n     right: " + (handle.width / 4) + "px;\n     border-top-color: transparent;\n     border-bottom-color: transparent;\n     border-left-color: transparent;\n   }\n   ");
-      }).call(this, data)].join(' '); },
-        cssId: 'split',
-        noCssTransform: true,
-        attributes: ['vertical', 'draggable', 'maximizable', 'minimizable'],
-        data: function data() {
-          return {
-            draggable: true,
-            maximizable: true,
-            minimizable: true
-          }
-        },
-        decorators: {
-          sizeHandle: sizeHandle
-        },
-        on: {
-          construct: function construct() {
-            var this$1 = this;
-
-            var cmp = this.component;
-            if ( !cmp ) { return; }
-
-            var tpl = cmp.template.f || [];
-            var attrs = cmp.template.m ? cmp.template.m.slice() : [];
-            var t = cmp.template;
-            cmp.template = { e: t.e, f: t.f, t: t.t, m: attrs };
-
-            var id = 0;
-            function map(attr, partial) {
-              if (attr && attr.f && attr.f.length === 1 && attr.f[0].t === 2) {
-                var n = "_a" + (id++);
-                attrs.push({ t: 13, n: n, f: attr.f });
-                return partial ? { t: [{ t: 2, r: ("~/" + n) }] } : { t: 2, r: ("~/" + n) };
-              }
-              return attr && attr.f;
-            }
-
-            var splits = tpl.filter(function (e) { return e.e; });
-
-            this._mappedSizes = [];
-            this._splits = splits.map(function (e, i) {
-              var attrs = (e.m || []).slice();
-              var el = { e: e.e, f: e.f, t: e.t, m: attrs.filter(function (a) { return a.n !== 'size' && a.n !== 'minimize'; }) };
-
-              var res = {
-                content: el.e === 'pane' ? el.f : [el]
-              };
-
-              if (el.e === 'pane') {
-                if (el.m) { res.attrs = el.m.slice(); }
-              }
-
-              var size = attrs.find(function (a) { return a.n === 'size'; });
-              if (size) {
-                if (size.f && typeof size.f === 'string') { res.size = +size.f; }
-                else {
-                  res.sizePath = map(size).r;
-                  this$1._mappedSizes.push(res.sizePath);
-                }
-              }
-
-              if (attrs.find(function (a) { return a.n === 'minimize'; })) { res.min = true; }
-
-              return res;
-            });
-
-            var remain = 100 - this._splits.reduce(function (a, c) { return a + (c.min ? 0 : (c.size || 0)); }, 0);
-            var unsized = this._splits.reduce(function (a, c) { return a + ('size' in c ? 0 : 1); }, 0);
-            this._splits.forEach(function (s) {
-              if (!('size' in s)) { s.size = remain / unsized; }
-              if (s.min) {
-                s.lastSize = s.size;
-                s.curSize = 0;
-              } else {
-                s.curSize = s.size;
-              }
-            });
-          },
-          config: function config() {
-            if (this._splits) { this.set('splits', this._splits); }
-          },
-          init: function init() {
-            var this$1 = this;
-
-            this.observe(this._mappedSizes.concat('splits.*.size').join(' '), function () {
-              if (this$1._sizing || this$1._tm) { return; }
-              this$1._tm = setTimeout(function () {
-                this$1._adjustSizes();
-                this$1._tm = null;
-              });
-            });
-          }
+        if (t.isIntro || p.intro) {
+          t.setStyle('opacity', 0);
+          t.setStyle('transform', ("scale(" + scale + ") " + dir));
+          return t.animateStyle({
+            opacity: 1,
+            transform: 'none'
+          }, p);
+        } else {
+          t.setStyle('opacity', 1);
+          t.setStyle('transform', 'none');
+          return t.animateStyle({
+            opacity: 0,
+            transform: ("scale(" + scale + ") " + dir)
+          }, p);
         }
-      });
-
-      function sizeHandle(node, vertical, startIdx) {
-        var ctx = this.getContext(node);
-        var startSplit = ctx.get(("../" + startIdx));
-        var endSplit = ctx.get(("../" + (startIdx + 1)));
-        var root = node.parentNode;
-
-        var pos, initStart, initEnd, available;
-        var vert = vertical;
-        var posKey = vert ? 'screenX' : 'screenY';
-
-        var tm;
-
-        function start(ev) {
-          if (ev.target !== node && ev.target.parentNode !== node) { return; }
-          ctx.ractive._sizing = true;
-          ctx.set('~/dragging', true);
-          available = vert ? root.clientWidth : root.clientHeight;
-
-          document.addEventListener('touchmove', move, true);
-          document.addEventListener('mousemove', move, true);
-          document.addEventListener('mouseup', end, true);
-          document.addEventListener('touchend', end, true);
-
-          initStart = startSplit.curSize;
-          initEnd = endSplit.curSize;
-
-          if (posKey in ev) {
-            pos = ev[posKey];
-          } else {
-            pos = ev.touches[0][posKey];
-          }
-
-          ev.preventDefault();
-        }
-
-        function move(ev) {
-          var obj;
-
-          var cur = posKey in ev ? ev[posKey] : ev.touches[0][posKey];
-          var dist = cur - pos;
-
-          var moved, s, e;
-          moved = (Math.abs(dist) / available) * 100;
-
-          if (dist < 0) {
-            s = initStart - moved;
-            e = initEnd + moved;
-          } else {
-            s = initStart + moved;
-            e = initEnd - moved;
-          }
-
-          if (s < startSplit.min || 0) {
-            e -= startSplit.min - s;
-            s += startSplit.min - s;
-          }
-
-          if (e < endSplit.min || 0) {
-            s -= endSplit.min - e;
-            e += endSplit.min - e;
-          }
-
-          if (s < 0) {
-            s = 0;
-            e = initStart + initEnd;
-          }
-          if (e < 0) {
-            s = initStart + initEnd;
-            e = 0;
-          }
-
-          ctx.set(( obj = {}, obj[startSplit.sizePath ? ("~/" + (startSplit.sizePath)) : ("../" + startIdx + ".size")] = s, obj[endSplit.sizePath ? ("~/" + (endSplit.sizePath)) : ("../" + (startIdx + 1) + ".size")] = e, obj[("../" + startIdx + ".curSize")] = s, obj[("../" + startIdx + ".lastSet")] = s, obj[("../" + startIdx + ".min")] = false, obj[("../" + (startIdx + 1) + ".curSize")] = e, obj[("../" + (startIdx + 1) + ".lastSet")] = e, obj[("../" + (startIdx + 1) + ".min")] = false, obj));
-
-          if (!tm) {
-            setTimeout(function () {
-              ctx.ractive.fire('resize');
-              tm = null;
-            }, 300);
-          }
-        }
-
-        function end() {
-          ctx.ractive._sizing = false;
-          ctx.set('~/dragging', false);
-          document.removeEventListener('touchmove', move, true);
-          document.removeEventListener('mousemove', move, true);
-          document.removeEventListener('mouseup', end, true);
-          document.removeEventListener('touchend', end, true);
-          if (tm) { clearTimeout(tm); }
-          ctx.ractive.fire('resize');
-        }
-
-        ctx.listen('mousedown', start);
-        ctx.listen('touchstart', start);
-
-        return {
-          teardown: function teardown() {
-            ctx.unlisten('mousedown', start);
-            ctx.unlisten('touchstart', start);
-            end();
-          },
-          update: function update(vertical) {
-            vert = vertical;
-            posKey = vertical ? 'screenX' : 'screenY';
-          }
-        };
       }
 
       function plugin(opts) {
@@ -307,12 +48,251 @@ System.register(['ractive', './chunk2.js'], function (exports, module) {
         return function(ref) {
           var instance = ref.instance;
 
-          instance.components[opts.name || 'split'] = Split;
+          instance.transitions[opts.name || 'pop'] = pop;
         }
       }
 
-      globalRegister('RMSplit', 'components', Split);
-      exports('default', plugin);
+      globalRegister('pop', 'transitions', pop);
+
+      function noop() {}
+      var source;
+
+      var Popover = (function (Ractive) {
+        function Popover(opts) { Ractive.call(this, opts); }
+
+        if ( Ractive ) Popover.__proto__ = Ractive;
+        Popover.prototype = Object.create( Ractive && Ractive.prototype );
+        Popover.prototype.constructor = Popover;
+
+        Popover.prototype.position = function position (node) {
+          var source = node || this.source;
+          var popped = this.get('popped');
+          if (!source || !popped) { return; }
+
+          var wrapper = this.find('div');
+
+          if (source && wrapper && wrapper.offsetParent) {
+            var parent = wrapper.offsetParent;
+            var offset = parent.getBoundingClientRect();
+            var local = wrapper.getBoundingClientRect();
+            var target = source.getBoundingClientRect();
+            var where = this.get('where') || 'below';
+            var align = this.get('align') || 'middle';
+            var tail = this.get('tail');
+            var vert = where === 'above' || where === 'below';
+            var fit = this.get('fit');
+
+            var offx = where === 'above' || where === 'below' ? 0 : where === 'left' ? -local.width - 4 : target.width + 4;
+            var offy  = where === 'left' || where === 'right' ? -target.height : where === 'above' ? -target.height - local.height - 4 : 4;
+
+            if (align === 'middle') {
+              if (where === 'below' || where === 'above') { offx -= (local.width - target.width) / 2; }
+              else if (where === 'left' || where === 'right') { offy -= (local.height - target.height) / 2; }
+            } else if (align === 'end') {
+              if (where === 'below' || where === 'above') { offx += target.width - local.width; }
+              else if (where === 'left' || where === 'right') { offy += target.height - local.height; }
+            }
+
+            var pos = {
+              popTop: target.bottom - offset.top + offy,
+              popLeft: target.left - offset.left + offx,
+              tail: tail,
+              vert: where === 'above' || where === 'below'
+            };
+
+            if (parent.scrollTop) { pos.popTop += parent.scrollTop; }
+            if (parent.scrollLeft) { pos.popLeft += parent.scrollLeft; }
+
+            if (tail) {
+              if (where === 'above') {
+                pos.tailBottom = -10;
+              } else if (where === 'below') {
+                pos.tailTop = -10;
+              } else if (where === 'left') {
+                pos.tailRight = -10;
+              } else if (where === 'right') {
+                pos.tailLeft = -10;
+              }
+
+              if (align === 'start') {
+                if (where === 'above' || where === 'below') { pos.tailLeft = Math.floor(target.width / 2) - 10; }
+                else if (where === 'left' || where === 'right') { pos.tailTop = Math.floor(target.height / 2) - 10; }
+              } else if (align === 'end') {
+                if (where === 'above' || where === 'below') { pos.tailRight = Math.floor(target.width / 2) - 10; }
+                else if (where === 'left' || where === 'right') { pos.tailBottom = Math.floor(target.height / 2) - 10; }
+              } else if (align === 'middle') {
+                if (where === 'above' || where === 'below') { pos.tailLeft = Math.floor(local.width / 2) - 10; }
+                else if (where === 'left' || where === 'right') { pos.tailTop = Math.floor(local.height / 2) - 10; }
+              }
+            }
+
+            if (fit) {
+              var owidth = parent.scrollWidth;
+              var oheight = parent.scrollHeight;
+
+              if (pos.popLeft + local.width > owidth) {
+                var diff = pos.popLeft - (owidth - local.width);
+                pos.popLeft -= diff;
+                if (vert && pos.tailLeft) { pos.tailLeft += diff; }
+                if (vert && pos.tailRight) { pos.tailRight -= diff; }
+              }
+
+              if (pos.popLeft < 0) {
+                var diff$1 = -1 * pos.popLeft;
+                pos.popLeft += diff$1;
+                if (vert && pos.tailLeft) { pos.tailLeft -= diff$1; }
+                if (vert && pos.tailRight) { pos.tailRight += diff$1; }
+              }
+
+              if (pos.popTop + local.height > oheight) {
+                var diff$2 = pos.popTop - (oheight - local.height);
+                pos.popTop -= diff$2;
+                if (!vert && pos.tailTop) { pos.tailTop += diff$2; }
+                if (!vert && pos.tailBottom) { pos.tailBottom -= diff$2; }
+              }
+
+              if (pos.popTop < 0) {
+                var diff$3 = -1 * pos.popTop;
+                pos.popTop += diff$3;
+                if (!vert && pos.tailTop) { pos.tailTop -= diff$3; }
+                if (!vert && pos.tailBottom) { pos.tailBottom += diff$3; }
+              }
+            }
+
+            this.set('position', pos);
+          } else {
+            this.set('position', null);
+          }
+        };
+
+        Popover.prototype.show = function show (node) {
+          this.source = node;
+          this.set('popped', true);
+        };
+
+        Popover.prototype.hide = function hide () {
+          this.set('popped', false);
+        };
+
+        return Popover;
+      }(Ractive$1));
+
+      Ractive$1.extendWith(Popover, {
+        attributes: ['popped', 'tail', 'where', 'align', 'top', 'left', 'fit', 'clickClose', 'noClickout'],
+        use: [plugin(), clickout()],
+        template: {v:4,t:[{t:4,f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rpop-wrapper",g:1},{n:"class-rpop-with-tail",t:13,f:[{t:2,r:"position.tail"}]},{n:"class",f:["rpop-",{t:2,x:{r:["where"],s:"_0||\"below\""}}," rpop-align-",{t:2,x:{r:["align"],s:"_0||\"middle\""}}],t:13},{t:4,f:[{n:"style-top",f:[{t:2,r:"position.popTop"},"px"],t:13},{n:"style-left",f:[{t:2,r:"position.popLeft"},"px"],t:13}],n:50,r:"position"},{t:4,f:[{t:4,f:[{n:"style-top",f:[{t:2,r:"top"}],t:13}],n:50,r:"top"},{t:4,f:[{n:"style-left",f:[{t:2,r:"left"}],t:13}],n:50,r:"left"}],n:51,l:1},{n:"pop",t:72,f:{r:["where"],s:"[{dir:_0||\"below\"}]"},v:"t2"},{t:4,f:[{n:["click"],t:70,f:{r:["@this"],s:"[_0.toggle(\"popped\")]"}}],n:50,r:"clickClose"},{t:4,f:[{n:["clickout"],t:70,f:{r:["@this"],s:"[_0.toggle(\"popped\")]"}}],n:51,r:"noClickout"},{t:16,r:"extra-attributes"}],f:[{t:4,f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rpop-tail",g:1},{t:4,f:[{n:"style-top",f:[{t:2,x:{r:["position.tailTop","position.vert"],s:"_0+(_1?1:0)"}},"px"],t:13}],n:50,r:"position.tailTop"},{t:4,f:[{n:"style-bottom",f:[{t:2,x:{r:["position.tailBottom","position.vert"],s:"_0+(_1?1:0)"}},"px"],t:13}],n:50,r:"position.tailBottom"},{t:4,f:[{n:"style-left",f:[{t:2,x:{r:["position.tailLeft","position.vert"],s:"_0+(_1?0:1)"}},"px"],t:13}],n:50,r:"position.tailLeft"},{t:4,f:[{n:"style-right",f:[{t:2,x:{r:["position.tailRight","position.vert"],s:"_0+(_1?0:1)"}},"px"],t:13}],n:50,r:"position.tailRight"}]}," ",{t:7,e:"div",m:[{t:13,n:"class",f:"rpop-tail-outer",g:1},{t:4,f:[{n:"style-top",f:[{t:2,x:{r:["position.tailTop"],s:"_0-2"}},"px"],t:13}],n:50,r:"position.tailTop"},{t:4,f:[{n:"style-bottom",f:[{t:2,x:{r:["position.tailBottom"],s:"_0-2"}},"px"],t:13}],n:50,r:"position.tailBottom"},{t:4,f:[{n:"style-left",f:[{t:2,x:{r:["position.tailLeft"],s:"_0-2"}},"px"],t:13}],n:50,r:"position.tailLeft"},{t:4,f:[{n:"style-right",f:[{t:2,x:{r:["position.tailRight"],s:"_0-2"}},"px"],t:13}],n:50,r:"position.tailRight"}]}],n:50,r:"~/tail"}," ",{t:7,e:"div",m:[{t:13,n:"class",f:"rpop",g:1}],f:[{t:16,r:"content"}]}]}],n:50,r:"_popped"}],e:{"_0||\"below\"":function (_0){return(_0||"below");},"_0||\"middle\"":function (_0){return(_0||"middle");},"[{dir:_0||\"below\"}]":function (_0){return([{dir:_0||"below"}]);},"[_0.toggle(\"popped\")]":function (_0){return([_0.toggle("popped")]);},"_0+(_1?1:0)":function (_0,_1){return(_0+(_1?1:0));},"_0+(_1?0:1)":function (_0,_1){return(_0+(_1?0:1));},"_0-2":function (_0){return(_0-2);}}},
+        css: function(data) { return [(function(data) {
+         var primary = Object.assign({}, data('raui.primary'), data('raui.pop.primary'));
+         var themes = (data('raui.themes') || []).slice();
+         (data('raui.pop.themes') || []).forEach(function (t) {
+           if (!~themes.indexOf(t)) { themes.push(t); }
+         });
+         return "\n   .rpop-wrapper {\n     position: absolute;\n     display: inline-block;\n     z-index: 11;\n     transition-property: top, left, padding;\n     transition-timing-function: ease-in-out;\n     transition-duration: 0.3s;\n   }\n   .rpop-with-tail.rpop-above {\n     padding-bottom: 10px;\n   }\n   .rpop-with-tail.rpop-below {\n     padding-top: 10px;\n   }\n   .rpop-with-tail.rpop-left {\n     padding-right: 10px;\n   }\n   .rpop-with-tail.rpop-right {\n     padding-left: 10px;\n   }\n \n   .rpop {\n     position: relative;\n     box-shadow: 0 1px 4px 0 rgba(0,0,0,0.24);\n     border: 1px solid #ccc;\n     border-radius: 0.2em;\n     background-color: " + (primary.bg || '#fff') + ";\n     color: " + (primary.fg || '#222') + ";\n     padding: 0.5em;\n     z-index: 2;\n   }\n \n   .rpop-tail, .rpop-tail-outer {\n     z-index: 3;\n     width: 0;\n     height: 0;\n     position: absolute;\n     border-style: solid;\n     border-width: 10px;\n     border-color: transparent;\n     transition-property: top, left, bottom, right, border-color;\n     transition-timing-function: ease-in-out;\n     transition-duration: 0.3s;\n   }\n   .rpop-tail-outer {\n     z-index: 1;\n     border-width: 12px;\n     border-color: transparent;\n   }\n \n   .rpop-below .rpop-tail {\n     border-bottom-color: " + (primary.bg || '#fff') + ";\n   }\n   .rpop-below .rpop-tail-outer {\n     border-bottom-color: " + (primary.bc || '#ccc') + ";\n   }\n \n   .rpop-above .rpop-tail {\n     border-top-color: " + (primary.bg || '#fff') + ";\n   }\n   .rpop-above .rpop-tail-outer {\n     border-top-color: " + (primary.bc || '#ccc') + ";\n   }\n \n   .rpop-left .rpop-tail {\n     border-left-color: " + (primary.bg || '#fff') + ";\n   }\n   .rpop-left .rpop-tail-outer {\n     border-left-color: " + (primary.bc || '#ccc') + ";\n   }\n   \n   .rpop-right .rpop-tail {\n     border-right-color: " + (primary.bg || '#fff') + ";\n   }\n   .rpop-right .rpop-tail-outer {\n     border-right-color: " + (primary.bc || '#ccc') + ";\n   }\n   " + themes.map(function (t) {
+           var theme = Object.assign({}, data('raui.primary'), data('raui.pop.primary'), data(("raui." + t)), data(("raui.pop." + t)));
+           return ("\n   ." + t + " .rpop {\n     background-color: " + (theme.bg || '#fff') + ";\n     color: " + (theme.fg || '#222') + ";\n   }\n \n   ." + t + ".rpop-below .rpop-tail {\n     border-bottom-color: " + (theme.bg || '#fff') + ";\n   }\n   ." + t + ".rpop-below .rpop-tail-outer {\n     border-bottom-color: " + (theme.bc || '#ccc') + ";\n   }\n \n   ." + t + ".rpop-above .rpop-tail {\n     border-top-color: " + (theme.bg || '#fff') + ";\n   }\n   ." + t + ".rpop-above .rpop-tail-outer {\n     border-top-color: " + (theme.bc || '#ccc') + ";\n   }\n \n   ." + t + ".rpop-left .rpop-tail {\n     border-left-color: " + (theme.bg || '#fff') + ";\n   }\n   ." + t + ".rpop-left .rpop-tail-outer {\n     border-left-color: " + (theme.bc || '#ccc') + ";\n   }\n   \n   ." + t + ".rpop-right .rpop-tail {\n     border-right-color: " + (theme.bg || '#fff') + ";\n   }\n   ." + t + ".rpop-right .rpop-tail-outer {\n     border-right-color: " + (theme.bc || '#ccc') + ";\n   }\n   ");
+         });
+      }).call(this, data)].join(' '); },
+        cssId: 'rpop',
+        noCssTransform: true,
+        observe: {
+          popped: function popped(v) {
+            var this$1 = this;
+
+            if (v && source) { this.source = source; }
+            setTimeout(function () {
+              if (this$1.get('popped') === v) { this$1.set('_popped', v); }
+            }, 100);
+          },
+          _popped: {
+            handler: function handler(v) {
+              if (v) {
+                this.position();
+                this.transition('pop', this.find('div'), { intro: true, dir: this.get('where') || 'below' });
+              } else {
+                this.source = null;
+              }
+            },
+            defer: true
+          },
+          'align where tail fit': {
+            handler: function handler() { this.position(); },
+            defer: true
+          }
+        }
+      });
+
+      function trigger(options) {
+        if ( options === void 0 ) options = {};
+
+        return function(ref) {
+          var instance = ref.instance;
+
+          instance.decorators[options.name || 'pop'] = function(node, path, opts) {
+            if ( opts === void 0 ) opts = {};
+
+            if (!path) { return { teardown: noop }; }
+            var ctx = this.getContext(node);
+            var clicked, hover;
+
+            function listener(ev) {
+              if (ev.type === 'mouseover' && ctx.get(path)) { return; }
+
+              if (ev.type !== 'click' || !hover || clicked) {
+                var init = source;
+                source = node;
+                ctx.toggle(path);
+                source = init;
+              }
+
+              if (hover && ev.type === 'click') {
+                clicked = ctx.observeOnce(path, function () {
+                  clicked = null;
+                });
+              }
+            }
+
+            function out(ev) {
+              if (!clicked) {
+                ctx.set(path, false);
+              }
+            }
+
+            if ('click' in opts ? opts.click : options.click !== false) {
+              ctx.listen('click', listener);
+            }
+
+            if ('hover' in opts ? opts.hover : options.hover) {
+              hover = 1;
+              ctx.listen('mouseover', listener);
+              ctx.listen('mouseout', out);
+            }
+
+            return {
+              teardown: function teardown() {
+                ctx.unlisten('click', listener);
+                if (hover) {
+                  ctx.unlisten('mouseover', listener);
+                  ctx.unlisten('mouseout', out);
+                  if (clicked) { clicked.cancel(); }
+                }
+              }
+            }
+          };
+        };
+      }
+
+      function plugin$1(options) {
+        if ( options === void 0 ) options = {};
+
+        return function(ref) {
+          var instance = ref.instance;
+
+          instance.components[options.name || 'pop'] = Popover;
+          var opts = Object.assign({}, options);
+          opts.name = opts.trigger || opts.name;
+          trigger(opts)({ instance: instance });
+        }
+      }
 
     }
   };

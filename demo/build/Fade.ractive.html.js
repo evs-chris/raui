@@ -10,7 +10,7 @@ System.register(['./chunk2.js'], function (exports, module) {
 
       function fade(t, params) {
         var p = t.processParams(params, { duration: 200, easing: 'easeInOut' });
-        if (t.isIntro) {
+        if (t.isIntro || p.intro) {
           t.setStyle('opacity', 0);
           return t.animateStyle('opacity', 1, p);
         } else {

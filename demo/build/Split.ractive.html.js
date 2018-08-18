@@ -1,4 +1,4 @@
-System.register(['./chunk10.js', './chunk2.js', './chunk5.js'], function (exports, module) {
+System.register(['./chunk12.js', './chunk2.js', './chunk6.js'], function (exports, module) {
   'use strict';
   var split, Window, Menu;
   return {
