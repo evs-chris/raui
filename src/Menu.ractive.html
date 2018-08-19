@@ -39,7 +39,7 @@
     {{#if .left}}<div class-menu-left>{{{.left}}}</div>{{elseif .leftPartial}}<div class-rmenu-left>{{yield .leftPartial}}</div>{{/if}}
     <div
       class-rmenu-title
-      {{#unless .disabled || (.disabledRef && ~/[.disabledRef])}}{{#if typeof .action === 'function'}}on-click=".action()" on-click="@._actioned()"
+      {{#unless .disabled || (.disabledRef && ~/[.disabledRef])}}{{#if typeof .action === 'function'}}on-click=".action(), @._actioned()"
       {{elseif .actionPartial}}{{yield .actionPartial}} on-click="@._actioned()"
       {{elseif .items.length}}on-click=".popout && @.popSiblingsIn(@context), @context.toggle('.open'), false"{{/if}}{{/unless}}
     >
@@ -129,13 +129,13 @@
 
     popAllIn(path) {
       if (!path) path = '';
-      const items = this.get(`${path}.items`);
-      if (items) {
-        for (let i = 0; i < items.length; i++) {
-          this.popAllIn(`${path}.items.${i}`);
+      const item = this.get(path);
+      if (item && item.items) {
+        for (let i = 0; i < item.items.length; i++) {
+          this.popAllIn(`${path ? `${path}.` : ''}items.${i}`);
         }
       }
-      if (this.get(`${path}.open`)) this.set(`${path}.open`, false);
+      if (item.open) this.set(`${path ? `${path}.` : ''}open`, false);
     }
 
     popSiblingsIn(ctx) {
@@ -153,7 +153,7 @@
 
     _actioned() {
       this.fire('action');
-      this.popAllIn();      
+      this.popAllIn();
     }
 
     _itemRendered(ctx) {
