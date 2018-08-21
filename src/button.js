@@ -140,7 +140,7 @@ export function button(data) {
       color: ${theme.fga || '#07e'};
     }
     `;
-  });
+  }).join('');
 }
 
 export function plugin() {
