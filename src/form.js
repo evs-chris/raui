@@ -2,7 +2,7 @@ import globalRegister from './globalRegister';
 
 export function style(data) {
   const primary = Object.assign({}, data('raui.primary'), data('raui.form.primary'));
-  const active = Object.assign({}, primary, data('raui.primary.active'), data('raui.form.primary.active'));
+  const active = Object.assign({}, data('raui.primary.active'), data('raui.form.primary.active'));
   const boxy = data('raui.form.boxy');
   return `
   label.field {
@@ -38,11 +38,11 @@ export function style(data) {
   }
 
   label.field.textarea.focus {
-    border-color: ${active.fg || '#07e'};
-    ${!boxy ? `box-shadow: 0.0625em 0.0625em ${active.fg || '#07e'},
-      -0.0625em 0.0625em ${active.fg || '#07e'},
-      0.0625em -0.0625em ${active.fg || '#07e'},
-      -0.0625em -0.0625em ${active.fg || '#07e'};` : ''}
+    border-color: ${active.fg || primary.fga || '#07e'};
+    ${!boxy ? `box-shadow: 0.0625em 0.0625em ${active.fg || primary.fga || '#07e'},
+      -0.0625em 0.0625em ${active.fg || primary.fga || '#07e'},
+      0.0625em -0.0625em ${active.fg || primary.fga || '#07e'},
+      -0.0625em -0.0625em ${active.fg || primary.fga || '#07e'};` : ''}
   }
 
   label.field input,
@@ -89,16 +89,16 @@ export function style(data) {
   }
   label.field.check.focus input:before,
   label.field.radio.focus input:before {
-    box-shadow: 0.0625em 0.0625em ${active.fg || '#07e'},
-      -0.0625em 0.0625em ${active.fg || '#07e'},
-      0.0625em -0.0625em ${active.fg || '#07e'},
-      -0.0625em -0.0625em ${active.fg || '#07e'};
+    box-shadow: 0.0625em 0.0625em ${active.fg || primary.fga || '#07e'},
+      -0.0625em 0.0625em ${active.fg || primary.fga || '#07e'},
+      0.0625em -0.0625em ${active.fg || primary.fga || '#07e'},
+      -0.0625em -0.0625em ${active.fg || primary.fga || '#07e'};
   }
   label.field.textarea.focus:hover {
-    box-shadow: 0.0625em 0.0625em ${active.fg || '#07e'},
-      -0.0625em 0.0625em ${active.fg || '#07e'},
-      0.0625em -0.0625em ${active.fg || '#07e'},
-      -0.0625em -0.0625em ${active.fg || '#07e'};
+    box-shadow: 0.0625em 0.0625em ${active.fg || primary.fga || '#07e'},
+      -0.0625em 0.0625em ${active.fg || primary.fga || '#07e'},
+      0.0625em -0.0625em ${active.fg || primary.fga || '#07e'},
+      -0.0625em -0.0625em ${active.fg || primary.fga || '#07e'};
   }
   label.field.check input:checked:before,
   label.field.radio input:checked:before {
@@ -106,7 +106,7 @@ export function style(data) {
   }
   label.field.check.focus input:checked:before,
   label.field.radio.focus input:checked:before {
-    box-shadow: -0.0625em 0.0625em ${active.checked || active.fga || '#07e'};
+    box-shadow: -0.0625em 0.0625em ${active.checked || active.fga || primary.fga || '#07e'};
   }` : ''}
 
   label.field.check, label.field.radio {
@@ -176,7 +176,7 @@ export function style(data) {
 
   label.field.check.focus input:before,
   label.field.radio.focus input:before {
-    border-color: ${active.fg || '#07e'};
+    border-color: ${active.fg || primary.fga || '#07e'};
   }
 
   label.field.check input:checked:before,
@@ -201,8 +201,8 @@ export function style(data) {
   label.field select:focus,
   label.field.file.focus:after
   {
-    border-color: ${active.fg || '#07e'};
-    ${!boxy ? `box-shadow: 0 0.0625em 0 0 ${active.fg || '#07e'};` : ''}
+    border-color: ${active.fg || primary.fga || '#07e'};
+    ${!boxy ? `box-shadow: 0 0.0625em 0 0 ${active.fg || primary.fga || '#07e'};` : ''}
   }
 
   label.field input[type=checkbox]:focus,
@@ -211,7 +211,7 @@ export function style(data) {
   }
 
   label.field.file.focus:after {
-    color: ${active.fg || '#07e'};
+    color: ${active.fg || primary.fga || '#07e'};
   }
   label.field.file [type=file] {
     position: absolute;
