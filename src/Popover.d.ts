@@ -37,7 +37,7 @@ export interface TriggerOpts {
   click?: boolean;
 }
 
-export interface PluginOpts extends TiggerOpts {
+export interface PluginOpts extends TriggerOpts {
   /**
    * Override for trigger decorator trigger name.
    */
