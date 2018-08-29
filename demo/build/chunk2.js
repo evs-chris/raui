@@ -324,7 +324,7 @@ System.register(['ractive'], function (exports, module) {
             this.place(window);
           }
 
-          this.raise(window, options.show !== false);
+          this.raise(window, { show: options.show !== false, parent: options.stickToParent });
 
           window.on('close', function () {
             var blocking = window.get('control.blocking');
@@ -355,8 +355,9 @@ System.register(['ractive'], function (exports, module) {
           return this.set(("windows." + (escape(id)) + "." + path), val);
         };
 
-        Host.prototype.raise = function raise (window, show) {
+        Host.prototype.raise = function raise (window, opts) {
           var this$1 = this;
+          if ( opts === void 0 ) opts = {};
 
           var wnd = window instanceof Window ? window : this.children.byName.window.filter(function (a) { return a.instance.id === window; }).map(function (a) { return a.instance; })[0];
           var object = this.get('windows');
@@ -374,8 +375,9 @@ System.register(['ractive'], function (exports, module) {
           }
 
           if (wnd) {
-            wnd.set('control.index', show === false ? -1 : top++);
-            if (show !== false && !wnd.visible) { wnd.show(); }
+            if (opts.parent !== false && wnd.get('control.blocking')) { top = this.get(("windows." + (wnd.get('control.blocking')) + ".index")) || 0; }
+            wnd.set('control.index', opts.show === false ? -1 : top++);
+            if (opts.show !== false && !wnd.visible) { wnd.show(); }
 
             blocks(wnd.id);
           }
@@ -400,17 +402,17 @@ System.register(['ractive'], function (exports, module) {
           });
 
           if (modalIdx !== null) {
-            sets['blocked'] = modalIdx + 1;
+            sets.blocked = modalIdx + 1;
           } else {
-            sets['blocked'] = 0;
+            sets.blocked = 0;
           }
 
-          if (~top && ordered.length) { sets["topLevel"] = ordered[top].id; }
-          else { sets["topLevel"] = null; }
+          if (~top && ordered.length) { sets.topLevel = ordered[top].id; }
+          else { sets.topLevel = null; }
 
           this.set(sets);
 
-          top = sets['topLevel'];
+          top = sets.topLevel;
           if (top && top !== last && this.get('currentMax') && this.rendered) {
             var leaving = this.get(("windows." + (escape(last))));
             wnd = this.getWindow(top);
@@ -432,7 +434,7 @@ System.register(['ractive'], function (exports, module) {
           var maxh = host.clientHeight;
 
           // if it's blocking, center on blocked
-          var blocking = wnd.get('control.blocking');
+          var blocking = local.blocking;
           if (blocking) {
             var key = "windows." + (escape(blocking));
             var blocked = this.get(key);
@@ -763,7 +765,7 @@ System.register(['ractive'], function (exports, module) {
         prototypeAccessors$1.visible.set = function (v) {
           if (v) { this.show(); }
           else { this.set('control.show', v, { keep: true }); }
-          this.host.raise(this, v);
+          this.host.raise(this, { show: v });
         };
         prototypeAccessors$1.pad.get = function () { return this.get('pad'); };
         prototypeAccessors$1.pad.set = function (v) { this.set('pad', v); };
@@ -790,7 +792,7 @@ System.register(['ractive'], function (exports, module) {
         Window.prototype.hide = function hide () { this.visible = false; };
 
         Window.prototype.raise = function raise (show) {
-          this.host.raise(this, show);
+          this.host.raise(this, { show: show });
         };
 
         Window.prototype.show = function show () {
