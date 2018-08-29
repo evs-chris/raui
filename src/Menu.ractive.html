@@ -135,7 +135,7 @@
           this.popAllIn(`${path ? `${path}.` : ''}items.${i}`);
         }
       }
-      if (item.open) this.set(`${path ? `${path}.` : ''}open`, false);
+      if (item.open && item.popout) this.set(`${path ? `${path}.` : ''}open`, false);
     }
 
     popSiblingsIn(ctx) {
