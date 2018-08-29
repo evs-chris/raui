@@ -1,4 +1,4 @@
-import Ractive, { InitOpts as BaseInitOpts, ExtendOpts as BaseExtendOpts, Plugin, Static, Constructor } from 'ractive';
+import Ractive, { InitOpts as BaseInitOpts, ExtendOpts as BaseExtendOpts, Plugin, Static, Constructor as BaseConstructor } from 'ractive';
 import { Toast, Options as ToastOptions } from './Toast';
 
 export interface InitOpts<T extends Window<T> = Window> extends BaseInitOpts<T> {
@@ -7,6 +7,8 @@ export interface InitOpts<T extends Window<T> = Window> extends BaseInitOpts<T> 
 export interface ExtendOpts<T extends Window<T> = Window> extends BaseExtendOpts<T> {
   options?: WindowOpts;
 }
+
+export interface Constructor<A extends Window<A>, B extends InitOpts<A> = InitOpts> extends BaseConstructor<A, B> {}
 
 export interface WindowButton {
   label: string;
@@ -34,8 +36,8 @@ export class Window<T extends Window<T> = Window<any>> extends Ractive<T> {
   size(width: string | number, height: string | number): void;
   move(top: string | number, left: string | number): void;
 
-	static extend<U>(opts?: ExtendOpts<Window & U>): Static<Window<Window & U>>;
-	static extendWith<U extends Window<U>, V extends InitOpts<U> = InitOpts<U>, W extends ExtendOpts<U> = ExtendOpts<U>>(c: Constructor<U, V>, opts?: W): Static<Ractive<Ractive & T>>;
+  static extend<U>(opts?: ExtendOpts<Window & U>): Static<Window<Window & U>>;
+  static extendWith<U extends Window<U>, V extends InitOpts<any> = InitOpts, W extends ExtendOpts<U> = ExtendOpts<U>>(c: Constructor<U, V>, opts?: W): Static<Window<Window & U>>;
 }
 
 export interface WindowOpts {
@@ -53,6 +55,7 @@ export interface WindowOpts {
   height?: string;
   size?: 'fill'|'auto';
   block?: boolean|Window;
+  stickToParent?: boolean;
   dialog?: boolean;
   top?: string;
   left?: string;

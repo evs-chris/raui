@@ -229,7 +229,7 @@
         this.place(window);
       }
 
-      this.raise(window, options.show !== false);
+      this.raise(window, { show: options.show !== false, parent: options.stickToParent });
 
       window.on('close', () => {
         const blocking = window.get('control.blocking');
@@ -260,7 +260,7 @@
       return this.set(`windows.${escape(id)}.${path}`, val);
     }
 
-    raise(window, show) {
+    raise(window, opts = {}) {
       let wnd = window instanceof Window ? window : this.children.byName.window.filter(a => a.instance.id === window).map(a => a.instance)[0];
       const object = this.get('windows');
       const host = this;
@@ -277,8 +277,9 @@
       }
 
       if (wnd) {
-        wnd.set('control.index', show === false ? -1 : top++);
-        if (show !== false && !wnd.visible) wnd.show();
+        if (opts.parent !== false && wnd.get('control.blocking')) top = this.get(`windows.${wnd.get('control.blocking')}.index`) || 0;
+        wnd.set('control.index', opts.show === false ? -1 : top++);
+        if (opts.show !== false && !wnd.visible) wnd.show();
 
         blocks(wnd.id);
       }
@@ -303,17 +304,17 @@
       });
 
       if (modalIdx !== null) {
-        sets['blocked'] = modalIdx + 1;
+        sets.blocked = modalIdx + 1;
       } else {
-        sets['blocked'] = 0;
+        sets.blocked = 0;
       }
 
-      if (~top && ordered.length) sets[`topLevel`] = ordered[top].id;
-      else sets[`topLevel`] = null;
+      if (~top && ordered.length) sets.topLevel = ordered[top].id;
+      else sets.topLevel = null;
 
       this.set(sets);
 
-      top = sets['topLevel'];
+      top = sets.topLevel;
       if (top && top !== last && this.get('currentMax') && this.rendered) {
         const leaving = this.get(`windows.${escape(last)}`);
         wnd = this.getWindow(top);
@@ -335,7 +336,7 @@
       const maxh = host.clientHeight;
 
       // if it's blocking, center on blocked
-      const blocking = wnd.get('control.blocking');
+      const blocking = local.blocking;
       if (blocking) {
         const key = `windows.${escape(blocking)}`;
         const blocked = this.get(key);
@@ -662,7 +663,7 @@
     set visible (v) {
       if (v) this.show();
       else this.set('control.show', v, { keep: true });
-      this.host.raise(this, v);
+      this.host.raise(this, { show: v });
     }
     get pad () { return this.get('pad'); }
     set pad (v) { this.set('pad', v); }
@@ -689,7 +690,7 @@
     hide() { this.visible = false; }
 
     raise(show) {
-      this.host.raise(this, show);
+      this.host.raise(this, { show });
     }
 
     show() {
