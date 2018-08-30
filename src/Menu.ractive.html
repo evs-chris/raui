@@ -78,6 +78,19 @@
   import clickout from './event-clickout';
   import globalRegister from './globalRegister';
 
+  function findRef(items, ref) {
+    for (let i = 0; i < items.length; i++) {
+      if (items[i].ref === ref) return [items[i]];
+      else if (items[i].items) {
+        const res = findRef(items[i].items, ref);
+        if (res) {
+          res.unshift(items[i]);
+          return res;
+        }
+      }
+    }
+  }
+
   export class Menu extends Ractive {
     constructor(opt) {
       super(opts);
@@ -106,6 +119,14 @@
         } else {
           const el = this.find(what);
           if (el) ctx = this.getContext(el);
+          else {
+            const path = findRef(this.get('items'), what);
+            if (path) {
+              return path.reduce((a, c) => {
+                return new Handle(this, a, c);
+              }, null);
+            }
+          }
         }
       } else if (what && what.parentNode) {
         ctx = this.getContext(what);
