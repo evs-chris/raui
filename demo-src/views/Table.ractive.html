@@ -63,7 +63,7 @@
 
           ### Template:
           ```handlebars
-          <data-table bind-display=mode bind-items bind-filter bind-border bind-paginate="paginate === 'fixed' ? pages : paginate" bind-allowSelect="select" bind-allowSelectAll="selectAll" paginate=auto on-selected="console.log($1)">
+          <data-table bind-display=mode bind-items bind-filter="[{ op: '||', value: [{ id: 'Foo', op: 'like', value: filter }, { id: 'Bar', op: 'like', value: filter }] }]" bind-border bind-paginate="paginate === 'fixed' ? pages : paginate" bind-allowSelect="select" bind-allowSelectAll="selectAll" paginate=auto on-selected="console.log($1)">
             <row>
               <h3>Extra stuff goes here</h3>
               <p>I have a {{.foo}} that is {{.bar}}.</p>
@@ -80,7 +80,7 @@
         </marked>
         </div>
       </pane><pane style-display=flex style-flex-direction=column>
-        <data-table bind-display=mode bind-items bind-filter bind-border bind-paginate="paginate === 'fixed' ? pages : paginate" bind-allowSelect="select" bind-allowSelectAll="selectAll" paginate=auto on-selected="console.log($1)">
+        <data-table bind-display=mode bind-items bind-filter="[{ op: 'and', value: [{ id: 'Foo', op: 'like', value: filter }, { id: 'Bar', op: 'like', value: filter }] }]" bind-border bind-paginate="paginate === 'fixed' ? pages : paginate" bind-allowSelect="select" bind-allowSelectAll="selectAll" paginate=auto on-selected="console.log($1)">
           <row>
             <h3>Extra stuff goes here</h3>
             <p>I have a {{.foo}} that is {{.bar}}.</p>

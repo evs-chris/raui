@@ -570,68 +570,26 @@
 
           if (filter instanceof RegExp || isString(filter)) {
             const nocase = filter === '' + filter.toLowerCase() || filter === '' + filter.toUpperCase();
-            const re = isString(filter) ? new RegExp(filter, nocase ? 'i' : '') : filter;
-            list = list.filter(l => {
-              let i = cols.length;
-              while (i--) {
-                const v = l && cols[i](l);
-                if (v && isString(v) && re.test(v)) return true;
-              }
-            });
+            try {
+              const re = isString(filter) ? new RegExp(filter, nocase ? 'i' : '') : filter;
+              list = list.filter(l => {
+                let i = cols.length;
+                while (i--) {
+                  const v = l && cols[i](l);
+                  if (v && isString(v) && re.test(v)) return true;
+                }
+              });
+            } catch (e) {}
           } else if (Array.isArray(filter)) {
-            const flts = filter.map(f => {
-              const flt = { op: f.op || '=', value: f.value || '' };
-              if (f.id) {
-                let field = columns.find(c => c.id === f.id);
-                if (field) {
-                  flt.get = columnGetter(this, field);
-                  if (flt.get) {
-                    flt.type = field.type || 'string';
-                  } else field = 0;
-                }
-                
-                if (!field) {
-                  field = fields.find(c => c.id === f.id);
-                  if (field) {
-                    flt.get = fieldGetter(this, field);
-                    flt.type = field.type || 'string';
-                  }
-                }
-              }
-              return flt;
-            });
-
+            const flts = buildFilter(this, filter, columns, fields);
             const recache = {};
-            list = list.filter(l => {
-              return flts.reduce((ok, flt) => {
-                if (!ok || !flt.get || !l) return false;
-                const v = flt.get(l);
-                if (flt.op === '=' || flt.op === '==') {
-                  if (flt.type === 'number' || flt.type === 'date') return +v == +flt.value;
-                  return v == flt.value;
-                } else if (flt.op === '>') {
-                  return v > flt.value;
-                } else if (flt.op === '>=') {
-                  return v >= flt.value;
-                } else if (flt.op === '<') {
-                  return v < flt.value;
-                } else if (flt.op === '<=') {
-                  return v <= flt.value;
-                } else if (flt.op === 'like' || flt.op === 'notlike') {
-                  let res = flt.op === 'like' ? true : false;
-                  if (isString(flt.value)) {
-                    const re = recache[flt.value] || (recache[flt.value] = new RegExp(`.*${flt.value.replace(/\s+/g, '.*')}.*`, 'gi'));
-                    res = re.test(v);
-                  } else if (isRegex(flt.value)) {
-                    res = flt.value.test(v);
-                  }
-                  return flt.op === 'like' ? res : !res;
-                } else if (flt.op === 'contains') {
-                  if (Array.isArray(v)) return !!~v.indexOf(flt.value);
-                }
-                return ok;
-              }, true);
-            });
+            try {
+              list = list.filter(l => {
+                return flts.reduce((ok, flt) => {
+                  return ok && applyFilter(flt, l, recache);
+                }, true);
+              });
+            } catch (e) {}
           }
 
           if (isString(sort) || (isObject(sort) && !Array.isArray(sort))) sort = [sort];
@@ -773,6 +731,72 @@
       !a && b ? -1 :
       a && !b ? 1 :
       0;
+  }
+
+  function buildFilter(grid, filter, columns, fields) {
+    return filter.map(f => {
+      const flt = { op: f.op || '=', value: f.value || '' };
+      if (f.id) {
+        let field = columns.find(c => c.id === f.id);
+        if (field) {
+          flt.get = columnGetter(grid, field);
+          if (flt.get) {
+            flt.type = field.type || 'string';
+          } else field = 0;
+        }
+        
+        if (!field) {
+          field = fields.find(c => c.id === f.id);
+          if (field) {
+            flt.get = fieldGetter(grid, field);
+            flt.type = field.type || 'string';
+          }
+        }
+      }
+      if (f.op === 'and' || f.op === 'or' || f.op === '&&' || f.op === '||') {
+        if (Array.isArray(f.value)) flt.value = buildFilter(grid, f.value, columns, fields);
+      }
+      return flt;
+    });
+  }
+
+  function applyFilter(flt, item, recache) {
+    if (!item || (!flt.get && flt.op !== 'and' && flt.op !== 'or' && flt.op !== '&&' && flt.op !== '||')) return false;
+    const v = flt.get && flt.get(item);
+    if (flt.op === '=' || flt.op === '==') {
+      if (flt.type === 'number' || flt.type === 'date') return +v == +flt.value;
+      return v == flt.value;
+    } else if (flt.op === '>') {
+      return v > flt.value;
+    } else if (flt.op === '>=') {
+      return v >= flt.value;
+    } else if (flt.op === '<') {
+      return v < flt.value;
+    } else if (flt.op === '<=') {
+      return v <= flt.value;
+    } else if (flt.op === 'like' || flt.op === 'notlike') {
+      let res = flt.op === 'like' ? true : false;
+      if (isString(flt.value)) {
+        // special case - no pattern always matches
+        if (!flt.value) return true;
+        const re = recache[flt.value] || (recache[flt.value] = new RegExp(`.*${flt.value.replace(/%/g, '.*')}.*`, 'gi'));
+        res = re.test(v);
+      } else if (isRegex(flt.value)) {
+        res = flt.value.test(v);
+      }
+      return flt.op === 'like' ? res : !res;
+    } else if (flt.op === 'contains') {
+      if (Array.isArray(v)) return !!~v.indexOf(flt.value);
+    } else if ((flt.op === 'or' || flt.op === '||') && Array.isArray(flt.value)) {
+      return flt.value.reduce((a, c) => {
+        return a || applyFilter(c, item, recache);
+      }, false);
+    } else if ((flt.op === 'and' || flt.op === '&&') && Array.isArray(flt.value)) {
+      return flt.value.reduce((a, c) => {
+        return a && applyFilter(c, item, recache);
+      }, true);
+    }
+    return res;
   }
 
   const colAttrs = ['label', 'type', 'filter', 'hidden', 'sort', 'no-pad', 'id'];
