@@ -3,8 +3,11 @@
   class-rtable-auto="~/paginate === 'auto'"
   class-rtable-fixed="~/fixed"
   class-rtable-border="~/border"
+  class-rtable-fixed-header="~/fixedHeader"
+  class-rtable-scrolled="!~(~/scroll || '').indexOf('top')"
 >
-  <div class-rtable-top {{#if ~/paginate === 'virtual'}}on-scroll="scroll"{{/if}}>
+  {{#if ~/fixedHeader && ~/display === 'grid'}}<div as-grid>{{>grid-head}}</div>{{/if}}
+  <div class-rtable-top {{#if ~/paginate === 'virtual'}}on-scroll="scroll"{{/if}} {{#if ~/fixedHeader && ~/display === 'grid'}}as-scrolled=`~/scroll`{{/if}}>
     {{#if ~/display === 'grid'}}
       {{>grid}}
     {{else}}
@@ -29,7 +32,7 @@
 
 <template id="grid">
   <div {{yield extra-attributes}} as-grid {{#if ~/paginate === 'virtual'}}style-margin-top="{{~/virtual.above}}px" style-margin-bottom="{{~/virtual.below}}px"{{/if}}>
-    {{>grid-head}}
+    {{#unless ~/fixedHeader}}{{>grid-head}}{{/unless}}
     {{#if ~/virtual.offset % 2 === 1}}<div class-rtable-row-wrap style-display=none />{{/if}}
     {{#each ~/visibleRows, ~/items as source, true as shuffle}}
       {{>grid-row}}
@@ -78,6 +81,7 @@
   {{#if ~/selections.indexOf(.)}}...{{/if}}
   {{#if . === ~/expanded}}...{{/if}}
   {{#if ~/virtual.offset > 0}}...{{/if}}
+  {{#if !~/fixedHeader && ~/virtual.offset > 0}}...{{/if}}
 </template>
 
 <script>
@@ -85,6 +89,7 @@
   import { grid, style as gridStyle } from './grid';
   import click from './event-click';
   import expand from './transition-expand';
+  import scrolled from './scrolled';
   import globalRegister from './globalRegister';
 
   const sortRE = /^([-+])?([^\s]+)$/;
@@ -318,7 +323,7 @@
     css: $CSS,
     cssId: 'rtable',
     noCssTransform: true,
-    attributes: [ 'paginate', 'items', 'filter', 'sort', 'helpers', 'fixed', 'display', 'allowSelect', 'allowSelectAll', 'border' ],
+    attributes: ['paginate', 'items', 'filter', 'sort', 'helpers', 'fixed', 'display', 'allowSelect', 'allowSelectAll', 'border', 'fixedHeader'],
     components: {
       table: false,
       Table: false
@@ -326,7 +331,7 @@
     syncComputedChildren: true,
     decorators: { grid },
     events: {},
-    use: [click({ name: 'clickd', count: 1 }), click({ name: 'dblclickd', count: 2 }), expand()],
+    use: [click({ name: 'clickd', count: 1 }), click({ name: 'dblclickd', count: 2 }), expand(), scrolled()],
     on: {
       construct,
       config() {
@@ -983,7 +988,7 @@
         { t: 13, n: 'class-rtable-row-wrap' },
         { t: 13, n: 'class-row-wrap' },
         { t: 13, n: 'class-rtable-header' },
-        { t: 4, f: [{ n: 'style-opacity', f: '0', t: 13 }], n: 50, x: { r: ['~/virtual.offset'] , s: '_0>0' } }
+        { t: 4, f: [{ n: 'style-opacity', f: '0', t: 13 }], n: 50, x: { r: ['~/fixedHeader', '~/virtual.offset'] , s: '!_0&&_1>0' } }
       ], f: [{ t: 7, e: 'div', f: columns.filter(c => c.hidden !== true).map(c => {
         const div = { t: 7, e: 'div', f: [{ t: 7, e: 'div', f: c.label }], m: [{ t: 4, n: 53, r: `~/columns.${c.index}`, f: [{ t: 70, n: ['click'], f: { r: ['@this', '.index', '@event'], s: sortKey } }] }, { t: 13, n: 'title', f: c.label }].concat(c.attrs.filter(a => a.n !== 'title')) };
         if (c.type) div.m.push({ t: 13, n: `class-rtable-${c.type}-column` });
@@ -1200,7 +1205,10 @@
     border-bottom: none;
   }
   .rtable-row-wrap:hover, .rtable-row-wrap.rtable-selected:hover {
-    background-color: ${table.over || active.bg || 'rgba(0, 119, 238, 0.25)'};
+    background-color: ${table.over || active.bg || 'rgba(128, 182, 229, 0.2)'};
+    position: relative;
+    box-shadow: inset 1px 0 0 #dadce0,inset -1px 0 0 #dadce0, 0 1px 2px 0 rgba(60, 64, 67, 0.3), 0 1px 3px 1px rgba(60, 64, 67, 0.15);
+    z-index: 1;
   }
 
   .rtable-row-wrap.rtable-selected {
@@ -1252,6 +1260,17 @@
     overflow-y: auto;
     margin: 0.5em 0;
     position: relative;
+  }
+  .rtable-fixed-header .rtable-header {
+    margin-top: 0.5em;
+    position: relative;
+    z-index: 1;
+  }
+  .rtable-fixed-header.rtable-scrolled .rtable-header {
+    box-shadow: 0 1px 2px 0 rgba(60, 64, 67, 0.3), 0 1px 3px 1px rgba(60, 64, 67, 0.15);
+  }
+  .rtable-fixed-header .rtable-top {
+    margin-top: 0;
   }
 
   .rtable-bottom {
