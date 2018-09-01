@@ -92,6 +92,7 @@
   function isString(v) { return typeof v === 'string'; }
   function isNumber(v) { return typeof v === 'number'; }
   function isObject(v) { return typeof v === 'object'; }
+  function isRegex(v) { return typeof v === 'object' && Object.prototype.toString.call(v) === 'RegExp' }
 
   export class Table extends Ractive {
     constructor(opts) { super(opts); }
@@ -757,7 +758,7 @@
         if (Array.isArray(f.value)) flt.value = buildFilter(grid, f.value, columns, fields);
       }
       return flt;
-    });
+    }).filter(f => f.op !== 'skip');
   }
 
   function applyFilter(flt, item, recache) {
@@ -787,6 +788,13 @@
       return flt.op === 'like' ? res : !res;
     } else if (flt.op === 'contains') {
       if (Array.isArray(v)) return !!~v.indexOf(flt.value);
+    } else if (flt.op === 'containslike' || flt.op === 'containsnotlike') {
+      if (Array.isArray(v)) {
+        const re = isRegex(flt.value) ? flt.value : isString(flt.value) ? recache[flt.value] || (recache[flt.value] = new RegExp(`.*${flt.value.replace(/%/g, '.*')}.*`, 'gi')) : null;
+        if (!re) return false;
+        const match = v.findIndex(x => re.test((x || '').toString()));
+        return flt.op === 'containslike' ? match >= 0 : match < 0;
+      }
     } else if ((flt.op === 'or' || flt.op === '||') && Array.isArray(flt.value)) {
       return flt.value.reduce((a, c) => {
         return a || applyFilter(c, item, recache);
