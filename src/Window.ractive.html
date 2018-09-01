@@ -19,17 +19,17 @@
   {{#if ~/control.show}}
   <div class-rwindow-wrapper as-tracked=`wrapper`
     {{#if (~/root.max || ~/root.userMax || ~/control.max) && !~/control.dialog}}
+      {{#if ~/root.transition !== false}}window-out{{/if}}
       {{#unless ~/control.autosize || ~/control.dialog}}style-top="0" style-left="0" style-width="100%" style-height="100%"{{/unless}}
       class-rwindow-max
-      window-out
     {{else}}
+      {{#if ~/root.transition !== false}}modal-in-out{{/if}}
       {{#if ~/control.resizable}}
         class-rwindow-resizable
         on-mousedown-touchstart="@._startResize(@event)"
         on-mousemove-mouseout="@._sizeHandle(@event)"
       {{/if}}
       {{#if ~/control.resizing}}class-rwindow-resizing{{/if}}
-      modal-in-out
       style-top="{{~/control.top}}px" style-left="{{~/control.left}}px"
       {{#unless ~/control.autosize}}style-width="{{~/control.width}}em" style-height="{{~/control.height}}em"{{/unless}}
     {{/if}}
@@ -277,7 +277,13 @@
       }
 
       if (wnd) {
-        if (opts.parent !== false && wnd.get('control.blocking')) top = this.get(`windows.${wnd.get('control.blocking')}.index`) || 0;
+        if (opts.parent !== false && wnd.get('control.blocking')) {
+          top = this.get(`windows.${wnd.get('control.blocking')}.index`) || 0;
+          wnds.forEach(w => {
+            if (w.index > top) w.index++;
+          });
+          top++;
+        }
         wnd.set('control.index', opts.show === false ? -1 : top++);
         if (opts.show !== false && !wnd.visible) wnd.show();
 
@@ -318,71 +324,78 @@
       if (top && top !== last && this.get('currentMax') && this.rendered) {
         const leaving = this.get(`windows.${escape(last)}`);
         wnd = this.getWindow(top);
-        if (!leaving || !leaving.dialog || (leaving.blocking && leaving.blocking !== top)) wnd.transition('window', wnd.find('div'), { intro: true });
+        const transition = this.get('transition');
+        if (transition !== false && (!leaving || !leaving.dialog || (leaving.blocking && leaving.blocking !== top))) wnd.transition(transition || 'window', wnd.find('div'), { intro: true });
       }
     }
 
     place(wnd) {
-      if (!wnd.get('control.show')) return;
-      const local = wnd.get('control');
-      if (local.width === undefined) wnd.size('auto');
-      let left = 0;
-      let top = 0;
+      if (!wnd.get('control.show')) return Promise.resolve();
+      return new Promise(ok => {
+        requestAnimationFrame(() => {
+          const local = wnd.get('control');
+          if (local.width === undefined) wnd.size('auto');
+          let left = 0;
+          let top = 0;
 
-      if (!(this.fragment && this.fragment.rendered)) return;
+          if (!(this.fragment && this.fragment.rendered)) return;
 
-      const host = this.find('.rwhost');
-      const maxw = host.clientWidth;
-      const maxh = host.clientHeight;
+          const host = this.find('.rwhost');
+          const maxw = host.clientWidth;
+          const maxh = host.clientHeight;
 
-      // if it's blocking, center on blocked
-      const blocking = local.blocking;
-      if (blocking) {
-        const key = `windows.${escape(blocking)}`;
-        const blocked = this.get(key);
-        const max = local.max || (!local.dialog && (this.get('max') || this.get('userMax')));
-        const bmax = blocked.max || this.get('userMax') || this.get('max');
-        const bw = bmax ? this.host.clientWidth : this.sizeInPx(`${blocked.width}em`);
-        const bh = bmax ? this.host.clientHeight : this.sizeInPx(`${blocked.height}em`);
-        const bl = bmax ? 0 : blocked.left;
-        const bt = bmax ? 0 : blocked.top;
+          // if it's blocking, center on blocked
+          const blocking = local.blocking;
+          if (blocking) {
+            const key = `windows.${escape(blocking)}`;
+            const blocked = this.get(key);
+            const max = local.max || (!local.dialog && (this.get('max') || this.get('userMax')));
+            const bmax = blocked.max || this.get('userMax') || this.get('max');
+            const bw = bmax ? this.host.clientWidth : this.sizeInPx(`${blocked.width}em`);
+            const bh = bmax ? this.host.clientHeight : this.sizeInPx(`${blocked.height}em`);
+            const bl = bmax ? 0 : blocked.left;
+            const bt = bmax ? 0 : blocked.top;
 
-        left = (max ? maxw : bw / 2) + (max ? 0 : bl) - (this.sizeInPx(`${local.width}em`) / 2);
-        top = (max ? maxh : bh / 2) + (max ? 0 : bt) - (this.sizeInPx(`${local.height}em`) / 2);
-      }
-
-      // place in 3x3 grid
-      else {
-        const place = this.get('placement');
-        let pos;
-        if (typeof place === 'function') {
-          try {
-            pos = place(this, host, local);
-          } catch (e) {
-            pos = placeGrid(this, host, local);
+            left = (max ? maxw : bw / 2) + (max ? 0 : bl) - (this.sizeInPx(`${local.width}em`) / 2);
+            top = (max ? maxh : bh / 2) + (max ? 0 : bt) - (this.sizeInPx(`${local.height}em`) / 2);
           }
-        } else if (typeof place === 'string') {
-          switch (place) {
-            case 'smart':
-              pos = placeSmart(this, host, local);
-              break;
-            default:
+
+          // place in 3x3 grid
+          else {
+            const place = this.get('placement');
+            let pos;
+            if (typeof place === 'function') {
+              try {
+                pos = place(this, host, local);
+              } catch (e) {
+                pos = placeGrid(this, host, local);
+              }
+            } else if (typeof place === 'string') {
+              switch (place) {
+                case 'smart':
+                  pos = placeSmart(this, host, local);
+                  break;
+                default:
+                  pos = placeGrid(this, host, local);
+                  break;
+              }
+            } else {
               pos = placeGrid(this, host, local);
-              break;
+            }
+            top = pos.top;
+            left = pos.left;
           }
-        } else {
-          pos = placeGrid(this, host, local);
-        }
-        top = pos.top;
-        left = pos.left;
-      }
 
-      if (isNaN(left) || left < 0) left = 10;
-      if (isNaN(top) || top < 0) top = 10;
+          if (isNaN(left) || left < 0) left = 10;
+          if (isNaN(top) || top < 0) top = 10;
 
-      wnd.set({
-        'control.top': top,
-        'control.left': left
+          wnd.set({
+            'control.top': top,
+            'control.left': left
+          });
+
+          ok();
+        });
       });
     }
 
@@ -701,65 +714,71 @@
     }
 
     size(w, h) {
-      if (!this.visible) {
-        if (typeof w === 'number' && typeof h === 'number') {
-          this.set({
-            'control.width': this.host.sizeInEm(w),
-            'control.height': this.host.sizeInEm(h),
-            'control.naturalWidth': this.host.sizeInEm(w),
-            'control.naturalHeight': this.host.sizeInEm(h),
-            'control.autosize': false
-          });
-        }
-        return;
-      }
+      return new Promise(ok => {
+        requestAnimationFrame(() => {
+          if (!this.visible) {
+            if (typeof w === 'number' && typeof h === 'number') {
+              this.set({
+                'control.width': this.host.sizeInEm(w),
+                'control.height': this.host.sizeInEm(h),
+                'control.naturalWidth': this.host.sizeInEm(w),
+                'control.naturalHeight': this.host.sizeInEm(h),
+                'control.autosize': false
+              });
+            }
+            return;
+          }
 
-      const el = this.wrapper;
-      if (!el) return;
+          const el = this.wrapper;
+          if (!el) return;
 
-      if (w === 'auto') {
-        this.set('control.autosize', true);
-        const nw = this.host.sizeInEm(el.clientWidth + 16);
-        const nh = this.host.sizeInEm(el.clientHeight);
-        this.set({
-          'control.width': nw,
-          'control.height': nh,
-          'control.naturalWidth': nw,
-          'control.naturalHeight': nh,
-          'control.autosize': false
+          if (w === 'auto') {
+            this.set('control.autosize', true);
+            const nw = this.host.sizeInEm(el.clientWidth + 16);
+            const nh = this.host.sizeInEm(el.clientHeight);
+            this.set({
+              'control.width': nw,
+              'control.height': nh,
+              'control.naturalWidth': nw,
+              'control.naturalHeight': nh,
+              'control.autosize': false
+            });
+          }
+
+          else if (typeof w === 'number' && typeof h === 'number') {
+            this.set({
+              'control.width': this.host.sizeInEm(w),
+              'control.height': this.host.sizeInEm(h),
+              'control.naturalWidth': this.host.sizeInEm(w),
+              'control.naturalHeight': this.host.sizeInEm(h),
+              'control.autosize': false
+            });
+          }
+
+          else if (typeof w === 'string' && typeof h === 'string') {
+            const ow = el.style.width;
+            const oh = el.style.height;
+            el.style.width = w;
+            el.style.height = h;
+            const nw = el.clientWidth;
+            const nh = el.clientHeight;
+            el.style.width = ow;
+            el.style.height = oh;
+
+            this.set({
+              'control.width': this.host.sizeInEm(nw),
+              'control.height': this.host.sizeInEm(nh),
+              'control.naturalWidth': this.host.sizeInEm(nw),
+              'control.naturalHeight': this.host.sizeInEm(nh),
+              'control.autosize': false
+            });
+          }
+
+          this.fire('resize');
+
+          ok();
         });
-      }
-
-      else if (typeof w === 'number' && typeof h === 'number') {
-        this.set({
-          'control.width': this.host.sizeInEm(w),
-          'control.height': this.host.sizeInEm(h),
-          'control.naturalWidth': this.host.sizeInEm(w),
-          'control.naturalHeight': this.host.sizeInEm(h),
-          'control.autosize': false
-        });
-      }
-
-      else if (typeof w === 'string' && typeof h === 'string') {
-        const ow = el.style.width;
-        const oh = el.style.height;
-        el.style.width = w;
-        el.style.height = h;
-        const nw = el.clientWidth;
-        const nh = el.clientHeight;
-        el.style.width = ow;
-        el.style.height = oh;
-
-        this.set({
-          'control.width': this.host.sizeInEm(nw),
-          'control.height': this.host.sizeInEm(nh),
-          'control.naturalWidth': this.host.sizeInEm(nw),
-          'control.naturalHeight': this.host.sizeInEm(nh),
-          'control.autosize': false
-        });
-      }
-
-      this.fire('resize');
+      });
     }
 
     move(top, left) {

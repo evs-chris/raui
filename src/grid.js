@@ -96,17 +96,17 @@ export function grid(node, options) {
     resize();
   }
 
-  const listener = this.root.on('*.resize', resize);
-  const observer = this.observe('@style.break', settings);
+  const listener = this.root.on('*.resize', () => requestAnimationFrame(resize));
+  const observer = this.observe('@style.break', settings, { init: false });
 
   node.className += ' grid grid-root';
-  settings();
+  requestAnimationFrame(settings);
 
   return {
     update(options) {
       // TODO: if type changes, undo whatever the original did first
       opts = options || {};
-      resize();
+      requestAnimationFrame(resize);
     },
     teardown() {
       node.className = node.className.replace(regexps['grid grid-root'], '').trim();

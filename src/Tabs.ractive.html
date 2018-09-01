@@ -267,7 +267,7 @@
     if (current !== idx) {
       const cur = this.getContext(this.find('.rtabs-selected'));
       const window = this.find('.rtabs-content-window');
-      this.set(`scroll.${cur.get('@index')}`, window.scrollTop);
+      if (~current) this.set(`scroll.${cur.get('@index')}`, window.scrollTop);
       if (cur.hasListener('leave')) cur.raise('leave');
       if (trans === 'fade') {
         this.set({
@@ -283,7 +283,7 @@
             opacity: 1
           });
           if (ctx.hasListener('enter')) ctx.raise('enter');
-          if (window) window.scrollTop = this.get(`scroll.${idx}`) || 0;
+          if (window && ~current) window.scrollTop = this.get(`scroll.${idx}`) || 0;
         }, 150);
       } else if (trans === 'slide') {
         this.set('selected', idx);
@@ -291,7 +291,7 @@
         this.updateIndicator();
         const ctx = this.getContext(this.find('.rtabs-selected'));
         if (ctx.hasListener('enter')) ctx.raise('enter');
-        if (window) window.scrollTop = this.get(`scroll.${idx}`) || 0;
+        if (window && ~current) window.scrollTop = this.get(`scroll.${idx}`) || 0;
       } else {
         this.set({
           selected: idx,
@@ -303,7 +303,7 @@
         if (window) window.scrollTop = this.get(`scroll.${idx}`) || 0;
       }
 
-      if (window && window.scrollLeft) window.scrollLeft = 0;
+      if (~current && window && window.scrollLeft) window.scrollLeft = 0;
     }
   }
 

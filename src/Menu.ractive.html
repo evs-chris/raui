@@ -18,7 +18,7 @@
       {{#if .popout}}
         pop-in-out
         {{#if .open}}on-clickout="@.popAllIn(@keypath)"{{/if}}
-      {{else}}
+      {{elseif !~/noExpand}}
         expand-in-out
       {{/if}}
       {{#if .refPartial}}{{>.refPartial}}{{elseif typeof .ref === 'string'}}as-ref=".ref"{{/if}}
@@ -207,7 +207,7 @@
         if ( this._items ) this.set('items', (this.get('items') || []).concat(this._items), { shuffle: true });
       }
     },
-    attributes: [],
+    attributes: ['noExpand'],
     use: [expand(), clickout()],
     decorators: {
       ref(node, name) {
