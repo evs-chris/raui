@@ -51,25 +51,27 @@
             <option value="table">Table</option>
           </select></label>
           <label as-field><input type="checkbox" checked="{{border}}" />Border</label>
+          <label as-field><input type="checkbox" checked="{{fixedHeader}}" />Fixed Header</label>
           <label as-field><input type="checkbox" checked="{{select}}" />Select</label>
           <label as-field><input type="checkbox" checked="{{selectAll}}" />Select All</label>
           <label as-field><input type="checkbox" checked="{{groups}}" />Show Groups</label>
           <label as-field><input type="checkbox" checked="{{groupSelect}}" />Group Select</label>
           <label as-field>Pagination<select value="{{paginate}}"><option>auto</option><option>virtual</option><option>fixed</option><option value="{{null}}">none</option></select></label>
           {{#if paginate === 'fixed'}}<label as-field>Items per page<input type="number" value="{{pages}}" /></label>{{/if}}
+          <label as-field><input type="checkbox" checked="{{editable}}" /> Editable Bar</label>
         </div>
         <marked>
           The table below is populated with 2,000 objects in the form `{ foo, bar, bat }` that are based on randomly generated strings (foo, bar) and booleans (bat).
 
           ### Template:
           ```handlebars
-          <data-table bind-display=mode bind-items bind-filter="[{ op: '||', value: [{ id: 'Foo', op: 'like', value: filter }, { id: 'Bar', op: 'like', value: filter }] }]" bind-border bind-paginate="paginate === 'fixed' ? pages : paginate" bind-allowSelect="select" bind-allowSelectAll="selectAll" paginate=auto on-selected="console.log($1)">
+          <data-table bind-display=mode bind-items bind-filter="[{ op: '||', value: [{ id: 'Foo', op: 'like', value: filter }, { id: 'Bar', op: 'like', value: filter }] }]" bind-border bind-fixedHeader bind-paginate="paginate === 'fixed' ? pages : paginate" bind-allowSelect="select" bind-allowSelectAll="selectAll" paginate=auto on-selected="console.log($1)">
             <row>
               <h3>Extra stuff goes here</h3>
               <p>I have a {{.foo}} that is {{.bar}}.</p>
             </row>
             <column t1 s1-2 m1-3 label="Foo" filter=foo>{{.foo}}</column>
-            <column t0 s1-2 m1-3 label="Bar" filter=bar>{{.bar}}</column>
+            <column t0 s1-2 m1-3 label="Bar" filter=bar bind-editable>{{.bar}}</column>
             <column t0 m1-3 label="???">{{.bat ? 'Yep' : 'Nope'}}</column>
             <group by=bat select="{{groupSelect}}" show="{{groups}}">
               <column t7-8>{{.bat ? 'Yeps' : 'Nopes'}}</column>
@@ -80,13 +82,13 @@
         </marked>
         </div>
       </pane><pane style-display=flex style-flex-direction=column>
-        <data-table bind-display=mode bind-items bind-filter="[{ op: 'and', value: [{ id: 'Foo', op: 'like', value: filter }, { id: 'Bar', op: 'like', value: filter }] }]" bind-border bind-paginate="paginate === 'fixed' ? pages : paginate" bind-allowSelect="select" bind-allowSelectAll="selectAll" paginate=auto on-selected="console.log($1)">
+        <data-table bind-display=mode bind-items bind-filter="[{ op: '||', value: [{ id: 'Foo', op: 'like', value: filter }, { id: 'Bar', op: 'like', value: filter }] }]" bind-border bind-fixedHeader bind-paginate="paginate === 'fixed' ? pages : paginate" bind-allowSelect="select" bind-allowSelectAll="selectAll" paginate=auto on-selected="console.log($1)">
           <row>
             <h3>Extra stuff goes here</h3>
             <p>I have a {{.foo}} that is {{.bar}}.</p>
           </row>
           <column t1 s1-2 m1-3 label="Foo" filter=foo>{{.foo}}</column>
-          <column t0 s1-2 m1-3 label="Bar" filter=bar>{{.bar}}</column>
+          <column t0 s1-2 m1-3 label="Bar" filter=bar bind-editable>{{.bar}}</column>
           <column t0 m1-3 label="???">{{.bat ? 'Yep' : 'Nope'}}</column>
           <field id=when path=when type=date />
           <group by=bat select="{{groupSelect}}" show="{{groups}}">

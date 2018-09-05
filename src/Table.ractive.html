@@ -77,11 +77,13 @@
     on-click="@this._select(., @event), false"
     on-click="['select', ., ~/rows.indexOf(.), ~/visibleRows.indexOf(.)]"
     on-click="@this._expand(@index)"
+    on-click="@event.stopPropagation()"
   />
   {{#if ~/selections.indexOf(.)}}...{{/if}}
   {{#if . === ~/expanded}}...{{/if}}
   {{#if ~/virtual.offset > 0}}...{{/if}}
   {{#if !~/fixedHeader && ~/virtual.offset > 0}}...{{/if}}
+  {{#if ~/columns.0.type === 'boolean'}}...{{/if}}
 </template>
 
 <script>
@@ -812,7 +814,7 @@
     return res;
   }
 
-  const colAttrs = ['label', 'type', 'filter', 'hidden', 'sort', 'no-pad', 'id'];
+  const colAttrs = ['label', 'type', 'filter', 'hidden', 'sort', 'no-pad', 'id', 'editable'];
   const cell = /^[a-z]{1,3}[0-9]+(?:-[0-9]+)?$/;
   const empty = [];
   function construct() {
@@ -887,6 +889,11 @@
           else if (col.noPad && isObject(col.noPad.f)) col.noPad = map(col.noPad);
           else delete col.noPad;
 
+          col.editable = attrs.find(a => a.n === 'editable');
+          if (col.editable && col.editable.f === 0) col.editable = true;
+          else if (col.editable && isObject(col.editable.f)) col.editable = map(col.editable);
+          else col.editable = false;
+
           col.attrs = attrs.filter(a => !~colAttrs.indexOf(a.n));
 
           // handle inline grid sizes without requiring the class prefix
@@ -955,6 +962,7 @@
       });
 
       const row = [{ t: 7, e: 'tr', f: columns.filter(c => c.hidden !== true).map(c => {
+        // TODO: editable
         const td = { t: 7, e: 'td', f: [{ t: 16, r: `~/columns.${columns.indexOf(c)}.content`, c: { r: '.' } }], m: c.attrs.slice() };
         if (c.type) td.m.unshift({ t: 13, n: `class-rtable-${c.type}-column` }, { t: 13, n: 'class-rtable-column' });
         if (!td.m.find(a => a.n === 'title')) td.m.unshift({ t: 13, n: 'title', f: c.content.find(e => e.e) ? c.label : c.content });
@@ -1017,12 +1025,32 @@
         { t: 13, n: 'class-rtable-live' },
         { t: 13, n: 'class-rtable-selected', f: [{ t: 2, x: { r: ['~/selections', '.'], s: '~_0.indexOf(_1)' } }] }
       ], f: [{ t: 7, e: 'div', f: columns.filter(c => c.hidden !== true).map(c => {
-        const div = { t: 7, e: 'div', f: [{ t: 7, e: 'div', f: [{ t: 16, r: `~/columns.${columns.indexOf(c)}.content`, c: { r: '.' } }] }], m: c.attrs.slice() };
-        if (c.type) div.m.unshift({ t: 13, n: `class-rtable-${c.type}-column` });
-        div.m.push({ t: 13, n: 'class-rtable-column' });
-        if (!div.m.find(a => a.n === 'title')) div.m.unshift({ t: 13, n: 'title', f: c.content.find(e => e.e) ? c.label : c.content });
-        if (c.noPad === 0) div.m.push({ t: 13, n: 'class-rtable-no-pad' });
-        else if (c.noPad) div.m.push({ t: 13, n: 'class-rtable-no-pad', f: c.noPad });
+        let content = [{ t: 7, e: 'div', f: [{ t: 16, r: `~/columns.${columns.indexOf(c)}.content`, c: { r: '.' } }] }];
+        const attrs = c.attrs.slice();
+        if (c.editable && c.filter) {
+          // TODO: moar types - pick, date, maybe custom via edit tag
+          const noclicky = { t: 70, n: ['click', 'mousedown', 'pointerdown', 'MSPointerDown', 'touchstart'], f: { r: ['@event'], s: '[_0.stopPropagation()]' } };
+          const editor = [
+            { t: 4, n: 50, x: { r: [`~/columns.${columns.indexOf(c)}.type`], s: "_0==='boolean'" }, f: [{ t: 7, e: 'input', m: [{ t: 13, n: 'type', f: 'checkbox' }, { t: 13, n: 'checked', f: [{ t: 2, r: c.filter }] }, noclicky] }] },
+            { t: 4, n: 51, l: 1, f: [{ t: 7, e: 'input', m: [{ t: 13, n: 'value', f: [{ t: 2, r: c.filter }] }, noclicky] }] }
+          ];
+          if (typeof c.editable === 'object') {
+            attrs.push({ t: 13, n: 'class-rtable-editing', f: c.editable });
+            content = [
+              Object.assign({}, c.editable, { t: 4, n: 50, f: editor }),
+              { t: 4, n: 51, l: 1, f: content }
+            ]
+          } else {
+            attrs.push({ t: 13, n: 'class-rtable-editing' });
+            content = editor;
+          }
+        }
+        const div = { t: 7, e: 'div', f: content, m: attrs };
+        if (c.type) attrs.unshift({ t: 13, n: `class-rtable-${c.type}-column` });
+        attrs.push({ t: 13, n: 'class-rtable-column' });
+        if (!div.m.find(a => a.n === 'title')) attrs.unshift({ t: 13, n: 'title', f: c.content.find(e => e.e) ? c.label : c.content });
+        if (c.noPad === 0) attrs.push({ t: 13, n: 'class-rtable-no-pad' });
+        else if (c.noPad) attrs.push({ t: 13, n: 'class-rtable-no-pad', f: c.noPad });
         let res = div;
 
         if (c.hidden && c.hidden.r) {
@@ -1351,6 +1379,18 @@
     padding: 0 0.5em;
     margin: 0.2em 0.5em;
     min-height: 0;
+  }
+
+  .rtable-column.rtable-editing {
+    padding: 0;
+  }
+  .rtable-column.rtable-editing input {
+    width: 100%;
+    box-sizing: border-box;
+    height: 100%;
+    margin: 0;
+    border: none;
+    background-color: transparent;
   }
   ` + (data('table.includeGrid') !== false ? gridStyle(data) : '');
 </script>
