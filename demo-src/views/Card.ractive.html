@@ -74,6 +74,9 @@
       <label as-field>
         <input type="checkbox" checked="{{.margin}}" /> Margin?
       </label>
+      <label as-field>
+        <input type="checkbox" checked="{{.expandable}}" /> Expandable?
+      </label>
       <label as-field class-t1>
         Content<textarea lazy=1000>{{.content}}</textarea>
       </label>
@@ -82,7 +85,7 @@
     <marked>
       ### Template:
       ```handlebars
-      <card title="{{.title}}" subtitle="{{.subtitle}}" avatar="{{.avatar}}" avatar-round="{{.round}}" image="{{.image}}" image-alt="{{.alt}}" section="{{.section}}" flat="{{.flat}}" popout="{{.popout}}" style-max-width="30em" margin="{{.margin}}">
+      <card title="{{.title}}" subtitle="{{.subtitle}}" avatar="{{.avatar}}" avatar-round="{{.round}}" image="{{.image}}" image-alt="{{.alt}}" section="{{.section}}" flat="{{.flat}}" popout="{{.popout}}" style-max-width="30em" margin="{{.margin}}" expandable="{{.expandable}}">
         <avatar image="{{.avatar}}" round="{{.round}}" />
         {{>{ template: .content }}}
         <action on-click="console.log('Liked!')" title="Like this breed on FriendFace">Like</action>
@@ -91,7 +94,7 @@
       ```
       ### Result:
     </marked>
-    <card title="{{.title}}" subtitle="{{.subtitle}}" avatar="{{.avatar}}" avatar-round="{{.round}}" image="{{.image}}" image-alt="{{.alt}}" section="{{.section}}" flat="{{.flat}}" popout="{{.popout}}" style-max-width="30em" margin="{{.margin}}">
+    <card title="{{.title}}" subtitle="{{.subtitle}}" avatar="{{.avatar}}" avatar-round="{{.round}}" image="{{.image}}" image-alt="{{.alt}}" section="{{.section}}" flat="{{.flat}}" popout="{{.popout}}" style-max-width="30em" margin="{{.margin}}" expandable="{{.expandable}}">
       <avatar image="{{.avatar}}" round="{{.round}}" />
       {{>{ template: .content }}}
       <action on-click="console.log('Liked!')" title="Like this breed on FriendFace">Like</action>
@@ -104,7 +107,7 @@
       Here's the same card with the avatar content as a template.
       ### Template:
       ```handlebars
-      <card title="{{.title}}" subtitle="{{.subtitle}}" image="{{.image}}" image-alt="{{.alt}}" section="{{.section}}" flat="{{.flat}}" popout="{{.popout}}" style-max-width="30em" margin="{{.margin}}">
+      <card title="{{.title}}" subtitle="{{.subtitle}}" image="{{.image}}" image-alt="{{.alt}}" section="{{.section}}" flat="{{.flat}}" popout="{{.popout}}" style-max-width="30em" margin="{{.margin}}" expandable="{{.expandable}}">
         <avatar>{{>{ template: .avatarContent }}}</avatar>
         {{>{ template: .content}}}
         <action on-click="console.log('Liked!')" title="Like this breed on FriendFace">Like</action>
@@ -113,7 +116,7 @@
       ```
       ### Result:
     </marked>
-    <card title="{{.title}}" subtitle="{{.subtitle}}" image="{{.image}}" image-alt="{{.alt}}" section="{{.section}}" flat="{{.flat}}" popout="{{.popout}}" style-max-width="30em" margin="{{.margin}}">
+    <card title="{{.title}}" subtitle="{{.subtitle}}" image="{{.image}}" image-alt="{{.alt}}" section="{{.section}}" flat="{{.flat}}" popout="{{.popout}}" style-max-width="30em" margin="{{.margin}}" expandable="{{.expandable}}">
       <avatar>{{>{ template: .avatarContent }}}</avatar>
       {{>{ template: .content}}}
       <action on-click="console.log('Liked!')" title="Like this breed on FriendFace">Like</action>

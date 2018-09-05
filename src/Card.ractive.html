@@ -1,7 +1,7 @@
 <div class-rcard-wrapper {{>extra-attributes}} class-rcard-margin="_card.margin">
-  <div class-rcard class-rcard-no-pad="_card.noPad" class-rcard-section="_card.section" class-rcard-flat="'flat' in _card ? _card.flat : @style.card.flat" class-rcard-deep="'flat' in _card ? !_card.flat : !@style.card.flat" class-rcard-popout="_card.popout">
+  <div class-rcard class-rcard-no-pad="_card.noPad" class-rcard-section="_card.section" class-rcard-flat="'flat' in _card ? _card.flat : @style.card.flat" class-rcard-deep="'flat' in _card ? !_card.flat : !@style.card.flat" class-rcard-popout="_card.popout" class-rcard-collapsed="_card.expandable && _card.expanded === false" class-rcard-expandable="_card.expandable">
     {{#if _card.titleP || _card.subtitleP || _card.avatarP || _card.title || _card.subtitle || (_card.avatar && typeof _card.avatar === 'string')}}
-      <div class-rcard-header>
+      <div class-rcard-header {{#if _card.expandable}}on-click="@context.set('_card.expanded', _card.expanded === false ? true : false)"{{/if}}>
         {{#if _card.avatar && typeof _card.avatar === 'string'}}<div class-rcard-avatar class-rcard-avatar-round="_card.round">
           <div class-rcard-avatar-inner style-background-image="url({{_card.avatar}})" />
         </div>
@@ -12,16 +12,21 @@
           {{#if _card.subtitle}}<div class-rcard-subtitle>{{_card.subtitle}}</div>
           {{elseif _card.subtitleP}}<div class-rcard-subtitle {{#if _card.subtitleA}}{{>_card.subtitleA}}{{/if}}>{{>_card.subtitleP}}</div>{{/if}}
         </div>
+        {{#if _card.expandable}}
+          <div class-rcard-expand class-rcard-expanded="_card.expanded !== false"><svg><path d="M16.59 8.59L12 13.17 7.41 8.59 6 10l6 6 6-6z"></path></svg></div>
+        {{/if}}
       </div>
     {{/if}}
-    {{#if _card.image}}<div class-rcard-image><img src="{{_card.image}}" alt="{{_card.alt}}"/></div>
-    {{elseif _card.imageP}}<div class-rcard-image {{#if _card.imageA}}{{>_card.imageA}}{{/if}}>{{>_card.imageP}}</div>{{/if}}
-    {{#if _card.contentP}}<div class-rcard-content>{{>_card.contentP}}</div>{{/if}}
-    {{#if _card.footerP}}<div class-rcard-footer {{#if _card.footerA}}{{>_card.footerA}}{{/if}}>{{>_card.footerP}}</div>{{/if}}
-    {{#if _card.actions.length}}
-      <div class-rcard-actions>
-        {{#each _card.actions}}{{#if .P}}{{>.P}}{{else}}<button {{>.attrs}}>{{>.content}}</button>{{/if}}{{/each}}
-      </div>
+    {{#if !_card.expandable || _card.expanded !== false}}
+      {{#if _card.image}}<div class-rcard-image expand-in-out><img src="{{_card.image}}" alt="{{_card.alt}}"/></div>
+      {{elseif _card.imageP}}<div class-rcard-image expand-in-out {{#if _card.imageA}}{{>_card.imageA}}{{/if}}>{{>_card.imageP}}</div>{{/if}}
+      {{#if _card.contentP}}<div class-rcard-content expand-in-out>{{>_card.contentP}}</div>{{/if}}
+      {{#if _card.footerP}}<div class-rcard-footer {{#if _card.footerA}}{{>_card.footerA}}{{/if}} expand-in-out>{{>_card.footerP}}</div>{{/if}}
+      {{#if _card.actions.length}}
+        <div class-rcard-actions expand-in-out>
+          {{#each _card.actions}}{{#if .P}}{{>.P}}{{else}}<button {{>.attrs}}>{{>.content}}</button>{{/if}}{{/each}}
+        </div>
+      {{/if}}
     {{/if}}
   </div>
 </div>
@@ -29,6 +34,7 @@
 <script>
   import Ractive from 'ractive';
   import globalRegister from './globalRegister';
+  import { expand } from './transition-expand';
 
   const template = $TEMPLATE;
 
@@ -46,7 +52,7 @@
       cssId: 'rm-card',
       css: $CSS,
       noCssTransform: true,
-      attributes: ['title', 'subtitle', 'image', 'avatar', 'avatar-round', 'no-pad', 'image-alt', 'section', 'flat', 'popout', 'margin']
+      attributes: ['title', 'subtitle', 'image', 'avatar', 'avatar-round', 'no-pad', 'image-alt', 'section', 'flat', 'popout', 'margin', 'expandable', 'expanded']
     }
   );
 
@@ -109,7 +115,7 @@
     data.contentP = content;
   }
 
-  const keys = ['title', 'subtitle', 'image', 'section', 'flat', 'popout', 'margin']
+  const keys = ['title', 'subtitle', 'image', 'section', 'flat', 'popout', 'margin', 'expandable', 'expanded'];
   function updateAttrs(h) {
     keys.forEach(k => k in h.attributes && h.set(`@local.${k}`, h.attributes[k]));
     'avatar-round' in h.attributes && h.set('@local.round', h.attributes['avatar-round']);
@@ -120,6 +126,7 @@
 
   export function plugin(opts = {}) {
     return function({ instance }) {
+      if (!instance.transitions.expand) instance.transitions.expand = expand;
       instance.partials[opts.name || 'card'] = Card;
     };
   }
@@ -131,6 +138,11 @@
 
 <script rel="css">
   const primary = Object.assign({}, data('raui.primary'), data('raui.card.primary'));
+  const header = Object.assign({}, primary, data('raui.card.primary.header'));
+  const themes = (data('raui.themes') || []).slice();
+  (data('raui.card.themes') || []).forEach(t => {
+    if (!~themes.indexOf(t)) themes.push(t);
+  });
   return `
   .rcard-margin {
     padding: 0.5em;
@@ -173,23 +185,24 @@
 
   .rcard-header {
     display: flex;
+    align-items: center;
     height: 3em;
-    transition-duration: ${primary.duration || '0.2s'};
-    transition-timing-function: ${primary.easing || 'ease-in-out'};
+    transition-duration: ${header.duration || '0.2s'};
+    transition-timing-function: ${header.easing || 'ease-in-out'};
     transition-property: color, background-color, padding, height;
   }
 
   .rcard-section > .rcard-header {
-    background-color: ${primary.fga || '#07e'};
-    color: ${primary.bg || '#fff'};
+    background-color: ${header.fga || '#07e'};
+    color: ${header.bg || '#fff'};
     height: auto;
   }
 
   .rcard-section > .rcard-header:first-of-type {
-    padding: ${primary.headerPadding || '0.5em 1em'};${primary.headerGradient ? `
-    background: ${primary.headerGradient};
-    color: ${primary.fg || '#222'};
-    border-bottom: 1px solid ${primary.bc || '#ccc'};` : ''}
+    padding: ${header.padding || '0.5em 1em'};${header.gradient ? `
+    background: ${header.gradient};
+    color: ${header.fg || '#222'};
+    border-bottom: 1px solid ${header.bc || '#ccc'};` : ''}
   }
 
   .rcard-avatar {
@@ -286,6 +299,39 @@
     font-size: 1.2em;
   }
 
+  .rcard-expandable > .rcard-header {
+    cursor: pointer;
+    transition-property: color, background-color, height;
+  }
+  .rcard-expand {
+    flex-shrink: 1;
+    height: 24px;
+    transition: transform 0.2s ease-in-out;
+  }
+  .rcard-expand.rcard-expanded {
+    transform: rotate(180deg);
+    transform-origin: center;
+  }
+  .rcard-expand svg {
+    width: 24px;
+    height: 24px;
+  }
+  .rcard-expand svg path {
+    fill: ${header.fg || '#222'};
+    stroke: ${header.fg || '#222'};
+  }
+  .rcard-section > .rcard-header .rcard-expand svg path {
+    fill: ${header.bg || '#fff'};
+    stroke: ${header.bg || '#fff'};
+  }
+
+  .rcard-popout.rcard-collapsed > .rcard-header .rcard-avatar {
+    bottom: 1em;
+  }
+  .rcard-popout.rcard-collapsed.rcard-section > .rcard-header .rcard-avatar {
+    bottom: 0.5em;
+  }
+
   .rcard > div:first-of-type.rcard-image {
     margin-top: 0;
   }
@@ -378,6 +424,47 @@
     opacity: 1;
     transition: none;
   }
-  `;
-  // TODO: other themes
+  ` + themes.map(t => {
+    const theme = Object.assign({}, data('raui.primary'), data('raui.card.primary'), data(`raui.${t}`), data(`raui.card.${t}`));
+    const header = Object.assign({}, theme, data('raui.card.primary.header'), data(`raui.card.${t}.header`));
+    return `
+  .${t}.rcard {
+    color: ${theme.fg || '#222'};
+    background-color: ${theme.bg || '#fff'};
+    border-radius: ${theme.radius || '0.2em'};
+  }
+  .${t}.rcard-deep {
+    box-shadow: ${primary.shadow || '0 1px 4px 0 rgba(0,0,0,0.14)'};
+    border: 1px solid ${primary.bc || '#ccc'};
+  }
+  .${t}.rcard-flat {
+    border: 0.0625em solid ${primary.bc || '#ccc'};
+  }
+
+  .${t}.rcard-section > .rcard-header {
+    background-color: ${header.fga || '#07e'};
+    color: ${header.bg || '#fff'};
+  }
+
+  .${t}.rcard-section > .rcard-header:first-of-type {
+    padding: ${header.padding || '0.5em 1em'};${header.gradient ? `
+    background: ${header.gradient};
+    color: ${header.fg || '#222'};
+    border-bottom: 1px solid ${header.bc || '#ccc'};` : ''}
+  }
+
+  .${t} > .rcard-header.rcard-expand svg path {
+    fill: ${header.fg || '#222'};
+    stroke: ${header.fg || '#222'};
+  }
+  .${t}.rcard-section > .rcard-header .rcard-expand svg path {
+    fill: ${header.bg || '#fff'};
+    stroke: ${header.bg || '#fff'};
+  }
+  .${t} > .rcard-actions > button {
+    background-color: ${primary.bg || '#fff'};
+    color: ${primary.fg || '#222'};
+  }
+    `;
+  }).join('');
 </script>
