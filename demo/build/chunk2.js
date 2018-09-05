@@ -8,6 +8,7 @@ System.register(['ractive'], function (exports, module) {
     execute: function () {
 
       exports('default', globalRegister);
+      exports('expand', expand);
       exports('default$3', plugin$1);
       var win = typeof window !== 'undefined' ? window : null;
 
@@ -375,7 +376,13 @@ System.register(['ractive'], function (exports, module) {
           }
 
           if (wnd) {
-            if (opts.parent !== false && wnd.get('control.blocking')) { top = this.get(("windows." + (wnd.get('control.blocking')) + ".index")) || 0; }
+            if (opts.parent !== false && wnd.get('control.blocking')) {
+              top = this.get(("windows." + (wnd.get('control.blocking')) + ".index")) || 0;
+              wnds.forEach(function (w) {
+                if (w.index > top) { w.index++; }
+              });
+              top++;
+            }
             wnd.set('control.index', opts.show === false ? -1 : top++);
             if (opts.show !== false && !wnd.visible) { wnd.show(); }
 
@@ -416,71 +423,80 @@ System.register(['ractive'], function (exports, module) {
           if (top && top !== last && this.get('currentMax') && this.rendered) {
             var leaving = this.get(("windows." + (escape(last))));
             wnd = this.getWindow(top);
-            if (!leaving || !leaving.dialog || (leaving.blocking && leaving.blocking !== top)) { wnd.transition('window', wnd.find('div'), { intro: true }); }
+            var transition = this.get('transition');
+            if (transition !== false && (!leaving || !leaving.dialog || (leaving.blocking && leaving.blocking !== top))) { wnd.transition(transition || 'window', wnd.find('div'), { intro: true }); }
           }
         };
 
         Host.prototype.place = function place (wnd) {
-          if (!wnd.get('control.show')) { return; }
-          var local = wnd.get('control');
-          if (local.width === undefined) { wnd.size('auto'); }
-          var left = 0;
-          var top = 0;
+          var this$1 = this;
 
-          if (!(this.fragment && this.fragment.rendered)) { return; }
+          if (!wnd.get('control.show')) { return Promise.resolve(); }
+          return new Promise(function (ok) {
+            requestAnimationFrame(function () {
+              var local = wnd.get('control');
+              if (local.width === undefined) { wnd.size('auto'); }
+              var left = 0;
+              var top = 0;
 
-          var host = this.find('.rwhost');
-          var maxw = host.clientWidth;
-          var maxh = host.clientHeight;
+              if (!(this$1.fragment && this$1.fragment.rendered)) { return; }
 
-          // if it's blocking, center on blocked
-          var blocking = local.blocking;
-          if (blocking) {
-            var key = "windows." + (escape(blocking));
-            var blocked = this.get(key);
-            var max = local.max || (!local.dialog && (this.get('max') || this.get('userMax')));
-            var bmax = blocked.max || this.get('userMax') || this.get('max');
-            var bw = bmax ? this.host.clientWidth : this.sizeInPx(((blocked.width) + "em"));
-            var bh = bmax ? this.host.clientHeight : this.sizeInPx(((blocked.height) + "em"));
-            var bl = bmax ? 0 : blocked.left;
-            var bt = bmax ? 0 : blocked.top;
+              var host = this$1.find('.rwhost');
+              var maxw = host.clientWidth;
+              var maxh = host.clientHeight;
 
-            left = (max ? maxw : bw / 2) + (max ? 0 : bl) - (this.sizeInPx(((local.width) + "em")) / 2);
-            top = (max ? maxh : bh / 2) + (max ? 0 : bt) - (this.sizeInPx(((local.height) + "em")) / 2);
-          }
+              // if it's blocking, center on blocked
+              var blocking = local.blocking;
+              if (blocking) {
+                var key = "windows." + (escape(blocking));
+                var blocked = this$1.get(key);
+                var max = local.max || (!local.dialog && (this$1.get('max') || this$1.get('userMax')));
+                var bmax = blocked.max || this$1.get('userMax') || this$1.get('max');
+                var bw = bmax ? this$1.host.clientWidth : this$1.sizeInPx(((blocked.width) + "em"));
+                var bh = bmax ? this$1.host.clientHeight : this$1.sizeInPx(((blocked.height) + "em"));
+                var bl = bmax ? 0 : blocked.left;
+                var bt = bmax ? 0 : blocked.top;
 
-          // place in 3x3 grid
-          else {
-            var place = this.get('placement');
-            var pos;
-            if (typeof place === 'function') {
-              try {
-                pos = place(this, host, local);
-              } catch (e) {
-                pos = placeGrid(this, host, local);
+                left = (max ? maxw : bw / 2) + (max ? 0 : bl) - (this$1.sizeInPx(((local.width) + "em")) / 2);
+                top = (max ? maxh : bh / 2) + (max ? 0 : bt) - (this$1.sizeInPx(((local.height) + "em")) / 2);
               }
-            } else if (typeof place === 'string') {
-              switch (place) {
-                case 'smart':
-                  pos = placeSmart(this, host, local);
-                  break;
-                default:
-                  pos = placeGrid(this, host, local);
-                  break;
+
+              // place in 3x3 grid
+              else {
+                var place = this$1.get('placement');
+                var pos;
+                if (typeof place === 'function') {
+                  try {
+                    pos = place(this$1, host, local);
+                  } catch (e) {
+                    pos = placeGrid(this$1, host, local);
+                  }
+                } else if (typeof place === 'string') {
+                  switch (place) {
+                    case 'smart':
+                      pos = placeSmart(this$1, host, local);
+                      break;
+                    default:
+                      pos = placeGrid(this$1, host, local);
+                      break;
+                  }
+                } else {
+                  pos = placeGrid(this$1, host, local);
+                }
+                top = pos.top;
+                left = pos.left;
               }
-            } else {
-              pos = placeGrid(this, host, local);
-            }
-            top = pos.top;
-            left = pos.left;
-          }
 
-          if (isNaN(left) || left < 0) { left = 10; }
-          if (isNaN(top) || top < 0) { top = 10; }
+              if (isNaN(left) || left < 0) { left = 10; }
+              if (isNaN(top) || top < 0) { top = 10; }
 
-          wnd.set({
-            'control.top': top,
-            'control.left': left
+              wnd.set({
+                'control.top': top,
+                'control.left': left
+              });
+
+              ok();
+            });
           });
         };
 
@@ -606,7 +622,7 @@ System.register(['ractive'], function (exports, module) {
       }
 
       Base.extendWith(Host, {
-        template: {v:4,t:[{t:7,e:"div",m:[{t:13,n:"class",f:"rwhost",g:1},{n:"tracked",t:71,f:{r:[],s:"[\"host\"]"}}],f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rwhost-sizer",g:1},{n:"tracked",t:71,f:{r:[],s:"[\"sizer\"]"}}]}," ",{t:4,f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rwindow-max-top",g:1},{t:4,f:[{t:16,r:"~/_maxAttrsP"}],n:50,r:"~/_maxAttrsP"}],f:[{t:16,r:"~/_maxP",z:[{n:"window",x:{r:"~/current"}},{n:"windowControls",x:{x:{r:["@this.partials.windowControls"],s:"{t:_0}"}}},{n:"host",x:{r:"@this"}}]}]}],n:50,x:{r:["~/currentMax","~/_maxP"],s:"_0&&_1"}}," ",{t:7,e:"div",m:[{t:13,n:"class",f:"rwhost-pane",g:1}],f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rwhost-pane-content",g:1}],f:[{t:16}]}," ",{t:4,f:[{t:11,n:"window",m:[{n:"control",f:[{t:2,rx:{r:"~/windows",m:[{t:30,n:".instance.id"}]}}],t:13},{n:"root",t:13,f:[{t:2,r:"~/"}]}]}],n:52,r:"@this.children.byName.window"}," ",{t:7,e:"div",m:[{t:13,n:"class",f:"rwhost-modal",g:1},{t:4,f:[{n:"class-rwhost-modal-active",t:13},{n:"style-z-index",f:[{t:2,r:"~/blocked"}],t:13}],n:50,r:"~/blocked"}]}]}," ",{t:8,r:"toast"}]}],e:{"[\"host\"]":function (){return(["host"]);},"[\"sizer\"]":function (){return(["sizer"]);},"{t:_0}":function (_0){return({t:_0});},"_0&&_1":function (_0,_1){return(_0&&_1);},"[_0.getWindow(_1).hide()]":function (_0,_1){return([_0.getWindow(_1).hide()]);},"[_0.getWindow(_1).maximize()]":function (_0,_1){return([_0.getWindow(_1).maximize()]);},"!_0&&_1&&_2":function (_0,_1,_2){return(!_0&&_1&&_2);},"[_0.getWindow(_1).close()]":function (_0,_1){return([_0.getWindow(_1).close()]);},"[\"top\"]":function (){return(["top"]);},"[_0.hide()]":function (_0){return([_0.hide()]);},"!_0&&_1":function (_0,_1){return(!_0&&_1);},"[_0.maximize()]":function (_0){return([_0.maximize()]);},"[_0.close()]":function (_0){return([_0.close()]);},"(_0||_1||_2)&&_3&&!_4":function (_0,_1,_2,_3,_4){return((_0||_1||_2)&&_3&&!_4);},"[\"content\"]":function (){return(["content"]);},"!_0":function (_0){return(!_0);},"[_0.call(_1)]":function (_0,_1){return([_0.call(_1)]);},"[\"wrapper\"]":function (){return(["wrapper"]);},"_0||_1":function (_0,_1){return(_0||_1);},"(_0||_1||_2)&&!_3":function (_0,_1,_2,_3){return((_0||_1||_2)&&!_3);},"[_0._startResize(_1)]":function (_0,_1){return([_0._startResize(_1)]);},"[_0._sizeHandle(_1)]":function (_0,_1){return([_0._sizeHandle(_1)]);},"[_0._startMove(_1)]":function (_0,_1){return([_0._startMove(_1)]);},"!(_0===false||_1||_2||_3)&&!_4":function (_0,_1,_2,_3,_4){return(!(_0===false||_1||_2||_3)&&!_4);},"[_0.raise()]":function (_0){return([_0.raise()]);},"[\"pane\"]":function (){return(["pane"]);}},p:{title:[{t:4,f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rwindow-title",g:1}],f:[{t:3,r:"~/control.title"}]}],n:50,r:"~/control.title"}],windowControls:[{t:7,e:"div",m:[{t:13,n:"class",f:"rwindow-controls",g:1}],f:[{t:4,f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rwindow-minimize",g:1},{n:["click"],t:70,f:{r:["host","window.id"],s:"[_0.getWindow(_1).hide()]"}}]}],n:50,r:"window.minimize"}," ",{t:4,f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rwindow-maximize",g:1},{n:["click"],t:70,f:{r:["host","window.id"],s:"[_0.getWindow(_1).maximize()]"}}]}],n:50,x:{r:["~/window.dialog","window.maximize","host.data.userMax"],s:"!_0&&_1&&_2"}}," ",{t:4,f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rwindow-close",g:1},{n:["click"],t:70,f:{r:["host","window.id"],s:"[_0.getWindow(_1).close()]"}}]}],n:50,r:"window.close"}]}],pane:[{t:4,f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rwindow-pane-top",g:1},{n:"tracked",t:71,f:{r:[],s:"[\"top\"]"}}],f:[{t:8,r:"title"}," ",{t:7,e:"div",m:[{t:13,n:"class",f:"rwindow-controls",g:1}],f:[{t:4,f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rwindow-minimize",g:1},{n:["click"],t:70,f:{r:["@this"],s:"[_0.hide()]"}}]}],n:50,x:{r:["~/control.dialog","~/control.minimize"],s:"!_0&&_1"}}," ",{t:4,f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rwindow-maximize",g:1},{n:["click"],t:70,f:{r:["@this"],s:"[_0.maximize()]"}}]}],n:50,x:{r:["~/control.dialog","~/control.maximize"],s:"!_0&&_1"}}," ",{t:4,f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rwindow-close",g:1},{n:["click"],t:70,f:{r:["@this"],s:"[_0.close()]"}}]}],n:50,r:"~/control.close"}]}]}],n:51,x:{r:["~/control.max","~/root.userMax","~/root.max","~/root.hideTitleMax","~/control.dialog"],s:"(_0||_1||_2)&&_3&&!_4"}}," ",{t:7,e:"div",m:[{t:13,n:"class",f:"rwindow-content",g:1},{n:"tracked",t:71,f:{r:[],s:"[\"content\"]"}},{n:"class-rwindow-pad",t:13,f:[{t:2,r:"~/control.pad"}]},{n:"class-rwindow-flex",t:13,f:[{t:2,r:"~/control.flex"}]},{t:4,f:[{n:"style-overflow",f:"visible",t:13}],n:50,r:"~/control.autosize"}],f:[{t:8,r:"contents"}]}," ",{t:4,f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rwindow-buttons",g:1},{n:"class-no-buttons",t:13,f:[{t:2,x:{r:["~/visibleButtons"],s:"!_0"}}]}],f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rwindow-left-buttons",g:1}],f:[{t:4,f:[{t:4,f:[{t:8,r:".partial"}],n:50,r:".partial"},{t:4,f:[{t:7,e:"button",m:[{n:"button",t:71},{n:["click"],t:70,f:{r:[".action","@"],s:"[_0.call(_1)]"}},{t:4,f:[{n:"class",f:[{t:2,r:".class"}],t:13}],n:50,r:".class"}],f:[{t:2,r:".label"}]}],n:51,l:1}],n:52,r:"~/leftButtons"}]}," ",{t:7,e:"div",m:[{t:13,n:"class",f:"rwindow-center-buttons",g:1}],f:[{t:4,f:[{t:4,f:[{t:8,r:".partial"}],n:50,r:".partial"},{t:4,f:[{t:7,e:"button",m:[{n:"button",t:71},{n:["click"],t:70,f:{r:[".action","@"],s:"[_0.call(_1)]"}},{t:4,f:[{n:"class",f:[{t:2,r:".class"}],t:13}],n:50,r:".class"}],f:[{t:2,r:".label"}]}],n:51,l:1}],n:52,r:"~/centerButtons"}]}," ",{t:7,e:"div",m:[{t:13,n:"class",f:"rwindow-right-buttons",g:1}],f:[{t:4,f:[{t:4,f:[{t:8,r:".partial"}],n:50,r:".partial"},{t:4,f:[{t:7,e:"button",m:[{n:"button",t:71},{n:["click"],t:70,f:{r:[".action","@"],s:"[_0.call(_1)]"}},{t:4,f:[{n:"class",f:[{t:2,r:".class"}],t:13}],n:50,r:".class"}],f:[{t:2,r:".label"}]}],n:51,l:1}],n:52,r:"~/rightButtons"}]}]}],n:50,r:"~/buttons"}," ",{t:7,e:"div",m:[{t:13,n:"class",f:"rwindow-pane-bottom",g:1}],f:[{t:8,r:"status"}]}],window:[{t:4,f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rwindow-wrapper",g:1},{n:"tracked",t:71,f:{r:[],s:"[\"wrapper\"]"}},{t:4,f:[" ",{t:4,f:[{n:"style-top",f:"0",t:13},{n:"style-left",f:"0",t:13},{n:"style-width",f:"100%",t:13},{n:"style-height",f:"100%",t:13}],n:51,x:{r:["~/control.autosize","~/control.dialog"],s:"_0||_1"}},{n:"class-rwindow-max",t:13},{n:"window",t:72,v:"t2"}],n:50,x:{r:["~/root.max","~/root.userMax","~/control.max","~/control.dialog"],s:"(_0||_1||_2)&&!_3"}},{t:4,f:[{t:4,f:[{n:"class-rwindow-resizable",t:13},{n:["mousedown","touchstart"],t:70,f:{r:["@this","@event"],s:"[_0._startResize(_1)]"}},{n:["mousemove","mouseout"],t:70,f:{r:["@this","@event"],s:"[_0._sizeHandle(_1)]"}}],n:50,r:"~/control.resizable"}," ",{t:4,f:[{n:"class-rwindow-resizing",t:13}],n:50,r:"~/control.resizing"},{n:"modal",t:72,v:"t0"},{n:"style-top",f:[{t:2,r:"~/control.top"},"px"],t:13},{n:"style-left",f:[{t:2,r:"~/control.left"},"px"],t:13},{t:4,f:[{n:"style-width",f:[{t:2,r:"~/control.width"},"em"],t:13},{n:"style-height",f:[{t:2,r:"~/control.height"},"em"],t:13}],n:51,r:"~/control.autosize"}],n:51,l:1},{n:"style-z-index",f:[{t:2,r:"~/control.index"}],t:13},{n:"class-rwindow-topmost",t:13,f:[{t:2,r:"~/control.topmost"}]}],f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rwindow",g:1},{t:4,f:[{n:["mousedown","touchstart"],t:70,f:{r:["@this","@event"],s:"[_0._startMove(_1)]"}}],n:50,x:{r:["~/control.movable","~/root.max","~/root.userMax","~/control.max","~/control.dialog"],s:"!(_0===false||_1||_2||_3)&&!_4"}},{t:4,f:[{n:["mousedown","touchstart"],t:70,f:{r:["@this"],s:"[_0.raise()]"}}],n:50,x:{r:["~/control.topmost"],s:"!_0"},l:1}],f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rwindow-modal",g:1},{n:"class-rwindow-blocked",t:13,f:[{t:2,r:"~/control.blockers.length"}]}]}," ",{t:7,e:"div",m:[{t:13,n:"class",f:"rwindow-pane",g:1},{n:"tracked",t:71,f:{r:[],s:"[\"pane\"]"}},{t:4,f:[{n:"class-rwindow-autosizing",t:13}],n:50,r:"~/control.autosize"}],f:[{t:8,r:"pane"}]}]}]}],n:50,r:"~/control.show"}]}},
+        template: {v:4,t:[{t:7,e:"div",m:[{t:13,n:"class",f:"rwhost",g:1},{n:"tracked",t:71,f:{r:[],s:"[\"host\"]"}}],f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rwhost-sizer",g:1},{n:"tracked",t:71,f:{r:[],s:"[\"sizer\"]"}}]}," ",{t:4,f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rwindow-max-top",g:1},{t:4,f:[{t:16,r:"~/_maxAttrsP"}],n:50,r:"~/_maxAttrsP"}],f:[{t:16,r:"~/_maxP",z:[{n:"window",x:{r:"~/current"}},{n:"windowControls",x:{x:{r:["@this.partials.windowControls"],s:"{t:_0}"}}},{n:"host",x:{r:"@this"}}]}]}],n:50,x:{r:["~/currentMax","~/_maxP"],s:"_0&&_1"}}," ",{t:7,e:"div",m:[{t:13,n:"class",f:"rwhost-pane",g:1}],f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rwhost-pane-content",g:1}],f:[{t:16}]}," ",{t:4,f:[{t:11,n:"window",m:[{n:"control",f:[{t:2,rx:{r:"~/windows",m:[{t:30,n:".instance.id"}]}}],t:13},{n:"root",t:13,f:[{t:2,r:"~/"}]}]}],n:52,r:"@this.children.byName.window"}," ",{t:7,e:"div",m:[{t:13,n:"class",f:"rwhost-modal",g:1},{t:4,f:[{n:"class-rwhost-modal-active",t:13},{n:"style-z-index",f:[{t:2,r:"~/blocked"}],t:13}],n:50,r:"~/blocked"}]}]}," ",{t:8,r:"toast"}]}],e:{"[\"host\"]":function (){return(["host"]);},"[\"sizer\"]":function (){return(["sizer"]);},"{t:_0}":function (_0){return({t:_0});},"_0&&_1":function (_0,_1){return(_0&&_1);},"[_0.getWindow(_1).hide()]":function (_0,_1){return([_0.getWindow(_1).hide()]);},"[_0.getWindow(_1).maximize()]":function (_0,_1){return([_0.getWindow(_1).maximize()]);},"!_0&&_1&&_2":function (_0,_1,_2){return(!_0&&_1&&_2);},"[_0.getWindow(_1).close()]":function (_0,_1){return([_0.getWindow(_1).close()]);},"[\"top\"]":function (){return(["top"]);},"[_0.hide()]":function (_0){return([_0.hide()]);},"!_0&&_1":function (_0,_1){return(!_0&&_1);},"[_0.maximize()]":function (_0){return([_0.maximize()]);},"[_0.close()]":function (_0){return([_0.close()]);},"(_0||_1||_2)&&_3&&!_4":function (_0,_1,_2,_3,_4){return((_0||_1||_2)&&_3&&!_4);},"[\"content\"]":function (){return(["content"]);},"!_0":function (_0){return(!_0);},"[_0.call(_1)]":function (_0,_1){return([_0.call(_1)]);},"[\"wrapper\"]":function (){return(["wrapper"]);},"_0!==false":function (_0){return(_0!==false);},"_0||_1":function (_0,_1){return(_0||_1);},"(_0||_1||_2)&&!_3":function (_0,_1,_2,_3){return((_0||_1||_2)&&!_3);},"[_0._startResize(_1)]":function (_0,_1){return([_0._startResize(_1)]);},"[_0._sizeHandle(_1)]":function (_0,_1){return([_0._sizeHandle(_1)]);},"[_0._startMove(_1)]":function (_0,_1){return([_0._startMove(_1)]);},"!(_0===false||_1||_2||_3)&&!_4":function (_0,_1,_2,_3,_4){return(!(_0===false||_1||_2||_3)&&!_4);},"[_0.raise()]":function (_0){return([_0.raise()]);},"[\"pane\"]":function (){return(["pane"]);}},p:{title:[{t:4,f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rwindow-title",g:1}],f:[{t:3,r:"~/control.title"}]}],n:50,r:"~/control.title"}],windowControls:[{t:7,e:"div",m:[{t:13,n:"class",f:"rwindow-controls",g:1}],f:[{t:4,f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rwindow-minimize",g:1},{n:["click"],t:70,f:{r:["host","window.id"],s:"[_0.getWindow(_1).hide()]"}}]}],n:50,r:"window.minimize"}," ",{t:4,f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rwindow-maximize",g:1},{n:["click"],t:70,f:{r:["host","window.id"],s:"[_0.getWindow(_1).maximize()]"}}]}],n:50,x:{r:["~/window.dialog","window.maximize","host.data.userMax"],s:"!_0&&_1&&_2"}}," ",{t:4,f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rwindow-close",g:1},{n:["click"],t:70,f:{r:["host","window.id"],s:"[_0.getWindow(_1).close()]"}}]}],n:50,r:"window.close"}]}],pane:[{t:4,f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rwindow-pane-top",g:1},{n:"tracked",t:71,f:{r:[],s:"[\"top\"]"}}],f:[{t:8,r:"title"}," ",{t:7,e:"div",m:[{t:13,n:"class",f:"rwindow-controls",g:1}],f:[{t:4,f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rwindow-minimize",g:1},{n:["click"],t:70,f:{r:["@this"],s:"[_0.hide()]"}}]}],n:50,x:{r:["~/control.dialog","~/control.minimize"],s:"!_0&&_1"}}," ",{t:4,f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rwindow-maximize",g:1},{n:["click"],t:70,f:{r:["@this"],s:"[_0.maximize()]"}}]}],n:50,x:{r:["~/control.dialog","~/control.maximize"],s:"!_0&&_1"}}," ",{t:4,f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rwindow-close",g:1},{n:["click"],t:70,f:{r:["@this"],s:"[_0.close()]"}}]}],n:50,r:"~/control.close"}]}]}],n:51,x:{r:["~/control.max","~/root.userMax","~/root.max","~/root.hideTitleMax","~/control.dialog"],s:"(_0||_1||_2)&&_3&&!_4"}}," ",{t:7,e:"div",m:[{t:13,n:"class",f:"rwindow-content",g:1},{n:"tracked",t:71,f:{r:[],s:"[\"content\"]"}},{n:"class-rwindow-pad",t:13,f:[{t:2,r:"~/control.pad"}]},{n:"class-rwindow-flex",t:13,f:[{t:2,r:"~/control.flex"}]},{t:4,f:[{n:"style-overflow",f:"visible",t:13}],n:50,r:"~/control.autosize"}],f:[{t:8,r:"contents"}]}," ",{t:4,f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rwindow-buttons",g:1},{n:"class-no-buttons",t:13,f:[{t:2,x:{r:["~/visibleButtons"],s:"!_0"}}]}],f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rwindow-left-buttons",g:1}],f:[{t:4,f:[{t:4,f:[{t:8,r:".partial"}],n:50,r:".partial"},{t:4,f:[{t:7,e:"button",m:[{n:"button",t:71},{n:["click"],t:70,f:{r:[".action","@"],s:"[_0.call(_1)]"}},{t:4,f:[{n:"class",f:[{t:2,r:".class"}],t:13}],n:50,r:".class"}],f:[{t:2,r:".label"}]}],n:51,l:1}],n:52,r:"~/leftButtons"}]}," ",{t:7,e:"div",m:[{t:13,n:"class",f:"rwindow-center-buttons",g:1}],f:[{t:4,f:[{t:4,f:[{t:8,r:".partial"}],n:50,r:".partial"},{t:4,f:[{t:7,e:"button",m:[{n:"button",t:71},{n:["click"],t:70,f:{r:[".action","@"],s:"[_0.call(_1)]"}},{t:4,f:[{n:"class",f:[{t:2,r:".class"}],t:13}],n:50,r:".class"}],f:[{t:2,r:".label"}]}],n:51,l:1}],n:52,r:"~/centerButtons"}]}," ",{t:7,e:"div",m:[{t:13,n:"class",f:"rwindow-right-buttons",g:1}],f:[{t:4,f:[{t:4,f:[{t:8,r:".partial"}],n:50,r:".partial"},{t:4,f:[{t:7,e:"button",m:[{n:"button",t:71},{n:["click"],t:70,f:{r:[".action","@"],s:"[_0.call(_1)]"}},{t:4,f:[{n:"class",f:[{t:2,r:".class"}],t:13}],n:50,r:".class"}],f:[{t:2,r:".label"}]}],n:51,l:1}],n:52,r:"~/rightButtons"}]}]}],n:50,r:"~/buttons"}," ",{t:7,e:"div",m:[{t:13,n:"class",f:"rwindow-pane-bottom",g:1}],f:[{t:8,r:"status"}]}],window:[{t:4,f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rwindow-wrapper",g:1},{n:"tracked",t:71,f:{r:[],s:"[\"wrapper\"]"}},{t:4,f:[" ",{t:4,f:[{n:"window",t:72,v:"t2"}],n:50,x:{r:["~/root.transition"],s:"_0!==false"}}," ",{t:4,f:[{n:"style-top",f:"0",t:13},{n:"style-left",f:"0",t:13},{n:"style-width",f:"100%",t:13},{n:"style-height",f:"100%",t:13}],n:51,x:{r:["~/control.autosize","~/control.dialog"],s:"_0||_1"}},{n:"class-rwindow-max",t:13}],n:50,x:{r:["~/root.max","~/root.userMax","~/control.max","~/control.dialog"],s:"(_0||_1||_2)&&!_3"}},{t:4,f:[{t:4,f:[{n:"modal",t:72,v:"t0"}],n:50,x:{r:["~/root.transition"],s:"_0!==false"}}," ",{t:4,f:[{n:"class-rwindow-resizable",t:13},{n:["mousedown","touchstart"],t:70,f:{r:["@this","@event"],s:"[_0._startResize(_1)]"}},{n:["mousemove","mouseout"],t:70,f:{r:["@this","@event"],s:"[_0._sizeHandle(_1)]"}}],n:50,r:"~/control.resizable"}," ",{t:4,f:[{n:"class-rwindow-resizing",t:13}],n:50,r:"~/control.resizing"},{n:"style-top",f:[{t:2,r:"~/control.top"},"px"],t:13},{n:"style-left",f:[{t:2,r:"~/control.left"},"px"],t:13},{t:4,f:[{n:"style-width",f:[{t:2,r:"~/control.width"},"em"],t:13},{n:"style-height",f:[{t:2,r:"~/control.height"},"em"],t:13}],n:51,r:"~/control.autosize"}],n:51,l:1},{n:"style-z-index",f:[{t:2,r:"~/control.index"}],t:13},{n:"class-rwindow-topmost",t:13,f:[{t:2,r:"~/control.topmost"}]}],f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rwindow",g:1},{t:4,f:[{n:["mousedown","touchstart"],t:70,f:{r:["@this","@event"],s:"[_0._startMove(_1)]"}}],n:50,x:{r:["~/control.movable","~/root.max","~/root.userMax","~/control.max","~/control.dialog"],s:"!(_0===false||_1||_2||_3)&&!_4"}},{t:4,f:[{n:["mousedown","touchstart"],t:70,f:{r:["@this"],s:"[_0.raise()]"}}],n:50,x:{r:["~/control.topmost"],s:"!_0"},l:1}],f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rwindow-modal",g:1},{n:"class-rwindow-blocked",t:13,f:[{t:2,r:"~/control.blockers.length"}]}]}," ",{t:7,e:"div",m:[{t:13,n:"class",f:"rwindow-pane",g:1},{n:"tracked",t:71,f:{r:[],s:"[\"pane\"]"}},{t:4,f:[{n:"class-rwindow-autosizing",t:13}],n:50,r:"~/control.autosize"}],f:[{t:8,r:"pane"}]}]}]}],n:50,r:"~/control.show"}]}},
         use: [plugin$1(), plugin()],
         cssId: 'window-host',
         noIntro: true,
@@ -803,65 +819,73 @@ System.register(['ractive'], function (exports, module) {
         };
 
         Window.prototype.size = function size (w, h) {
-          if (!this.visible) {
-            if (typeof w === 'number' && typeof h === 'number') {
-              this.set({
-                'control.width': this.host.sizeInEm(w),
-                'control.height': this.host.sizeInEm(h),
-                'control.naturalWidth': this.host.sizeInEm(w),
-                'control.naturalHeight': this.host.sizeInEm(h),
-                'control.autosize': false
-              });
-            }
-            return;
-          }
+          var this$1 = this;
 
-          var el = this.wrapper;
-          if (!el) { return; }
+          return new Promise(function (ok) {
+            requestAnimationFrame(function () {
+              if (!this$1.visible) {
+                if (typeof w === 'number' && typeof h === 'number') {
+                  this$1.set({
+                    'control.width': this$1.host.sizeInEm(w),
+                    'control.height': this$1.host.sizeInEm(h),
+                    'control.naturalWidth': this$1.host.sizeInEm(w),
+                    'control.naturalHeight': this$1.host.sizeInEm(h),
+                    'control.autosize': false
+                  });
+                }
+                return;
+              }
 
-          if (w === 'auto') {
-            this.set('control.autosize', true);
-            var nw = this.host.sizeInEm(el.clientWidth + 16);
-            var nh = this.host.sizeInEm(el.clientHeight);
-            this.set({
-              'control.width': nw,
-              'control.height': nh,
-              'control.naturalWidth': nw,
-              'control.naturalHeight': nh,
-              'control.autosize': false
+              var el = this$1.wrapper;
+              if (!el) { return; }
+
+              if (w === 'auto') {
+                this$1.set('control.autosize', true);
+                var nw = this$1.host.sizeInEm(el.clientWidth + 16);
+                var nh = this$1.host.sizeInEm(el.clientHeight);
+                this$1.set({
+                  'control.width': nw,
+                  'control.height': nh,
+                  'control.naturalWidth': nw,
+                  'control.naturalHeight': nh,
+                  'control.autosize': false
+                });
+              }
+
+              else if (typeof w === 'number' && typeof h === 'number') {
+                this$1.set({
+                  'control.width': this$1.host.sizeInEm(w),
+                  'control.height': this$1.host.sizeInEm(h),
+                  'control.naturalWidth': this$1.host.sizeInEm(w),
+                  'control.naturalHeight': this$1.host.sizeInEm(h),
+                  'control.autosize': false
+                });
+              }
+
+              else if (typeof w === 'string' && typeof h === 'string') {
+                var ow = el.style.width;
+                var oh = el.style.height;
+                el.style.width = w;
+                el.style.height = h;
+                var nw$1 = el.clientWidth;
+                var nh$1 = el.clientHeight;
+                el.style.width = ow;
+                el.style.height = oh;
+
+                this$1.set({
+                  'control.width': this$1.host.sizeInEm(nw$1),
+                  'control.height': this$1.host.sizeInEm(nh$1),
+                  'control.naturalWidth': this$1.host.sizeInEm(nw$1),
+                  'control.naturalHeight': this$1.host.sizeInEm(nh$1),
+                  'control.autosize': false
+                });
+              }
+
+              this$1.fire('resize');
+
+              ok();
             });
-          }
-
-          else if (typeof w === 'number' && typeof h === 'number') {
-            this.set({
-              'control.width': this.host.sizeInEm(w),
-              'control.height': this.host.sizeInEm(h),
-              'control.naturalWidth': this.host.sizeInEm(w),
-              'control.naturalHeight': this.host.sizeInEm(h),
-              'control.autosize': false
-            });
-          }
-
-          else if (typeof w === 'string' && typeof h === 'string') {
-            var ow = el.style.width;
-            var oh = el.style.height;
-            el.style.width = w;
-            el.style.height = h;
-            var nw$1 = el.clientWidth;
-            var nh$1 = el.clientHeight;
-            el.style.width = ow;
-            el.style.height = oh;
-
-            this.set({
-              'control.width': this.host.sizeInEm(nw$1),
-              'control.height': this.host.sizeInEm(nh$1),
-              'control.naturalWidth': this.host.sizeInEm(nw$1),
-              'control.naturalHeight': this.host.sizeInEm(nh$1),
-              'control.autosize': false
-            });
-          }
-
-          this.fire('resize');
+          });
         };
 
         Window.prototype.move = function move (top, left) {
@@ -1062,7 +1086,7 @@ System.register(['ractive'], function (exports, module) {
 
       var buttonAttrs = [ 'left', 'right', 'center', 'condition' ];
       Base.extendWith(Window, {
-        template: {v:4,t:[{t:4,f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rwindow-wrapper",g:1},{n:"tracked",t:71,f:{r:[],s:"[\"wrapper\"]"}},{t:4,f:[" ",{t:4,f:[{n:"style-top",f:"0",t:13},{n:"style-left",f:"0",t:13},{n:"style-width",f:"100%",t:13},{n:"style-height",f:"100%",t:13}],n:51,x:{r:["~/control.autosize","~/control.dialog"],s:"_0||_1"}},{n:"class-rwindow-max",t:13},{n:"window",t:72,v:"t2"}],n:50,x:{r:["~/root.max","~/root.userMax","~/control.max","~/control.dialog"],s:"(_0||_1||_2)&&!_3"}},{t:4,f:[{t:4,f:[{n:"class-rwindow-resizable",t:13},{n:["mousedown","touchstart"],t:70,f:{r:["@this","@event"],s:"[_0._startResize(_1)]"}},{n:["mousemove","mouseout"],t:70,f:{r:["@this","@event"],s:"[_0._sizeHandle(_1)]"}}],n:50,r:"~/control.resizable"}," ",{t:4,f:[{n:"class-rwindow-resizing",t:13}],n:50,r:"~/control.resizing"},{n:"modal",t:72,v:"t0"},{n:"style-top",f:[{t:2,r:"~/control.top"},"px"],t:13},{n:"style-left",f:[{t:2,r:"~/control.left"},"px"],t:13},{t:4,f:[{n:"style-width",f:[{t:2,r:"~/control.width"},"em"],t:13},{n:"style-height",f:[{t:2,r:"~/control.height"},"em"],t:13}],n:51,r:"~/control.autosize"}],n:51,l:1},{n:"style-z-index",f:[{t:2,r:"~/control.index"}],t:13},{n:"class-rwindow-topmost",t:13,f:[{t:2,r:"~/control.topmost"}]}],f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rwindow",g:1},{t:4,f:[{n:["mousedown","touchstart"],t:70,f:{r:["@this","@event"],s:"[_0._startMove(_1)]"}}],n:50,x:{r:["~/control.movable","~/root.max","~/root.userMax","~/control.max","~/control.dialog"],s:"!(_0===false||_1||_2||_3)&&!_4"}},{t:4,f:[{n:["mousedown","touchstart"],t:70,f:{r:["@this"],s:"[_0.raise()]"}}],n:50,x:{r:["~/control.topmost"],s:"!_0"},l:1}],f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rwindow-modal",g:1},{n:"class-rwindow-blocked",t:13,f:[{t:2,r:"~/control.blockers.length"}]}]}," ",{t:7,e:"div",m:[{t:13,n:"class",f:"rwindow-pane",g:1},{n:"tracked",t:71,f:{r:[],s:"[\"pane\"]"}},{t:4,f:[{n:"class-rwindow-autosizing",t:13}],n:50,r:"~/control.autosize"}],f:[{t:8,r:"pane"}]}]}]}],n:50,r:"~/control.show"}]},
+        template: {v:4,t:[{t:4,f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rwindow-wrapper",g:1},{n:"tracked",t:71,f:{r:[],s:"[\"wrapper\"]"}},{t:4,f:[" ",{t:4,f:[{n:"window",t:72,v:"t2"}],n:50,x:{r:["~/root.transition"],s:"_0!==false"}}," ",{t:4,f:[{n:"style-top",f:"0",t:13},{n:"style-left",f:"0",t:13},{n:"style-width",f:"100%",t:13},{n:"style-height",f:"100%",t:13}],n:51,x:{r:["~/control.autosize","~/control.dialog"],s:"_0||_1"}},{n:"class-rwindow-max",t:13}],n:50,x:{r:["~/root.max","~/root.userMax","~/control.max","~/control.dialog"],s:"(_0||_1||_2)&&!_3"}},{t:4,f:[{t:4,f:[{n:"modal",t:72,v:"t0"}],n:50,x:{r:["~/root.transition"],s:"_0!==false"}}," ",{t:4,f:[{n:"class-rwindow-resizable",t:13},{n:["mousedown","touchstart"],t:70,f:{r:["@this","@event"],s:"[_0._startResize(_1)]"}},{n:["mousemove","mouseout"],t:70,f:{r:["@this","@event"],s:"[_0._sizeHandle(_1)]"}}],n:50,r:"~/control.resizable"}," ",{t:4,f:[{n:"class-rwindow-resizing",t:13}],n:50,r:"~/control.resizing"},{n:"style-top",f:[{t:2,r:"~/control.top"},"px"],t:13},{n:"style-left",f:[{t:2,r:"~/control.left"},"px"],t:13},{t:4,f:[{n:"style-width",f:[{t:2,r:"~/control.width"},"em"],t:13},{n:"style-height",f:[{t:2,r:"~/control.height"},"em"],t:13}],n:51,r:"~/control.autosize"}],n:51,l:1},{n:"style-z-index",f:[{t:2,r:"~/control.index"}],t:13},{n:"class-rwindow-topmost",t:13,f:[{t:2,r:"~/control.topmost"}]}],f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rwindow",g:1},{t:4,f:[{n:["mousedown","touchstart"],t:70,f:{r:["@this","@event"],s:"[_0._startMove(_1)]"}}],n:50,x:{r:["~/control.movable","~/root.max","~/root.userMax","~/control.max","~/control.dialog"],s:"!(_0===false||_1||_2||_3)&&!_4"}},{t:4,f:[{n:["mousedown","touchstart"],t:70,f:{r:["@this"],s:"[_0.raise()]"}}],n:50,x:{r:["~/control.topmost"],s:"!_0"},l:1}],f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rwindow-modal",g:1},{n:"class-rwindow-blocked",t:13,f:[{t:2,r:"~/control.blockers.length"}]}]}," ",{t:7,e:"div",m:[{t:13,n:"class",f:"rwindow-pane",g:1},{n:"tracked",t:71,f:{r:[],s:"[\"pane\"]"}},{t:4,f:[{n:"class-rwindow-autosizing",t:13}],n:50,r:"~/control.autosize"}],f:[{t:8,r:"pane"}]}]}]}],n:50,r:"~/control.show"}]},
         cssId: 'window',
         partials: {
           pane: {v:4,t:[{t:4,f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rwindow-pane-top",g:1},{n:"tracked",t:71,f:{r:[],s:"[\"top\"]"}}],f:[{t:8,r:"title"}," ",{t:7,e:"div",m:[{t:13,n:"class",f:"rwindow-controls",g:1}],f:[{t:4,f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rwindow-minimize",g:1},{n:["click"],t:70,f:{r:["@this"],s:"[_0.hide()]"}}]}],n:50,x:{r:["~/control.dialog","~/control.minimize"],s:"!_0&&_1"}}," ",{t:4,f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rwindow-maximize",g:1},{n:["click"],t:70,f:{r:["@this"],s:"[_0.maximize()]"}}]}],n:50,x:{r:["~/control.dialog","~/control.maximize"],s:"!_0&&_1"}}," ",{t:4,f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rwindow-close",g:1},{n:["click"],t:70,f:{r:["@this"],s:"[_0.close()]"}}]}],n:50,r:"~/control.close"}]}]}],n:51,x:{r:["~/control.max","~/root.userMax","~/root.max","~/root.hideTitleMax","~/control.dialog"],s:"(_0||_1||_2)&&_3&&!_4"}}," ",{t:7,e:"div",m:[{t:13,n:"class",f:"rwindow-content",g:1},{n:"tracked",t:71,f:{r:[],s:"[\"content\"]"}},{n:"class-rwindow-pad",t:13,f:[{t:2,r:"~/control.pad"}]},{n:"class-rwindow-flex",t:13,f:[{t:2,r:"~/control.flex"}]},{t:4,f:[{n:"style-overflow",f:"visible",t:13}],n:50,r:"~/control.autosize"}],f:[{t:8,r:"contents"}]}," ",{t:4,f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rwindow-buttons",g:1},{n:"class-no-buttons",t:13,f:[{t:2,x:{r:["~/visibleButtons"],s:"!_0"}}]}],f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rwindow-left-buttons",g:1}],f:[{t:4,f:[{t:4,f:[{t:8,r:".partial"}],n:50,r:".partial"},{t:4,f:[{t:7,e:"button",m:[{n:"button",t:71},{n:["click"],t:70,f:{r:[".action","@"],s:"[_0.call(_1)]"}},{t:4,f:[{n:"class",f:[{t:2,r:".class"}],t:13}],n:50,r:".class"}],f:[{t:2,r:".label"}]}],n:51,l:1}],n:52,r:"~/leftButtons"}]}," ",{t:7,e:"div",m:[{t:13,n:"class",f:"rwindow-center-buttons",g:1}],f:[{t:4,f:[{t:4,f:[{t:8,r:".partial"}],n:50,r:".partial"},{t:4,f:[{t:7,e:"button",m:[{n:"button",t:71},{n:["click"],t:70,f:{r:[".action","@"],s:"[_0.call(_1)]"}},{t:4,f:[{n:"class",f:[{t:2,r:".class"}],t:13}],n:50,r:".class"}],f:[{t:2,r:".label"}]}],n:51,l:1}],n:52,r:"~/centerButtons"}]}," ",{t:7,e:"div",m:[{t:13,n:"class",f:"rwindow-right-buttons",g:1}],f:[{t:4,f:[{t:4,f:[{t:8,r:".partial"}],n:50,r:".partial"},{t:4,f:[{t:7,e:"button",m:[{n:"button",t:71},{n:["click"],t:70,f:{r:[".action","@"],s:"[_0.call(_1)]"}},{t:4,f:[{n:"class",f:[{t:2,r:".class"}],t:13}],n:50,r:".class"}],f:[{t:2,r:".label"}]}],n:51,l:1}],n:52,r:"~/rightButtons"}]}]}],n:50,r:"~/buttons"}," ",{t:7,e:"div",m:[{t:13,n:"class",f:"rwindow-pane-bottom",g:1}],f:[{t:8,r:"status"}]}]}.t,

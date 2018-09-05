@@ -104,17 +104,17 @@ System.register(['./chunk2.js'], function (exports, module) {
           resize();
         }
 
-        var listener = this.root.on('*.resize', resize);
-        var observer = this.observe('@style.break', settings);
+        var listener = this.root.on('*.resize', function () { return requestAnimationFrame(resize); });
+        var observer = this.observe('@style.break', settings, { init: false });
 
         node.className += ' grid grid-root';
-        settings();
+        requestAnimationFrame(settings);
 
         return {
           update: function update(options) {
             // TODO: if type changes, undo whatever the original did first
             opts = options || {};
-            resize();
+            requestAnimationFrame(resize);
           },
           teardown: function teardown() {
             node.className = node.className.replace(regexps['grid grid-root'], '').trim();
