@@ -146,10 +146,10 @@ export function style(data, optDefaults) {
 
     size.units.forEach(u => {
       cols += `
-${greater[size.key].map(s => wrappers.map(w => `.${s} > ${w}.${name}1, .${s} > ${w}.row > .${name}1, .${s} .${name}-n1`).join(', ')).join(', ')} { display: initial; width: 100%; }
-${greater[size.key].map(s => wrappers.map(w => `.${s} > ${w}.${name}0, .${s} > ${w}.row > .${name}0, .${s} .${name}-n0`).join(', ')).join(', ')} { display: none; }`;
+${greater[size.key].map(s => wrappers.map(w => `.${s} > ${w}.${name}1, .${s} > ${w}.row > .${name}1, .${s} .${name}-n1, .${s} .row-${name}-n1 > *`).join(', ')).join(', ')} { display: initial; width: 100%; }
+${greater[size.key].map(s => wrappers.map(w => `.${s} > ${w}.${name}0, .${s} > ${w}.row > .${name}0, .${s} .${name}-n0, .${s} .row-${name}-n0 > *`).join(', ')).join(', ')} { display: none; }`;
       rows += `
-${greater[size.key].map(s => `.${s} .row-${name}-n1 > *`).join(', ')} { display: intial; width: 100%; }
+${greater[size.key].map(s => `.${s} .row-${name}-n1 > *`).join(', ')} { display: initial; width: 100%; }
 ${greater[size.key].map(s => `.${s} .row-${name}-n0 > *`).join(', ')} { display: none; }`;
 
       for (let i = 1; i < u; i++) {
