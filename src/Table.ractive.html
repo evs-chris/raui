@@ -938,6 +938,7 @@
     
     this._init = { sets: grabColumns(tpl), partials: {} };
     const columns = this._init.sets.columns;
+    this._init.sets['meta.expand'] = rowEl && rowEl.f;
 
     const sortKey = '[_0._setSort(_1,_2)]';
     
@@ -1066,7 +1067,7 @@
       // expando rows
       if (rowEl && rowEl.f) {
         row[0].f[0].f.push({ t: 4, n: 50, x: { r: ['.', '~/expanded'], s: '_0===_1' }, f: [
-          { t: 7, e: 'div', f: [{ t: 7, e: 'div', f: rowEl.f }], m: [{ t: 13, n: 'class-t1' }, { t: 13, n: 'class-rtable-row-expand' }] }
+          { t: 7, e: 'div', f: [{ t: 7, e: 'div', f: [{ t: 16, r: `~/meta.expand`, c: { r: '.' } }] }], m: [{ t: 13, n: 'class-t1' }, { t: 13, n: 'class-rtable-row-expand' }] }
         ] });
         row[0].f[0].m.push({ t: 70, n: ['clickd'], f: { r: ['@this', '@index'], s: '[_0._expand(_1)]' } });
       }
@@ -1391,6 +1392,7 @@
     margin: 0;
     border: none;
     background-color: transparent;
+    padding: 0.25em 0.5em;
   }
   ` + (data('table.includeGrid') !== false ? gridStyle(data) : '');
 </script>
