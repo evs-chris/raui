@@ -54,6 +54,7 @@ export interface WindowOpts {
   width?: string;
   height?: string;
   size?: 'fill'|'auto';
+  fillPad?: number;
   block?: boolean|Window;
   stickToParent?: boolean;
   dialog?: boolean;
