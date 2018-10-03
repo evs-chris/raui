@@ -766,16 +766,16 @@ System.register(['ractive', './chunk7.js', './chunk8.js', './chunk2.js', './chun
         if (flt.op === '=' || flt.op === '==') {
           if (flt.type === 'number' || flt.type === 'date') { return +v == +flt.value; }
           return v == flt.value;
-        } else if (flt.op === '>') {
+        } else if (flt.op === '>' || flt.op === 'gt') {
           return v > flt.value;
-        } else if (flt.op === '>=') {
+        } else if (flt.op === '>=' || flt.op === 'gte') {
           return v >= flt.value;
-        } else if (flt.op === '<') {
+        } else if (flt.op === '<' || flt.op === 'lt') {
           return v < flt.value;
-        } else if (flt.op === '<=') {
+        } else if (flt.op === '<=' || flt.op === 'lte') {
           return v <= flt.value;
-        } else if (flt.op === 'like' || flt.op === 'notlike') {
-          var res$1 = flt.op === 'like' ? true : false;
+        } else if (flt.op === 'like' || flt.op === 'notlike' || flt.op === '~' || flt.op === '!~') {
+          var res$1 = (flt.op === 'like' || flt.op === '~') ? true : false;
           if (isString(flt.value)) {
             // special case - no pattern always matches
             if (!flt.value) { return true; }
@@ -784,15 +784,15 @@ System.register(['ractive', './chunk7.js', './chunk8.js', './chunk2.js', './chun
           } else if (isRegex(flt.value)) {
             res$1 = flt.value.test(v);
           }
-          return flt.op === 'like' ? res$1 : !res$1;
-        } else if (flt.op === 'contains') {
+          return (flt.op === 'like' || flt.op === '~') ? res$1 : !res$1;
+        } else if (flt.op === 'contains' || flt.op === '@') {
           if (Array.isArray(v)) { return !!~v.indexOf(flt.value); }
-        } else if (flt.op === 'containslike' || flt.op === 'containsnotlike') {
+        } else if (flt.op === 'containslike' || flt.op === '@~' || flt.op === 'containsnotlike' || flt.op === '@!~') {
           if (Array.isArray(v)) {
             var re$1 = isRegex(flt.value) ? flt.value : isString(flt.value) ? recache[flt.value] || (recache[flt.value] = new RegExp((".*" + (flt.value.replace(/%/g, '.*')) + ".*"), 'gi')) : null;
             if (!re$1) { return false; }
             var match = v.findIndex(function (x) { return re$1.test((x || '').toString()); });
-            return flt.op === 'containslike' ? match >= 0 : match < 0;
+            return (flt.op === 'containslike' || flt.op === '@~') ? match >= 0 : match < 0;
           }
         } else if ((flt.op === 'or' || flt.op === '||') && Array.isArray(flt.value)) {
           return flt.value.reduce(function (a, c) {

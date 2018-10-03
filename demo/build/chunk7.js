@@ -149,18 +149,20 @@ System.register(['./chunk2.js'], function (exports, module) {
           var name = size.prefix || size.key[0];
 
           size.units.forEach(function (u) {
-            cols += "\n" + (greater[size.key].map(function (s) { return wrappers.map(function (w) { return ("." + s + " > " + w + "." + name + "1, ." + s + " > " + w + ".row > ." + name + "1, ." + s + " ." + name + "-n1, ." + s + " .row-" + name + "-n1 > *"); }).join(', '); }).join(', ')) + " { display: initial; width: 100%; }\n" + (greater[size.key].map(function (s) { return wrappers.map(function (w) { return ("." + s + " > " + w + "." + name + "0, ." + s + " > " + w + ".row > ." + name + "0, ." + s + " ." + name + "-n0, ." + s + " .row-" + name + "-n0 > *"); }).join(', '); }).join(', ')) + " { display: none; }";
+            cols += "\n" + (greater[size.key].map(function (s) { return wrappers.map(function (w) { return ("." + s + " > " + w + "." + name + "1, ." + s + " > " + w + ".row > ." + name + "1, ." + s + " ." + name + "-n1, ." + s + " .row-" + name + "-n1 > *"); }).join(', '); }).join(', ')) + " { display: initial; width: 100%; flex-grow: 0; flex-shrink: 0; }\n" + (greater[size.key].map(function (s) { return wrappers.map(function (w) { return ("." + s + " > " + w + "." + name + "0, ." + s + " > " + w + ".row > ." + name + "0, ." + s + " ." + name + "-n0, ." + s + " .row-" + name + "-n0 > *"); }).join(', '); }).join(', ')) + " { display: none; flex-grow: 0; flex-shrink: 0; }";
             rows += "\n" + (greater[size.key].map(function (s) { return ("." + s + " .row-" + name + "-n1 > *"); }).join(', ')) + " { display: initial; width: 100%; }\n" + (greater[size.key].map(function (s) { return ("." + s + " .row-" + name + "-n0 > *"); }).join(', ')) + " { display: none; }";
 
             var loop = function ( i ) {
               str = '' + ((i / u) * 100);
               str = str.substr(0, str.indexOf('.') + 3);
               rows += "\n" + (greater[size.key].map(function (s) { return wrappers.map(function (w) { return ("." + s + " > " + w + ".row-" + name + i + "-" + u + " > *, ." + s + " .row-" + name + "-n" + i + "-" + u + " > *, ." + s + " .row > ." + name + "-n" + i + "-" + u); }).join(', '); }).join(', ')) + " { display: initial; width: " + str + "%; }";
-              cols += "\n" + (greater[size.key].map(function (s) { return wrappers.map(function (w) { return ("." + s + " > " + w + "." + name + i + "-" + u + ", ." + s + " > " + w + ".row > ." + name + i + "-" + u + ", ." + s + " ." + name + "-n" + i + "-" + u + ", ." + s + " .row-" + name + "-n" + i + "-" + u + " > *"); }).join(', '); }).join(', ')) + " { display: initial; width: " + str + "%; }";
+              cols += "\n" + (greater[size.key].map(function (s) { return wrappers.map(function (w) { return ("." + s + " > " + w + "." + name + i + "-" + u + ", ." + s + " > " + w + ".row > ." + name + i + "-" + u + ", ." + s + " ." + name + "-n" + i + "-" + u + ", ." + s + " .row-" + name + "-n" + i + "-" + u + " > *"); }).join(', '); }).join(', ')) + " { display: initial; width: " + str + "%; flex-grow: 0; flex-shrink: 0; }";
             };
 
             for (var i = 1; i < u; i++) loop( i );
           });
+
+          greater[size.key].forEach(function (s) { return cols += (wrappers.map(function (w) { return ("." + s + " > " + w + ".row > ." + name + "-fill"); }).join(', ')) + ", ." + s + " ." + name + "-nfill { width: auto; flex-grow: 2; flex-shink: 2; }\n" + (wrappers.map(function (w) { return ("." + s + " > " + w + ".row > ." + name + "-auto"); }).join(', ')) + ", ." + s + " ." + name + "-nauto { width: auto; flex-shrink: 2; }"; });
         });
 
         out += rows + cols;

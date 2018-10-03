@@ -309,7 +309,7 @@ System.register(['ractive'], function (exports, module) {
 
             if (wnd) {
               window.size(wnd.clientWidth - (options.fillPad || 20), wnd.clientHeight - (options.fillPad || 20));
-              if (options.block === true && !(options.top || options.left)) {
+              if (options.block && !(options.top || options.left)) {
                 options.top = options.left = Math.floor((options.fillPad || 20) / 2);
               }
             }
@@ -890,7 +890,7 @@ System.register(['ractive'], function (exports, module) {
 
         Window.prototype.move = function move (top, left) {
           if (typeof top === 'string') { top = this.host.sizeInEm(top); }
-          if (typeof left === 'string') { top = this.host.sizeInEm(left); }
+          if (typeof left === 'string') { left = this.host.sizeInEm(left); }
 
           var set = {};
 
