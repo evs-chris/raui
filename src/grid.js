@@ -146,8 +146,8 @@ export function style(data, optDefaults) {
 
     size.units.forEach(u => {
       cols += `
-${greater[size.key].map(s => wrappers.map(w => `.${s} > ${w}.${name}1, .${s} > ${w}.row > .${name}1, .${s} .${name}-n1, .${s} .row-${name}-n1 > *`).join(', ')).join(', ')} { display: initial; width: 100%; }
-${greater[size.key].map(s => wrappers.map(w => `.${s} > ${w}.${name}0, .${s} > ${w}.row > .${name}0, .${s} .${name}-n0, .${s} .row-${name}-n0 > *`).join(', ')).join(', ')} { display: none; }`;
+${greater[size.key].map(s => wrappers.map(w => `.${s} > ${w}.${name}1, .${s} > ${w}.row > .${name}1, .${s} .${name}-n1, .${s} .row-${name}-n1 > *`).join(', ')).join(', ')} { display: initial; width: 100%; flex-grow: 0; flex-shrink: 0; }
+${greater[size.key].map(s => wrappers.map(w => `.${s} > ${w}.${name}0, .${s} > ${w}.row > .${name}0, .${s} .${name}-n0, .${s} .row-${name}-n0 > *`).join(', ')).join(', ')} { display: none; flex-grow: 0; flex-shrink: 0; }`;
       rows += `
 ${greater[size.key].map(s => `.${s} .row-${name}-n1 > *`).join(', ')} { display: initial; width: 100%; }
 ${greater[size.key].map(s => `.${s} .row-${name}-n0 > *`).join(', ')} { display: none; }`;
@@ -156,9 +156,11 @@ ${greater[size.key].map(s => `.${s} .row-${name}-n0 > *`).join(', ')} { display:
         str = '' + ((i / u) * 100);
         str = str.substr(0, str.indexOf('.') + 3);
         rows += `\n${greater[size.key].map(s => wrappers.map(w => `.${s} > ${w}.row-${name}${i}-${u} > *, .${s} .row-${name}-n${i}-${u} > *, .${s} .row > .${name}-n${i}-${u}`).join(', ')).join(', ')} { display: initial; width: ${str}%; }`;
-        cols += `\n${greater[size.key].map(s => wrappers.map(w => `.${s} > ${w}.${name}${i}-${u}, .${s} > ${w}.row > .${name}${i}-${u}, .${s} .${name}-n${i}-${u}, .${s} .row-${name}-n${i}-${u} > *`).join(', ')).join(', ')} { display: initial; width: ${str}%; }`;
+        cols += `\n${greater[size.key].map(s => wrappers.map(w => `.${s} > ${w}.${name}${i}-${u}, .${s} > ${w}.row > .${name}${i}-${u}, .${s} .${name}-n${i}-${u}, .${s} .row-${name}-n${i}-${u} > *`).join(', ')).join(', ')} { display: initial; width: ${str}%; flex-grow: 0; flex-shrink: 0; }`;
       }
     });
+
+    greater[size.key].forEach(s => cols += `${wrappers.map(w => `.${s} > ${w}.row > .${name}-fill`).join(', ')}, .${s} .${name}-nfill { width: auto; flex-grow: 2; flex-shink: 2; }\n${wrappers.map(w => `.${s} > ${w}.row > .${name}-auto`).join(', ')}, .${s} .${name}-nauto { width: auto; flex-shrink: 2; }`);
   });
 
   out += rows + cols;
