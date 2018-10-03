@@ -774,16 +774,16 @@
     if (flt.op === '=' || flt.op === '==') {
       if (flt.type === 'number' || flt.type === 'date') return +v == +flt.value;
       return v == flt.value;
-    } else if (flt.op === '>') {
+    } else if (flt.op === '>' || flt.op === 'gt') {
       return v > flt.value;
-    } else if (flt.op === '>=') {
+    } else if (flt.op === '>=' || flt.op === 'gte') {
       return v >= flt.value;
-    } else if (flt.op === '<') {
+    } else if (flt.op === '<' || flt.op === 'lt') {
       return v < flt.value;
-    } else if (flt.op === '<=') {
+    } else if (flt.op === '<=' || flt.op === 'lte') {
       return v <= flt.value;
-    } else if (flt.op === 'like' || flt.op === 'notlike') {
-      let res = flt.op === 'like' ? true : false;
+    } else if (flt.op === 'like' || flt.op === 'notlike' || flt.op === '~' || flt.op === '!~') {
+      let res = (flt.op === 'like' || flt.op === '~') ? true : false;
       if (isString(flt.value)) {
         // special case - no pattern always matches
         if (!flt.value) return true;
@@ -792,15 +792,15 @@
       } else if (isRegex(flt.value)) {
         res = flt.value.test(v);
       }
-      return flt.op === 'like' ? res : !res;
-    } else if (flt.op === 'contains') {
+      return (flt.op === 'like' || flt.op === '~') ? res : !res;
+    } else if (flt.op === 'contains' || flt.op === '@') {
       if (Array.isArray(v)) return !!~v.indexOf(flt.value);
-    } else if (flt.op === 'containslike' || flt.op === 'containsnotlike') {
+    } else if (flt.op === 'containslike' || flt.op === '@~' || flt.op === 'containsnotlike' || flt.op === '@!~') {
       if (Array.isArray(v)) {
         const re = isRegex(flt.value) ? flt.value : isString(flt.value) ? recache[flt.value] || (recache[flt.value] = new RegExp(`.*${flt.value.replace(/%/g, '.*')}.*`, 'gi')) : null;
         if (!re) return false;
         const match = v.findIndex(x => re.test((x || '').toString()));
-        return flt.op === 'containslike' ? match >= 0 : match < 0;
+        return (flt.op === 'containslike' || flt.op === '@~') ? match >= 0 : match < 0;
       }
     } else if ((flt.op === 'or' || flt.op === '||') && Array.isArray(flt.value)) {
       return flt.value.reduce((a, c) => {
