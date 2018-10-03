@@ -22,6 +22,7 @@
     css: $CSS,
     cssId: 'appbar',
     attributes: ['waiting'],
+    noCssTransform: true,
     data() { return { waiting: 0 }; },
     on: {
       config() {
@@ -52,11 +53,12 @@
   return `
   .rappbar {
     display: flex;
-    padding: 1em;
+    padding: 0.7em;
     background-color: ${primary.fga || '#07e'};
     color: ${primary.bg || '#fff'};
     position: relative;
     justify-content: space-between;
+    align-items: center;
   }
 
   .rappbar.alt {

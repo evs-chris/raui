@@ -128,6 +128,7 @@ export function style(data) {
     margin-top: 0;`};
     float: left;
     box-shadow: none;
+    background-color: transparent;
   }
 
   label.field select {
