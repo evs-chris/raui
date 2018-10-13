@@ -745,7 +745,7 @@
     return filter.map(f => {
       const flt = { op: f.op || '=', value: f.value || '' };
       if (f.id) {
-        let field = columns.find(c => c.id === f.id);
+        let field = columns.find(c => c.id === f.id || c.filter === f.id);
         if (field) {
           flt.get = columnGetter(grid, field);
           if (flt.get) {
@@ -760,6 +760,9 @@
             flt.type = field.type || 'string';
           }
         }
+      } else {
+        // auto-skip filters with no id
+        flt.op = 'skip';
       }
       if (f.op === 'and' || f.op === 'or' || f.op === '&&' || f.op === '||') {
         if (Array.isArray(f.value)) flt.value = buildFilter(grid, f.value, columns, fields);
@@ -924,7 +927,9 @@
           a = attrs.find(a => a.n === 'label');
           if (isString(a)) field.label = a;
           else if (a && a.f) field.label = map(a);
+
           if (!field.id) field.id = field.label;
+          if (!field.path) field.path = field.id;
 
           fields.push(field);
         }
