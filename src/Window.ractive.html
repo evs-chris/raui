@@ -238,6 +238,7 @@
           this.splice(`windows.${escape(blocking)}.blockers`, blockers.indexOf(window.id), 1);
         }
         this.detachChild(window).then(() => window.teardown());
+        this.set(`windows.${escape(window.id)}.block`, false);
         this.set(`windows.${escape(window.id)}.index`, -1);
         this.raise();
         this.set(`windows.${escape(window.id)}`, undefined);
@@ -1041,18 +1042,20 @@
           if (btns) {
             wnd._btns = btns.f.filter(e => e.e === 'button' || (e.t === 4 && (e.n === 50 || e.n === 51) && e.f.find(e => e.e === 'button'))).map(n => {
               if (n.t === 4) {
-                const b = mapButton(n.f.find(e => e.e === 'button'));
-                const f = { t: n.t, n: n.n, f: [b.partial.t[0]] };
-                if (n.r) f.r = n.r;
-                if (n.rx) f.rx = n.rx;
-                if (n.x) f.x = n.x;
-                b.partial = { t: [f] };
-                return b;
+                  return n.f.filter(e => e.e === 'button').map(bb => {
+                    const b = mapButton(bb);
+                    const f = { t: n.t, n: n.n, f: [b.partial.t[0]] };
+                    if (n.r) f.r = n.r;
+                    if (n.rx) f.rx = n.rx;
+                    if (n.x) f.x = n.x;
+                    b.partial = { t: [f] };
+                    return b;
+                  });
               } else {
                 const b = mapButton(n);
-                return b;
+                return [b];
               }
-            });
+            }).reduce((a, c) => a.concat(c), []);
           }
         }
       },
@@ -1064,6 +1067,7 @@
     observe: {
       'control.max root.max root.userMax control.width control.height root.dimensions.clientHeight root.dimensions.clientWidth': {
         handler(v, o, k) {
+          if (!this.get('control.id')) return;
           const max = this.get('control.max') || this.get('root.userMax') || this.get('root.max');
           const actual = this.get('control.actual') || {};
 
