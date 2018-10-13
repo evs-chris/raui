@@ -99,6 +99,7 @@ export default function init(initOpts = {}) {
     return {
       editor,
       resize,
+      focus() { editor.focus(); },
       teardown() {
         if (observer) observer.cancel();
         if (editor.toTextEditor) editor.toTextEditor();

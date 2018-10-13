@@ -1,6 +1,6 @@
 import { Plugin } from 'ractive';
 
-export interface PluginOpts {
+export interface PluginOpts extends any {
   /**
    * The CodeMirror constructor to use when creating editor instances. If not supplied, the plugin will check for a global instance before erroring.
    */
