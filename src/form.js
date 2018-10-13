@@ -31,6 +31,7 @@ export function style(data) {
     transition-property: color, border-color, box-shadow;
     margin: 0.8em 0.2em;
     min-height: auto;
+    background-color: ${boxy ? primary.bg || '#fff' : 'transparent'};
   }
 
   label.field.focus {
@@ -256,7 +257,7 @@ export function style(data) {
     font-size: 1.1em;
   }
 
-  label.field.plain div {
+  label.field.plain > div {
     position: absolute;
     font-size: 1.1em;
     top: 2.4em;
