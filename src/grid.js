@@ -100,7 +100,8 @@ export function grid(node, options) {
   const observer = this.observe('@style.break', settings, { init: false });
 
   node.className += ' grid grid-root';
-  requestAnimationFrame(settings);
+  if (opts.immediate) settings();
+  else requestAnimationFrame(settings);
 
   return {
     update(options) {
