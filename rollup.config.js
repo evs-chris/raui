@@ -131,4 +131,27 @@ bundles.push({
   external: ['ractive']
 });
 
+bundles.push({
+  input: 'demo-src/dev.js',
+  output: {
+    file: 'demo/build/dev/index.js',
+    format: 'iife',
+    globals: { ractive: 'Ractive' }
+  },
+  plugins: [
+    ractive({
+      include: ['**/*.ractive.html']
+    }),
+    buble(),
+    resolver({
+      extensions: ['.js', '.ractive.html'],
+      alias: {
+        cmd: './src'
+      }
+    })
+  ],
+  watch: { clearScreen: false },
+  external: ['ractive']
+});
+
 module.exports = bundles;
