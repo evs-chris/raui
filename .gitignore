@@ -3,3 +3,5 @@ es
 umd
 *.log
 package-lock.json
+demo/build/dev
+demo-src/dev.js
