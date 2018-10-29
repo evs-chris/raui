@@ -8,8 +8,9 @@
     {{#if top}}style-top="{{top}}"{{/if}}{{#if left}}style-left="{{left}}"{{/if}}
   {{/if}}
   pop-out="{ dir: where || 'below' }"
-  {{#if clickClose}}on-click="@.toggle('popped')"{{/if}}
-  {{#unless noClickout}}on-clickout="@.toggle('popped')"{{/unless}}
+  as-cleanup
+  {{#if clickClose}}on-click="@.set('popped', false)"{{else}}on-click="false, false"{{/if}}
+  {{#unless noClickout}}on-clickout="@.set('popped', false)"{{/unless}}
   {{yield extra-attributes}}
 >
   {{#if ~/tail}}
@@ -38,7 +39,7 @@
   import clickout from './event-clickout';
 
   function noop() {}
-  let source;
+  let source, tailSource;
 
   export class Popover extends Ractive {
     constructor(opts) { super(opts); }
@@ -47,6 +48,7 @@
       const source = node || this.source;
       const popped = this.get('popped');
       if (!source || !popped) return;
+      let container;
 
       const wrapper = this.find('div');
 
@@ -93,27 +95,58 @@
             pos.tailLeft = -10;
           }
 
+          const tailTarget = this.tailSource ? this.tailSource.getBoundingClientRect() : target;
+
           if (align === 'start') {
-            if (where === 'above' || where === 'below') pos.tailLeft = Math.floor(target.width / 2) - 10;
-            else if (where === 'left' || where === 'right') pos.tailTop = Math.floor(target.height / 2) - 10;
+            if (vert) pos.tailLeft = Math.floor(tailTarget.width / 2) - 10;
+            else pos.tailTop = Math.floor(tailTarget.height / 2) - 10;
           } else if (align === 'end') {
-            if (where === 'above' || where === 'below') pos.tailRight = Math.floor(target.width / 2) - 10;
-            else if (where === 'left' || where === 'right') pos.tailBottom = Math.floor(target.height / 2) - 10;
+            if (vert) pos.tailRight = Math.floor(tailTarget.width / 2) - 10;
+            else pos.tailBottom = Math.floor(tailTarget.height / 2) - 10;
           } else if (align === 'middle') {
-            if (where === 'above' || where === 'below') pos.tailLeft = Math.floor(local.width / 2) - 10;
-            else if (where === 'left' || where === 'right') pos.tailTop = Math.floor(local.height / 2) - 10;
+            if (vert) pos.tailLeft = Math.floor(tailTarget.width / 2) - 10;
+            else pos.tailTop = Math.floor(tailTarget.height / 2) - 10;
+          }
+
+          if (tailTarget !== target) {
+            if (vert) {
+              if (pos.tailLeft) pos.tailLeft += tailTarget.left - target.left;
+              if (pos.tailRight) pos.tailRight += target.right - tailTarget.right;
+            } else {
+              if (pos.tailTop) pos.tailTop += tailTarget.top - target.top;
+              if (pos.tailBottom) pos.tailBottom += target.bottom - tailTarget.bottom;
+            }
+          } else if (align === 'middle') {
+            if (vert) {
+              if (pos.tailLeft) pos.tailLeft += tailTarget.left - (pos.popLeft + offset.left);
+              if (pos.tailRight) pos.tailRight += (pos.popLeft + offset.left + local.width) - tailTarget.right;
+            } else {
+              if (pos.tailTop) pos.tailTop += tailTarget.top - (pos.popTop + offset.top);
+              if (pos.tailBottom) pos.tailBottom += (pos.popTop + offset.top + local.height) - tailTarget.bottom;
+            }
           }
         }
 
         if (fit) {
-          const owidth = parent.scrollWidth;
-          const oheight = parent.scrollHeight;
+          let el = parent;
+          let owidth = parent.scrollWidth;
+          let oheight = parent.scrollHeight;
+          while (el) {
+            if ((el.scrollWidth > local.width && el.scrollHeight > local.height) || el.scrollWidth < owidth || el.scrollHeight < oheight) break;
+            else {
+              if (el.scrollWidth > owidth) owidth = el.scrollWidth;
+              if (el.scrollHeight > oheight) oheight = el.scrollHeight;
+            }
+            el = el.parentNode;
+          }
+          container = el;
 
           if (pos.popLeft + local.width > owidth) {
             const diff = pos.popLeft - (owidth - local.width);
             pos.popLeft -= diff;
             if (vert && pos.tailLeft) pos.tailLeft += diff;
             if (vert && pos.tailRight) pos.tailRight -= diff;
+            if (tail && !vert) pos.tail = false;
           }
 
           if (pos.popLeft < 0) {
@@ -121,6 +154,7 @@
             pos.popLeft += diff;
             if (vert && pos.tailLeft) pos.tailLeft -= diff;
             if (vert && pos.tailRight) pos.tailRight += diff;
+            if (tail && !vert) pos.tail = false;
           }
 
           if (pos.popTop + local.height > oheight) {
@@ -128,6 +162,7 @@
             pos.popTop -= diff;
             if (!vert && pos.tailTop) pos.tailTop += diff;
             if (!vert && pos.tailBottom) pos.tailBottom -= diff;
+            if (tail && vert) pos.tail = false;
           }
 
           if (pos.popTop < 0) {
@@ -135,10 +170,13 @@
             pos.popTop += diff;
             if (!vert && pos.tailTop) pos.tailTop -= diff;
             if (!vert && pos.tailBottom) pos.tailBottom += diff;
+            if (tail && vert) pos.tail = false;
           }
         }
 
         this.set('position', pos);
+
+        return container;
       } else {
         this.set('position', null);
       }
@@ -163,7 +201,10 @@
     noCssTransform: true,
     observe: {
       popped(v) {
-        if (v && source) this.source = source;
+        if (v) {
+          if (source) this.source = source;
+          if (tailSource) this.tailSource = tailSource;
+        }
         setTimeout(() => {
           if (this.get('popped') === v) this.set('_popped', v);
         }, 100);
@@ -171,10 +212,26 @@
       _popped: {
         handler(v) {
           if (v) {
+            let el = this.find('div');
+            const node = el;
+            if (!this.overflows) {
+              const o = this.overflows = { e: [], v: [] };
+              while (el && el.style) {
+                const css = getComputedStyle(el);
+                if (css.overflow && css.overflow === 'hidden') {
+                  o.e.push(el);
+                  o.v.push(el.style.overflow);
+                  el.style.overflow = 'visible';
+                }
+                if (el === stop) break;
+                el = el.parentNode;
+              }
+            }
             this.position();
-            this.transition('pop', this.find('div'), { intro: true, dir: this.get('where') || 'below' });
+            this.transition('pop', node, { intro: true, dir: this.get('where') || 'below' });
           } else {
             this.source = null;
+            this.tailSource = null;
           }
         },
         defer: true
@@ -183,6 +240,22 @@
         handler() { this.position() },
         defer: true
       }
+    },
+    decorators: {
+      cleanup(node) {
+        const pop = this;
+        return {
+          teardown() {
+            const o = pop.overflows;
+            if (o) {
+              pop.overflows = null;
+              for (let i = 0; i < o.e.length; i++) {
+                o.e[i].style.overflow = o.v[i];
+              }
+            }
+          }
+        }
+      }
     }
   });
 
@@ -190,6 +263,8 @@
     return function({ instance }) {
       instance.decorators[options.name || 'pop'] = function(node, path, opts = {}) {
         if (!path) return { teardown: noop };
+        if (typeof path === 'string') opts.path = path;
+        else if (typeof path === 'object') opts = path;
         const ctx = this.getContext(node);
         let clicked, hover;
 
@@ -198,13 +273,19 @@
 
           if (ev.type !== 'click' || !hover || clicked) {
             const init = source;
-            source = node;
-            ctx.toggle(path);
+            const initTail = tailSource;
+            source = opts.node || node;
+            if (typeof source === 'function') source = source();
+            source = source || node;
+            tailSource = opts.tail;
+            if (typeof tailSource === 'function') tailSource = tailSource();
+            ctx.toggle(opts.path);
             source = init;
+            tailSource = initTail;
           }
 
           if (hover && ev.type === 'click') {
-            clicked = ctx.observeOnce(path, () => {
+            clicked = ctx.observeOnce(opts.path, () => {
               clicked = null;
             });
           }
@@ -212,7 +293,7 @@
 
         function out(ev) {
           if (!clicked) {
-            ctx.set(path, false);
+            ctx.set(opts.path, false);
           }
         }
 

@@ -71,7 +71,11 @@ export function style(data) {
   label.field textarea {
     line-height: 1.2em;
   }
-  label.field > select, label.field > input {
+  label.field .field-wrapper {
+    display: block;
+  }
+  label.field > select, label.field > input,
+  label.field > .field-wrapper > input, label.field > .field-wrapper > select {
     height: 2.5em;
   }
 

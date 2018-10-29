@@ -1,0 +1,401 @@
+<div class-rcal>
+  {{#if ~/padding}}
+    {{#each ~/padding as offset}}{{#with @index === 0 as left, @last === @index as right}}{{>~/mode}}{{/with}}{{/each}}
+  {{else}}
+    {{#with 0 as offset, true as left, true as right}}{{>~/mode}}{{/with}}
+  {{/if}}
+</div>
+
+<template id="month">
+  {{#with @.month(~/safeTarget, offset)}}
+  <div class-rcal-wrapper class-rcal-pad="~/pad">
+    <div class-rcal-block-outer>
+      <div class-rcal-block-header>
+        <div>{{#if left}}<div class-rcal-left on-click="@.prev()" />{{/if}}</div>
+        <div class-rcal-click on-click="@.set('mode', 'months')">{{@.monthName(.month)}}{{#if .currentYear !== .year}}, {{.year}}{{/if}}</div>
+        <div>{{#if right}}<div class-rcal-right on-click="@.next()" />{{/if}}</div>
+      </div>
+      <div class-rcal-month>
+        {{#with . as month}}
+        <div class-rcal-week class-rcal-week-header>{{#each .days}}<div class-rcal-day class-rcal-day-header>{{.}}</div>{{/each}}</div>
+        {{#each .weeks}}
+          <div class-rcal-week>
+          {{#each .}}
+            <div class-rcal-day class-rcal-off-day=".m !== month.month" class-rcal-current="@.isCurrent(.)" on-click="@.select(.)">{{.d}}</div>
+          {{/each}}
+          </div>
+        {{/each}}
+        {{/with}}
+      </div>
+    </div>
+  </div>
+  {{/with}}
+</template>
+
+<template id="months">
+  {{#with @.year(~/safeTarget, offset)}}
+  <div class-rcal-wrapper>
+    <div class-rcal-block-outer>
+      <div class-rcal-block-header>
+        <div>{{#if left}}<div class-rcal-left on-click="@.prev()" />{{/if}}</div>
+        <div class-rcal-click on-click="@.set('mode', 'year')">{{.year}}</div>
+        <div>{{#if right}}<div class-rcal-right on-click="@.next()" />{{/if}}</div>
+      </div>
+      <div class-rcal-year>
+        {{#each .months}}
+          <div class-rcal-inner-row>
+            {{#each .}}
+              <div class-rcal-inner-pick class-rcal-current="@.isCurrent(.)" on-click="@.select(.)">{{@.shortMonthName(.m)}}</div>
+            {{/each}}
+          </div>
+        {{/each}}
+      </div>
+    </div>
+  </div>
+  {{/with}}
+</template>
+
+<template id="year">
+  {{#with @.decade(~/safeTarget, offset)}}
+  <div class-rcal-wrapper>
+    <div class-rcal-block-outer>
+      <div class-rcal-block-header>
+        <div>{{#if left}}<div class-rcal-left on-click="@.prev()" />{{/if}}</div>
+        <div class-rcal-click on-click="@.set('mode', 'month')">{{.start}} - {{.end}}</div>
+        <div>{{#if right}}<div class-rcal-right on-click="@.next()" />{{/if}}</div>
+      </div>
+      {{#with . as year}}
+      <div class-rcal-decade>
+        {{#each .years}}
+          <div class-rcal-inner-row>
+            {{#each .}}
+              <div class-rcal-inner-pick class-rcal-off-day=".y > year.end || .y < year.start" class-rcal-current="@.isCurrent(.)" on-click="@.select(.)">{{.y}}</div>
+            {{/each}}
+          </div>
+        {{/each}}
+      </div>
+      {{/with}}
+    </div>
+  </div>
+  {{/with}}
+</template>
+
+<script>
+  import Ractive from 'ractive';
+
+  const template = $TEMPLATE;
+
+  const [months, weekdays] = (function() {
+    try {
+      const lang = navigator.language || navigator.browserLanguage || navigator.languages[0] || 'en';
+      return [
+        [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11].map(m => new Date(2006, m, 1).toLocaleString(lang, { month: 'long' })),
+        [1, 2, 3, 4, 5, 6, 7].map(d => new Date(2006, 0, d).toLocaleString(lang, { weekday: 'long' }))
+      ]
+    } catch (e) {
+      return [
+        ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
+        ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+      ]
+    }
+  })();
+  const _days = weekdays.map(d => d[0]).concat(weekdays.map(d => d[0].toUpperCase()));
+  const shortMonths = months.map(m => m.substr(0, 3));
+
+  export class DatePicker extends Ractive {
+    constructor(opts) { super(opts); }
+
+    month(date, offset = 0) {
+      let dt = date || new Date();
+      if (!(dt instanceof Date)) return {};
+
+      if (offset) dt = new Date(dt.getFullYear(), dt.getMonth() + offset, dt.getDate());
+
+      let first;
+      try { first = +this.get('firstDay'); } catch (e) {}
+      if (typeof first !== 'number' || isNaN(first)) first = 0;
+      if (first > 6) first = 0;
+      
+      const prev = new Date(dt.getFullYear(), dt.getMonth(), 0);
+      const last = new Date(dt.getFullYear(), dt.getMonth() + 1, 0).getDate();
+      const next = new Date(dt.getFullYear(), dt.getMonth() + 1, 1);
+      const start = new Date(dt.getFullYear(), dt.getMonth(), 1).getDay();
+
+      const res = [];
+      const st = res[0] = [];
+      for (let i = 0; i < 7; i++) {
+        res[0].unshift({ y: prev.getFullYear(), m: prev.getMonth(), d: prev.getDate() - i });
+        res[0].push({ y: dt.getFullYear(), m: dt.getMonth(), d: i + 1 });
+      }
+
+      if (first <= start) res[0] = res[0].slice(7 - (start - first), 14 - (start - first));
+      else res[0] = res[0].slice(first - start, 7 + first - start);
+
+      if (res[0][0].d === 1) res.unshift(st.slice(0, 7));
+
+      let d = res[res.length - 1][res[res.length - 1].length - 1].d;
+      for (let i = res.length; i < 5; i++) {
+        res[i] = [];
+        for (let j = 0; j < 7 && d + 1 <= last; j++) res[i].push({ y: dt.getFullYear(), m: dt.getMonth(), d: ++d });
+        if (res[i].length < 7) {
+          const offset = 7 - res[i].length;
+          for (let j = 1; j <= offset; j++) res[i].push({ y: next.getFullYear(), m: next.getMonth(), d: j });
+          res[i + 1] = [];
+          for (let j = 0, k = offset + 1; j < 7; j++, k++) res[i + 1].push({ y: next.getFullYear(), m: next.getMonth(), d: k });
+        }
+      }
+
+      if (!res[5]) {
+        res[5] = [];
+        while (d < last) res[5].push({ y: dt.getFullYear(), m: dt.getMonth(), d: ++d });
+        for (let i = 1; i < 8; i++) res[5].push({ y: next.getFullYear(), m: next.getMonth(), d: i });
+        res[5] = res[5].slice(0, 7);
+      }
+
+      const obj = { days: _days.slice(first, first + 7), weeks: res, year: dt.getFullYear(), month: dt.getMonth(), currentYear: (new Date()).getFullYear() };
+
+      return obj;
+    }
+
+    year(date, offset = 0) {
+      let dt = date || new Date();
+      if (!(dt instanceof Date)) return {};
+
+      if (offset) dt = new Date(dt.getFullYear() + offset, dt.getMonth(), dt.getDate());
+
+      const res = [];
+      for (let i = 0; i < 4; i++) {
+        res.push([]);
+        for (let j = 0; j < 3; j++) {
+          res[i].push({ m: (i * 3) + j, y: dt.getFullYear() });
+        }
+      }
+
+      return {
+        year: dt.getFullYear(),
+        months: res
+      }
+    }
+
+    decade(date, offset = 0) {
+      let dt = date || new Date();
+      if (!(dt instanceof Date)) return {};
+
+      if (offset) dt = new Date(dt.getFullYear() + (offset * 10), dt.getMonth(), dt.getDate());
+
+      const start = Math.floor(dt.getFullYear() / 10) * 10;
+      const first = start - 1;
+      const res = [];
+      for (let i = 0; i < 4; i++) {
+        res.push([]);
+        for (let j = 0; j < 3; j++) {
+          res[i].push({ y: first + (i * 3) + j });
+        }
+      }
+
+      return {
+        start, end: start + 9, years: res
+      };
+    }
+
+    monthName(num) {
+      return months[num];
+    }
+
+    shortMonthName(num) {
+      return shortMonths[num];
+    }
+
+    dayName(num) { 
+      return weekdays[num];
+    }
+
+    select(dt) {
+      if (dt && dt instanceof Date) this.set('current', dt);
+      else {
+        let current = this.get('safeCurrent');
+
+        if (dt) this.set('current', new Date(dt.y || current.getFullYear(), dt.m || current.getMonth(), dt.d || current.getDate()));
+
+        const mode = this.get('mode');
+        if (mode === 'year') this.set('mode', 'months');
+        else if (mode === 'months') this.set('mode', 'month');
+
+        this.set('target', this.get('current'));
+      }
+    }
+
+    isCurrent(dt) {
+      const current = this.get('safeCurrent');
+      if (!current) return false;
+      return dt && dt.y === current.getFullYear() && (dt.m == null || dt.m === current.getMonth()) && (dt.d == null || dt.d === current.getDate());
+    }
+
+    next() {
+      const target = this.get('safeTarget');
+      const mode = this.get('mode');
+      if (mode === 'month') this.set('target', new Date(target.getFullYear(), target.getMonth() + 1, 1));
+      if (mode === 'months') this.set('target', new Date(target.getFullYear() + 1, target.getMonth(), 1));
+      if (mode === 'year') this.set('target', new Date(target.getFullYear() + 10, target.getMonth(), 1));
+    }
+
+    prev() {
+      const target = this.get('safeTarget');
+      const mode = this.get('mode');
+      if (mode === 'month') this.set('target', new Date(target.getFullYear(), target.getMonth() - 1, 1));
+      if (mode === 'months') this.set('target', new Date(target.getFullYear() - 1, target.getMonth(), 1));
+      if (mode === 'year') this.set('target', new Date(target.getFullYear() - 10, target.getMonth(), 1));
+    }
+
+    today() {
+      this.set('current', new Date());
+      this.set('target', this.get('current'));
+    }
+  }
+
+  Ractive.extendWith(DatePicker, {
+    template: $TEMPLATE,
+    css: $CSS,
+    noCssTransform: true,
+    data() {
+      return {
+        mode: 'month',
+        target: new Date()
+      };
+    },
+    computed: {
+      safeCurrent() {
+        let current = this.get('current');
+        if (typeof current === 'string') {
+          try { current = new Date(current); } catch (e) {}
+        }
+        if (!(current instanceof Date)) current = new Date();
+        return current;
+      },
+      safeTarget() {
+        let target = this.get('target');
+        if (!target) target = this.get('current');
+        if (typeof target === 'string') {
+          try { target = new Date(target); } catch (e) {}
+        }
+        if (!(target instanceof Date)) return new Date();
+        return target;
+      }
+    }
+  });
+
+  export default function plugin(opts = {}) {
+    return function({ instance }) {
+      instance.components[opts.name || 'date-picker'] = DatePicker;
+    };
+  }
+</script>
+
+<script rel="css">
+  return `.rcal-wrapper {
+    display: inline-block;
+  }
+
+  .rcal-pad {
+    padding: 0.5em;
+  }
+
+  .rcal-block-outer {
+    border: 1px solid ${data('raui.datePicker.primary.bga') || data('raui.primary.bga') || '#f4f4f4'};
+  }
+
+  .rcal-block-header {
+    text-align: center;
+    background-color: ${data('raui.datePicker.primary.fga') || data('raui.primary.fga') || '#07e'};
+    color: ${data('raui.datePicker.primary.bg') || data('raui.primary.bg') || '#fff'};
+    cursor: default;
+    display: flex;
+    justify-content: space-between;
+    padding: 0 0.5em;
+    line-height: 1em;
+    height: 1.5em;
+    align-items: center;
+  }
+
+  .rcal-click {
+    cursor: pointer;
+  }
+
+  .rcal-left, .rcal-right {
+    height: 0.8em;
+    display: inline-block;
+    box-sizing: border-box;
+    border: 0.4em solid transparent;
+    cursor: pointer;
+  }
+  .rcal-left {
+    border-right-color: ${data('raui.datePicker.primary.bg') || data('raui.primary.bg') || '#fff'};
+  }
+  .rcal-right {
+    border-left-color: ${data('raui.datePicker.primary.bg') || data('raui.primary.bg') || '#fff'};
+  }
+
+  .rcal-month, .rcal-year, .rcal-decade {
+    display: flex;
+    flex-direction: column;
+    background-color: ${data('raui.datePicker.primary.bga') || data('raui.primary.bga') || '#f4f4f4'};
+    width: calc(10.5em + 6px);
+    height: calc(10.5em + 6px);
+    justify-content: space-between;
+  }
+  .rcal-year, .rcal-decade {
+    justify-content: space-around;
+  }
+
+  .rcal-week {
+    height: 1.5em;
+    display: flex;
+    justify-content: space-between;
+    width: calc(10.5em + 6px);
+  }
+
+  .rcal-inner-row {
+    height: 2em;
+    display: flex;
+    justify-content: space-around;
+    width: calc(10.5em + 6px);
+  }
+
+  .rcal-inner-pick {
+    background-color: ${data('raui.datePicker.primary.bg') || data('raui.primary.bg') || '#fff'};
+    width: 3em;
+    height: 2em;
+    line-height: 2em;
+    text-align: center;
+    cursor: pointer;
+  }
+
+  .rcal-week-header {
+    background-color: ${data('raui.datePicker.primary.fga') || data('raui.primary.fga') || '#07e'};
+  }
+
+  .rcal-day {
+    background-color: ${data('raui.datePicker.primary.bg') || data('raui.primary.bg') || '#fff'};
+    width: 1.5em;
+    height: 1.5em;
+    text-align: center;
+    line-height: 1.5em;
+    cursor: pointer;
+  }
+
+  .rcal-day-header {
+    color: ${data('raui.datePicker.primary.bg') || data('raui.primary.bg') || '#fff'};
+    background-color: ${data('raui.datePicker.primary.fga') || data('raui.primary.fga') || '#07e'};
+    cursor: default;
+  }
+
+  .rcal-off-day {
+    background-color: ${data('raui.datePicker.primary.bc') || data('raui.primary.bc') || '#ccc'};
+  }
+
+  .rcal-current {
+    color: ${data('raui.datePicker.primary.bg') || data('raui.primary.bg') || '#fff'};
+    background-color: ${data('raui.datePicker.primary.fg') || data('raui.primary.fg') || '#222'};
+  }
+  `;
+</script>

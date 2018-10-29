@@ -1,0 +1,1 @@
+export { default, DateInput, PluginOpts } from '../src/DateInput';

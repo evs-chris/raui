@@ -99,37 +99,39 @@ if (process.env.NODE_ENV !== 'dev') {
 }
 
 // Demo
-bundles.push({
-  input: ['demo-src/index.js']
-    .concat(
-      fs.readdirSync('./demo-src/views')
-        .filter(e => /\.ractive\.(html|md)$/.test(e))
-        .map(e => `./demo-src/views/${e}`)
-    ),
-  output: {
-    dir: 'demo/build',
-    format: 'system',
-    globals: { ractive: 'Ractive' }
-  },
-  experimentalCodeSplitting: true,
-  experimentalDynamicImport: true,
-  plugins: [
-    ractive({
-      include: ['**/*.ractive.html'],
-      interpolate: { marked: false, md: false },
-      preserveWhitespace: { marked: true, md: true }
-    }),
-    buble(),
-    resolver({
-      extensions: ['.js', '.ractive.html'],
-      alias: {
-        'cmp': './src'
-      }
-    })
-  ],
-  watch: { clearScreen: false },
-  external: ['ractive']
-});
+if (process.env.DEMO !== 'no') {
+  bundles.push({
+    input: ['demo-src/index.js']
+      .concat(
+        fs.readdirSync('./demo-src/views')
+          .filter(e => /\.ractive\.(html|md)$/.test(e))
+          .map(e => `./demo-src/views/${e}`)
+      ),
+    output: {
+      dir: 'demo/build',
+      format: 'system',
+      globals: { ractive: 'Ractive' }
+    },
+    experimentalCodeSplitting: true,
+    experimentalDynamicImport: true,
+    plugins: [
+      ractive({
+        include: ['**/*.ractive.html'],
+        interpolate: { marked: false, md: false },
+        preserveWhitespace: { marked: true, md: true }
+      }),
+      buble(),
+      resolver({
+        extensions: ['.js', '.ractive.html'],
+        alias: {
+          'cmp': './src'
+        }
+      })
+    ],
+    watch: { clearScreen: false },
+    external: ['ractive']
+  });
+}
 
 bundles.push({
   input: 'demo-src/dev.js',
@@ -146,7 +148,7 @@ bundles.push({
     resolver({
       extensions: ['.js', '.ractive.html'],
       alias: {
-        cmd: './src'
+        cmp: './src'
       }
     })
   ],
