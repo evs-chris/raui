@@ -737,7 +737,7 @@ System.register(['ractive', './chunk7.js', './chunk8.js', './chunk2.js', './chun
         return filter.map(function (f) {
           var flt = { op: f.op || '=', value: f.value || '' };
           if (f.id) {
-            var field = columns.find(function (c) { return c.id === f.id; });
+            var field = columns.find(function (c) { return c.id === f.id || c.filter === f.id; });
             if (field) {
               flt.get = columnGetter(grid, field);
               if (flt.get) {
@@ -752,6 +752,9 @@ System.register(['ractive', './chunk7.js', './chunk8.js', './chunk2.js', './chun
                 flt.type = field.type || 'string';
               }
             }
+          } else {
+            // auto-skip filters with no id
+            flt.op = 'skip';
           }
           if (f.op === 'and' || f.op === 'or' || f.op === '&&' || f.op === '||') {
             if (Array.isArray(f.value)) { flt.value = buildFilter(grid, f.value, columns, fields); }
@@ -916,7 +919,9 @@ System.register(['ractive', './chunk7.js', './chunk8.js', './chunk2.js', './chun
               a = attrs$1.find(function (a) { return a.n === 'label'; });
               if (isString(a)) { field.label = a; }
               else if (a && a.f) { field.label = map(a); }
+
               if (!field.id) { field.id = field.label; }
+              if (!field.path) { field.path = field.id; }
 
               fields.push(field);
             }

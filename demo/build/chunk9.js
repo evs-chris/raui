@@ -384,7 +384,7 @@ System.register([], function (exports, module) {
         var group;
         for (var i = 0; i < groups.length; i++) {
           group = groups[i];
-          len += group.prefix.length + group.display.length;
+          len += group.prefix.length + (group.display || '').length;
           if (pos <= len) { return group; }
         }
         return groups[0];
@@ -401,8 +401,8 @@ System.register([], function (exports, module) {
         for (var i = 0; i <= group.chunk; i++) {
           g = groups[i];
           len += g.prefix.length;
-          if (i === group.chunk) { node.setSelectionRange(len, len + g.display.length); }
-          else { len += g.display.length; }
+          if (i === group.chunk) { node.setSelectionRange(len, len + (g.display || '').length); }
+          else { len += (g.display || '').length; }
         }
       }
 
@@ -421,7 +421,7 @@ System.register([], function (exports, module) {
         var res = [];
         for (i = 0; i < group.chunk; i++) {
           len += groups[i].prefix.length;
-          len += groups[i].display.length;
+          len += (groups[i].display || '').length;
         }
         len += groups[i].prefix.length;
         res[0] = str.substr(0, len);

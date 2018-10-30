@@ -55,7 +55,7 @@ System.register(['./chunk2.js', 'ractive', './chunk5.js'], function (exports, mo
       globalRegister('pop', 'transitions', pop);
 
       function noop() {}
-      var source;
+      var source, tailSource;
 
       var Popover = (function (Ractive) {
         function Popover(opts) { Ractive.call(this, opts); }
@@ -114,15 +114,35 @@ System.register(['./chunk2.js', 'ractive', './chunk5.js'], function (exports, mo
                 pos.tailLeft = -10;
               }
 
+              var tailTarget = this.tailSource ? this.tailSource.getBoundingClientRect() : target;
+
               if (align === 'start') {
-                if (where === 'above' || where === 'below') { pos.tailLeft = Math.floor(target.width / 2) - 10; }
-                else if (where === 'left' || where === 'right') { pos.tailTop = Math.floor(target.height / 2) - 10; }
+                if (vert) { pos.tailLeft = Math.floor(tailTarget.width / 2) - 10; }
+                else { pos.tailTop = Math.floor(tailTarget.height / 2) - 10; }
               } else if (align === 'end') {
-                if (where === 'above' || where === 'below') { pos.tailRight = Math.floor(target.width / 2) - 10; }
-                else if (where === 'left' || where === 'right') { pos.tailBottom = Math.floor(target.height / 2) - 10; }
+                if (vert) { pos.tailRight = Math.floor(tailTarget.width / 2) - 10; }
+                else { pos.tailBottom = Math.floor(tailTarget.height / 2) - 10; }
               } else if (align === 'middle') {
-                if (where === 'above' || where === 'below') { pos.tailLeft = Math.floor(local.width / 2) - 10; }
-                else if (where === 'left' || where === 'right') { pos.tailTop = Math.floor(local.height / 2) - 10; }
+                if (vert) { pos.tailLeft = Math.floor(tailTarget.width / 2) - 10; }
+                else { pos.tailTop = Math.floor(tailTarget.height / 2) - 10; }
+              }
+
+              if (tailTarget !== target) {
+                if (vert) {
+                  if (pos.tailLeft) { pos.tailLeft += tailTarget.left - target.left; }
+                  if (pos.tailRight) { pos.tailRight += target.right - tailTarget.right; }
+                } else {
+                  if (pos.tailTop) { pos.tailTop += tailTarget.top - target.top; }
+                  if (pos.tailBottom) { pos.tailBottom += target.bottom - tailTarget.bottom; }
+                }
+              } else if (align === 'middle') {
+                if (vert) {
+                  if (pos.tailLeft) { pos.tailLeft += tailTarget.left - (pos.popLeft + offset.left); }
+                  if (pos.tailRight) { pos.tailRight += (pos.popLeft + offset.left + local.width) - tailTarget.right; }
+                } else {
+                  if (pos.tailTop) { pos.tailTop += tailTarget.top - (pos.popTop + offset.top); }
+                  if (pos.tailBottom) { pos.tailBottom += (pos.popTop + offset.top + local.height) - tailTarget.bottom; }
+                }
               }
             }
 
@@ -135,6 +155,7 @@ System.register(['./chunk2.js', 'ractive', './chunk5.js'], function (exports, mo
                 pos.popLeft -= diff;
                 if (vert && pos.tailLeft) { pos.tailLeft += diff; }
                 if (vert && pos.tailRight) { pos.tailRight -= diff; }
+                if (tail && !vert) { pos.tail = false; }
               }
 
               if (pos.popLeft < 0) {
@@ -142,6 +163,7 @@ System.register(['./chunk2.js', 'ractive', './chunk5.js'], function (exports, mo
                 pos.popLeft += diff$1;
                 if (vert && pos.tailLeft) { pos.tailLeft -= diff$1; }
                 if (vert && pos.tailRight) { pos.tailRight += diff$1; }
+                if (tail && !vert) { pos.tail = false; }
               }
 
               if (pos.popTop + local.height > oheight) {
@@ -149,6 +171,7 @@ System.register(['./chunk2.js', 'ractive', './chunk5.js'], function (exports, mo
                 pos.popTop -= diff$2;
                 if (!vert && pos.tailTop) { pos.tailTop += diff$2; }
                 if (!vert && pos.tailBottom) { pos.tailBottom -= diff$2; }
+                if (tail && vert) { pos.tail = false; }
               }
 
               if (pos.popTop < 0) {
@@ -156,10 +179,12 @@ System.register(['./chunk2.js', 'ractive', './chunk5.js'], function (exports, mo
                 pos.popTop += diff$3;
                 if (!vert && pos.tailTop) { pos.tailTop -= diff$3; }
                 if (!vert && pos.tailBottom) { pos.tailBottom += diff$3; }
+                if (tail && vert) { pos.tail = false; }
               }
             }
 
             this.set('position', pos);
+            this.set('tail', pos.tail);
           } else {
             this.set('position', null);
           }
@@ -180,7 +205,7 @@ System.register(['./chunk2.js', 'ractive', './chunk5.js'], function (exports, mo
       Ractive$1.extendWith(Popover, {
         attributes: ['popped', 'tail', 'where', 'align', 'top', 'left', 'fit', 'clickClose', 'noClickout'],
         use: [plugin(), clickout()],
-        template: {v:4,t:[{t:4,f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rpop-wrapper",g:1},{n:"class-rpop-with-tail",t:13,f:[{t:2,r:"position.tail"}]},{n:"class",f:["rpop-",{t:2,x:{r:["where"],s:"_0||\"below\""}}," rpop-align-",{t:2,x:{r:["align"],s:"_0||\"middle\""}}],t:13},{t:4,f:[{n:"style-top",f:[{t:2,r:"position.popTop"},"px"],t:13},{n:"style-left",f:[{t:2,r:"position.popLeft"},"px"],t:13}],n:50,r:"position"},{t:4,f:[{t:4,f:[{n:"style-top",f:[{t:2,r:"top"}],t:13}],n:50,r:"top"},{t:4,f:[{n:"style-left",f:[{t:2,r:"left"}],t:13}],n:50,r:"left"}],n:51,l:1},{n:"pop",t:72,f:{r:["where"],s:"[{dir:_0||\"below\"}]"},v:"t2"},{t:4,f:[{n:["click"],t:70,f:{r:["@this"],s:"[_0.toggle(\"popped\")]"}}],n:50,r:"clickClose"},{t:4,f:[{n:["clickout"],t:70,f:{r:["@this"],s:"[_0.toggle(\"popped\")]"}}],n:51,r:"noClickout"},{t:16,r:"extra-attributes"}],f:[{t:4,f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rpop-tail",g:1},{t:4,f:[{n:"style-top",f:[{t:2,x:{r:["position.tailTop","position.vert"],s:"_0+(_1?1:0)"}},"px"],t:13}],n:50,r:"position.tailTop"},{t:4,f:[{n:"style-bottom",f:[{t:2,x:{r:["position.tailBottom","position.vert"],s:"_0+(_1?1:0)"}},"px"],t:13}],n:50,r:"position.tailBottom"},{t:4,f:[{n:"style-left",f:[{t:2,x:{r:["position.tailLeft","position.vert"],s:"_0+(_1?0:1)"}},"px"],t:13}],n:50,r:"position.tailLeft"},{t:4,f:[{n:"style-right",f:[{t:2,x:{r:["position.tailRight","position.vert"],s:"_0+(_1?0:1)"}},"px"],t:13}],n:50,r:"position.tailRight"}]}," ",{t:7,e:"div",m:[{t:13,n:"class",f:"rpop-tail-outer",g:1},{t:4,f:[{n:"style-top",f:[{t:2,x:{r:["position.tailTop"],s:"_0-2"}},"px"],t:13}],n:50,r:"position.tailTop"},{t:4,f:[{n:"style-bottom",f:[{t:2,x:{r:["position.tailBottom"],s:"_0-2"}},"px"],t:13}],n:50,r:"position.tailBottom"},{t:4,f:[{n:"style-left",f:[{t:2,x:{r:["position.tailLeft"],s:"_0-2"}},"px"],t:13}],n:50,r:"position.tailLeft"},{t:4,f:[{n:"style-right",f:[{t:2,x:{r:["position.tailRight"],s:"_0-2"}},"px"],t:13}],n:50,r:"position.tailRight"}]}],n:50,r:"~/tail"}," ",{t:7,e:"div",m:[{t:13,n:"class",f:"rpop",g:1}],f:[{t:16,r:"content"}]}]}],n:50,r:"_popped"}],e:{"_0||\"below\"":function (_0){return(_0||"below");},"_0||\"middle\"":function (_0){return(_0||"middle");},"[{dir:_0||\"below\"}]":function (_0){return([{dir:_0||"below"}]);},"[_0.toggle(\"popped\")]":function (_0){return([_0.toggle("popped")]);},"_0+(_1?1:0)":function (_0,_1){return(_0+(_1?1:0));},"_0+(_1?0:1)":function (_0,_1){return(_0+(_1?0:1));},"_0-2":function (_0){return(_0-2);}}},
+        template: {v:4,t:[{t:4,f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rpop-wrapper",g:1},{n:"class-rpop-with-tail",t:13,f:[{t:2,r:"position.tail"}]},{n:"class",f:["rpop-",{t:2,x:{r:["where"],s:"_0||\"below\""}}," rpop-align-",{t:2,x:{r:["align"],s:"_0||\"middle\""}}],t:13},{t:4,f:[{n:"style-top",f:[{t:2,r:"position.popTop"},"px"],t:13},{n:"style-left",f:[{t:2,r:"position.popLeft"},"px"],t:13}],n:50,r:"position"},{t:4,f:[{t:4,f:[{n:"style-top",f:[{t:2,r:"top"}],t:13}],n:50,r:"top"},{t:4,f:[{n:"style-left",f:[{t:2,r:"left"}],t:13}],n:50,r:"left"}],n:51,l:1},{n:"pop",t:72,f:{r:["where"],s:"[{dir:_0||\"below\"}]"},v:"t2"},{n:"cleanup",t:71},{t:4,f:[{n:["click"],t:70,f:{r:["@this"],s:"[_0.set(\"popped\",false)]"}}],n:50,r:"clickClose"},{t:4,f:[{n:["click"],t:70,f:{r:[],s:"[false,false]"}}],n:51,l:1},{t:4,f:[{n:["clickout"],t:70,f:{r:["@this"],s:"[_0.set(\"popped\",false)]"}}],n:51,r:"noClickout"},{t:16,r:"extra-attributes"}],f:[{t:4,f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rpop-tail",g:1},{t:4,f:[{n:"style-top",f:[{t:2,x:{r:["position.tailTop","position.vert"],s:"_0+(_1?1:0)"}},"px"],t:13}],n:50,r:"position.tailTop"},{t:4,f:[{n:"style-bottom",f:[{t:2,x:{r:["position.tailBottom","position.vert"],s:"_0+(_1?1:0)"}},"px"],t:13}],n:50,r:"position.tailBottom"},{t:4,f:[{n:"style-left",f:[{t:2,x:{r:["position.tailLeft","position.vert"],s:"_0+(_1?0:1)"}},"px"],t:13}],n:50,r:"position.tailLeft"},{t:4,f:[{n:"style-right",f:[{t:2,x:{r:["position.tailRight","position.vert"],s:"_0+(_1?0:1)"}},"px"],t:13}],n:50,r:"position.tailRight"}]}," ",{t:7,e:"div",m:[{t:13,n:"class",f:"rpop-tail-outer",g:1},{t:4,f:[{n:"style-top",f:[{t:2,x:{r:["position.tailTop"],s:"_0-2"}},"px"],t:13}],n:50,r:"position.tailTop"},{t:4,f:[{n:"style-bottom",f:[{t:2,x:{r:["position.tailBottom"],s:"_0-2"}},"px"],t:13}],n:50,r:"position.tailBottom"},{t:4,f:[{n:"style-left",f:[{t:2,x:{r:["position.tailLeft"],s:"_0-2"}},"px"],t:13}],n:50,r:"position.tailLeft"},{t:4,f:[{n:"style-right",f:[{t:2,x:{r:["position.tailRight"],s:"_0-2"}},"px"],t:13}],n:50,r:"position.tailRight"}]}],n:50,r:"~/tail"}," ",{t:7,e:"div",m:[{t:13,n:"class",f:"rpop",g:1}],f:[{t:16,r:"content"}]}]}],n:50,r:"_popped"}],e:{"_0||\"below\"":function (_0){return(_0||"below");},"_0||\"middle\"":function (_0){return(_0||"middle");},"[{dir:_0||\"below\"}]":function (_0){return([{dir:_0||"below"}]);},"[_0.set(\"popped\",false)]":function (_0){return([_0.set("popped",false)]);},"[false,false]":function (){return([false,false]);},"_0+(_1?1:0)":function (_0,_1){return(_0+(_1?1:0));},"_0+(_1?0:1)":function (_0,_1){return(_0+(_1?0:1));},"_0-2":function (_0){return(_0-2);}}},
         css: function(data) { return [(function(data) {
          var primary = Object.assign({}, data('raui.primary'), data('raui.pop.primary'));
          var themes = (data('raui.themes') || []).slice();
@@ -198,7 +223,10 @@ System.register(['./chunk2.js', 'ractive', './chunk5.js'], function (exports, mo
           popped: function popped(v) {
             var this$1 = this;
 
-            if (v && source) { this.source = source; }
+            if (v) {
+              if (source) { this.source = source; }
+              if (tailSource) { this.tailSource = tailSource; }
+            }
             setTimeout(function () {
               if (this$1.get('popped') === v) { this$1.set('_popped', v); }
             }, 100);
@@ -206,10 +234,26 @@ System.register(['./chunk2.js', 'ractive', './chunk5.js'], function (exports, mo
           _popped: {
             handler: function handler(v) {
               if (v) {
+                var el = this.find('div');
+                var node = el;
+                if (!this.overflows) {
+                  var o = this.overflows = { e: [], v: [] };
+                  while (el && el.style) {
+                    var css = getComputedStyle(el);
+                    if (css.overflow && css.overflow === 'hidden') {
+                      o.e.push(el);
+                      o.v.push(el.style.overflow);
+                      el.style.overflow = 'visible';
+                    }
+                    //if (el === stop) break;
+                    el = el.parentNode;
+                  }
+                }
                 this.position();
-                this.transition('pop', this.find('div'), { intro: true, dir: this.get('where') || 'below' });
+                this.transition('pop', node, { intro: true, dir: this.get('where') || 'below' });
               } else {
                 this.source = null;
+                this.tailSource = null;
               }
             },
             defer: true
@@ -217,6 +261,22 @@ System.register(['./chunk2.js', 'ractive', './chunk5.js'], function (exports, mo
           'align where tail fit': {
             handler: function handler() { this.position(); },
             defer: true
+          }
+        },
+        decorators: {
+          cleanup: function cleanup(node) {
+            var pop$$1 = this;
+            return {
+              teardown: function teardown() {
+                var o = pop$$1.overflows;
+                if (o) {
+                  pop$$1.overflows = null;
+                  for (var i = 0; i < o.e.length; i++) {
+                    o.e[i].style.overflow = o.v[i];
+                  }
+                }
+              }
+            }
           }
         }
       });
@@ -231,6 +291,8 @@ System.register(['./chunk2.js', 'ractive', './chunk5.js'], function (exports, mo
             if ( opts === void 0 ) opts = {};
 
             if (!path) { return { teardown: noop }; }
+            if (typeof path === 'string') { opts.path = path; }
+            else if (typeof path === 'object') { opts = path; }
             var ctx = this.getContext(node);
             var clicked, hover;
 
@@ -239,13 +301,19 @@ System.register(['./chunk2.js', 'ractive', './chunk5.js'], function (exports, mo
 
               if (ev.type !== 'click' || !hover || clicked) {
                 var init = source;
-                source = node;
-                ctx.toggle(path);
+                var initTail = tailSource;
+                source = opts.node || node;
+                if (typeof source === 'function') { source = source(); }
+                source = source || node;
+                tailSource = opts.tail;
+                if (typeof tailSource === 'function') { tailSource = tailSource(); }
+                ctx.toggle(opts.path);
                 source = init;
+                tailSource = initTail;
               }
 
               if (hover && ev.type === 'click') {
-                clicked = ctx.observeOnce(path, function () {
+                clicked = ctx.observeOnce(opts.path, function () {
                   clicked = null;
                 });
               }
@@ -253,7 +321,7 @@ System.register(['./chunk2.js', 'ractive', './chunk5.js'], function (exports, mo
 
             function out(ev) {
               if (!clicked) {
-                ctx.set(path, false);
+                ctx.set(opts.path, false);
               }
             }
 

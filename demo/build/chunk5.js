@@ -9,6 +9,7 @@ System.register([], function (exports, module) {
           var n = ev.target;
           while (n) {
             if (n === node) { return; }
+            if (!n.parentNode && n !== document) { return; }
             n = n.parentNode;
           }
           fire(ev);

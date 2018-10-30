@@ -108,7 +108,8 @@ System.register(['./chunk2.js'], function (exports, module) {
         var observer = this.observe('@style.break', settings, { init: false });
 
         node.className += ' grid grid-root';
-        requestAnimationFrame(settings);
+        if (opts.immediate) { settings(); }
+        else { requestAnimationFrame(settings); }
 
         return {
           update: function update(options) {

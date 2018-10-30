@@ -40,24 +40,29 @@ System.register(['ractive'], function (exports, module) {
 
       function expand(t, params) {
         var p = t.processParams(params, { duration: 200, easing: 'easeInOut' });
-        t.setStyle('overflow', 'hidden');
-        var axis = p.axis === 'x' ? 'width' : 'height';
-        if (t.isIntro || p.intro) {
-          var val = t.getStyle(axis);
-          t.setStyle(axis, 0);
-          t.setStyle('opacity', 0);
-          return t.animateStyle(axis, val, p)
-            .then(function () { return t.animateStyle('opacity', 1, p); })
-            .then(function () {
-              t.setStyle(axis, '');
-              t.setStyle('overflow', '');
-            });
-        } else {
-          t.setStyle(axis, t.getStyle(axis));
-          t.setStyle('opacity', 1);
-          return t.animateStyle('opacity', 0, p)
-            .then(function () { return t.animateStyle(axis, 0, p); });
-        }
+        return new Promise(function (ok) {
+          // defer execution to allow for grid stuff
+          requestAnimationFrame(function () {
+            t.setStyle('overflow', 'hidden');
+            var axis = p.axis === 'x' ? 'width' : 'height';
+            if (t.isIntro || p.intro) {
+              var val = t.getStyle(axis);
+              t.setStyle(axis, 0);
+              t.setStyle('opacity', 0);
+              ok(t.animateStyle(axis, val, p)
+                .then(function () { return t.animateStyle('opacity', 1, p); })
+                .then(function () {
+                  t.setStyle(axis, '');
+                  t.setStyle('overflow', '');
+                }));
+            } else {
+              t.setStyle(axis, t.getStyle(axis));
+              t.setStyle('opacity', 1);
+              ok(t.animateStyle('opacity', 0, p)
+                .then(function () { return t.animateStyle(axis, 0, p); }));
+            }
+          });
+        });
       }
 
       function plugin(opts) {
@@ -334,6 +339,7 @@ System.register(['ractive'], function (exports, module) {
               this$1.splice(("windows." + (escape(blocking)) + ".blockers"), blockers.indexOf(window.id), 1);
             }
             this$1.detachChild(window).then(function () { return window.teardown(); });
+            this$1.set(("windows." + (escape(window.id)) + ".block"), false);
             this$1.set(("windows." + (escape(window.id)) + ".index"), -1);
             this$1.raise();
             this$1.set(("windows." + (escape(window.id))), undefined);
@@ -1156,18 +1162,20 @@ System.register(['ractive'], function (exports, module) {
               if (btns) {
                 wnd._btns = btns.f.filter(function (e) { return e.e === 'button' || (e.t === 4 && (e.n === 50 || e.n === 51) && e.f.find(function (e) { return e.e === 'button'; })); }).map(function (n) {
                   if (n.t === 4) {
-                    var b = mapButton(n.f.find(function (e) { return e.e === 'button'; }));
-                    var f = { t: n.t, n: n.n, f: [b.partial.t[0]] };
-                    if (n.r) { f.r = n.r; }
-                    if (n.rx) { f.rx = n.rx; }
-                    if (n.x) { f.x = n.x; }
-                    b.partial = { t: [f] };
-                    return b;
+                      return n.f.filter(function (e) { return e.e === 'button'; }).map(function (bb) {
+                        var b = mapButton(bb);
+                        var f = { t: n.t, n: n.n, f: [b.partial.t[0]] };
+                        if (n.r) { f.r = n.r; }
+                        if (n.rx) { f.rx = n.rx; }
+                        if (n.x) { f.x = n.x; }
+                        b.partial = { t: [f] };
+                        return b;
+                      });
                   } else {
-                    var b$1 = mapButton(n);
-                    return b$1;
+                    var b = mapButton(n);
+                    return [b];
                   }
-                });
+                }).reduce(function (a, c) { return a.concat(c); }, []);
               }
             }
           },
@@ -1179,6 +1187,7 @@ System.register(['ractive'], function (exports, module) {
         observe: {
           'control.max root.max root.userMax control.width control.height root.dimensions.clientHeight root.dimensions.clientWidth': {
             handler: function handler(v, o, k) {
+              if (!this.get('control.id')) { return; }
               var max = this.get('control.max') || this.get('root.userMax') || this.get('root.max');
               var actual = this.get('control.actual') || {};
 

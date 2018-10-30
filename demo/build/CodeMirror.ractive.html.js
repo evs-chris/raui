@@ -114,6 +114,7 @@ System.register(['./chunk2.js', './chunk12.js', './chunk13.js'], function (expor
           return {
             editor: editor,
             resize: resize,
+            focus: function focus() { editor.focus(); },
             teardown: function teardown() {
               if (observer) { observer.cancel(); }
               if (editor.toTextEditor) { editor.toTextEditor(); }
