@@ -48,7 +48,6 @@
       const source = node || this.source;
       const popped = this.get('popped');
       if (!source || !popped) return;
-      let container;
 
       const wrapper = this.find('div');
 
@@ -131,15 +130,6 @@
           let el = parent;
           let owidth = parent.scrollWidth;
           let oheight = parent.scrollHeight;
-          while (el) {
-            if ((el.scrollWidth > local.width && el.scrollHeight > local.height) || el.scrollWidth < owidth || el.scrollHeight < oheight) break;
-            else {
-              if (el.scrollWidth > owidth) owidth = el.scrollWidth;
-              if (el.scrollHeight > oheight) oheight = el.scrollHeight;
-            }
-            el = el.parentNode;
-          }
-          container = el;
 
           if (pos.popLeft + local.width > owidth) {
             const diff = pos.popLeft - (owidth - local.width);
@@ -175,8 +165,7 @@
         }
 
         this.set('position', pos);
-
-        return container;
+        this.set('tail', pos.tail);
       } else {
         this.set('position', null);
       }
@@ -223,7 +212,7 @@
                   o.v.push(el.style.overflow);
                   el.style.overflow = 'visible';
                 }
-                if (el === stop) break;
+                //if (el === stop) break;
                 el = el.parentNode;
               }
             }
