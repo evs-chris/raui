@@ -757,6 +757,7 @@ System.register(['ractive', './chunk7.js', './chunk8.js', './chunk2.js', './chun
             flt.op = 'skip';
           }
           if (f.op === 'and' || f.op === 'or' || f.op === '&&' || f.op === '||') {
+            flt.op = f.op; // watch for skip on missing id
             if (Array.isArray(f.value)) { flt.value = buildFilter(grid, f.value, columns, fields); }
           }
           return flt;
