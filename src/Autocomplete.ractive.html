@@ -1,0 +1,210 @@
+<span class-rautocomplete class-field-wrapper on-pop="@context.set('rac.pop', $1)" on-blur="@context.set('rac.popped', false)">
+  <input on-dblclick="rac.pop.show(@node)" on-focus="rac.stash()" on-input="rac.input(@event)" on-keydown="rac.key(@event)" twoway=false value="{{rac.display}}" />
+  <rac-pop class-rac-pop on-init="@context.raise('pop', {}, $1)" bind-popped="rac.popped" where=below align=end style-padding=0>
+    <div class-rac-list>
+      {{#await rac.list}}<div class-rac-item class-rac-invalid>Loading...</div>{{then items}}
+      {{#each items}}<div class-rac-item class-rac-selected="rac.selected === @index" on-click="@context.set({ 'rac.selected': @index, 'rac.value': . })">{{rac._member(.)}}</div>{{/each}}
+      {{catch}}<div class-rac-item class-rac-invalid>Load failed.</div>
+      {{/await}}
+    </div>
+  </rac-pop>
+</span>
+
+<script>
+  import Ractive from 'ractive';
+
+  import { Popover } from './Popover';
+
+  const template = $TEMPLATE;
+
+  function safeGet(obj, path) {
+    return path.reduce((a, c) => a ? a[c] : a, obj)
+  }
+
+  export const Autocomplete = Ractive.macro(h => {
+    let tm;
+
+    h.aliasLocal('rac');
+    h.set('rac.list', []);
+    h.set('rac.popped', false);
+    h.set('rac.stash', function() {
+      h.set('rac.tempDisplay', h.get('rac.display'));
+      h.set('rac.tempValue', h.get('rac.value'));
+    });
+    h.set('rac.key', function(e) {
+      const k = e.which;
+      if (k === 27) {
+        h.set('rac.popped', false);
+        h.set('rac.display', '');
+        h.set('rac.display', h.get('rac.tempDisplay'));
+        h.set('rac.value', h.get('rac.tempValue'));
+      } else if (k === 38 || k === 40) {
+        e.preventDefault();
+        h.set('rac.popped', true);
+        const i = h.get('rac.selected');
+        const list = h.get('rac.list');
+        if (k === 38) {
+          if (i <= 0 || i == null) h.set('rac.selected', Array.isArray(list) ? list.length - 1 : 0);
+          else h.set('rac.selected', i - 1);
+        } else {
+          if (Array.isArray(list)) {
+            h.set('rac.selected', i < list.length ? i + 1 : 0);
+          } else h.set('rac.selected', 0);
+        }
+      } else if (k === 10 || k === 13) {
+        const list = h.get('rac.list');
+        if (Array.isArray(list)) {
+          h.set('rac.value', list[h.get('rac.selected')]);
+        }
+      }
+    });
+    h.set('rac.input', function(e) {
+      if (tm) clearTimeout(tm);
+      tm = setTimeout(function() {
+        tm = null;
+        list(e.target.value);
+        h.set('rac.popped', true);
+      }, 500);
+    });
+    h.setTemplate(template);
+
+    function list(filter) {
+      if (filter == null) filter = h.get('rac.value') == null ? '' : h.get('rac.display');
+      const items = h.get('rac._items');
+      if (typeof items === 'function') {
+        const res = items(filter);
+        if (typeof res === 'object' && typeof res.then === 'function') res.then(v => h.set('rac.list', v));
+        else h.set('rac.list', res);
+      } else if (Array.isArray(items)) {
+        const member = h.get('rac._member');
+        const re = new RegExp(filter || '', 'i');
+        h.set('rac.list', items.filter(i => re.test(member(i))));
+      } else h.set('rac.list', []);
+    }
+
+    function refresh() {
+      let v = h.get('rac.member');
+      if (h.get('rac.__member') !== v || h.get('rac._member') === undefined) {
+        if (typeof v === 'string') {
+          const path = Ractive.splitKeypath(v);
+          v = v => v == null ? '(none)' : safeGet(v, path);
+        } else if (Array.isArray(v)) v = v => v == null ? '(none)' : safeGet(v, v);
+        else if (!v) v = v => v == null ? '(none)' : `${v}`;
+
+        h.set('rac._member', v);
+        h.set('rac.__member', h.get('rac.member'));
+        h.set('rac.display', v(h.get('rac.value')));
+      }
+
+      v = h.get('rac.items');
+      if (h.get('rac.__items') !== v || h.get('rac._items') === undefined) {
+        if (Array.isArray(v)) h.set('rac._items', v);
+        else if (typeof v === 'function') h.set('rac._items', v);
+        else if (typeof v === 'object' && typeof v.then === 'function') v.then(v => {
+          h.set('rac._items', v);
+          list();
+        });
+        else h.set('rac._items', []);
+        h.set('rac.__items', h.get('rac.items'));
+      }
+
+      list();
+    }
+
+    const opts = { init: false, defer: true };
+    const watches = [
+      h.observe('rac.display', refresh, opts),
+      h.observe('rac.member', refresh, opts),
+      h.observe('rac.items', refresh, opts),
+      h.observe('rac.list', v => {
+        if (Array.isArray(v)) h.set('rac.selected', v.indexOf(h.get('rac.value')));
+        else h.set('rac.selected', -1);
+      }, opts),
+      h.observe('rac.value', v => {
+        const member = h.get('rac._member');
+        if (typeof member === 'function') {
+          const disp = member(v);
+          h.set('rac.display', disp);
+          h.set('rac.tempDisplay', disp);
+        }
+        h.set('rac.popped', false);
+        h.set('rac.tempValue', v);
+      })
+    ];
+
+    function update(attrs) {
+      if (attrs.items) h.link(attrs.items, 'rac.items');
+      if (attrs.display) h.link(attrs.display, 'rac.display');
+      if (attrs.value) h.link(attrs.value, 'rac.value');
+      if (attrs.selected) h.link(attrs.selected, 'rac.selected');
+      if ('member' in attrs) h.set('rac.member', attrs.member);
+      refresh();
+    }
+
+    function teardown() {
+      h.unlink('rac.items');
+      h.unlink('rac.display');
+      h.unlink('rac.value');
+      h.unlink('rac.selected');
+
+      watches.forEach(w => w.cancel());
+    }
+
+    update(h.attributes);
+
+    return { teardown, update };
+  }, {
+    attributes: ['items', 'selected', 'display', 'value', 'member'],
+    css: $CSS,
+    cssId: 'rautocomplete',
+    noCssTransform: true
+  });
+
+  export function plugin(opts = {}) {
+    return function({ instance }) {
+      instance.partials[opts.name || 'autocomplete'] = Autocomplete;
+      instance.components['rac-pop'] = Popover;
+    }
+  }
+
+  export default plugin;
+</script>
+
+<script rel="css">
+  return `.rautocomplete {
+    position: relative;
+    display: inline-block;
+  }
+  
+  .rac-pop {
+    min-width: 100%;
+  }
+
+  .rac-pop > .rpop {
+    padding: 0;
+  }
+
+  .rac-list {
+    display: flex;
+    flex-direction: column;
+    max-height: 50vh;
+    max-width: 100%;
+    overflow: auto;
+  }
+  
+  .rac-item {
+    color: #222;
+    background-color: #fff;
+    padding: 0.25em;
+    cursor: pointer;
+  }
+  
+  .rac-selected {
+    color: #fff;
+    background-color: #07e;
+  }
+  
+  .rac-invalid {
+    cursor: not-allowed;
+  }`;
+</script>
