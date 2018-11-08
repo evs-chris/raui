@@ -104,8 +104,10 @@ System.register(['./chunk2.js'], function (exports, module) {
           resize();
         }
 
-        var listener = this.root.on('*.resize', function () { return requestAnimationFrame(resize); });
+        var sizeCallback = function () { return requestAnimationFrame(resize); };
+        var listener = this.root.on('*.resize', sizeCallback);
         var observer = this.observe('@style.break', settings, { init: false });
+        window.addEventListener('resize', sizeCallback);
 
         node.className += ' grid grid-root';
         if (opts.immediate) { settings(); }
@@ -121,6 +123,7 @@ System.register(['./chunk2.js'], function (exports, module) {
             node.className = node.className.replace(regexps['grid grid-root'], '').trim();
             listener.cancel();
             observer.cancel();
+            window.removeEventListener('resize', sizeCallback);
           }
         };
       }
@@ -150,14 +153,14 @@ System.register(['./chunk2.js'], function (exports, module) {
           var name = size.prefix || size.key[0];
 
           size.units.forEach(function (u) {
-            cols += "\n" + (greater[size.key].map(function (s) { return wrappers.map(function (w) { return ("." + s + " > " + w + "." + name + "1, ." + s + " > " + w + ".row > ." + name + "1, ." + s + " ." + name + "-n1, ." + s + " .row-" + name + "-n1 > *"); }).join(', '); }).join(', ')) + " { display: initial; width: 100%; flex-grow: 0; flex-shrink: 0; }\n" + (greater[size.key].map(function (s) { return wrappers.map(function (w) { return ("." + s + " > " + w + "." + name + "0, ." + s + " > " + w + ".row > ." + name + "0, ." + s + " ." + name + "-n0, ." + s + " .row-" + name + "-n0 > *"); }).join(', '); }).join(', ')) + " { display: none; flex-grow: 0; flex-shrink: 0; }";
-            rows += "\n" + (greater[size.key].map(function (s) { return ("." + s + " .row-" + name + "-n1 > *"); }).join(', ')) + " { display: initial; width: 100%; }\n" + (greater[size.key].map(function (s) { return ("." + s + " .row-" + name + "-n0 > *"); }).join(', ')) + " { display: none; }";
+            cols += "\n" + (greater[size.key].map(function (s) { return wrappers.map(function (w) { return ("." + s + " > " + w + "." + name + "1, ." + s + " > " + w + ".row > ." + name + "1, ." + s + " ." + name + "-n1, ." + s + " .row-" + name + "-n1 > *"); }).join(', '); }).join(', ')) + " { display: " + (data('raui.grid.display') || 'inline-block') + "; width: 100%; flex-grow: 0; flex-shrink: 0; }\n" + (greater[size.key].map(function (s) { return wrappers.map(function (w) { return ("." + s + " > " + w + "." + name + "0, ." + s + " > " + w + ".row > ." + name + "0, ." + s + " ." + name + "-n0, ." + s + " .row-" + name + "-n0 > *"); }).join(', '); }).join(', ')) + " { display: none; flex-grow: 0; flex-shrink: 0; }";
+            rows += "\n" + (greater[size.key].map(function (s) { return ("." + s + " .row-" + name + "-n1 > *"); }).join(', ')) + " { display: " + (data('raui.grid.display') || 'inline-block') + "; width: 100%; }\n" + (greater[size.key].map(function (s) { return ("." + s + " .row-" + name + "-n0 > *"); }).join(', ')) + " { display: none; }";
 
             var loop = function ( i ) {
               str = '' + ((i / u) * 100);
               str = str.substr(0, str.indexOf('.') + 3);
-              rows += "\n" + (greater[size.key].map(function (s) { return wrappers.map(function (w) { return ("." + s + " > " + w + ".row-" + name + i + "-" + u + " > *, ." + s + " .row-" + name + "-n" + i + "-" + u + " > *, ." + s + " .row > ." + name + "-n" + i + "-" + u); }).join(', '); }).join(', ')) + " { display: initial; width: " + str + "%; }";
-              cols += "\n" + (greater[size.key].map(function (s) { return wrappers.map(function (w) { return ("." + s + " > " + w + "." + name + i + "-" + u + ", ." + s + " > " + w + ".row > ." + name + i + "-" + u + ", ." + s + " ." + name + "-n" + i + "-" + u + ", ." + s + " .row-" + name + "-n" + i + "-" + u + " > *"); }).join(', '); }).join(', ')) + " { display: initial; width: " + str + "%; flex-grow: 0; flex-shrink: 0; }";
+              rows += "\n" + (greater[size.key].map(function (s) { return wrappers.map(function (w) { return ("." + s + " > " + w + ".row-" + name + i + "-" + u + " > *, ." + s + " .row-" + name + "-n" + i + "-" + u + " > *, ." + s + " .row > ." + name + "-n" + i + "-" + u); }).join(', '); }).join(', ')) + " { display: " + (data('raui.grid.display') || 'inline-block') + "; width: " + str + "%; }";
+              cols += "\n" + (greater[size.key].map(function (s) { return wrappers.map(function (w) { return ("." + s + " > " + w + "." + name + i + "-" + u + ", ." + s + " > " + w + ".row > ." + name + i + "-" + u + ", ." + s + " ." + name + "-n" + i + "-" + u + ", ." + s + " .row-" + name + "-n" + i + "-" + u + " > *"); }).join(', '); }).join(', ')) + " { display: " + (data('raui.grid.display') || 'inline-block') + "; width: " + str + "%; flex-grow: 0; flex-shrink: 0; }";
             };
 
             for (var i = 1; i < u; i++) loop( i );
