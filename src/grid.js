@@ -96,8 +96,10 @@ export function grid(node, options) {
     resize();
   }
 
-  const listener = this.root.on('*.resize', () => requestAnimationFrame(resize));
+  const sizeCallback = () => requestAnimationFrame(resize);
+  const listener = this.root.on('*.resize', sizeCallback);
   const observer = this.observe('@style.break', settings, { init: false });
+  window.addEventListener('resize', sizeCallback);
 
   node.className += ' grid grid-root';
   if (opts.immediate) settings();
@@ -113,6 +115,7 @@ export function grid(node, options) {
       node.className = node.className.replace(regexps['grid grid-root'], '').trim();
       listener.cancel();
       observer.cancel();
+      window.removeEventListener('resize', sizeCallback);
     }
   };
 }
@@ -147,17 +150,17 @@ export function style(data, optDefaults) {
 
     size.units.forEach(u => {
       cols += `
-${greater[size.key].map(s => wrappers.map(w => `.${s} > ${w}.${name}1, .${s} > ${w}.row > .${name}1, .${s} .${name}-n1, .${s} .row-${name}-n1 > *`).join(', ')).join(', ')} { display: initial; width: 100%; flex-grow: 0; flex-shrink: 0; }
+${greater[size.key].map(s => wrappers.map(w => `.${s} > ${w}.${name}1, .${s} > ${w}.row > .${name}1, .${s} .${name}-n1, .${s} .row-${name}-n1 > *`).join(', ')).join(', ')} { display: inherit; width: 100%; flex-grow: 0; flex-shrink: 0; }
 ${greater[size.key].map(s => wrappers.map(w => `.${s} > ${w}.${name}0, .${s} > ${w}.row > .${name}0, .${s} .${name}-n0, .${s} .row-${name}-n0 > *`).join(', ')).join(', ')} { display: none; flex-grow: 0; flex-shrink: 0; }`;
       rows += `
-${greater[size.key].map(s => `.${s} .row-${name}-n1 > *`).join(', ')} { display: initial; width: 100%; }
+${greater[size.key].map(s => `.${s} .row-${name}-n1 > *`).join(', ')} { display: inherit; width: 100%; }
 ${greater[size.key].map(s => `.${s} .row-${name}-n0 > *`).join(', ')} { display: none; }`;
 
       for (let i = 1; i < u; i++) {
         str = '' + ((i / u) * 100);
         str = str.substr(0, str.indexOf('.') + 3);
-        rows += `\n${greater[size.key].map(s => wrappers.map(w => `.${s} > ${w}.row-${name}${i}-${u} > *, .${s} .row-${name}-n${i}-${u} > *, .${s} .row > .${name}-n${i}-${u}`).join(', ')).join(', ')} { display: initial; width: ${str}%; }`;
-        cols += `\n${greater[size.key].map(s => wrappers.map(w => `.${s} > ${w}.${name}${i}-${u}, .${s} > ${w}.row > .${name}${i}-${u}, .${s} .${name}-n${i}-${u}, .${s} .row-${name}-n${i}-${u} > *`).join(', ')).join(', ')} { display: initial; width: ${str}%; flex-grow: 0; flex-shrink: 0; }`;
+        rows += `\n${greater[size.key].map(s => wrappers.map(w => `.${s} > ${w}.row-${name}${i}-${u} > *, .${s} .row-${name}-n${i}-${u} > *, .${s} .row > .${name}-n${i}-${u}`).join(', ')).join(', ')} { display: inherit; width: ${str}%; }`;
+        cols += `\n${greater[size.key].map(s => wrappers.map(w => `.${s} > ${w}.${name}${i}-${u}, .${s} > ${w}.row > .${name}${i}-${u}, .${s} .${name}-n${i}-${u}, .${s} .row-${name}-n${i}-${u} > *`).join(', ')).join(', ')} { display: inherit; width: ${str}%; flex-grow: 0; flex-shrink: 0; }`;
       }
     });
 
