@@ -1,6 +1,6 @@
 <span class-rautocomplete class-field-wrapper on-pop="@context.set('rac.pop', $1)" on-blur="@context.set('rac.popped', false)">
-  <input on-dblclick="rac.pop.show(@node)" on-focus="rac.stash()" on-input="rac.input(@event)" on-keydown="rac.key(@event)" twoway=false value="{{rac.display}}" />
-  <rac-pop class-rac-pop on-init="@context.raise('pop', {}, $1)" bind-popped="rac.popped" where=below align=end style-padding=0>
+  <input {{>extra-attributes}} on-dblclick="rac.pop.show(@node)" on-focus="rac.stash()" on-input="rac.input(@event)" on-keydown="rac.key(@event)" twoway=false value="{{rac.display}}" />
+  <rac-pop class-rac-pop on-init="@context.raise('pop', {}, $1)" bind-popped="rac.popped" where=below align=end style-padding=0 gap=[[2]]>
     <div class-rac-list>
       {{#await rac.list}}<div class-rac-item class-rac-invalid>Loading...</div>{{then items}}
       {{#each items}}<div class-rac-item class-rac-selected="rac.selected === @index" on-click="@context.set({ 'rac.selected': @index, 'rac.value': . })">{{rac._member(.)}}</div>{{/each}}
@@ -40,7 +40,7 @@
         h.set('rac.value', h.get('rac.tempValue'));
       } else if (k === 38 || k === 40) {
         e.preventDefault();
-        h.set('rac.popped', true);
+        h.get('rac.pop').show(h.find('input'));
         const i = h.get('rac.selected');
         const list = h.get('rac.list');
         if (k === 38) {
@@ -63,8 +63,9 @@
       tm = setTimeout(function() {
         tm = null;
         list(e.target.value);
-        h.set('rac.popped', true);
+        h.get('rac.pop').show(h.find('input'))
       }, 500);
+      h.set('rac.display', e.target.value);
     });
     h.setTemplate(template);
 
