@@ -1,0 +1,1 @@
+export { autoResize, default, plugin, PluginOpts } from '../src/auto-resize';
