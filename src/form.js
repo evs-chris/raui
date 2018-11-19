@@ -159,6 +159,10 @@ export function style(data) {
     transform: rotate(45deg);
     pointer-events: none;
   }
+  
+  label.field.inline.select:after {
+    top: 1.5em;
+  }
 
   label.field textarea {
     border: none;${boxy ? `
