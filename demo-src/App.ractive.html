@@ -46,7 +46,7 @@
       </item>
     </menu>
   </left>
-  <center class-app-center>
+  <center class-app-center style-overflow="{{win.max ? 'hidden' : 'auto'}}">
     {{#unless win.max}}
       <app-bar>
         <left><div class-hamburger on-click="@.toggle('menu.hidden')">&#9776;</div></left>

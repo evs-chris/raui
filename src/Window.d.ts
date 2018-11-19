@@ -28,7 +28,7 @@ export class Window<T extends Window<T> = Window<any>> extends Ractive<T> {
   pad?: boolean;
   buttons?: WindowButton[];
 
-  close(force?: boolean): void;
+  close(force?: boolean): boolean;
   minimize(): void;
   hide(): void;
   raise(show?: boolean): void;
@@ -77,6 +77,7 @@ export class Host<T extends Host<T> = Host<any>> extends Ractive<Host> implement
   current?: Window;
   currentId?: string;
   defaults?: WindowOpts;
+  get toastDefaults(): ToastOptions;
   placement?: Placement;
 
   readonly windows: string[];

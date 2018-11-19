@@ -104,6 +104,12 @@ System.register(['ractive'], function (exports, module) {
           var tm;
           var active;
 
+          Object.defineProperty(proto, 'toastDefaults', {
+            value: defaults,
+            writable: false,
+            configurable: true
+          });
+
           proto.toast = function toast(message, options) {
             var opts = Object.assign({ message: message, instance: this }, defaults, this.toastDefaults, options);
             toasts.push(opts);
