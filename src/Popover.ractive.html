@@ -61,9 +61,10 @@
         const tail = this.get('tail');
         const vert = where === 'above' || where === 'below';
         const fit = this.get('fit');
+        const gap = this.get('gap');
 
-        let offx = where === 'above' || where === 'below' ? 0 : where === 'left' ? -local.width - 4 : target.width + 4;
-        let offy  = where === 'left' || where === 'right' ? -target.height : where === 'above' ? -target.height - local.height - 4 : 4;
+        let offx = where === 'above' || where === 'below' ? 0 : where === 'left' ? -local.width - gap : target.width + gap;
+        let offy  = where === 'left' || where === 'right' ? -target.height : where === 'above' ? -target.height - local.height - gap : gap;
 
         if (align === 'middle') {
           if (where === 'below' || where === 'above') offx -= (local.width - target.width) / 2;
@@ -165,7 +166,6 @@
         }
 
         this.set('position', pos);
-        this.set('tail', pos.tail);
       } else {
         this.set('position', null);
       }
@@ -182,7 +182,7 @@
   }
 
   Ractive.extendWith(Popover, {
-    attributes: ['popped', 'tail', 'where', 'align', 'top', 'left', 'fit', 'clickClose', 'noClickout'],
+    attributes: ['popped', 'tail', 'where', 'align', 'top', 'left', 'fit', 'clickClose', 'noClickout', 'gap'],
     use: [pop(), clickout()],
     template: $TEMPLATE,
     css: $CSS,
@@ -245,6 +245,10 @@
           }
         }
       }
+    },
+
+    data() {
+      return { gap: 4 };
     }
   });
 
