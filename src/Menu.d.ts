@@ -13,6 +13,7 @@ export interface MenuItem {
   items?: MenuItem[];
   content?: string;
   pad?: boolean;
+  extra?: any[];
 }
 
 export interface Handle {

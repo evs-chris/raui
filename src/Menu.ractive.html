@@ -22,7 +22,7 @@
         expand-in-out
       {{/if}}
       {{#if .refPartial}}{{>.refPartial}}{{elseif typeof .ref === 'string'}}as-ref=".ref"{{/if}}
-      {{#if .attrsPartial}}{{yield .attrsPartial}}{{/if}}
+      {{#if .extra}}{{yield .extra}}{{/if}}
     >
       {{>.type || 'item'}}
       {{#if !.type || .type === 'item'}}{{@._itemRendered(@context)}}{{/if}}
@@ -348,11 +348,11 @@
         }
       });
 
-      if (as.length) res.attrsPartial = { t: as };
+      if (as.length) res.extra = { t: as };
 
       if (el.e === 'container') {
         res.contentPartial = { t: el.f };
-        res.attrsPartial = as;
+        res.extra = as;
         return res;
       }
 
