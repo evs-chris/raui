@@ -647,16 +647,20 @@
     transition: box-shadow 0.2s ease-in-out;
   }
   .rmenu-popout.rmenu-expanded > .rmenu-items {
-    left: calc(100% + 1px);
+    left: 100%;
     z-index: initial;
     box-shadow: 0.2em 0 0.2em rgba(0, 0, 0, 0.2);
+  }
+  .rmenu-popout.rmenu-expanded > .rmenu-items .rmenu-popout.rmenu-expanded > .rmenu-items {
+    left: calc(100% + 1px);
   }
 
   .rmenu-popout > .rmenu-items.rmenu-shrink {
     left: 100%;
     z-index: 1;
   }
-  .rmenu-popout.rmenu-expanded > .rmenu-items.rmenu-shrink {
+  .rmenu-popout.rmenu-expanded > .rmenu-items.rmenu-shrink,
+  .rmenu-popout.rmenu-expanded > .rmenu-items .rmenu-popout.rmenu-expanded > .rmenu-items.rmenu-shrink {
     left: 0;
   }
 
@@ -671,9 +675,9 @@
   }
 
   .rmenu-popout > .rmenu-items .rmenu-popout > .rmenu-items {
-    height: calc(100% + 2px);
+    height: 100%;
     width: calc(100% + 1px);
-    top: -1px;
+    top: 0px;
   }
   .rmenu-popout > .rmenu-items .rmenu-popout > .rmenu-items.rmenu-shrink {
     height: 100%;
