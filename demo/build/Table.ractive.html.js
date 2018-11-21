@@ -564,7 +564,7 @@ System.register(['ractive', './chunk7.js', './chunk8.js', './chunk2.js', './chun
 
               if (isObject(filter) && !Array.isArray(filter)) { filter = [filter]; }
 
-              if (filter instanceof RegExp || isString(filter)) {
+              if ((filter instanceof RegExp || isString(filter)) && filter) {
                 var nocase = filter === '' + filter.toLowerCase() || filter === '' + filter.toUpperCase();
                 try {
                   var re = isString(filter) ? new RegExp(filter, nocase ? 'i' : '') : filter;
