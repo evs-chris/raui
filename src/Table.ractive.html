@@ -577,7 +577,7 @@
 
           if (isObject(filter) && !Array.isArray(filter)) filter = [filter];
 
-          if (filter instanceof RegExp || isString(filter)) {
+          if ((filter instanceof RegExp || isString(filter)) && filter) {
             const nocase = filter === '' + filter.toLowerCase() || filter === '' + filter.toUpperCase();
             try {
               const re = isString(filter) ? new RegExp(filter, nocase ? 'i' : '') : filter;
