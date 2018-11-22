@@ -159,10 +159,6 @@ export function style(data) {
     transform: rotate(45deg);
     pointer-events: none;
   }
-  
-  label.field.inline.select:after {
-    top: 1.5em;
-  }
 
   label.field textarea {
     border: none;${boxy ? `
@@ -269,6 +265,23 @@ export function style(data) {
     position: absolute;
     font-size: 1.1em;
     top: 2.4em;
+  }
+
+  /* inline fields (no labels) */
+  label.field.inline {
+    height: 3.3em;
+  }
+
+  label.field.check.inline {
+    padding-top: 1.5em;
+  }
+
+  label.field.button.inline {
+    padding-top: 0.4em;
+  }
+
+  label.field.inline.select:after {
+    top: 1.2em;
   }
   `;
   // TODO: other themes
