@@ -273,7 +273,7 @@ export function style(data) {
   }
 
   label.field.check.inline {
-    padding-top: 1.5em;
+    padding-top: ${boxy ? '0' : '1'}.5em;
   }
 
   label.field.button.inline {
@@ -281,7 +281,7 @@ export function style(data) {
   }
 
   label.field.inline.select:after {
-    top: 1.2em;
+    top: 1.${boxy ? '5' : '2'}em;
   }
   `;
   // TODO: other themes
