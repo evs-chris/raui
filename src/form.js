@@ -151,9 +151,8 @@ export function style(data) {
     display: block;
     width: 0.6em;
     right: 1em;
-    height: 0.6em;${boxy ? `
-    top: 3em;` : `
-    top: 2.75em;`}
+    height: 0.6em;
+    top: 2.75em;
     border-bottom: 0.125em solid;
     border-right: 0.125em solid;
     transform: rotate(45deg);
@@ -277,11 +276,12 @@ export function style(data) {
   }
 
   label.field.button.inline {
+    margin-top: 0.2em;
     padding-top: 0.4em;
   }
 
   label.field.inline.select:after {
-    top: 1.${boxy ? '5' : '2'}em;
+    top: 1.${boxy ? '4' : '2'}em;
   }
   `;
   // TODO: other themes
