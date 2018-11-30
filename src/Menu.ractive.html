@@ -441,6 +441,14 @@
       return this.set('.disabled', v);
     }
 
+    get items() {
+      if (this.item.items) {
+        return this.item.items.map((item) => new Handle(this.menu, this, item));
+      } else {
+        return [];
+      }
+    }
+
     get ref() {
       if (this.removed) return;
       return this.item.ref;
@@ -482,6 +490,7 @@
 
     get(keypath) {
       if (this.removed) return false;
+      if (!keypath) return this.menu.get(this.keypath);
       const key = keypath.replace(/^[\.\/]*/, '');
       return this.menu.get(`${this.keypath}.${key}`);
     }

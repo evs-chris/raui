@@ -19,6 +19,8 @@ export interface MenuItem {
 export interface Handle {
   menu: Menu;
   item: MenuItem;
+  
+  readonly items: Handle[];
 
   keypath: string;
   disabled: boolean;
@@ -28,7 +30,7 @@ export interface Handle {
   open(): void;
   close(): void;
   remove(): boolean;
-  get(keypath: string): any;
+  get(keypath?: string): any;
   set(keypath: string, value: any): Promise<void>;
 }
 
