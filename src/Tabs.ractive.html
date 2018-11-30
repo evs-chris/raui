@@ -211,12 +211,12 @@
 
     const tabs = tpl.filter(n => n.e === 'tab').map(t => {
       const tab = {
-        template: { t: t.f }
+        template: { t: t.f.filter(n => n.e !== 'title') }
       };
       const extra = [];
       const extraTab = [];
 
-      t.m.forEach(a => {
+      t.m && t.m.forEach(a => {
         if (a.t === 13 && ~tabAttrs.indexOf(a.n)) {
           if (a.n === 'disabled' && a.f && a.f.length === 1 && a.f[0].t === 2) {
             const cnd = `_cnd${attrs.length}`;
@@ -240,6 +240,15 @@
         else if (a.t === 70) extraTab.push(a);
         else extra.push(a);
       });
+
+      let tmp;
+      tmp = t.f.find(n => n.e === 'title');
+      if (tmp) {
+        tab.title = tmp.f;
+        if (tmp.m) {
+          extraTab.push.apply(extraTab, tmp.m);
+        }
+      }
 
       if (extra.length) tab.extra = { t: extra };
       if (extraTab.length) tab.extraTab = { t: extraTab };
