@@ -346,12 +346,12 @@ System.register(['./chunk3.js', './chunk4.js', './chunk6.js', './chunk2.js', './
 
         var tabs = tpl.filter(function (n) { return n.e === 'tab'; }).map(function (t) {
           var tab = {
-            template: { t: t.f }
+            template: { t: t.f.filter(function (n) { return n.e !== 'title'; }) }
           };
           var extra = [];
           var extraTab = [];
 
-          t.m.forEach(function (a) {
+          t.m && t.m.forEach(function (a) {
             if (a.t === 13 && ~tabAttrs.indexOf(a.n)) {
               if (a.n === 'disabled' && a.f && a.f.length === 1 && a.f[0].t === 2) {
                 var cnd = "_cnd" + (attrs.length);
@@ -375,6 +375,15 @@ System.register(['./chunk3.js', './chunk4.js', './chunk6.js', './chunk2.js', './
             else if (a.t === 70) { extraTab.push(a); }
             else { extra.push(a); }
           });
+
+          var tmp;
+          tmp = t.f.find(function (n) { return n.e === 'title'; });
+          if (tmp) {
+            tab.title = tmp.f;
+            if (tmp.m) {
+              extraTab.push.apply(extraTab, tmp.m);
+            }
+          }
 
           if (extra.length) { tab.extra = { t: extra }; }
           if (extraTab.length) { tab.extraTab = { t: extraTab }; }

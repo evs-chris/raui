@@ -354,7 +354,7 @@ System.register(['ractive', './chunk2.js', './chunk5.js'], function (exports, mo
         this.item = item;
       };
 
-      var prototypeAccessors = { keypath: { configurable: true },action: { configurable: true },active: { configurable: true },disabled: { configurable: true },ref: { configurable: true } };
+      var prototypeAccessors = { keypath: { configurable: true },action: { configurable: true },active: { configurable: true },disabled: { configurable: true },items: { configurable: true },ref: { configurable: true } };
 
       prototypeAccessors.keypath.get = function () {
         if (this.removed) { return; }
@@ -398,6 +398,16 @@ System.register(['ractive', './chunk2.js', './chunk5.js'], function (exports, mo
         return this.set('.disabled', v);
       };
 
+      prototypeAccessors.items.get = function () {
+          var this$1 = this;
+
+        if (this.item.items) {
+          return this.item.items.map(function (item) { return new Handle(this$1.menu, this$1, item); });
+        } else {
+          return [];
+        }
+      };
+
       prototypeAccessors.ref.get = function () {
         if (this.removed) { return; }
         return this.item.ref;
@@ -439,6 +449,7 @@ System.register(['ractive', './chunk2.js', './chunk5.js'], function (exports, mo
 
       Handle.prototype.get = function get (keypath) {
         if (this.removed) { return false; }
+        if (!keypath) { return this.menu.get(this.keypath); }
         var key = keypath.replace(/^[\.\/]*/, '');
         return this.menu.get(((this.keypath) + "." + key));
       };
