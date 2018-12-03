@@ -254,11 +254,32 @@ export function style(data) {
 
   label.field.button {
     vertical-align: top;
-    padding-top: 1.75em;
+    padding-top: 1.958em;
   }
-  label.field.button button {
+  label.field .with-buttons button, label.field.button button {
     font-size: 1.1em;
+    margin-top: ${boxy ? '0.1em' : '0'};
   }
+  label.field .with-buttons button {
+    flex-shrink: 0;
+    padding-left: 0.5em;
+    padding-right: 0.5em;
+    margin-top: 0;
+    margin-right: 0;
+    ${boxy ? `height: 2.5em;
+    box-shadow: none;
+    border-radius: 0;
+    border-left: 1px solid ${primary.bc || '#ccc'};
+    margin-left: 0;` : 
+    'height: 2.25em;'}
+  }${boxy ? `
+  label.field .with-buttons button:first-of-type {
+    margin-left: -0.1em;
+  }
+  label.field .with-buttons button:last-of-type {
+    border-radius: 0 0.2em 0.2em 0;
+  }
+  ` : ''}
 
   label.field.plain > div {
     position: absolute;
@@ -277,7 +298,7 @@ export function style(data) {
 
   label.field.button.inline {
     margin-top: 0.2em;
-    padding-top: 0.4em;
+    padding-top: 0.${boxy ? '4' : '12'}em;
   }
 
   label.field.inline.select:after {
@@ -326,7 +347,8 @@ export function field(node) {
     isFile = !!node.querySelector('input[type=file]');
     if (isFile && !~val.indexOf('file')) val.push('file');
 
-    isButton = !!node.querySelector('button');
+    isButton = node.querySelector('button');
+    isButton = !!isButton && isButton.parentNode === node;
     if (isButton && !~val.indexOf('button')) val.push('button');
 
     isPlain = !!node.querySelector('div');
