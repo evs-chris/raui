@@ -260,6 +260,10 @@ export function style(data) {
     font-size: 1.1em;
     margin-top: ${boxy ? '0.1em' : '0'};
   }
+
+  label.field .field-wrapper.with-buttons {
+    display: flex;
+  }
   label.field .with-buttons button {
     flex-shrink: 0;
     padding-left: 0.5em;
