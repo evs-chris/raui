@@ -1,4 +1,5 @@
 import globalRegister from './globalRegister';
+import Ractive from 'ractive';
 
 export function style(data) {
   const primary = Object.assign({}, data('raui.primary'), data('raui.form.primary'));
@@ -60,7 +61,6 @@ export function style(data) {
     transition-property: box-shadow, color;
     outline: none;
     ${boxy ? 'padding: 0 0.75em;' : ''}
-    line-height: 2.6em;
     box-shadow: none;
     width: 100%;
     margin-bottom: 0.8em;
@@ -267,17 +267,23 @@ export function style(data) {
     margin-top: 0;
     margin-right: 0;
     ${boxy ? `height: 2.5em;
+    line-height: 2.7em;
     box-shadow: none;
     border-radius: 0;
-    border-left: 1px solid ${primary.bc || '#ccc'};
+    border-left: 1px solid ${primary.bg || '#fff'};
     margin-left: 0;` : 
-    'height: 2.25em;'}
+    `height: 2.25em;
+    line-height: 2.5em;`}
   }${boxy ? `
   label.field .with-buttons button:first-of-type {
-    margin-left: -0.1em;
+    margin-left: -0.05em;
+    border-left: none;
   }
   label.field .with-buttons button:last-of-type {
-    border-radius: 0 0.2em 0.2em 0;
+    border-radius: 0 ${primary.radius || '0.2em'} ${primary.radius || '0.2em'} 0;
+  }
+  label.field .with-buttons input {
+    border-radius: ${primary.radius || '0.2em'} 0 0 ${primary.radius || '0.2em'};
   }
   ` : ''}
 
@@ -398,6 +404,74 @@ export function field(node) {
 
 field.style = style;
 
+function findDeep(els, el) {
+  if (!els) return false;
+  for (let i = 0; i < els.length; i++) {
+    if (els[i].e === el) return true;
+    if (els[i].f && findDeep(els[i].f, el)) return true;
+  }
+  return false;
+}
+
+export const macro = Ractive.macro(handle => {
+  let body = [];
+  const attrs = (handle.template.m || []).slice();
+  const content = handle.template.f || [];
+
+  // TODO: special field types
+  const value = attrs.find(a => a.n === 'value');
+  const type = attrs.find(a => a.n === 'type');
+
+  if (type && typeof macro.types[type.f] === 'function') {
+    body.push.apply(body, macro.types[type.f](attrs, content, handle));
+  } else if (value) {
+    const el = {
+      t: 7, e: 'input', m: [value]
+    };
+    // watch for select
+    if (findDeep(content, 'option')) {
+      el.e = 'select';
+      el.f = content;
+    }
+    if (type) {
+      el.m.push(type);
+      if (type.f === 'checkbox' || type.f === 'radio') {
+        const target = attrs.find(a => a.n === 'target');
+        if (target) el.m.push(Object.assign({}, target, { n: 'name' }));
+        else el.m.splice(el.m.indexOf(value), 1, Object.assign({}, value, { n: 'checked' }));
+      }
+    }
+    el.m = el.m.concat(attrs.filter(a => a.t === 73 || a.n === 'placeholder'));
+    body.push(el);
+
+    const btns = content.filter(e => e.e === 'button' || findDeep(e.f, 'button'));
+    if (btns.length) {
+      body.push.apply(body, btns);
+      body = [{
+        t: 7, e: 'span', m: [
+          { t: 13, n: 'class', f: 'field-wrapper with-buttons', g: 1 }
+        ],
+        f: body
+      }];
+    }
+  }
+
+  const label = attrs.find(a => a.n === 'label');
+  if (label) body.unshift(label.f);
+  else body.unshift('\xa0');
+
+  const outer = {
+    t: 7, e: 'label', m: [{ t: 71, n: 'field' }].concat(attrs.filter(a => (a.t !== 13 && a.t !== 73) || (a.n !== 'value' && a.n !== 'type' && a.n !== 'inline' && a.n !== 'label' && a.n !== 'placeholder' && a.n !== 'target'))),
+    f: body
+  };
+
+  if (attrs.find(a => a.n === 'inline')) outer.m.push({ t: 13, n: 'class', f: 'inline' });
+
+  handle.setTemplate([outer]);
+});
+
+macro.types = {};
+
 export function autofocus(node) {
   if (typeof node.focus === 'function') node.focus();
   return { teardown: noop };
@@ -421,12 +495,14 @@ export function plugin(opts = {}) {
       }
     }
 
+    instance.partials[opts.name || 'field'] = macro;
     instance.decorators[opts.name || 'field'] = field;
     instance.decorators[opts.autofocusName || 'autofocus'] = autofocus;
   }
 }
 
 globalRegister('field', 'decorators', field);
+globalRegister('field', 'partials', macro);
 globalRegister('autofocus', 'decorators', autofocus);
 
 export default plugin;
