@@ -481,8 +481,9 @@ System.register(['./chunk3.js', './chunk4.js', './chunk6.js', './chunk2.js', './
         var primary = Object.assign({}, data('raui.primary'), data('raui.form.primary'));
         var active = Object.assign({}, data('raui.primary.active'), data('raui.form.primary.active'));
         var boxy = data('raui.form.boxy');
-        return ("\n  label.field {\n    display: inline-block;\n    font-size: 0.9em;\n    font-weight: 500;\n    color: " + (primary.fg || '#222') + ";\n    transition: 0.2s ease-in-out;\n    transition-property: color;\n    vertical-align: middle;\n    box-sizing: border-box;\n    padding: 0.5em 0.25em;\n    line-height: 1.5em;\n    overflow: hidden;\n    text-overflow: ellipsis;\n    white-space: nowrap;\n    font-family: inherit;\n  }\n\n  label.field.textarea {\n    display: block;\n    border: 0.0625em solid " + (primary.bc || '#ccc') + ";\n    padding: 0.5em 0.8em 0.8em 0.8em;\n    border-radius: " + (primary.radius || '0.2em') + ";\n    box-shadow: none;\n    transition-property: color, border-color, box-shadow;\n    margin: 0.8em 0.2em;\n    min-height: auto;\n    background-color: " + (boxy ? primary.bg || '#fff' : 'transparent') + ";\n  }\n\n  label.field.focus {\n    color: " + (active.fg || '#07e') + ";\n  }\n\n  label.field.textarea.focus {\n    border-color: " + (active.fg || primary.fga || '#07e') + ";\n    " + (!boxy ? ("box-shadow: 0.0625em 0.0625em " + (active.fg || primary.fga || '#07e') + ",\n      -0.0625em 0.0625em " + (active.fg || primary.fga || '#07e') + ",\n      0.0625em -0.0625em " + (active.fg || primary.fga || '#07e') + ",\n      -0.0625em -0.0625em " + (active.fg || primary.fga || '#07e') + ";") : '') + "\n  }\n\n  label.field input,\n  label.field select,\n  label.field textarea\n  {\n    display: block;\n    border-width: " + (boxy ? '0.0625em' : '0 0 0.0625em 0') + ";\n    border-color: " + (primary.bc || '#ccc') + ";\n    border-style: solid;\n    box-sizing: border-box;\n    background-color: " + (boxy ? primary.bg || '#fff' : 'transparent') + ";\n    transition: 0.2s ease-in-out;\n    transition-property: box-shadow, color;\n    outline: none;\n    " + (boxy ? 'padding: 0 0.75em;' : '') + "\n    line-height: 2.6em;\n    box-shadow: none;\n    width: 100%;\n    margin-bottom: 0.8em;\n    font-size: 1.1em;" + (boxy ? ("\n  border-radius: " + (primary.radius || '0.2em') + ";") : '') + "\n    font-weight: 400;\n    font-family: inherit;\n  }\n  label.field textarea {\n    line-height: 1.2em;\n  }\n  label.field .field-wrapper {\n    display: block;\n  }\n  label.field > select, label.field > input,\n  label.field > .field-wrapper > input, label.field > .field-wrapper > select {\n    height: 2.5em;\n  }\n\n  " + (!boxy ? ("label.field:hover > input,\n  label.field:hover select,\n  label.field.file:hover:after {\n    box-shadow: 0 0.0625em 0 0 " + (primary.bc || '#ccc') + ";\n  }\n  label.field.check:hover input:before,\n  label.field.radio:hover input:before,\n  label.field.textarea:hover {\n    box-shadow: 0.0625em 0.0625em " + (primary.bc || '#ccc') + ",\n      -0.0625em 0.0625em " + (primary.bc || '#ccc') + ",\n      0.0625em -0.0625em " + (primary.bc || '#ccc') + ",\n      -0.0625em -0.0625em " + (primary.bc || '#ccc') + ";\n  }\n  label.field.check.focus input:before,\n  label.field.radio.focus input:before {\n    box-shadow: 0.0625em 0.0625em " + (active.fg || primary.fga || '#07e') + ",\n      -0.0625em 0.0625em " + (active.fg || primary.fga || '#07e') + ",\n      0.0625em -0.0625em " + (active.fg || primary.fga || '#07e') + ",\n      -0.0625em -0.0625em " + (active.fg || primary.fga || '#07e') + ";\n  }\n  label.field.textarea.focus:hover {\n    box-shadow: 0.0625em 0.0625em " + (active.fg || primary.fga || '#07e') + ",\n      -0.0625em 0.0625em " + (active.fg || primary.fga || '#07e') + ",\n      0.0625em -0.0625em " + (active.fg || primary.fga || '#07e') + ",\n      -0.0625em -0.0625em " + (active.fg || primary.fga || '#07e') + ";\n  }\n  label.field.check input:checked:before,\n  label.field.radio input:checked:before {\n    box-shadow: -0.0625em 0.0625em " + (primary.checked || primary.fga || '#07e') + ";\n  }\n  label.field.check.focus input:checked:before,\n  label.field.radio.focus input:checked:before {\n    box-shadow: -0.0625em 0.0625em " + (active.checked || active.fga || primary.fga || '#07e') + ";\n  }") : '') + "\n\n  label.field.check, label.field.radio {\n    vertical-align: top;\n    cursor: pointer;" + (boxy ? "\n    padding-top: 2em;\n    line-height: 3.1em;" : "\n    line-height: 1em;\n    padding-top: 2.8em;") + "\n  }\n\n  label.field.check input, label.field.radio input {\n    width: 1em;\n    height: 1em;\n    border: none;\n    " + (boxy ? "margin-left: -0.5em;\n    margin-right: 0.75em" : "margin-right: 0.5em;\n    position: relative;\n    margin-top: 0;") + ";\n    float: left;\n    box-shadow: none;\n    background-color: transparent;\n  }\n\n  label.field select {\n    padding-right: 2em;\n  }\n\n  label.field.select {\n    cursor: pointer;\n    position: relative;\n  }\n\n  label.field.select:after {\n    content: ' ';\n    position: absolute;\n    display: block;\n    width: 0.6em;\n    right: 1em;\n    height: 0.6em;\n    top: 2.75em;\n    border-bottom: 0.125em solid;\n    border-right: 0.125em solid;\n    transform: rotate(45deg);\n    pointer-events: none;\n  }\n\n  label.field textarea {\n    border: none;" + (boxy ? "\n    padding: 0;" : '') + "\n  }\n\n  label.field.check input:before,\n  label.field.radio input:before {\n    content: '';\n    display: block;\n    border: 0.0625em solid " + (primary.bc || '#ccc') + ";\n    width: 1em;\n    height: 1em;\n    box-sizing: border-box;\n    transition: 0.2s ease-in-out;\n    transition-property: transform, border-color, height, width, box-shadow, border-radius;\n    " + (boxy ? "margin-top: 0.5em;" :
-          "margin-top: -0.25em;") + "\n    border-radius: 0.2em;\n  }\n\n  label.field.check.focus input:before,\n  label.field.radio.focus input:before {\n    border-color: " + (active.fg || primary.fga || '#07e') + ";\n  }\n\n  label.field.check input:checked:before,\n  label.field.radio input:checked:before {\n    height: 0.7em;\n    width: 1.3em;\n    border-width: 0.125em;\n    border-color: " + (primary.checked || primary.fga || '#07e') + ";\n    border-top-color: transparent;\n    border-right-color: transparent;\n    transform: rotate(-50deg);\n    border-radius: 0;\n  }\n\n  label.field.check input,\n  label.field > select {\n    -moz-appearance: none;\n    -webkit-appearance: none;\n  }\n\n  label.field input:focus,\n  label.field select:focus,\n  label.field.file.focus:after\n  {\n    border-color: " + (active.fg || primary.fga || '#07e') + ";\n    " + (!boxy ? ("box-shadow: 0 0.0625em 0 0 " + (active.fg || primary.fga || '#07e') + ";") : '') + "\n  }\n\n  label.field input[type=checkbox]:focus,\n  label.field input[type=radio]:focus {\n    box-shadow: none;\n  }\n\n  label.field.file.focus:after {\n    color: " + (active.fg || primary.fga || '#07e') + ";\n  }\n  label.field.file [type=file] {\n    position: absolute;\n    width: 0;\n    height: 0;\n    opacity: 0;\n    z-index: -1;\n  }\n  label.field.file:after {\n    position: absolute;\n    content: 'Choose a file';\n    box-sizing: border-box;\n    width: calc(100% - 0.3em);\n    height: 2.5em;\n    font-size: 1.1em;\n    line-height: 1.5em;\n    color: " + (primary.fg || '#222') + ";\n    text-align: center;\n    padding: 0.5em 1em;\n    cursor: pointer;\n    font-style: oblique;\n    left: 0.25em;\n    top: 1.75em;\n    transition: 0.2s ease-in-out;\n    transition-property: color, border-bolor, box-shadow;" + (boxy ? ("\n    border-radius: " + (primary.radius || '0.2em') + ";\n    border-color: " + (primary.bc || '#ccc') + ";\n    border-style: solid;\n    border-width: 0.0625em;") : ("\n    border-bottom-color: " + (primary.bc || '#ccc') + ";\n    border-bottom-width: 0.0625em;\n    border-bottom-style: solid;\n    ")) + "\n  }\n\n  label.field.button {\n    vertical-align: top;\n    padding-top: 1.75em;\n  }\n  label.field.button button {\n    font-size: 1.1em;\n  }\n\n  label.field.plain > div {\n    position: absolute;\n    font-size: 1.1em;\n    top: 2.4em;\n  }\n\n  /* inline fields (no labels) */\n  label.field.inline {\n    height: 3.3em;\n  }\n\n  label.field.check.inline {\n    padding-top: " + (boxy ? '0' : '1') + ".5em;\n  }\n\n  label.field.button.inline {\n    margin-top: 0.2em;\n    padding-top: 0.4em;\n  }\n\n  label.field.inline.select:after {\n    top: 1." + (boxy ? '4' : '2') + "em;\n  }\n  ");
+        return ("\n  label.field {\n    display: inline-block;\n    font-size: 0.9em;\n    font-weight: 500;\n    color: " + (primary.fg || '#222') + ";\n    transition: 0.2s ease-in-out;\n    transition-property: color;\n    vertical-align: middle;\n    box-sizing: border-box;\n    padding: 0.5em 0.25em;\n    line-height: 1.5em;\n    overflow: hidden;\n    text-overflow: ellipsis;\n    white-space: nowrap;\n    font-family: inherit;\n  }\n\n  label.field.textarea {\n    display: block;\n    border: 0.0625em solid " + (primary.bc || '#ccc') + ";\n    padding: 0.5em 0.8em 0.8em 0.8em;\n    border-radius: " + (primary.radius || '0.2em') + ";\n    box-shadow: none;\n    transition-property: color, border-color, box-shadow;\n    margin: 0.8em 0.2em;\n    min-height: auto;\n    background-color: " + (boxy ? primary.bg || '#fff' : 'transparent') + ";\n  }\n\n  label.field.focus {\n    color: " + (active.fg || '#07e') + ";\n  }\n\n  label.field.textarea.focus {\n    border-color: " + (active.fg || primary.fga || '#07e') + ";\n    " + (!boxy ? ("box-shadow: 0.0625em 0.0625em " + (active.fg || primary.fga || '#07e') + ",\n      -0.0625em 0.0625em " + (active.fg || primary.fga || '#07e') + ",\n      0.0625em -0.0625em " + (active.fg || primary.fga || '#07e') + ",\n      -0.0625em -0.0625em " + (active.fg || primary.fga || '#07e') + ";") : '') + "\n  }\n\n  label.field input,\n  label.field select,\n  label.field textarea\n  {\n    display: block;\n    border-width: " + (boxy ? '0.0625em' : '0 0 0.0625em 0') + ";\n    border-color: " + (primary.bc || '#ccc') + ";\n    border-style: solid;\n    box-sizing: border-box;\n    background-color: " + (boxy ? primary.bg || '#fff' : 'transparent') + ";\n    transition: 0.2s ease-in-out;\n    transition-property: box-shadow, color;\n    outline: none;\n    " + (boxy ? 'padding: 0 0.75em;' : '') + "\n    box-shadow: none;\n    width: 100%;\n    margin-bottom: 0.8em;\n    font-size: 1.1em;" + (boxy ? ("\n  border-radius: " + (primary.radius || '0.2em') + ";") : '') + "\n    font-weight: 400;\n    font-family: inherit;\n  }\n  label.field textarea {\n    line-height: 1.2em;\n  }\n  label.field .field-wrapper {\n    display: block;\n  }\n  label.field > select, label.field > input,\n  label.field > .field-wrapper > input, label.field > .field-wrapper > select {\n    height: 2.5em;\n  }\n\n  " + (!boxy ? ("label.field:hover > input,\n  label.field:hover select,\n  label.field.file:hover:after {\n    box-shadow: 0 0.0625em 0 0 " + (primary.bc || '#ccc') + ";\n  }\n  label.field.check:hover input:before,\n  label.field.radio:hover input:before,\n  label.field.textarea:hover {\n    box-shadow: 0.0625em 0.0625em " + (primary.bc || '#ccc') + ",\n      -0.0625em 0.0625em " + (primary.bc || '#ccc') + ",\n      0.0625em -0.0625em " + (primary.bc || '#ccc') + ",\n      -0.0625em -0.0625em " + (primary.bc || '#ccc') + ";\n  }\n  label.field.check.focus input:before,\n  label.field.radio.focus input:before {\n    box-shadow: 0.0625em 0.0625em " + (active.fg || primary.fga || '#07e') + ",\n      -0.0625em 0.0625em " + (active.fg || primary.fga || '#07e') + ",\n      0.0625em -0.0625em " + (active.fg || primary.fga || '#07e') + ",\n      -0.0625em -0.0625em " + (active.fg || primary.fga || '#07e') + ";\n  }\n  label.field.textarea.focus:hover {\n    box-shadow: 0.0625em 0.0625em " + (active.fg || primary.fga || '#07e') + ",\n      -0.0625em 0.0625em " + (active.fg || primary.fga || '#07e') + ",\n      0.0625em -0.0625em " + (active.fg || primary.fga || '#07e') + ",\n      -0.0625em -0.0625em " + (active.fg || primary.fga || '#07e') + ";\n  }\n  label.field.check input:checked:before,\n  label.field.radio input:checked:before {\n    box-shadow: -0.0625em 0.0625em " + (primary.checked || primary.fga || '#07e') + ";\n  }\n  label.field.check.focus input:checked:before,\n  label.field.radio.focus input:checked:before {\n    box-shadow: -0.0625em 0.0625em " + (active.checked || active.fga || primary.fga || '#07e') + ";\n  }") : '') + "\n\n  label.field.check, label.field.radio {\n    vertical-align: top;\n    cursor: pointer;" + (boxy ? "\n    padding-top: 2em;\n    line-height: 3.1em;" : "\n    line-height: 1em;\n    padding-top: 2.8em;") + "\n  }\n\n  label.field.check input, label.field.radio input {\n    width: 1em;\n    height: 1em;\n    border: none;\n    " + (boxy ? "margin-left: -0.5em;\n    margin-right: 0.75em" : "margin-right: 0.5em;\n    position: relative;\n    margin-top: 0;") + ";\n    float: left;\n    box-shadow: none;\n    background-color: transparent;\n  }\n\n  label.field select {\n    padding-right: 2em;\n  }\n\n  label.field.select {\n    cursor: pointer;\n    position: relative;\n  }\n\n  label.field.select:after {\n    content: ' ';\n    position: absolute;\n    display: block;\n    width: 0.6em;\n    right: 1em;\n    height: 0.6em;\n    top: 2.75em;\n    border-bottom: 0.125em solid;\n    border-right: 0.125em solid;\n    transform: rotate(45deg);\n    pointer-events: none;\n  }\n\n  label.field textarea {\n    border: none;" + (boxy ? "\n    padding: 0;" : '') + "\n  }\n\n  label.field.check input:before,\n  label.field.radio input:before {\n    content: '';\n    display: block;\n    border: 0.0625em solid " + (primary.bc || '#ccc') + ";\n    width: 1em;\n    height: 1em;\n    box-sizing: border-box;\n    transition: 0.2s ease-in-out;\n    transition-property: transform, border-color, height, width, box-shadow, border-radius;\n    " + (boxy ? "margin-top: 0.5em;" :
+          "margin-top: -0.25em;") + "\n    border-radius: 0.2em;\n  }\n\n  label.field.check.focus input:before,\n  label.field.radio.focus input:before {\n    border-color: " + (active.fg || primary.fga || '#07e') + ";\n  }\n\n  label.field.check input:checked:before,\n  label.field.radio input:checked:before {\n    height: 0.7em;\n    width: 1.3em;\n    border-width: 0.125em;\n    border-color: " + (primary.checked || primary.fga || '#07e') + ";\n    border-top-color: transparent;\n    border-right-color: transparent;\n    transform: rotate(-50deg);\n    border-radius: 0;\n  }\n\n  label.field.check input,\n  label.field > select {\n    -moz-appearance: none;\n    -webkit-appearance: none;\n  }\n\n  label.field input:focus,\n  label.field select:focus,\n  label.field.file.focus:after\n  {\n    border-color: " + (active.fg || primary.fga || '#07e') + ";\n    " + (!boxy ? ("box-shadow: 0 0.0625em 0 0 " + (active.fg || primary.fga || '#07e') + ";") : '') + "\n  }\n\n  label.field input[type=checkbox]:focus,\n  label.field input[type=radio]:focus {\n    box-shadow: none;\n  }\n\n  label.field.file.focus:after {\n    color: " + (active.fg || primary.fga || '#07e') + ";\n  }\n  label.field.file [type=file] {\n    position: absolute;\n    width: 0;\n    height: 0;\n    opacity: 0;\n    z-index: -1;\n  }\n  label.field.file:after {\n    position: absolute;\n    content: 'Choose a file';\n    box-sizing: border-box;\n    width: calc(100% - 0.3em);\n    height: 2.5em;\n    font-size: 1.1em;\n    line-height: 1.5em;\n    color: " + (primary.fg || '#222') + ";\n    text-align: center;\n    padding: 0.5em 1em;\n    cursor: pointer;\n    font-style: oblique;\n    left: 0.25em;\n    top: 1.75em;\n    transition: 0.2s ease-in-out;\n    transition-property: color, border-bolor, box-shadow;" + (boxy ? ("\n    border-radius: " + (primary.radius || '0.2em') + ";\n    border-color: " + (primary.bc || '#ccc') + ";\n    border-style: solid;\n    border-width: 0.0625em;") : ("\n    border-bottom-color: " + (primary.bc || '#ccc') + ";\n    border-bottom-width: 0.0625em;\n    border-bottom-style: solid;\n    ")) + "\n  }\n\n  label.field.button {\n    vertical-align: top;\n    padding-top: 1.958em;\n  }\n  label.field .with-buttons button, label.field.button button {\n    font-size: 1.1em;\n    margin-top: " + (boxy ? '0.1em' : '0') + ";\n  }\n  label.field .with-buttons button {\n    flex-shrink: 0;\n    padding-left: 0.5em;\n    padding-right: 0.5em;\n    margin-top: 0;\n    margin-right: 0;\n    " + (boxy ? ("height: 2.5em;\n    line-height: 2.7em;\n    box-shadow: none;\n    border-radius: 0;\n    border-left: 1px solid " + (primary.bg || '#fff') + ";\n    margin-left: 0;") : 
+          "height: 2.25em;\n    line-height: 2.5em;") + "\n  }" + (boxy ? ("\n  label.field .with-buttons button:first-of-type {\n    margin-left: -0.05em;\n    border-left: none;\n  }\n  label.field .with-buttons button:last-of-type {\n    border-radius: 0 " + (primary.radius || '0.2em') + " " + (primary.radius || '0.2em') + " 0;\n  }\n  label.field .with-buttons input {\n    border-radius: " + (primary.radius || '0.2em') + " 0 0 " + (primary.radius || '0.2em') + ";\n  }\n  ") : '') + "\n\n  label.field.plain > div {\n    position: absolute;\n    font-size: 1.1em;\n    top: 2.4em;\n  }\n\n  /* inline fields (no labels) */\n  label.field.inline {\n    height: 3.3em;\n  }\n\n  label.field.check.inline {\n    padding-top: " + (boxy ? '0' : '1') + ".5em;\n  }\n\n  label.field.button.inline {\n    margin-top: 0.2em;\n    padding-top: 0." + (boxy ? '4' : '12') + "em;\n  }\n\n  label.field.inline.select:after {\n    top: 1." + (boxy ? '4' : '2') + "em;\n  }\n  ");
         // TODO: other themes
       }
 
@@ -525,7 +526,8 @@ System.register(['./chunk3.js', './chunk4.js', './chunk6.js', './chunk2.js', './
           isFile = !!node.querySelector('input[type=file]');
           if (isFile && !~val.indexOf('file')) { val.push('file'); }
 
-          isButton = !!node.querySelector('button');
+          isButton = node.querySelector('button');
+          isButton = !!isButton && isButton.parentNode === node;
           if (isButton && !~val.indexOf('button')) { val.push('button'); }
 
           isPlain = !!node.querySelector('div');
@@ -575,6 +577,74 @@ System.register(['./chunk3.js', './chunk4.js', './chunk6.js', './chunk2.js', './
 
       field.style = style$1;
 
+      function findDeep(els, el) {
+        if (!els) { return false; }
+        for (var i = 0; i < els.length; i++) {
+          if (els[i].e === el) { return true; }
+          if (els[i].f && findDeep(els[i].f, el)) { return true; }
+        }
+        return false;
+      }
+
+      var macro = Ractive$1.macro(function (handle) {
+        var body = [];
+        var attrs = (handle.template.m || []).slice();
+        var content = handle.template.f || [];
+
+        // TODO: special field types
+        var value = attrs.find(function (a) { return a.n === 'value'; });
+        var type = attrs.find(function (a) { return a.n === 'type'; });
+
+        if (type && typeof macro.types[type.f] === 'function') {
+          body.push.apply(body, macro.types[type.f](attrs, content, handle));
+        } else if (value) {
+          var el = {
+            t: 7, e: 'input', m: [value]
+          };
+          // watch for select
+          if (findDeep(content, 'option')) {
+            el.e = 'select';
+            el.f = content;
+          }
+          if (type) {
+            el.m.push(type);
+            if (type.f === 'checkbox' || type.f === 'radio') {
+              var target = attrs.find(function (a) { return a.n === 'target'; });
+              if (target) { el.m.push(Object.assign({}, target, { n: 'name' })); }
+              else { el.m.splice(el.m.indexOf(value), 1, Object.assign({}, value, { n: 'checked' })); }
+            }
+          }
+          el.m = el.m.concat(attrs.filter(function (a) { return a.t === 73 || a.n === 'placeholder'; }));
+          body.push(el);
+
+          var btns = content.filter(function (e) { return e.e === 'button' || findDeep(e.f, 'button'); });
+          if (btns.length) {
+            body.push.apply(body, btns);
+            body = [{
+              t: 7, e: 'span', m: [
+                { t: 13, n: 'class', f: 'field-wrapper with-buttons', g: 1 }
+              ],
+              f: body
+            }];
+          }
+        }
+
+        var label = attrs.find(function (a) { return a.n === 'label'; });
+        if (label) { body.unshift(label.f); }
+        else { body.unshift('\xa0'); }
+
+        var outer = {
+          t: 7, e: 'label', m: [{ t: 71, n: 'field' }].concat(attrs.filter(function (a) { return (a.t !== 13 && a.t !== 73) || (a.n !== 'value' && a.n !== 'type' && a.n !== 'inline' && a.n !== 'label' && a.n !== 'placeholder' && a.n !== 'target'); })),
+          f: body
+        };
+
+        if (attrs.find(function (a) { return a.n === 'inline'; })) { outer.m.push({ t: 13, n: 'class', f: 'inline' }); }
+
+        handle.setTemplate([outer]);
+      });
+
+      macro.types = {};
+
       function autofocus(node) {
         if (typeof node.focus === 'function') { node.focus(); }
         return { teardown: noop };
@@ -603,12 +673,14 @@ System.register(['./chunk3.js', './chunk4.js', './chunk6.js', './chunk2.js', './
             }
           }
 
+          instance.partials[opts.name || 'field'] = macro;
           instance.decorators[opts.name || 'field'] = field;
           instance.decorators[opts.autofocusName || 'autofocus'] = autofocus;
         }
       }
 
       globalRegister('field', 'decorators', field);
+      globalRegister('field', 'partials', macro);
       globalRegister('autofocus', 'decorators', autofocus);
 
       Ractive$1.use(
