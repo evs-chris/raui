@@ -1,6 +1,7 @@
 import Ractive, { Plugin } from 'ractive';
 
-export class Table<T extends Table<T> = Table<any>> extends Ractive<T> {
+export class Table<V = any, T extends Table<T> = Table<any>> extends Ractive<T> {
+  readonly selections: V[];
 }
 
 export interface PluginOpts {

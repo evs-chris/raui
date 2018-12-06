@@ -50,7 +50,7 @@
     </div>
     <div class-rtable-select-all-all>
       {{#if selections.length > 0}}
-        {{selections.length}} of {{rows.length}} selected{{#if @this.allSelected() && selections.length < rows.length}} - <a href="#" on-click="selectAllAll">Select All</a>{{/if}}
+        {{selections.length}} of {{rows.length}} selected{{#if @this._allSelected() && selections.length < rows.length}} - <a href="#" on-click="selectAllAll">Select All</a>{{/if}}
       {{/if}}
     </div>
     <div class-rtable-pages>
@@ -85,6 +85,7 @@
   {{#if ~/virtual.offset > 0}}...{{/if}}
   {{#if !~/fixedHeader && ~/virtual.offset > 0}}...{{/if}}
   {{#if ~/columns.0.type === 'boolean'}}...{{/if}}
+  {{#if @this._allSelected()}}...{{/if}}
 </template>
 
 <script>
@@ -105,7 +106,7 @@
   export class Table extends Ractive {
     constructor(opts) { super(opts); }
 
-    allSelected() {
+    _allSelected() {
       const sel = this.get('selections');
       const visible = this.get('paginate') === 'virtual' ? this.get('rows') : this.get('visibleRows');
 
@@ -192,6 +193,10 @@
       if (selected) {
         this.fire('selected', {}, selected, this.get('rows').indexOf(selected), this.get('visibleRows').indexOf(selected));
       }
+    }
+
+    get selections() {
+      return this.get('selections') || [];
     }
 
     selectionOffset(offset) {
@@ -294,8 +299,16 @@
     if (!k) return;
 
     if (!getters[k]) {
-      if (isString(v)) v = Ractive.splitKeypath(v);
-      getters[k] = (obj) => applyPath(obj, v);
+      if (isString(v) && ~v.indexOf('*')) {
+        const parts = Ractive.splitKeypath(v);
+        getters[k] = (obj) => {
+          const res = applyPathReduce(obj, parts);
+          return res.v || res.l;
+        };
+      } else {
+        if (isString(v)) v = Ractive.splitKeypath(v);
+        getters[k] = (obj) => applyPath(obj, v);
+      }
     }
 
     return getters[k];
@@ -310,8 +323,16 @@
 
     if (k) {
       if (!getters[k]) {
-        if (isString(v)) v = Ractive.splitKeypath(v);
-        getters[k] = (obj) => applyPath(obj, v);
+        if (isString(v) && ~v.indexOf('*')) {
+          const parts = Ractive.splitKeypath(v);
+          getters[k] = (obj) => {
+            const res = applyPathReduce(obj, parts);
+            return res.v || res.l;
+          };
+        } else {
+          if (isString(v)) v = Ractive.splitKeypath(v);
+          getters[k] = (obj) => applyPath(obj, v);
+        }
       }
       return getters[k];
     } else {
@@ -346,7 +367,7 @@
       },
       selectAll() {
         let sel, item;
-        if (this.allSelected()) {
+        if (this._allSelected()) {
           item = null;
           sel = [];
           this.set({
@@ -733,6 +754,27 @@
     return res;
   }
 
+  function applyPathReduce(src, path) {
+    if (!path.length) return { v: src };
+    if (path.length && typeof src !== 'object') return { n: 1 };
+    const key = path[0];
+    if (key === '*' && Array.isArray(src)) {
+      const next = path.slice(1);
+      return { l: src.reduce((a, c) => {
+        const v = applyPathReduce(c, next);
+        if (isObject(v)) {
+          if (v.v) a.push(v.v);
+          else if (v.l) a.push.apply(a, v.l);
+          else if (!v.n) a.push(v);
+        } else a.push(v);
+        return a;
+      }, []) };
+    } else {
+      return applyPathReduce(src[key], path.slice(1));
+    }
+  }
+
+
   function compare(a, b) {
     return a < b ? -1 :
       a > b ? 1 :
@@ -969,7 +1011,7 @@
 
       // selectall
       header[0].f.unshift({
-        t: 4, n: 50, r: '~/allowSelect', f: [{ t: 7, e: 'th', m: [{ t: 13, n: 'class-rtable-select-header' }, { t: 13, n: 'title', f: [{ t: 2, r: 'selections.length' }, ' items selected']}], f: [{ t: 4, n: 50, r: '~/allowSelectAll', f: [{ t: 7, e: 'input', m: [{ t: 73, v: 't', f: 'false' }, { t: 13, n: 'type', f: 'checkbox' }, { t: 13, n: 'checked', f: [{ t: 2, x: { r: ['@this'], s: '_0.allSelected()' } }] }, { t: 70, n: ['click'], f: 'selectAll' }, { t: 13, n: 'class-rtable-select' }] }] }] }]
+        t: 4, n: 50, r: '~/allowSelect', f: [{ t: 7, e: 'th', m: [{ t: 13, n: 'class-rtable-select-header' }, { t: 13, n: 'title', f: [{ t: 2, r: 'selections.length' }, ' items selected']}], f: [{ t: 4, n: 50, r: '~/allowSelectAll', f: [{ t: 7, e: 'input', m: [{ t: 73, v: 't', f: 'false' }, { t: 13, n: 'type', f: 'checkbox' }, { t: 13, n: 'checked', f: [{ t: 2, x: { r: ['@this'], s: '_0._allSelected()' } }] }, { t: 70, n: ['click'], f: 'selectAll' }, { t: 13, n: 'class-rtable-select' }] }] }] }]
       });
 
       const row = [{ t: 7, e: 'tr', f: columns.filter(c => c.hidden !== true).map(c => {
@@ -1027,7 +1069,7 @@
 
       // selectall
       header[0].f.unshift({
-        t: 4, n: 50, r: '~/allowSelect', f: [{ t: 7, e: 'div', m: [{ t: 13, n: 'class-rtable-select-header' }, { t: 13, n: 'class-rtable-column' }, { t: 13, n: 'title', f: [{ t: 2, r: 'selections.length' }, ' items selected']}], f: [{ t: 7, e: 'div', f: [{ t: 4, n: 50, r: '~/allowSelectAll', f: [{ t: 7, e: 'input', m: [{ t: 73, v: 't', f: 'false' }, { t: 13, n: 'type', f: 'checkbox' }, { t: 13, n: 'checked', f: [{ t: 2, x: { r: ['@this'], s: '_0.allSelected()' } }] }, { t: 70, n: ['click'], f: 'selectAll' }, { t: 13, n: 'class-rtable-select' }] }] }] }] }]
+        t: 4, n: 50, r: '~/allowSelect', f: [{ t: 7, e: 'div', m: [{ t: 13, n: 'class-rtable-select-header' }, { t: 13, n: 'class-rtable-column' }, { t: 13, n: 'title', f: [{ t: 2, r: 'selections.length' }, ' items selected']}], f: [{ t: 7, e: 'div', f: [{ t: 4, n: 50, r: '~/allowSelectAll', f: [{ t: 7, e: 'input', m: [{ t: 73, v: 't', f: 'false' }, { t: 13, n: 'type', f: 'checkbox' }, { t: 13, n: 'checked', f: [{ t: 2, x: { r: ['@this'], s: '_0._allSelected()' } }] }, { t: 70, n: ['click'], f: 'selectAll' }, { t: 13, n: 'class-rtable-select' }] }] }] }] }]
       });
 
       const row = [{ t: 7, e: 'div', m: [
