@@ -289,7 +289,7 @@ System.register(['ractive'], function (exports, module) {
         Host.prototype.addWindow = function addWindow (window, opts) {
           var this$1 = this;
 
-          var options = Object.assign({}, this.defaults, window.options, window.get('options'), opts);
+          var options = Object.assign({}, this.defaults, window.constructor.prototype.options, window.options, window.get('options'), opts);
 
           if (!(window instanceof Window)) {
             throw new Error('Windows must be instances of Window');

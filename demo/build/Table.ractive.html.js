@@ -75,7 +75,9 @@ System.register(['ractive', './chunk7.js', './chunk8.js', './chunk2.js', './chun
         Table.prototype = Object.create( Ractive && Ractive.prototype );
         Table.prototype.constructor = Table;
 
-        Table.prototype.allSelected = function allSelected () {
+        var prototypeAccessors = { selections: { configurable: true } };
+
+        Table.prototype._allSelected = function _allSelected () {
           var sel = this.get('selections');
           var visible = this.get('paginate') === 'virtual' ? this.get('rows') : this.get('visibleRows');
 
@@ -164,6 +166,10 @@ System.register(['ractive', './chunk7.js', './chunk8.js', './chunk2.js', './chun
           if (selected) {
             this.fire('selected', {}, selected, this.get('rows').indexOf(selected), this.get('visibleRows').indexOf(selected));
           }
+        };
+
+        prototypeAccessors.selections.get = function () {
+          return this.get('selections') || [];
         };
 
         Table.prototype.selectionOffset = function selectionOffset (offset) {
@@ -258,6 +264,8 @@ System.register(['ractive', './chunk7.js', './chunk8.js', './chunk2.js', './chun
           return true;
         };
 
+        Object.defineProperties( Table.prototype, prototypeAccessors );
+
         return Table;
       }(Ractive$1));
 
@@ -270,8 +278,16 @@ System.register(['ractive', './chunk7.js', './chunk8.js', './chunk2.js', './chun
         if (!k) { return; }
 
         if (!getters[k]) {
-          if (isString(v)) { v = Ractive$1.splitKeypath(v); }
-          getters[k] = function (obj) { return applyPath(obj, v); };
+          if (isString(v) && ~v.indexOf('*')) {
+            var parts = Ractive$1.splitKeypath(v);
+            getters[k] = function (obj) {
+              var res = applyPathReduce(obj, parts);
+              return res.v || res.l;
+            };
+          } else {
+            if (isString(v)) { v = Ractive$1.splitKeypath(v); }
+            getters[k] = function (obj) { return applyPath(obj, v); };
+          }
         }
 
         return getters[k];
@@ -286,8 +302,16 @@ System.register(['ractive', './chunk7.js', './chunk8.js', './chunk2.js', './chun
 
         if (k) {
           if (!getters[k]) {
-            if (isString(v)) { v = Ractive$1.splitKeypath(v); }
-            getters[k] = function (obj) { return applyPath(obj, v); };
+            if (isString(v) && ~v.indexOf('*')) {
+              var parts = Ractive$1.splitKeypath(v);
+              getters[k] = function (obj) {
+                var res = applyPathReduce(obj, parts);
+                return res.v || res.l;
+              };
+            } else {
+              if (isString(v)) { v = Ractive$1.splitKeypath(v); }
+              getters[k] = function (obj) { return applyPath(obj, v); };
+            }
           }
           return getters[k];
         } else {
@@ -298,7 +322,7 @@ System.register(['ractive', './chunk7.js', './chunk8.js', './chunk2.js', './chun
       }
 
       Ractive$1.extendWith(Table, {
-        template: {v:4,t:[{t:7,e:"div",m:[{t:13,n:"class",f:"rtable",g:1},{n:"class-rtable-virtual",t:13,f:[{t:2,x:{r:["~/paginate"],s:"_0===\"virtual\""}}]},{n:"class-rtable-auto",t:13,f:[{t:2,x:{r:["~/paginate"],s:"_0===\"auto\""}}]},{n:"class-rtable-fixed",t:13,f:[{t:2,r:"~/fixed"}]},{n:"class-rtable-border",t:13,f:[{t:2,r:"~/border"}]},{n:"class-rtable-fixed-header",t:13,f:[{t:2,r:"~/fixedHeader"}]},{n:"class-rtable-scrolled",t:13,f:[{t:2,x:{r:["~/scroll"],s:"!~(_0||\"\").indexOf(\"top\")"}}]},{n:"class-rtable-with-select",t:13,f:[{t:2,r:"~/allowSelect"}]}],f:[{t:4,f:[{t:7,e:"div",m:[{n:"grid",t:71}],f:[{t:8,r:"grid-head"}]}],n:50,x:{r:["~/fixedHeader","~/display"],s:"_0&&_1===\"grid\""}}," ",{t:7,e:"div",m:[{t:13,n:"class",f:"rtable-top",g:1},{t:4,f:[{n:["scroll"],t:70,f:"scroll"}],n:50,x:{r:["~/paginate"],s:"_0===\"virtual\""}},{t:4,f:[{n:"scrolled",t:71,f:{r:[],s:"[\"~/scroll\"]"}}],n:50,x:{r:["~/fixedHeader","~/display"],s:"_0&&_1===\"grid\""}}],f:[{t:4,f:[{t:8,r:"grid"}],n:50,x:{r:["~/display"],s:"_0===\"grid\""}},{t:4,f:[{t:8,r:"table"}],n:51,l:1}]}," ",{t:4,f:[{t:8,r:"pagination"}],n:50,x:{r:["~/paginate"],s:"_0!==\"virtual\""}}]}],e:{"_0===\"virtual\"":function (_0){return(_0==="virtual");},"_0===\"auto\"":function (_0){return(_0==="auto");},"!~(_0||\"\").indexOf(\"top\")":function (_0){return(!~(_0||"").indexOf("top"));},"_0&&_1===\"grid\"":function (_0,_1){return(_0&&_1==="grid");},"[\"~/scroll\"]":function (){return(["~/scroll"]);},"_0===\"grid\"":function (_0){return(_0==="grid");},"_0!==\"virtual\"":function (_0){return(_0!=="virtual");},"[_0._setSort(_1,_2)]":function (_0,_1,_2){return([_0._setSort(_1,_2)]);},"[_0._select(_1,_2),false]":function (_0,_1,_2){return([_0._select(_1,_2),false]);},"[[\"select\",_2,_0.indexOf(_2),_1.indexOf(_2)]]":function (_0,_1,_2){return([["select",_2,_0.indexOf(_2),_1.indexOf(_2)]]);},"[_0._expand(_1)]":function (_0,_1){return([_0._expand(_1)]);},"[_0.stopPropagation()]":function (_0){return([_0.stopPropagation()]);},"_0.indexOf(_1)":function (_0,_1){return(_0.indexOf(_1));},"_0===_1":function (_0,_1){return(_0===_1);},"_0>0":function (_0){return(_0>0);},"!_0&&_1>0":function (_0,_1){return(!_0&&_1>0);},"_0===\"boolean\"":function (_0){return(_0==="boolean");},"_0*_1+1":function (_0,_1){return(_0*_1+1);},"_2+1===_0?_1:(_2+1)*_3":function (_0,_1,_2,_3){return(_2+1===_0?_1:(_2+1)*_3);},"_0&&_1":function (_0,_1){return(_0&&_1);},"_0===1":function (_0){return(_0===1);},"_0.allSelected()&&_1<_2":function (_0,_1,_2){return(_0.allSelected()&&_1<_2);},"[_0.set(\"page\",_1-1)]":function (_0,_1){return([_0.set("page",_1-1)]);},"[(/^\\d+$/.test(_1)&&+_1>0&&+_1<=_0&&_2.set(\"page\",+_1-1))||_2.nodeSet(_3,\"value\",_4+1)]":function (_0,_1,_2,_3,_4){return([(/^\d+$/.test(_1)&&+_1>0&&+_1<=_0&&_2.set("page",+_1-1))||_2.nodeSet(_3,"value",_4+1)]);},"_0==_1+1":function (_0,_1){return(_0==_1+1);},"[_0.set(\"page\",_2[_1-1])]":function (_0,_1,_2){return([_0.set("page",_2[_1-1])]);},"_0===\"...\"":function (_0){return(_0==="...");},"[_0.set(\"page\",_1+1)]":function (_0,_1){return([_0.set("page",_1+1)]);},"_0<_1-1":function (_0,_1){return(_0<_1-1);},"_0%2===1":function (_0){return(_0%2===1);},"true":function (){return(true);},"!_0":function (_0){return(!_0);},"_0+(_1?1:0)":function (_0,_1){return(_0+(_1?1:0));}},p:{"csp-dummy":[{t:7,e:"div",m:[{n:["click"],t:70,f:{r:["@this",".index","@event"],s:"[_0._setSort(_1,_2)]"}},{n:["click"],t:70,f:{r:["@this",".","@event"],s:"[_0._select(_1,_2),false]"}},{n:["click"],t:70,f:{r:["~/rows","~/visibleRows","."],s:"[[\"select\",_2,_0.indexOf(_2),_1.indexOf(_2)]]"}},{n:["click"],t:70,f:{r:["@this","@index"],s:"[_0._expand(_1)]"}},{n:["click"],t:70,f:{r:["@event"],s:"[_0.stopPropagation()]"}}]}," ",{t:4,f:["..."],n:50,x:{r:["~/selections","."],s:"_0.indexOf(_1)"}}," ",{t:4,f:["..."],n:50,x:{r:[".","~/expanded"],s:"_0===_1"}}," ",{t:4,f:["..."],n:50,x:{r:["~/virtual.offset"],s:"_0>0"}}," ",{t:4,f:["..."],n:50,x:{r:["~/fixedHeader","~/virtual.offset"],s:"!_0&&_1>0"}}," ",{t:4,f:["..."],n:50,x:{r:["~/columns.0.type"],s:"_0===\"boolean\""}}],empty:[{t:7,e:"div",f:[{t:7,e:"div",f:["No data."]}]}],pagination:[{t:7,e:"div",m:[{t:13,n:"class",f:"rtable-bottom",g:1}],f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rtable-info",g:1}],f:[{t:4,f:[{t:2,x:{r:["~/page","~/pagination.per"],s:"_0*_1+1"}}," - ",{t:2,x:{r:["~/pagination.total","~/rows.length","~/page","~/pagination.per"],s:"_2+1===_0?_1:(_2+1)*_3"}}," of ",{t:2,r:"~/rows.length"},{t:4,f:[" (",{t:2,r:"~/items.length"}," total)"],n:50,r:"~/isFiltered"}],n:50,x:{r:["pagination","rows.length"],s:"_0&&_1"}}," ",{t:4,f:["​"],n:50,x:{r:["_paginate"],s:"_0===1"}}]}," ",{t:7,e:"div",m:[{t:13,n:"class",f:"rtable-select-all-all",g:1}],f:[{t:4,f:[{t:2,r:"selections.length"}," of ",{t:2,r:"rows.length"}," selected",{t:4,f:[" - ",{t:7,e:"a",m:[{n:"href",f:"#",t:13,g:1},{n:["click"],t:70,f:"selectAllAll"}],f:["Select All"]}],n:50,x:{r:["@this","selections.length","rows.length"],s:"_0.allSelected()&&_1<_2"}}],n:50,x:{r:["selections.length"],s:"_0>0"}}]}," ",{t:7,e:"div",m:[{t:13,n:"class",f:"rtable-pages",g:1}],f:[{t:4,f:[{t:7,e:"span",m:[{n:["click"],t:70,f:{r:["@this","~/page"],s:"[_0.set(\"page\",_1-1)]"}}],f:["Previous"]}],n:50,x:{r:["~/page"],s:"_0>0"}}," ",{t:4,f:[{t:4,f:[{t:7,e:"input",m:[{n:["change"],t:70,f:{r:["~/pagination.total","@node.value","@this","@node","~/page"],s:"[(/^\\d+$/.test(_1)&&+_1>0&&+_1<=_0&&_2.set(\"page\",+_1-1))||_2.nodeSet(_3,\"value\",_4+1)]"}},{n:"value",f:[{t:2,r:"."}],t:13},{t:73,v:"t",f:"false"}]}],n:50,x:{r:[".","~/page"],s:"_0==_1+1"}},{t:4,f:[{t:7,e:"span",m:[{n:["click"],t:70,f:{r:["@this","@index","../"],s:"[_0.set(\"page\",_2[_1-1])]"}}],f:["..."]}," "],n:50,x:{r:["."],s:"_0===\"...\""},l:1},{t:4,f:[" ",{t:7,e:"span",m:[{n:["click"],t:70,f:{r:["@this","."],s:"[_0.set(\"page\",_1-1)]"}}],f:[{t:2,r:"."}]}],n:51,l:1}],n:52,r:"~/pagination.array"}," ",{t:4,f:[{t:7,e:"span",m:[{n:["click"],t:70,f:{r:["@this","~/page"],s:"[_0.set(\"page\",_1+1)]"}}],f:["Next"]}],n:50,x:{r:["~/page","~/pagination.total"],s:"_0<_1-1"}}]}]}],grid:[{t:7,e:"div",m:[{t:16,r:"extra-attributes"},{n:"grid",t:71},{t:4,f:[{n:"style-margin-top",f:[{t:2,r:"~/virtual.above"},"px"],t:13},{n:"style-margin-bottom",f:[{t:2,r:"~/virtual.below"},"px"],t:13}],n:50,x:{r:["~/paginate"],s:"_0===\"virtual\""}}],f:[{t:4,f:[{t:8,r:"grid-head"}],n:51,r:"~/fixedHeader"}," ",{t:4,f:[{t:7,e:"div",m:[{t:13,n:"style",f:"display: none;",g:1},{t:13,n:"class",f:"rtable-row-wrap",g:1}]}],n:50,x:{r:["~/virtual.offset"],s:"_0%2===1"}}," ",{t:4,f:[{t:8,r:"grid-row"}],n:52,z:[{n:"source",x:{r:"~/items"}},{n:"shuffle",x:{x:{r:[],s:"true"}}}],r:"~/visibleRows"}," ",{t:4,f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rtable-row row t1",g:1}],f:[{t:16,r:"empty"}]}],n:50,x:{r:["~/rows.length"],s:"!_0"}}]}],table:[{t:7,e:"table",m:[{t:16,r:"extra-attributes"},{t:4,f:[{n:"style-margin-top",f:[{t:2,r:"~/virtual.above"},"px"],t:13},{n:"style-margin-bottom",f:[{t:2,r:"~/virtual.below"},"px"],t:13}],n:50,x:{r:["~/paginate"],s:"_0===\"virtual\""}}],f:[{t:8,r:"table-head"}," ",{t:4,f:[{t:8,r:"table-row"}],n:52,z:[{n:"source",x:{r:"~/items"}},{n:"shuffle",x:{x:{r:[],s:"true"}}}],r:"~/visibleRows"}," ",{t:4,f:[{t:7,e:"tr",m:[{t:13,n:"class",f:"rtable-row",g:1}],f:[{t:7,e:"td",m:[{n:"colspan",f:[{t:2,x:{r:["~/columns.length","~/allowSelect"],s:"_0+(_1?1:0)"}}],t:13}],f:[{t:16,r:"empty"}]}]}],n:50,x:{r:["~/rows.length"],s:"!_0"}}]}]}},
+        template: {v:4,t:[{t:7,e:"div",m:[{t:13,n:"class",f:"rtable",g:1},{n:"class-rtable-virtual",t:13,f:[{t:2,x:{r:["~/paginate"],s:"_0===\"virtual\""}}]},{n:"class-rtable-auto",t:13,f:[{t:2,x:{r:["~/paginate"],s:"_0===\"auto\""}}]},{n:"class-rtable-fixed",t:13,f:[{t:2,r:"~/fixed"}]},{n:"class-rtable-border",t:13,f:[{t:2,r:"~/border"}]},{n:"class-rtable-fixed-header",t:13,f:[{t:2,r:"~/fixedHeader"}]},{n:"class-rtable-scrolled",t:13,f:[{t:2,x:{r:["~/scroll"],s:"!~(_0||\"\").indexOf(\"top\")"}}]},{n:"class-rtable-with-select",t:13,f:[{t:2,r:"~/allowSelect"}]}],f:[{t:4,f:[{t:7,e:"div",m:[{n:"grid",t:71}],f:[{t:8,r:"grid-head"}]}],n:50,x:{r:["~/fixedHeader","~/display"],s:"_0&&_1===\"grid\""}}," ",{t:7,e:"div",m:[{t:13,n:"class",f:"rtable-top",g:1},{t:4,f:[{n:["scroll"],t:70,f:"scroll"}],n:50,x:{r:["~/paginate"],s:"_0===\"virtual\""}},{t:4,f:[{n:"scrolled",t:71,f:{r:[],s:"[\"~/scroll\"]"}}],n:50,x:{r:["~/fixedHeader","~/display"],s:"_0&&_1===\"grid\""}}],f:[{t:4,f:[{t:8,r:"grid"}],n:50,x:{r:["~/display"],s:"_0===\"grid\""}},{t:4,f:[{t:8,r:"table"}],n:51,l:1}]}," ",{t:4,f:[{t:8,r:"pagination"}],n:50,x:{r:["~/paginate"],s:"_0!==\"virtual\""}}]}],e:{"_0===\"virtual\"":function (_0){return(_0==="virtual");},"_0===\"auto\"":function (_0){return(_0==="auto");},"!~(_0||\"\").indexOf(\"top\")":function (_0){return(!~(_0||"").indexOf("top"));},"_0&&_1===\"grid\"":function (_0,_1){return(_0&&_1==="grid");},"[\"~/scroll\"]":function (){return(["~/scroll"]);},"_0===\"grid\"":function (_0){return(_0==="grid");},"_0!==\"virtual\"":function (_0){return(_0!=="virtual");},"[_0._setSort(_1,_2)]":function (_0,_1,_2){return([_0._setSort(_1,_2)]);},"[_0._select(_1,_2),false]":function (_0,_1,_2){return([_0._select(_1,_2),false]);},"[[\"select\",_2,_0.indexOf(_2),_1.indexOf(_2)]]":function (_0,_1,_2){return([["select",_2,_0.indexOf(_2),_1.indexOf(_2)]]);},"[_0._expand(_1)]":function (_0,_1){return([_0._expand(_1)]);},"[_0.stopPropagation()]":function (_0){return([_0.stopPropagation()]);},"_0.indexOf(_1)":function (_0,_1){return(_0.indexOf(_1));},"_0===_1":function (_0,_1){return(_0===_1);},"_0>0":function (_0){return(_0>0);},"!_0&&_1>0":function (_0,_1){return(!_0&&_1>0);},"_0===\"boolean\"":function (_0){return(_0==="boolean");},"_0._allSelected()":function (_0){return(_0._allSelected());},"_0*_1+1":function (_0,_1){return(_0*_1+1);},"_2+1===_0?_1:(_2+1)*_3":function (_0,_1,_2,_3){return(_2+1===_0?_1:(_2+1)*_3);},"_0&&_1":function (_0,_1){return(_0&&_1);},"_0===1":function (_0){return(_0===1);},"_0._allSelected()&&_1<_2":function (_0,_1,_2){return(_0._allSelected()&&_1<_2);},"[_0.set(\"page\",_1-1)]":function (_0,_1){return([_0.set("page",_1-1)]);},"[(/^\\d+$/.test(_1)&&+_1>0&&+_1<=_0&&_2.set(\"page\",+_1-1))||_2.nodeSet(_3,\"value\",_4+1)]":function (_0,_1,_2,_3,_4){return([(/^\d+$/.test(_1)&&+_1>0&&+_1<=_0&&_2.set("page",+_1-1))||_2.nodeSet(_3,"value",_4+1)]);},"_0==_1+1":function (_0,_1){return(_0==_1+1);},"[_0.set(\"page\",_2[_1-1])]":function (_0,_1,_2){return([_0.set("page",_2[_1-1])]);},"_0===\"...\"":function (_0){return(_0==="...");},"[_0.set(\"page\",_1+1)]":function (_0,_1){return([_0.set("page",_1+1)]);},"_0<_1-1":function (_0,_1){return(_0<_1-1);},"_0%2===1":function (_0){return(_0%2===1);},"true":function (){return(true);},"!_0":function (_0){return(!_0);},"_0+(_1?1:0)":function (_0,_1){return(_0+(_1?1:0));}},p:{"csp-dummy":[{t:7,e:"div",m:[{n:["click"],t:70,f:{r:["@this",".index","@event"],s:"[_0._setSort(_1,_2)]"}},{n:["click"],t:70,f:{r:["@this",".","@event"],s:"[_0._select(_1,_2),false]"}},{n:["click"],t:70,f:{r:["~/rows","~/visibleRows","."],s:"[[\"select\",_2,_0.indexOf(_2),_1.indexOf(_2)]]"}},{n:["click"],t:70,f:{r:["@this","@index"],s:"[_0._expand(_1)]"}},{n:["click"],t:70,f:{r:["@event"],s:"[_0.stopPropagation()]"}}]}," ",{t:4,f:["..."],n:50,x:{r:["~/selections","."],s:"_0.indexOf(_1)"}}," ",{t:4,f:["..."],n:50,x:{r:[".","~/expanded"],s:"_0===_1"}}," ",{t:4,f:["..."],n:50,x:{r:["~/virtual.offset"],s:"_0>0"}}," ",{t:4,f:["..."],n:50,x:{r:["~/fixedHeader","~/virtual.offset"],s:"!_0&&_1>0"}}," ",{t:4,f:["..."],n:50,x:{r:["~/columns.0.type"],s:"_0===\"boolean\""}}," ",{t:4,f:["..."],n:50,x:{r:["@this"],s:"_0._allSelected()"}}],empty:[{t:7,e:"div",f:[{t:7,e:"div",f:["No data."]}]}],pagination:[{t:7,e:"div",m:[{t:13,n:"class",f:"rtable-bottom",g:1}],f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rtable-info",g:1}],f:[{t:4,f:[{t:2,x:{r:["~/page","~/pagination.per"],s:"_0*_1+1"}}," - ",{t:2,x:{r:["~/pagination.total","~/rows.length","~/page","~/pagination.per"],s:"_2+1===_0?_1:(_2+1)*_3"}}," of ",{t:2,r:"~/rows.length"},{t:4,f:[" (",{t:2,r:"~/items.length"}," total)"],n:50,r:"~/isFiltered"}],n:50,x:{r:["pagination","rows.length"],s:"_0&&_1"}}," ",{t:4,f:["​"],n:50,x:{r:["_paginate"],s:"_0===1"}}]}," ",{t:7,e:"div",m:[{t:13,n:"class",f:"rtable-select-all-all",g:1}],f:[{t:4,f:[{t:2,r:"selections.length"}," of ",{t:2,r:"rows.length"}," selected",{t:4,f:[" - ",{t:7,e:"a",m:[{n:"href",f:"#",t:13,g:1},{n:["click"],t:70,f:"selectAllAll"}],f:["Select All"]}],n:50,x:{r:["@this","selections.length","rows.length"],s:"_0._allSelected()&&_1<_2"}}],n:50,x:{r:["selections.length"],s:"_0>0"}}]}," ",{t:7,e:"div",m:[{t:13,n:"class",f:"rtable-pages",g:1}],f:[{t:4,f:[{t:7,e:"span",m:[{n:["click"],t:70,f:{r:["@this","~/page"],s:"[_0.set(\"page\",_1-1)]"}}],f:["Previous"]}],n:50,x:{r:["~/page"],s:"_0>0"}}," ",{t:4,f:[{t:4,f:[{t:7,e:"input",m:[{n:["change"],t:70,f:{r:["~/pagination.total","@node.value","@this","@node","~/page"],s:"[(/^\\d+$/.test(_1)&&+_1>0&&+_1<=_0&&_2.set(\"page\",+_1-1))||_2.nodeSet(_3,\"value\",_4+1)]"}},{n:"value",f:[{t:2,r:"."}],t:13},{t:73,v:"t",f:"false"}]}],n:50,x:{r:[".","~/page"],s:"_0==_1+1"}},{t:4,f:[{t:7,e:"span",m:[{n:["click"],t:70,f:{r:["@this","@index","../"],s:"[_0.set(\"page\",_2[_1-1])]"}}],f:["..."]}," "],n:50,x:{r:["."],s:"_0===\"...\""},l:1},{t:4,f:[" ",{t:7,e:"span",m:[{n:["click"],t:70,f:{r:["@this","."],s:"[_0.set(\"page\",_1-1)]"}}],f:[{t:2,r:"."}]}],n:51,l:1}],n:52,r:"~/pagination.array"}," ",{t:4,f:[{t:7,e:"span",m:[{n:["click"],t:70,f:{r:["@this","~/page"],s:"[_0.set(\"page\",_1+1)]"}}],f:["Next"]}],n:50,x:{r:["~/page","~/pagination.total"],s:"_0<_1-1"}}]}]}],grid:[{t:7,e:"div",m:[{t:16,r:"extra-attributes"},{n:"grid",t:71},{t:4,f:[{n:"style-margin-top",f:[{t:2,r:"~/virtual.above"},"px"],t:13},{n:"style-margin-bottom",f:[{t:2,r:"~/virtual.below"},"px"],t:13}],n:50,x:{r:["~/paginate"],s:"_0===\"virtual\""}}],f:[{t:4,f:[{t:8,r:"grid-head"}],n:51,r:"~/fixedHeader"}," ",{t:4,f:[{t:7,e:"div",m:[{t:13,n:"style",f:"display: none;",g:1},{t:13,n:"class",f:"rtable-row-wrap",g:1}]}],n:50,x:{r:["~/virtual.offset"],s:"_0%2===1"}}," ",{t:4,f:[{t:8,r:"grid-row"}],n:52,z:[{n:"source",x:{r:"~/items"}},{n:"shuffle",x:{x:{r:[],s:"true"}}}],r:"~/visibleRows"}," ",{t:4,f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rtable-row row t1",g:1}],f:[{t:16,r:"empty"}]}],n:50,x:{r:["~/rows.length"],s:"!_0"}}]}],table:[{t:7,e:"table",m:[{t:16,r:"extra-attributes"},{t:4,f:[{n:"style-margin-top",f:[{t:2,r:"~/virtual.above"},"px"],t:13},{n:"style-margin-bottom",f:[{t:2,r:"~/virtual.below"},"px"],t:13}],n:50,x:{r:["~/paginate"],s:"_0===\"virtual\""}}],f:[{t:8,r:"table-head"}," ",{t:4,f:[{t:8,r:"table-row"}],n:52,z:[{n:"source",x:{r:"~/items"}},{n:"shuffle",x:{x:{r:[],s:"true"}}}],r:"~/visibleRows"}," ",{t:4,f:[{t:7,e:"tr",m:[{t:13,n:"class",f:"rtable-row",g:1}],f:[{t:7,e:"td",m:[{n:"colspan",f:[{t:2,x:{r:["~/columns.length","~/allowSelect"],s:"_0+(_1?1:0)"}}],t:13}],f:[{t:16,r:"empty"}]}]}],n:50,x:{r:["~/rows.length"],s:"!_0"}}]}]}},
         css: function(data) { return [(function(data) {
          var primary = Object.assign({}, data("raui.primary"), data("raui.table.primary"));
          var active = Object.assign({}, primary, data('raui.primary.active'), data('raui.table.primary.active'));
@@ -327,7 +351,7 @@ System.register(['ractive', './chunk7.js', './chunk8.js', './chunk2.js', './chun
           },
           selectAll: function selectAll() {
             var sel, item;
-            if (this.allSelected()) {
+            if (this._allSelected()) {
               item = null;
               sel = [];
               this.set({
@@ -724,6 +748,27 @@ System.register(['ractive', './chunk7.js', './chunk8.js', './chunk2.js', './chun
         return res;
       }
 
+      function applyPathReduce(src, path) {
+        if (!path.length) { return { v: src }; }
+        if (path.length && typeof src !== 'object') { return { n: 1 }; }
+        var key = path[0];
+        if (key === '*' && Array.isArray(src)) {
+          var next = path.slice(1);
+          return { l: src.reduce(function (a, c) {
+            var v = applyPathReduce(c, next);
+            if (isObject(v)) {
+              if (v.v) { a.push(v.v); }
+              else if (v.l) { a.push.apply(a, v.l); }
+              else if (!v.n) { a.push(v); }
+            } else { a.push(v); }
+            return a;
+          }, []) };
+        } else {
+          return applyPathReduce(src[key], path.slice(1));
+        }
+      }
+
+
       function compare(a, b) {
         return a < b ? -1 :
           a > b ? 1 :
@@ -960,7 +1005,7 @@ System.register(['ractive', './chunk7.js', './chunk8.js', './chunk2.js', './chun
 
           // selectall
           header[0].f.unshift({
-            t: 4, n: 50, r: '~/allowSelect', f: [{ t: 7, e: 'th', m: [{ t: 13, n: 'class-rtable-select-header' }, { t: 13, n: 'title', f: [{ t: 2, r: 'selections.length' }, ' items selected']}], f: [{ t: 4, n: 50, r: '~/allowSelectAll', f: [{ t: 7, e: 'input', m: [{ t: 73, v: 't', f: 'false' }, { t: 13, n: 'type', f: 'checkbox' }, { t: 13, n: 'checked', f: [{ t: 2, x: { r: ['@this'], s: '_0.allSelected()' } }] }, { t: 70, n: ['click'], f: 'selectAll' }, { t: 13, n: 'class-rtable-select' }] }] }] }]
+            t: 4, n: 50, r: '~/allowSelect', f: [{ t: 7, e: 'th', m: [{ t: 13, n: 'class-rtable-select-header' }, { t: 13, n: 'title', f: [{ t: 2, r: 'selections.length' }, ' items selected']}], f: [{ t: 4, n: 50, r: '~/allowSelectAll', f: [{ t: 7, e: 'input', m: [{ t: 73, v: 't', f: 'false' }, { t: 13, n: 'type', f: 'checkbox' }, { t: 13, n: 'checked', f: [{ t: 2, x: { r: ['@this'], s: '_0._allSelected()' } }] }, { t: 70, n: ['click'], f: 'selectAll' }, { t: 13, n: 'class-rtable-select' }] }] }] }]
           });
 
           var row = [{ t: 7, e: 'tr', f: columns.filter(function (c) { return c.hidden !== true; }).map(function (c) {
@@ -1018,7 +1063,7 @@ System.register(['ractive', './chunk7.js', './chunk8.js', './chunk2.js', './chun
 
           // selectall
           header$1[0].f.unshift({
-            t: 4, n: 50, r: '~/allowSelect', f: [{ t: 7, e: 'div', m: [{ t: 13, n: 'class-rtable-select-header' }, { t: 13, n: 'class-rtable-column' }, { t: 13, n: 'title', f: [{ t: 2, r: 'selections.length' }, ' items selected']}], f: [{ t: 7, e: 'div', f: [{ t: 4, n: 50, r: '~/allowSelectAll', f: [{ t: 7, e: 'input', m: [{ t: 73, v: 't', f: 'false' }, { t: 13, n: 'type', f: 'checkbox' }, { t: 13, n: 'checked', f: [{ t: 2, x: { r: ['@this'], s: '_0.allSelected()' } }] }, { t: 70, n: ['click'], f: 'selectAll' }, { t: 13, n: 'class-rtable-select' }] }] }] }] }]
+            t: 4, n: 50, r: '~/allowSelect', f: [{ t: 7, e: 'div', m: [{ t: 13, n: 'class-rtable-select-header' }, { t: 13, n: 'class-rtable-column' }, { t: 13, n: 'title', f: [{ t: 2, r: 'selections.length' }, ' items selected']}], f: [{ t: 7, e: 'div', f: [{ t: 4, n: 50, r: '~/allowSelectAll', f: [{ t: 7, e: 'input', m: [{ t: 73, v: 't', f: 'false' }, { t: 13, n: 'type', f: 'checkbox' }, { t: 13, n: 'checked', f: [{ t: 2, x: { r: ['@this'], s: '_0._allSelected()' } }] }, { t: 70, n: ['click'], f: 'selectAll' }, { t: 13, n: 'class-rtable-select' }] }] }] }] }]
           });
 
           var row$1 = [{ t: 7, e: 'div', m: [
