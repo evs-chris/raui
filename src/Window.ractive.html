@@ -182,7 +182,7 @@
     get windows () { return Object.keys(this.get('windows')); }
 
     addWindow(window, opts) {
-      const options = Object.assign({}, this.defaults, window.options, window.get('options'), opts);
+      const options = Object.assign({}, this.defaults, window.constructor.prototype.options, window.options, window.get('options'), opts);
 
       if (!(window instanceof Window)) {
         throw new Error('Windows must be instances of Window');

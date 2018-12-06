@@ -22,6 +22,8 @@ export class Window<T extends Window<T> = Window<any>> extends Ractive<T> {
 
   host?: Host;
 
+  readonly id: string;
+  
   resizable?: boolean;
   title?: string;
   visible?: boolean;
