@@ -236,16 +236,30 @@ System.register(['./chunk2.js', 'ractive', './chunk5.js'], function (exports, mo
               if (v) {
                 var el = this.find('div');
                 var node = el;
+                var h = node.offsetHeight + node.offsetTop;
+                var w = node.offsetWidth + node.offsetLeft;
+                var offset = node.offsetParent;
+
                 if (!this.overflows) {
                   var o = this.overflows = { e: [], v: [] };
                   while (el && el.style) {
+                    if (el === offset) {
+                      if (el.offsetWidth >= w && el.offsetHeight >= h) { break; }
+                      else {
+                        w += el.offsetLeft;
+                        h += el.offsetTop;
+                        offset = el.offsetParent;
+                      }
+                    }
                     var css = getComputedStyle(el);
-                    if (css.overflow && css.overflow === 'hidden') {
+                    // if the element scrolls, carry on
+                    if (css.overflow === 'auto') { break; }
+                    // if the element has hidden overflow, temporarily show it
+                    if (css.overflow === 'hidden') {
                       o.e.push(el);
                       o.v.push(el.style.overflow);
                       el.style.overflow = 'visible';
                     }
-                    //if (el === stop) break;
                     el = el.parentNode;
                   }
                 }
