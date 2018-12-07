@@ -5,7 +5,7 @@ export const style: CssFn;
 
 export interface PluginOpts {
   name?: string;
-  inclideStyle?: boolean;
+  includeStyle?: boolean;
 }
 
 export default function(options?: PluginOpts): Plugin;
