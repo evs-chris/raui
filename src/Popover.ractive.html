@@ -203,16 +203,30 @@
           if (v) {
             let el = this.find('div');
             const node = el;
+            let h = node.offsetHeight + node.offsetTop;
+            let w = node.offsetWidth + node.offsetLeft;
+            let offset = node.offsetParent;
+
             if (!this.overflows) {
               const o = this.overflows = { e: [], v: [] };
               while (el && el.style) {
+                if (el === offset) {
+                  if (el.offsetWidth >= w && el.offsetHeight >= h) break;
+                  else {
+                    w += el.offsetLeft;
+                    h += el.offsetTop;
+                    offset = el.offsetParent;
+                  }
+                }
                 const css = getComputedStyle(el);
-                if (css.overflow && css.overflow === 'hidden') {
+                // if the element scrolls, carry on
+                if (css.overflow === 'auto') break;
+                // if the element has hidden overflow, temporarily show it
+                if (css.overflow === 'hidden') {
                   o.e.push(el);
                   o.v.push(el.style.overflow);
                   el.style.overflow = 'visible';
                 }
-                //if (el === stop) break;
                 el = el.parentNode;
               }
             }
