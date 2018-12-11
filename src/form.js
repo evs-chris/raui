@@ -381,6 +381,7 @@ export function field(node) {
     if (!isFile) cls = cls.replace(/\bfile\b/g, '').trim();
     if (!isButton) cls = cls.replace(/\bbutton\b/g, '').trim();
     if (!isPlain) cls = cls.replace(/\bplain\b/g, '').trim();
+    if (!isInput) cls = cls.replace(/\binput\b/g, '').trim();
     cls = cls.replace(/  +/g, ' ');
 
     return cls;
