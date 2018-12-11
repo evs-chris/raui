@@ -56,15 +56,17 @@
 <template id="children">
   {{#if .items.length && (.open || .type === 'section')}}
   <div class-rmenu-items {{#if !.popout}}expand-in-out{{else}}pop-in-out{{/if}} class-rmenu-shrink=".shrink">
-    {{>items}}
+    {{#if .popout}}<div class-rmenu-popitems>{{>items}}</div>{{else}}{{>items}}{{/if}}
   </div>
   {{/if}}
 </template>
 
 <template id="section">
+  {{#if .title || .titlePartial}}
   <div class-rmenu-main>
     <div class-rmenu-title>{{#if .title}}{{.title}}{{elseif .titlePartial}}{{yield .titlePartial}}{{/if}}</div>
   </div>
+  {{/if}}
   {{>children}}
 </template>
 
@@ -287,6 +289,7 @@
     }
   });
 
+  const justSpace = /^\s*$/;
   function construct() {
     const cmp = this.component;
     if ( !cmp ) return;
@@ -371,7 +374,7 @@
         else if (e.e === 'right') {
           res.rightPartial = { t: e.f };
         }
-        else {
+        else if (typeof e !== 'string' || !justSpace.test(e)) {
           if (!title) title = [];
           title.push(e);
         }
@@ -581,6 +584,10 @@
     background-color: ${primary.popout.bga || primary.bg || '#fff'};
     color: ${primary.popout.fg || primary.fg || '#222'};
   }
+  .rmenu-popitems {
+    height: 100%;
+    overflow-y: auto;
+  }
   .rmenu-main {
     width: 100%;
     height: 100%;
@@ -722,6 +729,9 @@
     font-size: 0.75em;
     opacity: 0.7;
     margin-bottom: 0.25em;
+  }
+  .rmenu-section > .rmenu-main .rmenu-title {
+    cursor: default;
   }
   .rmenu-popout .rmenu-section:first-child > .rmenu-main {
     padding-top: 0;
