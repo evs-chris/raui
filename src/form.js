@@ -15,7 +15,7 @@ export function style(data) {
     transition-property: color;
     vertical-align: middle;
     box-sizing: border-box;
-    padding: 0.5em 0.25em;
+    padding: 0.25em 0.5em;
     line-height: 1.5em;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -120,7 +120,7 @@ export function style(data) {
     padding-top: 2em;
     line-height: 3.1em;` : `
     line-height: 1em;
-    padding-top: 2.8em;`}
+    padding-top: 2.6em;`}
   }
 
   label.field.check input, label.field.radio input {
@@ -130,7 +130,7 @@ export function style(data) {
     ${boxy ? `margin-left: -0.5em;
     margin-right: 0.75em` : `margin-right: 0.5em;
     position: relative;
-    margin-top: 0;`};
+    margin-top: 0.2em;`};
     float: left;
     box-shadow: none;
     background-color: transparent;
@@ -314,6 +314,24 @@ export function style(data) {
   label.field.inline.select:after {
     top: 1.${boxy ? '4' : '2'}em;
   }
+
+  label.field .field-tip {
+    display: inline-block;
+    width: 1em;
+    height: 1em;
+    background-color: ${primary.fga || '#07e'};
+    color: ${primary.bg || '#fff;'};
+    cursor: default;
+    user-select: none;
+    border-radius: 1em;
+    margin-left: 0.5em;
+    line-height: 1.2em;
+    text-align: center;
+  }
+
+  label.field .field-solo-tip {
+    margin-left: -0.1em;
+  }
   `;
   // TODO: other themes
 }
@@ -426,6 +444,8 @@ export const macro = Ractive.macro(handle => {
   // TODO: special field types
   const value = attrs.find(a => a.n === 'value');
   const type = attrs.find(a => a.n === 'type');
+  const tip = attrs.find(a => a.n === 'tip');
+  if (tip) attrs.splice(attrs.indexOf(tip), 1);
 
   if (type && typeof macro.types[type.f] === 'function') {
     body.push.apply(body, macro.types[type.f](attrs, content, handle));
@@ -459,9 +479,19 @@ export const macro = Ractive.macro(handle => {
         f: body
       }];
     }
+  } else { // passthru
+    body.push.apply(body, content);
   }
 
   const label = attrs.find(a => a.n === 'label');
+  if (tip) body.unshift({
+    t: 7, e: 'span', m: [
+      { t: 13, n: 'class', f: `field-tip${!label ? ' field-solo-tip' : ''}`, g: 1 },
+      { t: 13, n: 'title', f: tip.f },
+      { t: 70, n: ['click'], f: { r: [], s: '[false]' } }
+    ],
+    f: '?'
+  });
   if (label) body.unshift(label.f);
   else body.unshift('\xa0');
 
