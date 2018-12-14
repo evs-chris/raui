@@ -1,9 +1,9 @@
-<span class-rautocomplete class-field-wrapper on-pop="@context.set('rac.pop', $1)" on-blur="@context.set('rac.popped', false)">
+<span class-rautocomplete class-field-wrapper on-pop="@context.set('rac.pop', $1)" on-focusout="@context.set('rac.popped', false), rac.updateDisplay(@event)">
   <input {{>extra-attributes}} on-dblclick="rac.pop.show(@node)" on-focus="rac.stash()" on-input="rac.input(@event)" on-keydown="rac.key(@event)" twoway=false value="{{rac.display}}" />
   <rac-pop class-rac-pop on-init="@context.raise('pop', {}, $1)" bind-popped="rac.popped" where=below align=end style-padding=0 gap=[[2]]>
-    <div class-rac-list>
+    <div class-rac-list tabindex=-1>
       {{#await rac.list}}<div class-rac-item class-rac-invalid>Loading...</div>{{then items}}
-      {{#each items}}<div class-rac-item class-rac-selected="rac.selected === @index" on-click="@context.set({ 'rac.selected': @index, 'rac.value': . })">{{rac._member(.)}}</div>{{/each}}
+      {{#each items}}<div tabindex=-1 class-rac-item class-rac-selected="rac.value === ." class-rac-hover="rac.selected === @index" on-click="@context.set('rac.value', .), console.log(rac.value)" on-mouseover="@context.set('rac.selected', @index)">{{rac._member(.)}}</div>{{/each}}
       {{catch}}<div class-rac-item class-rac-invalid>Load failed.</div>
       {{/await}}
     </div>
@@ -23,6 +23,8 @@
 
   export const Autocomplete = Ractive.macro(h => {
     let tm;
+
+    let root;
 
     h.aliasLocal('rac');
     h.set('rac.list', []);
@@ -71,6 +73,7 @@
 
     function list(filter) {
       if (filter == null) filter = h.get('rac.value') == null ? '' : h.get('rac.display');
+      if (filter === h.get('rac.tempDisplay')) filter = '';
       const items = h.get('rac._items');
       if (typeof items === 'function') {
         const res = items(filter);
@@ -78,12 +81,17 @@
         else h.set('rac.list', res);
       } else if (Array.isArray(items)) {
         const member = h.get('rac._member');
-        const re = new RegExp(filter || '', 'i');
+        let re;
+        try {
+          re = new RegExp(filter || '', 'i');
+        } catch (e) {
+          re = new RegExp((filter || '').replace(/([\{\(\[\]\)\}\?\*\^\$])/g, '\\$1'));
+        }
         h.set('rac.list', items.filter(i => re.test(member(i))));
       } else h.set('rac.list', []);
     }
 
-    function refresh() {
+    function refresh(value, old, path) {
       let v = h.get('rac.member');
       if (h.get('rac.__member') !== v || h.get('rac._member') === undefined) {
         if (typeof v === 'string') {
@@ -109,6 +117,8 @@
         h.set('rac.__items', h.get('rac.items'));
       }
 
+      if (root && path === 'rac.display' && h.get('rac.limit') && !root.contains(document.activeElement)) display();
+
       list();
     }
 
@@ -122,16 +132,23 @@
         else h.set('rac.selected', -1);
       }, opts),
       h.observe('rac.value', v => {
-        const member = h.get('rac._member');
-        if (typeof member === 'function') {
-          const disp = member(v);
-          h.set('rac.display', disp);
-          h.set('rac.tempDisplay', disp);
-        }
+       display();
         h.set('rac.popped', false);
         h.set('rac.tempValue', v);
       })
     ];
+
+    function display() {
+      const member = h.get('rac._member');
+      if (typeof member === 'function') {
+        const disp = member(h.get('rac.value'));
+        h.set('rac.display', disp);
+        h.set('rac.tempDisplay', disp);
+      }
+    }
+    h.set('rac.updateDisplay', function(ev) {
+      setTimeout(() => { if (root && h.get('rac.limit') && !root.contains(document.activeElement)) display(); }, 140);
+    });
 
     function update(attrs) {
       if (attrs.items) h.link(attrs.items, 'rac.items');
@@ -139,6 +156,11 @@
       if (attrs.value) h.link(attrs.value, 'rac.value');
       if (attrs.selected) h.link(attrs.selected, 'rac.selected');
       if ('member' in attrs) h.set('rac.member', attrs.member);
+      h.set('rac.limit', attrs['limit-set']);
+      if (h.get('rac.limit') && h.get('input')) {
+        const el = h.get('input');
+        if (el !== document.activeElement) display();
+      }
       refresh();
     }
 
@@ -153,13 +175,21 @@
 
     update(h.attributes);
 
-    return { teardown, update };
+    return { teardown, update, render() { root = h.find('span'); } };
   }, {
-    attributes: ['items', 'selected', 'display', 'value', 'member'],
+    attributes: ['items', 'selected', 'display', 'value', 'member', 'limit-set'],
     css: $CSS,
     cssId: 'rautocomplete',
     noCssTransform: true
   });
+
+  export function FieldType(opts = {}) {
+    return function(attrs, content, handle) {
+      return [{
+        t: 7, e: opts.name || 'autocomplete', m: attrs, f: content
+      }];
+    };
+  }
 
   export function plugin(opts = {}) {
     return function({ instance }) {
@@ -172,6 +202,7 @@
 </script>
 
 <script rel="css">
+  const primary = Object.assign({}, data(`raui.primary`), data(`raui.autocomplete.primary`));
   return `.rautocomplete {
     position: relative;
     display: inline-block;
@@ -189,20 +220,26 @@
     display: flex;
     flex-direction: column;
     max-height: 50vh;
+    min-height: 10em;
     max-width: 100%;
     overflow: auto;
   }
   
   .rac-item {
-    color: #222;
-    background-color: #fff;
+    color: ${primary.fg || '#222'};
+    background-color: ${primary.bg || '#fff'};
     padding: 0.25em;
     cursor: pointer;
   }
   
   .rac-selected {
-    color: #fff;
-    background-color: #07e;
+    color: ${primary.bg || '#fff'};
+    background-color: ${primary.fga || '#07e'};
+  }
+
+  .rac-hover {
+    color: ${primary.fg || '#222'};
+    background-color: ${primary.bc || '#ccc'};
   }
   
   .rac-invalid {
