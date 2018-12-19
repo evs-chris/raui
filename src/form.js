@@ -117,10 +117,10 @@ export function style(data) {
   label.field.check, label.field.radio {
     vertical-align: top;
     cursor: pointer;${boxy ? `
-    padding-top: 2em;
+    padding-top: 1.8em;
     line-height: 3.1em;` : `
-    line-height: 1em;
-    padding-top: 2.6em;`}
+    line-height: 1.1em;
+    padding-top: 2.5em;`}
   }
 
   label.field.check input, label.field.radio input {
@@ -152,7 +152,7 @@ export function style(data) {
     width: 0.6em;
     right: 1em;
     height: 0.6em;
-    top: 2.75em;
+    top: 2.${boxy ? '6' : '5'}em;
     border-bottom: 0.125em solid;
     border-right: 0.125em solid;
     transform: rotate(45deg);
@@ -173,7 +173,7 @@ export function style(data) {
     height: 1em;
     box-sizing: border-box;
     transition: 0.2s ease-in-out;
-    transition-property: transform, border-color, height, width, box-shadow, border-radius;
+    transition-property: transform, border-color, height, width, box-shadow, border-radius, margin-top;
     ${boxy ? `margin-top: 0.5em;` :
     `margin-top: -0.25em;`}
     border-radius: 0.2em;
@@ -194,6 +194,7 @@ export function style(data) {
     border-right-color: transparent;
     transform: rotate(-50deg);
     border-radius: 0;
+    margin-top: -0.4em;
   }
 
   label.field.check input,
@@ -254,7 +255,7 @@ export function style(data) {
 
   label.field.button {
     vertical-align: top;
-    padding-top: 1.958em;
+    padding-top: ${boxy ? '1.7' : '1.958'}em;
   }
   label.field .with-buttons button, label.field.button button {
     font-size: 1.1em;
@@ -327,6 +328,7 @@ export function style(data) {
     margin-left: 0.5em;
     line-height: 1.2em;
     text-align: center;
+    margin-top: -0.2em;
   }
 
   label.field .field-solo-tip {

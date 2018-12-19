@@ -1,1 +1,1 @@
-export { default, field, autofocus, PluginOpts } from '../src/form';
+export { default, field, autofocus, PluginOpts, macro, TypePlugin, TypeRegistry } from '../src/form';
