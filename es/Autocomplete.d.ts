@@ -1,1 +1,1 @@
-export { default, Autocomplete, PluginOpts } from '../src/Autocomplete';
+export { default, Autocomplete, PluginOpts, FieldType } from '../src/Autocomplete';
