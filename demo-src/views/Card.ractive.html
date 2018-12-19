@@ -24,6 +24,9 @@
     * `image-alt: string` - An `alt` string for the image.
     * `no-pad: boolean` - Whether to pad the content of the card. This is useful for using other containers, like tabs, as the content of the card.
     * `section: boolean = false` - Whether the card should more resemble a section group than a card. This is useful for making form sections stand out more.
+    * `expandable: boolean = false` - Whether or not the card should allow collapsing into the header and expanding back on header click.
+    * `epanded: string|boolean` - If expandable is true and expanded is a string, then the expanded state will be bound to the string as a keypath. If a boolean, sets whether or not the card is expanded.
+    * `no-arrow: boolean = false` - If expandable, determines whether or not the expansion indicator is shown.
 
     ### Children
 
@@ -77,6 +80,14 @@
       <label as-field>
         <input type="checkbox" checked="{{.expandable}}" /> Expandable?
       </label>
+      {{#if .expandable}}
+      <label as-field>
+        <input type="checkbox" checked="{{.expanded}}" /> Expanded?
+      </label>
+      <label as-field>
+        <input type="checkbox" checked="{{.arrow}}" /> No arrow?
+      </label>
+      {{/if}}
       <label as-field class-t1>
         Content<textarea lazy=1000>{{.content}}</textarea>
       </label>
@@ -85,7 +96,7 @@
     <marked>
       ### Template:
       ```handlebars
-      <card title="{{.title}}" subtitle="{{.subtitle}}" avatar="{{.avatar}}" avatar-round="{{.round}}" image="{{.image}}" image-alt="{{.alt}}" section="{{.section}}" flat="{{.flat}}" popout="{{.popout}}" style-max-width="30em" margin="{{.margin}}" expandable="{{.expandable}}">
+      <card title="{{.title}}" subtitle="{{.subtitle}}" avatar="{{.avatar}}" avatar-round="{{.round}}" image="{{.image}}" image-alt="{{.alt}}" section="{{.section}}" flat="{{.flat}}" popout="{{.popout}}" style-max-width="30em" margin="{{.margin}}" expandable="{{.expandable}}" no-arrow="{{.arrow}}" expanded=".expanded">
         <avatar image="{{.avatar}}" round="{{.round}}" />
         {{>{ template: .content }}}
         <action on-click="console.log('Liked!')" title="Like this breed on FriendFace">Like</action>
@@ -94,7 +105,7 @@
       ```
       ### Result:
     </marked>
-    <card title="{{.title}}" subtitle="{{.subtitle}}" avatar="{{.avatar}}" avatar-round="{{.round}}" image="{{.image}}" image-alt="{{.alt}}" section="{{.section}}" flat="{{.flat}}" popout="{{.popout}}" style-max-width="30em" margin="{{.margin}}" expandable="{{.expandable}}">
+    <card title="{{.title}}" subtitle="{{.subtitle}}" avatar="{{.avatar}}" avatar-round="{{.round}}" image="{{.image}}" image-alt="{{.alt}}" section="{{.section}}" flat="{{.flat}}" popout="{{.popout}}" style-max-width="30em" margin="{{.margin}}" expandable="{{.expandable}}" no-arrow="{{.arrow}}" expanded=".expanded">
       <avatar image="{{.avatar}}" round="{{.round}}" />
       {{>{ template: .content }}}
       <action on-click="console.log('Liked!')" title="Like this breed on FriendFace">Like</action>
@@ -158,7 +169,8 @@
         avatarContent: '<div style="background: linear-gradient(to top, #027de1, #47abdd); border-radius: 0.5em; width: 100%; height: 100%; box-shadow: 2px 2px 16px rgba(0, 0, 0, 0.15)"></div>',
         share: true,
         play: '<card title="Play"><input value="{{.thing}}" />Do all the things you want to do {{.thing}}</card>',
-        thing: 'here'
+        thing: 'here',
+        expanded: true
       };
     }
   });
