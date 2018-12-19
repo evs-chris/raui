@@ -14,13 +14,14 @@
   },
   "devDependencies": {
     "http-server": "^0.11",
-    "nodemon": "^1.17",
+    "nodemon": "^1.18.9",
     "ractive": "^1",
     "rollup": "^0.57",
     "rollup-plugin-buble": "^0.19",
     "rollup-plugin-import-resolver": "^1",
     "rollup-plugin-ractive-bin": "^1.0.0",
-    "rollup-plugin-uglify": "^3"
+    "rollup-plugin-uglify": "^3",
+    "terser": "^3.11.0"
   },
   "peerDependencies": {
     "ractive": ">= 0.10.2"
