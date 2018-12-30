@@ -1,26 +1,36 @@
-<div class-rcard-wrapper {{>extra-attributes}} class-rcard-margin="_card.margin">
-  <div class-rcard class-rcard-no-pad="_card.noPad" class-rcard-section="_card.section" class-rcard-flat="'flat' in _card ? _card.flat : @style.card.flat" class-rcard-deep="'flat' in _card ? !_card.flat : !@style.card.flat" class-rcard-popout="_card.popout" class-rcard-collapsed="_card.expandable && _card.expanded === false" class-rcard-expandable="_card.expandable" class-rcard-arrow="_card.arrow">
-    {{#if _card.titleP || _card.subtitleP || _card.avatarP || _card.title || _card.subtitle || (_card.avatar && typeof _card.avatar === 'string')}}
-      <div class-rcard-header {{#if _card.expandable}}on-click="@context.set('_card.expanded', _card.expanded === false ? true : false)"{{/if}}>
+<div class-rcard-wrapper {{>extra-attributes}} class-rcard-margin="_card.margin" class-rcard-wrapper-popout="_card.popout">
+  <div class-rcard class-rcard-no-pad="_card.noPad" class-rcard-section="_card.section" class-rcard-flat="'flat' in _card ? _card.flat : @style.card.flat" class-rcard-deep="'flat' in _card ? !_card.flat : !@style.card.flat" class-rcard-popout="_card.popout" class-rcard-collapsed="_card.expandable && _card.expanded === false" class-rcard-expandable="_card.expandable" class-rcard-arrow="_card.arrow" class-rcard-no-fill="_card.noFill">
+    {{#if _card.titleP || _card.subtitleP || _card.avatarP || _card.title || _card.subtitle || (_card.avatar && typeof _card.avatar === 'string' || (_card.tabs && _card.section))}}
+      <div class-rcard-header {{#if _card.expandable && _card.arrow}}class-rcard-clickable on-click="@context.set('_card.expanded', _card.expanded === false ? true : false)"{{/if}}>
         {{#if _card.avatar && typeof _card.avatar === 'string'}}<div class-rcard-avatar class-rcard-avatar-round="_card.round">
           <div class-rcard-avatar-inner style-background-image="url({{_card.avatar}})" />
         </div>
         {{elseif _card.avatarP}}<div class-rcard-avatar {{#if _card.avatarA}}{{>_card.avatarA}}{{/if}}>{{>_card.avatarP}}</div>{{/if}}
-        <div class-rcard-titles class-rcard-with-sub="_card.subtitle || _card.subtitleP">
+        <div class-rcard-titles class-rcard-with-sub="_card.subtitle || _card.subtitleP" class-rcard-with-tabs="_card.tabs" {{#if _card.expandable && !_card.arrow}}class-rcard-shrink class-rcard-clickable on-click="@context.set('_card.expanded', _card.expanded === false ? true : false)"{{/if}}>
           {{#if _card.title}}<div class-rcard-title>{{_card.title}}</div>
           {{else}}<div class-rcard-title {{#if _card.titleA}}{{>_card.titleA}}{{/if}}>{{>_card.titleP}}</div>{{/if}}
           {{#if _card.subtitle}}<div class-rcard-subtitle>{{_card.subtitle}}</div>
           {{elseif _card.subtitleP}}<div class-rcard-subtitle {{#if _card.subtitleA}}{{>_card.subtitleA}}{{/if}}>{{>_card.subtitleP}}</div>{{/if}}
         </div>
+        {{#if _card.tabs && _card.section}}
+          {{>tabs}}
+        {{/if}}
         {{#if _card.arrow && _card.expandable}}
           <div class-rcard-expand class-rcard-expanded="_card.expanded !== false"><svg><path d="M16.59 8.59L12 13.17 7.41 8.59 6 10l6 6 6-6z"></path></svg></div>
         {{/if}}
       </div>
     {{/if}}
     {{#if !_card.expandable || _card.expanded !== false}}
+      {{#if _card.tabs && _card.section}}<div class-rcard-tab-wrapper {{#if _card.expandable}}expand-in-out{{/if}}>{{>tab-body}}</div>{{/if}}
       {{#if _card.image}}<div class-rcard-image {{#if _card.expandable}}expand-in-out{{/if}}><img src="{{_card.image}}" alt="{{_card.alt}}"/></div>
       {{elseif _card.imageP}}<div class-rcard-image {{#if _card.expandable}}expand-in-out{{/if}} {{#if _card.imageA}}{{>_card.imageA}}{{/if}}>{{>_card.imageP}}</div>{{/if}}
       {{#if _card.contentP}}<div class-rcard-content {{#if _card.expandable}}expand-in-out{{/if}}>{{>_card.contentP}}</div>{{/if}}
+      {{#if _card.tabs && !_card.section}}
+      <div class-rcard-tab-wrapper {{#if _card.expandable}}expand-in-out{{/if}}>
+        {{>tab-body}}
+        {{>tabs}}
+      </div>
+      {{/if}}
       {{#if _card.footerP}}<div class-rcard-footer {{#if _card.footerA}}{{>_card.footerA}}{{/if}} {{#if _card.expandable}}expand-in-out{{/if}}>{{>_card.footerP}}</div>{{/if}}
       {{#if _card.actions.length}}
         <div class-rcard-actions {{#if _card.expandable}}expand-in-out{{/if}}>
@@ -30,6 +40,30 @@
     {{/if}}
   </div>
 </div>
+
+<template id="tabs">
+  <div class-rcard-tabs-window>
+    <div class-rcard-tabs>
+    {{#each _card.tabs}}
+      <div class-rcard-tab class-rcard-tab-selected="_card.selected === @index || (!_card.selected && !@index)" on-click="@context.set('_card.selected', @index), @context.set('_card.expanded', true), false">
+        {{>.title}}
+      </div>
+    {{/each}}
+    </div>
+  </div>
+</template>
+
+<template id="tab-body">
+  <div class-rcard-tab-window>
+    <div class-rcard-tab-contents style-left="-{{(_card.selected || 0) * 100}}%">
+    {{#each _card.tabs}}
+      <div class-rcard-tab-content class-rcard-content-selected="_card.selected === @index || (!_card.selected && !@index)">
+        {{>.content}}
+      </div>
+    {{/each}}
+    </div>
+  </div>
+</template>
 
 <script>
   import Ractive from 'ractive';
@@ -67,6 +101,8 @@
     
     const tpl = h.partials.content;
     const content = [];
+    h.partials.tabs = template.p.tabs;
+    h.partials['tab-body'] = template.p['tab-body'];
 
     tpl.forEach(n => {
       if (n.e === 'title') {
@@ -112,6 +148,22 @@
         section.f = [{ t: 7, e: 'button', m: b.m, f: b.f }];
         (data.actions || (data.actions = [])).push({ P: [section] });
       }
+      else if (n.e === 'tabs') {
+        const tabs = data.tabs = [];
+        if (Array.isArray(n.f)) {
+          n.f.forEach(e => {
+            if (e.e === 'tab') {
+              const tab = { content: e.f };
+              tabs.push(tab);
+              if (!Array.isArray(tab.content)) tab.content = [tab.content];
+              const attrs = e.m || [];
+              let attr = attrs.find(a => a.n === 'title') || tab.content.find(e => e.e === 'title');
+              if (attr) tab.title = attr.f;
+              if (!Array.isArray(tab.title)) tab.title = [tab.title];
+            }
+          });
+        }
+      }
       else content.push(n);
     });
 
@@ -125,6 +177,7 @@
     'avatar' in h.attributes && h.set('@local.avatar', h.attributes.avatar || h.attributes['avatar-image']);
     'image-alt' in h.attributes && h.set('@local.alt', h.attributes['image-alt']);
     'no-pad' in h.attributes && h.set('@local.noPad', h.attributes['no-pad']);
+    'no-fill' in h.attributes && h.set('@local.noFill', h.attributes['no-fill']);
     h.set('@local.arrow', !h.attributes['no-arrow']);
     if ('expanded' in h.attributes && h._link !== h.attributes.expanded) {
       if (h._link && typeof h._link === 'string') h.unlink(h._link);
@@ -158,6 +211,12 @@
     padding: 0.5em;
     box-sizing: border-box;
   }
+  .rcard-margin.rcard-wrapper-popout {
+    padding-top: 2.5em;
+  }
+  .rcard-no-fill {
+    height: auto;
+  }
   .rcard {
     display: block;
     color: ${primary.fg || '#222'};
@@ -166,6 +225,23 @@
     transition-duration: ${primary.duration || '0.2s'};
     transition-timing-function: ${primary.easing || 'ease-in-out'};
     transition-property: box-shadow, border, background-color, color, margin, padding;
+    height: 100%;
+  }
+
+  .rcard > div {
+    margin-top: 1em;
+  }
+  .rcard > div:first-of-type {
+    margin-top: 0;
+  }
+  .rcard > div:last-of-type {
+    margin-bottom: 1em;
+  }
+  .rcard > .rcard-actions:last-of-type {
+    margin-bottom: 0;
+  }
+  .rcard-section > .rcard-header:last-of-type {
+    margin-bottom: 0;
   }
 
   .rcard-section {
@@ -185,31 +261,27 @@
     padding: 0;
   }
 
-  .rcard > div:nth-last-of-type(n + 2) {
-    padding-bottom: 0;
-  }
-
-  .rcard-header, .rcard-content {
-    padding: 1em;
+  .rcard-content {
+    padding: 0 1em;
   }
 
   .rcard-header {
     display: flex;
     align-items: center;
-    height: 3em;
     transition-duration: ${header.duration || '0.2s'};
     transition-timing-function: ${header.easing || 'ease-in-out'};
     transition-property: color, background-color, padding, height;
+    min-height: 4em;
   }
 
   .rcard-section > .rcard-header {
     background-color: ${header.fga || '#07e'};
     color: ${header.bg || '#fff'};
-    height: auto;
+    min-height: auto;
   }
 
   .rcard-section > .rcard-header:first-of-type {
-    padding: ${header.padding || '0.5em 1em'};${header.gradient ? `
+    padding: ${header.padding || '0'};${header.gradient ? `
     background: ${header.gradient};
     color: ${header.fg || '#222'};
     border-bottom: 1px solid ${header.bc || '#ccc'};` : ''}
@@ -218,7 +290,7 @@
   .rcard-avatar {
     width: 3em;
     height: 3em;
-    margin-right: 1em;
+    margin: 1em 0 0 1em;
     transition-duration: ${primary.duration || '0.2s'};
     transition-timing-function: ${primary.easing || 'ease-in-out'};
     transition-property: width, height, bottom;
@@ -236,34 +308,25 @@
     border-radius: 100%;
   }
 
-  .rcard-popout {
-    margin-top: 2em;
+  .rcard-section > .rcard-header .rcard-avatar {
+    margin: 0.5em 0 0.5em 1em;
   }
+
   .rcard-section.rcard-popout {
     overflow: visible;
-  }
-  .rcard-popout > .rcard-header {
-    position: relative;
   }
   .rcard-section.rcard-popout > .rcard-header {
     border-radius: ${primary.easing || '0.2em'} ${primary.radius || '0.2em'} 0 0;
   }
   .rcard-popout > .rcard-header .rcard-avatar {
-    position: absolute;
-    bottom: 0;
+    margin-top: -2em;
     width: 6em;
     height: 6em;
   }
-  .rcard-popout > .rcard-header .rcard-avatar ~ .rcard-titles {
-    margin-left: 7em;
-  }
   .rcard-popout.rcard-section > .rcard-header .rcard-avatar {
-    bottom: 0.5em;
     width: 3.75em;
     height: 3.75em;
-  }
-  .rcard-popout.rcard-section > .rcard-header .rcard-avatar ~ .rcard-titles {
-    margin-left: 5em;
+    margin-top: -1.25em;
   }
   .rcard-popout.rcard-deep > .rcard-header .rcard-avatar-inner {
     box-shadow: 0 2px 2px rgba(0, 0, 0, 0.24), 0 0 2px rgba(0, 0, 0, 0.12);
@@ -278,6 +341,14 @@
     transition-duration: ${primary.duration || '0.2s'};
     transition-timing-function: ${primary.easing || 'ease-in-out'};
     transition-property: margin;
+    margin: 1em 1em 0 1em;
+  }
+  .rcard-section > .rcard-header .rcard-titles.rcard-with-tabs {
+    flex-grow: 0;
+    margin-right: 3em;
+  }
+  .rcard-titles.rcard-shrink {
+    flex-grow: 0;
   }
 
   .rcard-with-sub {
@@ -298,6 +369,7 @@
 
   .rcard-section > .rcard-header .rcard-titles {
     line-height: 1.2em;
+    margin: 0.5em 1em 0.5em 1em;
   }
   .rcard-section > .rcard-header .rcard-with-sub {
     line-height: 1em;
@@ -310,13 +382,17 @@
   }
 
   .rcard-expandable > .rcard-header {
-    cursor: pointer;
     transition-property: color, background-color, height;
+  }
+  .rcard-clickable {
+    cursor: pointer;
   }
   .rcard-expand {
     flex-shrink: 1;
     height: 24px;
     transition: transform 0.2s ease-in-out;
+    margin-right: 1em;
+    margin-top: 1em;
   }
   .rcard-expand.rcard-expanded {
     transform: rotate(180deg);
@@ -329,6 +405,9 @@
   .rcard-expand svg path {
     fill: ${header.fg || '#222'};
     stroke: ${header.fg || '#222'};
+  }
+  .rcard-section > .rcard-header .rcard-expand {
+    margin-top: 0;
   }
   .rcard-section > .rcard-header .rcard-expand svg path {
     fill: ${header.bg || '#fff'};
@@ -354,8 +433,99 @@
     width: 100%;
   }
 
+  .rcard-tabs-window {
+    overflow: auto;
+  }
+  .rcard-section > .rcard-header .rcard-tabs-window {
+    align-self: flex-end;
+    flex-grow: 1;
+  }
+
+  .rcard-tabs {
+    display: flex;
+    border-top: 0.15em solid ${primary.bga || '#f4f4f4'};
+  }
+
+  .rcard-tab {
+    box-sizing: border-box;
+    padding: 0.5em 1em;
+    height: 2.5em;
+    user-select: none;
+    opacity: 0.9;
+    cursor: pointer;
+    transition-duration: 0.2s;
+    transition-timing-function: ease-in-out;
+    transition-property: opacity, background-color, color, border-top, border-width;
+    border-top: 0.15em solid transparent;
+    margin-top: -0.15em;
+    white-space: nowrap;
+  }
+  .rcard-tab:hover {
+    opacity: 1;
+  }
+
+  .rcard-tab.rcard-tab-selected {
+    border-top: 0.15em solid ${primary.fga || '#07e;'}
+    opacity: 1;
+    font-weight: 500;
+    cursor: default;
+  }
+
+  .rcard-tab-wrapper {
+    margin-right: 1em;
+  }
+
+  .rcard-section > .rcard-header .rcard-tabs {
+    margin-top: 0.5em;
+    border-top: 0;
+  }
+  .rcard-section > .rcard-header .rcard-tab {
+    margin-top: 0;
+    border-color: ${primary.bg || '#fff'};
+    border-style: solid;
+    border-width: 1px 1px 0 0;
+    background-color: ${primary.fga || '#07e'};
+    color: ${primary.bg || '#fff'};
+  }
+  .rcard-section > .rcard-header .rcard-tab:first-of-type {
+    border-width: 1px 1px 0 1px;
+  }
+  .rcard-section > .rcard-header .rcard-tab-selected {
+    background-color: ${primary.bg || '#fff'};
+    color: ${primary.fg || '#222'};
+  }
+  
+
+  .rcard-tab-window {
+    overflow: hidden;
+    margin: 0.5em 1em;
+  }
+
+  .rcard-tab-contents {
+    width: 100%;
+    box-sizing: border-box;
+    position: relative;
+    display: flex;
+  }
+
+  .rcard-tab-content {
+    width: 100%;
+    box-sizing: border-box;
+    flex-shrink: 0;
+    flex-grow: 0;
+    opacity: 0;
+    transition: opacity 0.4s ease-in-out;
+  }
+  .rcard-content-selected {
+    opacity: 1;
+  }
+
   .rcard-actions {
     padding: 0.5em;
+  }
+
+  .rcard > .rcard-actions:nth-of-type(n+1) {
+    margin-top: 0.5em;
   }
 
   .rcard-actions > button {
