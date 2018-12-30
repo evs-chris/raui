@@ -194,7 +194,7 @@ export function style(data) {
     border-right-color: transparent;
     transform: rotate(-50deg);
     border-radius: 0;
-    margin-top: -0.4em;
+    margin-top: ${boxy ? '0.5em' : '-0.4em'};
   }
 
   label.field.check input,
