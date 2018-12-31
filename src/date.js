@@ -1,10 +1,27 @@
 // TODO: support for non-numeric formats?
 // TODO: 12 hour time format and am/pm
 
+export function padl(str, total, char = '0') {
+  let v = '' + str;
+  for (let i = v.length; i < total; i++) {
+    v = char + v;
+  }
+  return v;
+}
+
+export const defaults = {
+  mask: 'yyyy-MM-dd',
+  time: '00:00:00.000',
+  date() {
+    const now = new Date();
+    return new Date(`${now.getFullYear()}-${padl(now.getMonth() + 1, 2)}-${padl(now.getDate(), 2)}T${defaults.time}`);
+  }
+}
+
 export default function plugin(options = {}) {
-  const defaultMask = options.mask || 'yyyy-MM-dd';
-  const defaultTime = options.time || '00:00:00.000';
-  let defaultDate = options.date || (() => new Date('0000-01-01T' + defaultTime));
+  const defaultMask = options.mask || defaults.mask;
+  const defaultTime = options.time || defaults.time;
+  let defaultDate = options.date || defaults.date;
   if (typeof defaultDate !== 'function') {
     const dt = defaultDate;
     defaultDate = () => dt;
@@ -284,7 +301,7 @@ function updateValue(date, group) {
 function updateDisplay(group) {
   switch (group.type) {
     case 'y':
-      group.display = group.length <= 2 ? ('' + group.value).substr(2, 2) : '' + lpad(group.value, '0', 4);
+      group.display = group.length <= 2 ? ('' + group.value).substr(2, 2) : '' + padl(group.value, 4);
       break;
     
     case 'M':
@@ -305,12 +322,12 @@ function updateDisplay(group) {
     case 'm':
     case 's':
       if (group.length === 1) group.display = '' + group.value;
-      else group.display = lpad(group.value, '0', 2);
+      else group.display = padl(group.value, 2);
       break;
     
     case 'S':
       if (group.length === 1) group.display = '' + group.value;
-      else group.display = lpad(group.value, '0', 3);
+      else group.display = padl(group.value, 3);
   }
 }
 
@@ -428,14 +445,6 @@ function redraw(node, groups) {
   node.setSelectionRange(pos, pos);
 }
 
-function lpad(str, char, total) {
-  let v = '' + str;
-  for (let i = v.length; i < total; i++) {
-    v = char + v;
-  }
-  return v;
-}
-
 function revalue(groups) {
   const v = groups.value || new Date();
   const nums = [v.getFullYear(), v.getMonth() + 1, v.getDate(), v.getHours(), v.getMinutes(), v.getSeconds(), v.getMilliseconds()];
@@ -518,7 +527,7 @@ function revalue(groups) {
   let next;
   
   for (let i = 0; i < 4; i++) {
-    next = new Date(`${lpad(nums[0], '0', 4)}-${lpad(nums[1], '0', 2)}-${lpad(nums[2], '0', 2)}T${lpad(nums[3], '0', 2)}:${lpad(nums[4], '0', 2)}:${lpad(nums[5], '0', 2)}.${lpad(nums[6], '0', 3)}`);
+    next = new Date(`${padl(nums[0], 4)}-${padl(nums[1], 2)}-${padl(nums[2], 2)}T${padl(nums[3], 2)}:${padl(nums[4], 2)}:${padl(nums[5], 2)}.${padl(nums[6], 3)}`);
     if (isNaN(next.getDate()) || next.getDate() !== nums[2]) {
       nums[2]--;
     } else {

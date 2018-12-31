@@ -1,1 +1,1 @@
-export { default, PluginOpts } from '../src/date';
+export { default, padl, defaults, PluginOpts } from '../src/date';
