@@ -2,7 +2,7 @@
 // TODO: 12 hour time format and am/pm
 
 export function padl(str, total, char = '0') {
-  let v = '' + str;
+  let v = str == null ? '' : '' + str;
   for (let i = v.length; i < total; i++) {
     v = char + v;
   }

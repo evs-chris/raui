@@ -1,6 +1,6 @@
 import { Plugin } from 'ractive';
 
-export function padl(str: string, length: number, char?: string): string;
+export function padl(str: string|any, length: number, char?: string): string;
 
 export const defaults: {
   mask: string;
