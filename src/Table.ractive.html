@@ -515,7 +515,7 @@
                       else vis = this.findAll('.rtable-live')[offset - first];
                     }
 
-                    if (vis && first > 0) next = vis.offsetTop;
+                    if (vis && first > 0 && vis.offsetTop > node.scrollTop - pageSize * 2.5 && vis.offsetTop < node.scrollTop + pageSize * 2) next = vis.offsetTop;
 
                     this.set({
                       'virtual.above': above,
@@ -524,7 +524,7 @@
                     });
 
                     if (typeof next === 'number') {
-                      if (next !== vis.offsetTop) this.set('virtual.above', above + Math.abs(next - vis.offsetTop));
+                      if (next !== vis.offsetTop) this.set('virtual.above', above + (next - vis.offsetTop));
                     }
 
                     this.set({
