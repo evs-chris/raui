@@ -487,10 +487,12 @@
                   const avg = this._avgSize;
                   const pageSize = page * avg;
                   let wnd = Math.floor(top / avg);
-                  let first = wnd - page;
+                  let first = wnd - page - page;
                   if (first < 0) first = 0;
                   const hardFirst = first;
                   if (first + visible > count) first = count - visible;
+
+                  if (offset === first) return lock = false;
                   
                   // check to see if the rendered area is approaching an edge
                   if (!isNumber(offset) || isNaN(offset) || top < virtual.top + pageSize || top > virtual.bottom - pageSize - pageSize || offset > 0 && top < avg * page) {
