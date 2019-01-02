@@ -1,0 +1,45 @@
+/** @param { HTMLElement } node  */
+export function sized(node, attrs) {
+  const ctx = attrs.context || this.getContext(node);
+  const start = {
+    position: node.style.position,
+    overflowY: node.style.overflowY
+  }
+
+  const obj = document.createElement('object');
+  obj.setAttribute('style', 'display: block; position: absolute; top: 0; left: 0; height: 100%; width: 100%; overflow: hidden; pointer-events: none; z-index: -1;');
+  obj.type = 'text/html';
+
+  obj.onload = () => {
+    obj.contentDocument.defaultView.addEventListener('resize', () => {
+      if (attrs.offsetWidth) ctx.set(attrs.offsetWidth, obj.offsetWidth);
+      if (attrs.offsetHeight) ctx.set(attrs.offsetHeight, obj.offsetHeight);
+      if (attrs.clientWidth) ctx.set(attrs.clientWidth, obj.clientWidth);
+      if (attrs.clientHeight) ctx.set(attrs.clientHeight, obj.clientHeight);
+      if (attrs.diffWidth) ctx.set(attrs.diffWidth, obj.offsetWidth - obj.clientWidth);
+      if (attrs.diffHeight) ctx.set(attrs.diffHeight, obj.offsetHeight - obj.clientHeight);
+    });
+  };
+  
+  if (/Trident/.test(navigator.userAgent)) {
+    node.appendChild(obj);
+    obj.data = 'about:blank';
+  } else {
+    obj.data = 'about:blank';
+    node.appendChild(obj);
+  }
+
+  return {
+    teardown() {
+      node.removeChild(obj);
+      node.style.position = start.position;
+      node.style.overflowY = start.overflowY;
+    }
+  }
+}
+
+export function plugin(opts = {}) {
+  return function({ instance }) {
+    instance.decorators[opts.name || 'watch-size'] = sized;
+  };
+}
