@@ -437,7 +437,7 @@
 
               let fit = Math.floor((top.clientHeight - header.offsetHeight) / avg);
               if (v === 'virtual') {
-                fit = fit * 5;
+                fit = fit * 3;
                 if (fit < 50) fit = 50;
               }
               this.set('_paginate', fit);
@@ -452,96 +452,84 @@
                 fn();
                 tm = null;
                 if (this._scrollListener) this._scrollListener.fn();
-              }, 300);
+              }, 50);
             }
 
             this._autoObserver = root.on('*.resize', fnd);
             this._autoObserver.fire = fnd;
 
             if (v === 'virtual') {
-              let ready = true;
               let lock = false;
-              let raf = false;
+              let node;
               const fn = () => {
-                if (!this.rendered) return;
-                const node = this.find('.rtable-top');
-                if (!ready) {
-                  ready = true;
-                  return setTimeout(fn, 14);
+                if (!this.rendered) {
+                  node = null;
+                  return;
                 }
+                if (!node) node = this.find('.rtable-top');
 
-                if (!raf) {
-                  raf = true;
-                  return requestAnimationFrame(fn);
-                } else {
-                  raf = false;
-                  ready = false;
+                const top = node.scrollTop;
+                const virtual = this.get('virtual') || {};
+                let offset = virtual.offset;
+                let visible = this.get('_paginate');
+                const page = visible / 3;
+                const count = this.get('rows.length');
+                if (visible > count) visible = count;
+                const avg = this._avgSize;
+                const pageSize = page * avg;
+                let wnd = Math.floor(top / avg);
+                let first = wnd - page;
+                if (first < 0) first = 0;
+                const hardFirst = first;
+                if (first + visible > count) first = count - visible;
 
-                  const top = node.scrollTop;
-                  const virtual = this.get('virtual') || {};
-                  let offset = virtual.offset;
-                  let visible = this.get('_paginate');
-                  const page = visible / 5;
-                  const count = this.get('rows.length');
-                  if (visible > count) visible = count;
-                  const avg = this._avgSize;
-                  const pageSize = page * avg;
-                  let wnd = Math.floor(top / avg);
-                  let first = wnd - page - page;
-                  if (first < 0) first = 0;
-                  const hardFirst = first;
-                  if (first + visible > count) first = count - visible;
+                if (offset === first) return lock = false;
+                
+                // check to see if the rendered area is approaching an edge
+                if (!isNumber(offset) || isNaN(offset) || top < virtual.top + pageSize || top > virtual.bottom - pageSize * 2 || offset > 0 && top < avg * page) {
+                  let amtAbove = hardFirst;
+                  let amtBelow = count - hardFirst - visible;
+                  if (amtAbove < 0) {
+                    amtBelow += amtAbove * -1;
+                    amtAbove = 0;
+                  } else if (amtAbove > count - visible) {
+                    amtAbove = count - visible;
+                  }
+                  if (amtBelow < 0) amtBelow = 0;
 
-                  if (offset === first) return lock = false;
-                  
-                  // check to see if the rendered area is approaching an edge
-                  if (!isNumber(offset) || isNaN(offset) || top < virtual.top + pageSize || top > virtual.bottom - pageSize - pageSize || offset > 0 && top < avg * page) {
-                    let amtAbove = hardFirst;
-                    let amtBelow = count - hardFirst - visible;
-                    if (amtAbove < 0) {
-                      amtBelow += amtAbove * -1;
-                      amtAbove = 0;
-                    } else if (amtAbove > count - visible) {
-                      amtAbove = count - visible;
-                    }
-                    if (amtBelow < 0) amtBelow = 0;
+                  const above = amtAbove * avg;
+                  const below = amtBelow * avg;
 
-                    const above = amtAbove * avg;
-                    const below = amtBelow * avg;
-
-                    let vis, next;
-                    if (first < offset + visible && first > offset - visible) {
-                      if (first > offset) vis = this.findAll('.rtable-live')[first - offset];
-                      else vis = this.findAll('.rtable-live')[offset - first];
-                    }
-
-                    if (vis && first > 0 && vis.offsetTop > node.scrollTop - pageSize * 2.5 && vis.offsetTop < node.scrollTop + pageSize * 2) next = vis.offsetTop;
-
-                    this.set({
-                      'virtual.above': above,
-                      'virtual.below': below,
-                      'virtual.offset': first
-                    });
-
-                    if (typeof next === 'number') {
-                      if (next !== vis.offsetTop) this.set('virtual.above', above + (next - vis.offsetTop));
-                    }
-
-                    this.set({
-                      'virtual.top': this.get('virtual.above'),
-                      'virtual.bottom': node.scrollHeight - below
-                    });
+                  let vis, next;
+                  if (first < offset + visible && first > offset - visible) {
+                    if (first > offset) vis = this.findAll('.rtable-live')[first - offset];
+                    else vis = this.findAll('.rtable-live')[offset - first];
                   }
 
-                  lock = false;
+                  if (vis && first > 0 && vis.offsetTop > node.scrollTop - pageSize * 1.5 && vis.offsetTop < node.scrollTop + pageSize) next = vis.offsetTop;
+
+                  this.set({
+                    'virtual.above': above,
+                    'virtual.below': below,
+                    'virtual.offset': first
+                  });
+
+                  if (typeof next === 'number') {
+                    if (next !== vis.offsetTop) this.set('virtual.above', above + (next - vis.offsetTop));
+                  }
+
+                  this.set({
+                    'virtual.top': this.get('virtual.above'),
+                    'virtual.bottom': node.scrollHeight - below
+                  });
                 }
+
+                lock = false;
               };
               const scroll = this._scrollListener = this.on('scroll', ({ node }) => {
-                if (ready) ready = false;
-                else if (!lock) {
-                  ready = true;
+                if (!lock) {
                   lock = true;
-                  setTimeout(fn, 15);
+                  requestAnimationFrame(fn);
                 }
               });
               this._scrollListener.fn = fn;
