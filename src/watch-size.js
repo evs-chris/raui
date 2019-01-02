@@ -12,12 +12,12 @@ export function sized(node, attrs) {
 
   obj.onload = () => {
     obj.contentDocument.defaultView.addEventListener('resize', () => {
-      if (attrs.offsetWidth) ctx.set(attrs.offsetWidth, obj.offsetWidth);
-      if (attrs.offsetHeight) ctx.set(attrs.offsetHeight, obj.offsetHeight);
-      if (attrs.clientWidth) ctx.set(attrs.clientWidth, obj.clientWidth);
-      if (attrs.clientHeight) ctx.set(attrs.clientHeight, obj.clientHeight);
-      if (attrs.diffWidth) ctx.set(attrs.diffWidth, obj.offsetWidth - obj.clientWidth);
-      if (attrs.diffHeight) ctx.set(attrs.diffHeight, obj.offsetHeight - obj.clientHeight);
+      if (attrs.offsetWidth) ctx.set(attrs.offsetWidth, node.offsetWidth);
+      if (attrs.offsetHeight) ctx.set(attrs.offsetHeight, node.offsetHeight);
+      if (attrs.clientWidth) ctx.set(attrs.clientWidth, node.clientWidth);
+      if (attrs.clientHeight) ctx.set(attrs.clientHeight, node.clientHeight);
+      if (attrs.diffWidth) ctx.set(attrs.diffWidth, node.offsetWidth - node.clientWidth);
+      if (attrs.diffHeight) ctx.set(attrs.diffHeight, node.offsetHeight - node.clientHeight);
     });
   };
   
