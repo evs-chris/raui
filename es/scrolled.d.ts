@@ -1,1 +1,1 @@
-export { default, PluginOpts } from '../src/scrolled';
+export { default, plugin, scrolled, PluginOpts } from '../src/scrolled';

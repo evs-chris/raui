@@ -4,4 +4,8 @@ export interface PluginOpts {
   name?: string;
 }
 
-export default function(options?: PluginOpts): Plugin;
+export const scrolled: Decorator;
+
+export function plugin(options?: PluginOpts): Plugin;
+
+export default plugin;
