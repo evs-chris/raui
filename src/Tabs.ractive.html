@@ -1,14 +1,16 @@
 <div class-rtabs {{yield extra-attributes}} class-rtabs-flat="~/flat" class-rtabs-margin="~/margin" class-rtabs-fill="~/fill">
-  <div class-rtabs-tab-window {{#if .direction === 'left'}}class-rtabs-going-left{{else}}class-rtabs-going-right{{/if}}>
-    <div class-rtabs-tabs>
-      <div class-rtabs-left class-rtabs-center="~/center">
-        {{#each .tabs}}{{#if !.right && !@._hidden(@index)}}{{>tab}}{{/if}}{{/each}}
+  <div class-rtabs-tab-window-wrapper class-rtabs-scroll-right="@._scrollsRight()" class-rtabs-scroll-left="@._scrollsLeft()">
+    <div class-rtabs-tab-window {{#if .direction === 'left'}}class-rtabs-going-left{{else}}class-rtabs-going-right{{/if}} as-scrolled=`~/scroll`>
+      <div class-rtabs-tabs>
+        <div class-rtabs-left class-rtabs-center="~/center">
+          {{#each .tabs}}{{#if !.right && !@._hidden(@index)}}{{>tab}}{{/if}}{{/each}}
+        </div>
+        <div class-rtabs-right>
+          {{#each .tabs}}{{#if .right && !@._hidden(@index)}}{{>tab}}{{/if}}{{/each}}
+        </div>
+        {{#unless @style.raui.tabs.boxy}}<div class-rtabs-indicator style-left="{{.selectedLeft}}px" {{#if .selectedRight !== undefined}}style-right="{{.selectedRight}}px"{{/if}} />{{/unless}}
       </div>
-      <div class-rtabs-right>
-        {{#each .tabs}}{{#if .right && !@._hidden(@index)}}{{>tab}}{{/if}}{{/each}}
-      </div>
-      {{#unless @style.raui.tabs.boxy}}<div class-rtabs-indicator style-left="{{.selectedLeft}}px" {{#if .selectedRight !== undefined}}style-right="{{.selectedRight}}px"{{/if}} />{{/unless}}
-      </div>
+    </div>
   </div>
   <div class-rtabs-content-wrapper>
     <div class-rtabs-content-window
@@ -53,6 +55,7 @@
 
 <script>
   import Ractive from 'ractive';
+  import { scrolled } from './scrolled';
   import globalRegister from './globalRegister';
 
   let resizer;
@@ -110,6 +113,16 @@
     stopHorizontalScroll(node) {
       if (node.scrollLeft) node.scrollLeft = 0;
     }
+
+    _scrollsRight() {
+      const scroll = this.get('scroll') || '';
+      if (/hscroll.*(hmiddle|left)/.test(scroll) && !/right/.test(scroll)) return true;
+    }
+
+    _scrollsLeft() {
+      const scroll = this.get('scroll') || '';
+      if (/hscroll.*(hmiddle|right)/.test(scroll) && !/left/.test(scroll)) return true;
+    }
   }
 
   const tabAttrs = ['closable', 'disabled', 'title', 'right', 'button', 'no-pad', 'hidden'];
@@ -127,7 +140,8 @@
         rightTabs: [],
         selected: -1,
         selectedContent: -1,
-        opacity: 1
+        opacity: 1,
+        scroll: ''
       }
     },
     on: {
@@ -196,7 +210,8 @@
             setTimeout(() => me.updateIndicator());
           }
         };
-      }
+      },
+      scrolled
     }
   });
 
@@ -375,20 +390,56 @@
     position: relative;
     flex-shrink: 0;
   }
-  .alt > .rtabs-tab-window {
+  .alt > div > .rtabs-tab-window {
     color: ${primary.bg || '#fff'};
     background-color: ${primary.fga || '#07e'};
   }${boxy ? `
-  .alt > .rtabs-tab-window .rtabs-tab {
+  .alt > div > .rtabs-tab-window .rtabs-tab {
     color: ${primary.bg || '#fff'};
     background-color: ${primary.fga || '#07e'};
   }` : ''}
 
-  .rtabs-flat > .rtabs-tab-window {
+  .rtabs-tab-window-wrapper {
+    position: relative;
+  }
+  .rtabs-tab-window-wrapper:before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 10px;
+    opacity: 0;
+    transition: opacity 0.3s ease-in-out;
+    background: linear-gradient(to right, ${primary.bc || '#ccc'}, transparent);
+    z-index: 999;
+    pointer-events: none;
+  }
+  .rtabs-tab-window-wrapper.rtabs-scroll-left:before {
+    opacity: 1;
+  }
+
+  .rtabs-tab-window-wrapper:after {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    height: 100%;
+    width: 10px;
+    opacity: 0;
+    background: linear-gradient(to left, ${primary.bc || '#ccc'}, transparent);
+    transition: opacity 0.3s ease-in-out;
+    pointer-events: none;
+  }
+  .rtabs-tab-window-wrapper.rtabs-scroll-right:after {
+    opacity: 1;
+  }
+
+  .rtabs-flat > div > .rtabs-tab-window {
     box-shadow: none;
     border-width: 0;
   }
-  ${!boxy ? `.rtabs-flat > .rtabs-tab-window:after {
+  ${!boxy ? `.rtabs-flat > div > .rtabs-tab-window:after {
     content: '';
     height: 0.15em;
     position: absolute;
@@ -397,16 +448,16 @@
     display: block;
     background-color: ${primary.bga || '#f4f4f4'};
   }
-  .rtabs-flat.alt > .rtabs-tab-window:after {
+  .rtabs-flat.alt > div > .rtabs-tab-window:after {
     background-color: ${primary.fga || '#07e'};
   }` : `
-  .rtabs-flat > .rtabs-tab-window {
+  .rtabs-flat > div > .rtabs-tab-window {
     background-color: ${primary.bg || '#fff'};
   }
-  .alt.rtabs-flat > .rtabs-tab-window {
+  .alt.rtabs-flat > div > .rtabs-tab-window {
     background-color: ${primary.fga || '#07e'};
   }
-  .rtabs-flat > .rtabs-tab-window .rtabs-tab {
+  .rtabs-flat > div > .rtabs-tab-window .rtabs-tab {
     border-top-width: 1px;
   }`}
 
@@ -459,7 +510,7 @@
   }
 
   .rtabs-selected${boxy ? `,
-  .alt > .rtabs-tab-window .rtabs-selected` : ''} {
+  .alt > div > .rtabs-tab-window .rtabs-selected` : ''} {
     opacity: 1;${boxy ? `
     font-weight: bold;
     border-bottom-color: ${primary.bg || '#fff'};
@@ -501,7 +552,7 @@
     z-index: 2;
   }
 
-  .alt > .rtabs-tab-window .rtabs-indicator {
+  .alt > div > .rtabs-tab-window .rtabs-indicator {
     background-color: ${primary.bg || '#fff'};
   }
 
@@ -601,7 +652,7 @@
     theme.indicator = Object.assign({}, data('raui.tabs.indicator'), data('raui.tabs.primary.indicator'), data(`raui.tabs.${t}.indicator`));
     const boxy = 'boxy' in theme ? theme.boxy : data('raui.tabs.boxy');
 
-    return `.rtabs.${t} > .rtabs-tab-window {
+    return `.rtabs.${t} > div > .rtabs-tab-window {
     ${!boxy ? `box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.14),
       0 1px 5px 0 rgba(0, 0, 0, 0.12),
       0 3px 1px -2px rgba(0, 0, 0, 0.2);
@@ -612,33 +663,39 @@
     background-color: ${theme.bga || '#f4f4f4'};
     `}
   }
-  .rtabs.${t}.alt > .rtabs-tab-window {
+  .rtabs.${t} > .rtabs-tab-window-wrapper:before {
+    background: linear-gradient(to right, ${theme.bc || '#ccc'}, transparent);
+  }
+  .rtabs.${t} > .rtabs-tab-window-wrapper:after {
+    background: linear-gradient(to left, ${theme.bc || '#ccc'}, transparent);
+  }
+  .rtabs.${t}.alt > div > .rtabs-tab-window {
     color: ${theme.bg || '#fff'};
     background-color: ${theme.fga || '#07e'};
   }${boxy ? `
-  .rtabs.${t}.alt > .rtabs-tab-window .rtabs-tab {
+  .rtabs.${t}.alt > div > .rtabs-tab-window .rtabs-tab {
     color: ${theme.bg || '#fff'};
     background-color: ${theme.fga || '#07e'};
   }` : ''}
 
-  ${!boxy ? `.rtabs-flat.${t} > .rtabs-tab-window:after {
+  ${!boxy ? `.rtabs-flat.${t} > div > .rtabs-tab-window:after {
     background-color: ${theme.bga || '#f4f4f4'};
   }
-  .rtabs-flat.alt.${t} > .rtabs-tab-window:after {
+  .rtabs-flat.alt.${t} > div > .rtabs-tab-window:after {
     background-color: ${theme.fga || '#07e'};
   }` : `
-  .rtabs-flat.${t} > .rtabs-tab-window {
+  .rtabs-flat.${t} > div > .rtabs-tab-window {
     background-color: ${theme.bg || '#fff'};
   }
-  .alt.rtabs-flat.${t} > .rtabs-tab-window {
+  .alt.rtabs-flat.${t} > div > .rtabs-tab-window {
     background-color: ${theme.fga || '#07e'};
   }`}
 
-  ${boxy ? `.rtabs.${t} > .rtabs-tab-window .rtabs-tabs {
+  ${boxy ? `.rtabs.${t} > div > .rtabs-tab-window .rtabs-tabs {
     border-color: ${theme.bc || '#ccc'};
   }` : ''}
 
-  .rtabs.${t} > .rtabs-tab-window > .rtabs-tab {
+  .rtabs.${t} > div > .rtabs-tab-window > .rtabs-tab {
     cursor: pointer;${!boxy ? '' : `
     border-color: ${theme.bc || '#ccc'};
     color: ${theme.fg || '#222'};
@@ -646,19 +703,19 @@
     `}
   }
 
-  .rtabs.${t} > .rtabs-tab-window .rtabs-selected${boxy ? `,
-  .rtabs.${t}.alt > .rtabs-tab-window .rtabs-selected` : ''} {${boxy ? `
+  .rtabs.${t} > div > .rtabs-tab-window .rtabs-selected${boxy ? `,
+  .rtabs.${t}.alt > div > .rtabs-tab-window .rtabs-selected` : ''} {${boxy ? `
     border-bottom-color: ${them.bg || '#fff'};
     background-color: ${theme.selected.bg || theme.bg || '#fff'};${theme.indicator ? `
     background-image: linear-gradient(to bottom, ${theme.indicator.color || theme.fga || '#07e'}, ${theme.bg || '#fff'} 3px);` : ''}
     color: ${theme.selected.fg || theme.fg || '#222' };` : ''}
   }
 
-  .rtabs.${t} > .rtabs-tab-window .rtabs-indicator {
+  .rtabs.${t} > div > .rtabs-tab-window .rtabs-indicator {
     background-color: ${theme.indicator.color || theme.fga || '#07e'};
   }
 
-  .rtabs.${t}.alt > .rtabs-tab-window .rtabs-indicator {
+  .rtabs.${t}.alt > div > .rtabs-tab-window .rtabs-indicator {
     background-color: ${theme.bg || '#fff'};
   }
 
