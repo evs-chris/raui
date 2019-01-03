@@ -25,6 +25,7 @@ export function scrolled(node, opts = {}) {
   requestAnimationFrame(watch);
 
   return {
+    refresh: watch,
     teardown() {
       node.removeEventListener('scroll', watch);
     }
