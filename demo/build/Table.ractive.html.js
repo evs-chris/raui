@@ -1,12 +1,13 @@
-System.register(['ractive', './chunk7.js', './chunk8.js', './chunk2.js', './chunk12.js'], function (exports, module) {
+System.register(['ractive', './chunk7.js', './chunk8.js', './chunk2.js', './chunk11.js', './chunk13.js'], function (exports, module) {
   'use strict';
-  var Ractive$1, grid, style, click, expand, globalRegister, Window, split;
+  var Ractive$1, grid, style, sized, click, expand, globalRegister, Window, scrolled, split;
   return {
     setters: [function (module) {
       Ractive$1 = module.default;
     }, function (module) {
       grid = module.grid;
       style = module.style;
+      sized = module.sized;
     }, function (module) {
       click = module.default;
     }, function (module) {
@@ -14,52 +15,11 @@ System.register(['ractive', './chunk7.js', './chunk8.js', './chunk2.js', './chun
       globalRegister = module.default;
       Window = module.Window;
     }, function (module) {
+      scrolled = module.default;
+    }, function (module) {
       split = module.default;
     }],
     execute: function () {
-
-      function plugin(options) {
-        if ( options === void 0 ) options = {};
-
-        return function(ref) {
-          var instance = ref.instance;
-
-          instance.decorators[options.name || 'scrolled'] = function(node, opts) {
-            if ( opts === void 0 ) opts = {};
-
-            var bind = typeof opts === 'string' ? opts : opts.bind;
-            if (typeof bind !== 'string') { return { teardown: function teardown() {} }; }
-
-            var ctx = this.getContext(node);
-
-            function watch() {
-              var str = '';
-              if (node.scrollHeight > node.clientHeight) { str += 'vscroll'; }
-              if (node.scrollWidth > node.clientWidth) { str += (str ? ' ' : '') + 'hscroll'; }
-
-              if (node.scrollTop === 0) { str += ' top'; }
-              else if (node.scrollTop === node.scrollHeight - node.clientHeight) { str += ' bottom'; }
-              else { str += ' vmiddle'; }
-
-              if (node.scrollLeft === 0) { str += ' left'; }
-              else if (node.scrollLeft === node.scrollWidth - node.clientWidth) { str += ' right'; }
-              else { str += 'hmiddle'; }
-
-              ctx.set(bind, str);
-            }
-
-            node.addEventListener('scroll', watch, { passive: true });
-
-            requestAnimationFrame(watch);
-
-            return {
-              teardown: function teardown() {
-                node.removeEventListener('scroll', watch);
-              }
-            }
-          };
-        }
-      }
 
       var sortRE = /^([-+])?([^\s]+)$/;
 
@@ -322,7 +282,7 @@ System.register(['ractive', './chunk7.js', './chunk8.js', './chunk2.js', './chun
       }
 
       Ractive$1.extendWith(Table, {
-        template: {v:4,t:[{t:7,e:"div",m:[{t:13,n:"class",f:"rtable",g:1},{n:"class-rtable-virtual",t:13,f:[{t:2,x:{r:["~/paginate"],s:"_0===\"virtual\""}}]},{n:"class-rtable-auto",t:13,f:[{t:2,x:{r:["~/paginate"],s:"_0===\"auto\""}}]},{n:"class-rtable-fixed",t:13,f:[{t:2,r:"~/fixed"}]},{n:"class-rtable-border",t:13,f:[{t:2,r:"~/border"}]},{n:"class-rtable-fixed-header",t:13,f:[{t:2,r:"~/fixedHeader"}]},{n:"class-rtable-scrolled",t:13,f:[{t:2,x:{r:["~/scroll"],s:"!~(_0||\"\").indexOf(\"top\")"}}]},{n:"class-rtable-with-select",t:13,f:[{t:2,r:"~/allowSelect"}]}],f:[{t:4,f:[{t:7,e:"div",m:[{n:"grid",t:71}],f:[{t:8,r:"grid-head"}]}],n:50,x:{r:["~/fixedHeader","~/display"],s:"_0&&_1===\"grid\""}}," ",{t:7,e:"div",m:[{t:13,n:"class",f:"rtable-top",g:1},{t:4,f:[{n:["scroll"],t:70,f:"scroll"}],n:50,x:{r:["~/paginate"],s:"_0===\"virtual\""}},{t:4,f:[{n:"scrolled",t:71,f:{r:[],s:"[\"~/scroll\"]"}}],n:50,x:{r:["~/fixedHeader","~/display"],s:"_0&&_1===\"grid\""}}],f:[{t:4,f:[{t:8,r:"grid"}],n:50,x:{r:["~/display"],s:"_0===\"grid\""}},{t:4,f:[{t:8,r:"table"}],n:51,l:1}]}," ",{t:4,f:[{t:8,r:"pagination"}],n:50,x:{r:["~/paginate"],s:"_0!==\"virtual\""}}]}],e:{"_0===\"virtual\"":function (_0){return(_0==="virtual");},"_0===\"auto\"":function (_0){return(_0==="auto");},"!~(_0||\"\").indexOf(\"top\")":function (_0){return(!~(_0||"").indexOf("top"));},"_0&&_1===\"grid\"":function (_0,_1){return(_0&&_1==="grid");},"[\"~/scroll\"]":function (){return(["~/scroll"]);},"_0===\"grid\"":function (_0){return(_0==="grid");},"_0!==\"virtual\"":function (_0){return(_0!=="virtual");},"[_0._setSort(_1,_2)]":function (_0,_1,_2){return([_0._setSort(_1,_2)]);},"[_0._select(_1,_2),false]":function (_0,_1,_2){return([_0._select(_1,_2),false]);},"[[\"select\",_2,_0.indexOf(_2),_1.indexOf(_2)]]":function (_0,_1,_2){return([["select",_2,_0.indexOf(_2),_1.indexOf(_2)]]);},"[_0._expand(_1)]":function (_0,_1){return([_0._expand(_1)]);},"[_0.stopPropagation()]":function (_0){return([_0.stopPropagation()]);},"_0.indexOf(_1)":function (_0,_1){return(_0.indexOf(_1));},"_0===_1":function (_0,_1){return(_0===_1);},"_0>0":function (_0){return(_0>0);},"!_0&&_1>0":function (_0,_1){return(!_0&&_1>0);},"_0===\"boolean\"":function (_0){return(_0==="boolean");},"_0._allSelected()":function (_0){return(_0._allSelected());},"_0*_1+1":function (_0,_1){return(_0*_1+1);},"_2+1===_0?_1:(_2+1)*_3":function (_0,_1,_2,_3){return(_2+1===_0?_1:(_2+1)*_3);},"_0&&_1":function (_0,_1){return(_0&&_1);},"_0===1":function (_0){return(_0===1);},"_0._allSelected()&&_1<_2":function (_0,_1,_2){return(_0._allSelected()&&_1<_2);},"[_0.set(\"page\",_1-1)]":function (_0,_1){return([_0.set("page",_1-1)]);},"[(/^\\d+$/.test(_1)&&+_1>0&&+_1<=_0&&_2.set(\"page\",+_1-1))||_2.nodeSet(_3,\"value\",_4+1)]":function (_0,_1,_2,_3,_4){return([(/^\d+$/.test(_1)&&+_1>0&&+_1<=_0&&_2.set("page",+_1-1))||_2.nodeSet(_3,"value",_4+1)]);},"_0==_1+1":function (_0,_1){return(_0==_1+1);},"[_0.set(\"page\",_2[_1-1])]":function (_0,_1,_2){return([_0.set("page",_2[_1-1])]);},"_0===\"...\"":function (_0){return(_0==="...");},"[_0.set(\"page\",_1+1)]":function (_0,_1){return([_0.set("page",_1+1)]);},"_0<_1-1":function (_0,_1){return(_0<_1-1);},"_0%2===1":function (_0){return(_0%2===1);},"true":function (){return(true);},"!_0":function (_0){return(!_0);},"_0+(_1?1:0)":function (_0,_1){return(_0+(_1?1:0));}},p:{"csp-dummy":[{t:7,e:"div",m:[{n:["click"],t:70,f:{r:["@this",".index","@event"],s:"[_0._setSort(_1,_2)]"}},{n:["click"],t:70,f:{r:["@this",".","@event"],s:"[_0._select(_1,_2),false]"}},{n:["click"],t:70,f:{r:["~/rows","~/visibleRows","."],s:"[[\"select\",_2,_0.indexOf(_2),_1.indexOf(_2)]]"}},{n:["click"],t:70,f:{r:["@this","@index"],s:"[_0._expand(_1)]"}},{n:["click"],t:70,f:{r:["@event"],s:"[_0.stopPropagation()]"}}]}," ",{t:4,f:["..."],n:50,x:{r:["~/selections","."],s:"_0.indexOf(_1)"}}," ",{t:4,f:["..."],n:50,x:{r:[".","~/expanded"],s:"_0===_1"}}," ",{t:4,f:["..."],n:50,x:{r:["~/virtual.offset"],s:"_0>0"}}," ",{t:4,f:["..."],n:50,x:{r:["~/fixedHeader","~/virtual.offset"],s:"!_0&&_1>0"}}," ",{t:4,f:["..."],n:50,x:{r:["~/columns.0.type"],s:"_0===\"boolean\""}}," ",{t:4,f:["..."],n:50,x:{r:["@this"],s:"_0._allSelected()"}}],empty:[{t:7,e:"div",f:[{t:7,e:"div",f:["No data."]}]}],pagination:[{t:7,e:"div",m:[{t:13,n:"class",f:"rtable-bottom",g:1}],f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rtable-info",g:1}],f:[{t:4,f:[{t:2,x:{r:["~/page","~/pagination.per"],s:"_0*_1+1"}}," - ",{t:2,x:{r:["~/pagination.total","~/rows.length","~/page","~/pagination.per"],s:"_2+1===_0?_1:(_2+1)*_3"}}," of ",{t:2,r:"~/rows.length"},{t:4,f:[" (",{t:2,r:"~/items.length"}," total)"],n:50,r:"~/isFiltered"}],n:50,x:{r:["pagination","rows.length"],s:"_0&&_1"}}," ",{t:4,f:["​"],n:50,x:{r:["_paginate"],s:"_0===1"}}]}," ",{t:7,e:"div",m:[{t:13,n:"class",f:"rtable-select-all-all",g:1}],f:[{t:4,f:[{t:2,r:"selections.length"}," of ",{t:2,r:"rows.length"}," selected",{t:4,f:[" - ",{t:7,e:"a",m:[{n:"href",f:"#",t:13,g:1},{n:["click"],t:70,f:"selectAllAll"}],f:["Select All"]}],n:50,x:{r:["@this","selections.length","rows.length"],s:"_0._allSelected()&&_1<_2"}}],n:50,x:{r:["selections.length"],s:"_0>0"}}]}," ",{t:7,e:"div",m:[{t:13,n:"class",f:"rtable-pages",g:1}],f:[{t:4,f:[{t:7,e:"span",m:[{n:["click"],t:70,f:{r:["@this","~/page"],s:"[_0.set(\"page\",_1-1)]"}}],f:["Previous"]}],n:50,x:{r:["~/page"],s:"_0>0"}}," ",{t:4,f:[{t:4,f:[{t:7,e:"input",m:[{n:["change"],t:70,f:{r:["~/pagination.total","@node.value","@this","@node","~/page"],s:"[(/^\\d+$/.test(_1)&&+_1>0&&+_1<=_0&&_2.set(\"page\",+_1-1))||_2.nodeSet(_3,\"value\",_4+1)]"}},{n:"value",f:[{t:2,r:"."}],t:13},{t:73,v:"t",f:"false"}]}],n:50,x:{r:[".","~/page"],s:"_0==_1+1"}},{t:4,f:[{t:7,e:"span",m:[{n:["click"],t:70,f:{r:["@this","@index","../"],s:"[_0.set(\"page\",_2[_1-1])]"}}],f:["..."]}," "],n:50,x:{r:["."],s:"_0===\"...\""},l:1},{t:4,f:[" ",{t:7,e:"span",m:[{n:["click"],t:70,f:{r:["@this","."],s:"[_0.set(\"page\",_1-1)]"}}],f:[{t:2,r:"."}]}],n:51,l:1}],n:52,r:"~/pagination.array"}," ",{t:4,f:[{t:7,e:"span",m:[{n:["click"],t:70,f:{r:["@this","~/page"],s:"[_0.set(\"page\",_1+1)]"}}],f:["Next"]}],n:50,x:{r:["~/page","~/pagination.total"],s:"_0<_1-1"}}]}]}],grid:[{t:7,e:"div",m:[{t:16,r:"extra-attributes"},{n:"grid",t:71},{t:4,f:[{n:"style-margin-top",f:[{t:2,r:"~/virtual.above"},"px"],t:13},{n:"style-margin-bottom",f:[{t:2,r:"~/virtual.below"},"px"],t:13}],n:50,x:{r:["~/paginate"],s:"_0===\"virtual\""}}],f:[{t:4,f:[{t:8,r:"grid-head"}],n:51,r:"~/fixedHeader"}," ",{t:4,f:[{t:7,e:"div",m:[{t:13,n:"style",f:"display: none;",g:1},{t:13,n:"class",f:"rtable-row-wrap",g:1}]}],n:50,x:{r:["~/virtual.offset"],s:"_0%2===1"}}," ",{t:4,f:[{t:8,r:"grid-row"}],n:52,z:[{n:"source",x:{r:"~/items"}},{n:"shuffle",x:{x:{r:[],s:"true"}}}],r:"~/visibleRows"}," ",{t:4,f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rtable-row row t1",g:1}],f:[{t:16,r:"empty"}]}],n:50,x:{r:["~/rows.length"],s:"!_0"}}]}],table:[{t:7,e:"table",m:[{t:16,r:"extra-attributes"},{t:4,f:[{n:"style-margin-top",f:[{t:2,r:"~/virtual.above"},"px"],t:13},{n:"style-margin-bottom",f:[{t:2,r:"~/virtual.below"},"px"],t:13}],n:50,x:{r:["~/paginate"],s:"_0===\"virtual\""}}],f:[{t:8,r:"table-head"}," ",{t:4,f:[{t:8,r:"table-row"}],n:52,z:[{n:"source",x:{r:"~/items"}},{n:"shuffle",x:{x:{r:[],s:"true"}}}],r:"~/visibleRows"}," ",{t:4,f:[{t:7,e:"tr",m:[{t:13,n:"class",f:"rtable-row",g:1}],f:[{t:7,e:"td",m:[{n:"colspan",f:[{t:2,x:{r:["~/columns.length","~/allowSelect"],s:"_0+(_1?1:0)"}}],t:13}],f:[{t:16,r:"empty"}]}]}],n:50,x:{r:["~/rows.length"],s:"!_0"}}]}]}},
+        template: {v:4,t:[{t:7,e:"div",m:[{t:13,n:"class",f:"rtable",g:1},{n:"class-rtable-virtual",t:13,f:[{t:2,x:{r:["~/paginate"],s:"_0===\"virtual\""}}]},{n:"class-rtable-auto",t:13,f:[{t:2,x:{r:["~/paginate"],s:"_0===\"auto\""}}]},{n:"class-rtable-fixed",t:13,f:[{t:2,r:"~/fixed"}]},{n:"class-rtable-border",t:13,f:[{t:2,r:"~/border"}]},{n:"class-rtable-fixed-header",t:13,f:[{t:2,r:"~/fixedHeader"}]},{n:"class-rtable-scrolled",t:13,f:[{t:2,x:{r:["~/scroll"],s:"!~(_0||\"\").indexOf(\"top\")"}}]},{n:"class-rtable-with-select",t:13,f:[{t:2,r:"~/allowSelect"}]}],f:[{t:4,f:[{t:7,e:"div",m:[{n:"grid",t:71}],f:[{t:8,r:"grid-head"}]}],n:50,x:{r:["~/fixedHeader","~/display"],s:"_0&&_1===\"grid\""}}," ",{t:7,e:"div",m:[{t:13,n:"class",f:"rtable-top",g:1},{t:4,f:[{n:["scroll"],t:70,f:"scroll"},{n:"sized",t:71,f:{r:[],s:"[{offsetHeight:\"~/tableHeight\",diffWidth:\"~/scrollOffset\"}]"}}],n:50,x:{r:["~/paginate"],s:"_0===\"virtual\""}},{t:4,f:[{n:"scrolled",t:71,f:{r:[],s:"[\"~/scroll\"]"}}],n:50,x:{r:["~/fixedHeader","~/display"],s:"_0&&_1===\"grid\""}}],f:[{t:4,f:[{t:8,r:"grid"}],n:50,x:{r:["~/display"],s:"_0===\"grid\""}},{t:4,f:[{t:8,r:"table"}],n:51,l:1}]}," ",{t:4,f:[{t:8,r:"pagination"}],n:50,x:{r:["~/paginate"],s:"_0!==\"virtual\""}}]}],e:{"_0===\"virtual\"":function (_0){return(_0==="virtual");},"_0===\"auto\"":function (_0){return(_0==="auto");},"!~(_0||\"\").indexOf(\"top\")":function (_0){return(!~(_0||"").indexOf("top"));},"_0&&_1===\"grid\"":function (_0,_1){return(_0&&_1==="grid");},"[{offsetHeight:\"~/tableHeight\",diffWidth:\"~/scrollOffset\"}]":function (){return([{offsetHeight:"~/tableHeight",diffWidth:"~/scrollOffset"}]);},"[\"~/scroll\"]":function (){return(["~/scroll"]);},"_0===\"grid\"":function (_0){return(_0==="grid");},"_0!==\"virtual\"":function (_0){return(_0!=="virtual");},"[_0._setSort(_1,_2)]":function (_0,_1,_2){return([_0._setSort(_1,_2)]);},"[_0._select(_1,_2),false]":function (_0,_1,_2){return([_0._select(_1,_2),false]);},"[[\"select\",_2,_0.indexOf(_2),_1.indexOf(_2)]]":function (_0,_1,_2){return([["select",_2,_0.indexOf(_2),_1.indexOf(_2)]]);},"[_0._expand(_1)]":function (_0,_1){return([_0._expand(_1)]);},"[_0.stopPropagation()]":function (_0){return([_0.stopPropagation()]);},"_0.indexOf(_1)":function (_0,_1){return(_0.indexOf(_1));},"_0===_1":function (_0,_1){return(_0===_1);},"_0>0":function (_0){return(_0>0);},"!_0&&_1>0":function (_0,_1){return(!_0&&_1>0);},"_0===\"boolean\"":function (_0){return(_0==="boolean");},"_0._allSelected()":function (_0){return(_0._allSelected());},"_0*_1+1":function (_0,_1){return(_0*_1+1);},"_2+1===_0?_1:(_2+1)*_3":function (_0,_1,_2,_3){return(_2+1===_0?_1:(_2+1)*_3);},"_0&&_1":function (_0,_1){return(_0&&_1);},"_0===1":function (_0){return(_0===1);},"_0._allSelected()&&_1<_2":function (_0,_1,_2){return(_0._allSelected()&&_1<_2);},"[_0.set(\"page\",_1-1)]":function (_0,_1){return([_0.set("page",_1-1)]);},"[(/^\\d+$/.test(_1)&&+_1>0&&+_1<=_0&&_2.set(\"page\",+_1-1))||_2.nodeSet(_3,\"value\",_4+1)]":function (_0,_1,_2,_3,_4){return([(/^\d+$/.test(_1)&&+_1>0&&+_1<=_0&&_2.set("page",+_1-1))||_2.nodeSet(_3,"value",_4+1)]);},"_0==_1+1":function (_0,_1){return(_0==_1+1);},"[_0.set(\"page\",_2[_1-1])]":function (_0,_1,_2){return([_0.set("page",_2[_1-1])]);},"_0===\"...\"":function (_0){return(_0==="...");},"[_0.set(\"page\",_1+1)]":function (_0,_1){return([_0.set("page",_1+1)]);},"_0<_1-1":function (_0,_1){return(_0<_1-1);},"_0%2===1":function (_0){return(_0%2===1);},"true":function (){return(true);},"!_0":function (_0){return(!_0);},"_0+(_1?1:0)":function (_0,_1){return(_0+(_1?1:0));}},p:{"csp-dummy":[{t:7,e:"div",m:[{n:["click"],t:70,f:{r:["@this",".index","@event"],s:"[_0._setSort(_1,_2)]"}},{n:["click"],t:70,f:{r:["@this",".","@event"],s:"[_0._select(_1,_2),false]"}},{n:["click"],t:70,f:{r:["~/rows","~/visibleRows","."],s:"[[\"select\",_2,_0.indexOf(_2),_1.indexOf(_2)]]"}},{n:["click"],t:70,f:{r:["@this","@index"],s:"[_0._expand(_1)]"}},{n:["click"],t:70,f:{r:["@event"],s:"[_0.stopPropagation()]"}}]}," ",{t:4,f:["..."],n:50,x:{r:["~/selections","."],s:"_0.indexOf(_1)"}}," ",{t:4,f:["..."],n:50,x:{r:[".","~/expanded"],s:"_0===_1"}}," ",{t:4,f:["..."],n:50,x:{r:["~/virtual.offset"],s:"_0>0"}}," ",{t:4,f:["..."],n:50,x:{r:["~/fixedHeader","~/virtual.offset"],s:"!_0&&_1>0"}}," ",{t:4,f:["..."],n:50,x:{r:["~/columns.0.type"],s:"_0===\"boolean\""}}," ",{t:4,f:["..."],n:50,x:{r:["@this"],s:"_0._allSelected()"}}],empty:[{t:7,e:"div",f:[{t:7,e:"div",f:["No data."]}]}],pagination:[{t:7,e:"div",m:[{t:13,n:"class",f:"rtable-bottom",g:1}],f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rtable-info",g:1}],f:[{t:4,f:[{t:2,x:{r:["~/page","~/pagination.per"],s:"_0*_1+1"}}," - ",{t:2,x:{r:["~/pagination.total","~/rows.length","~/page","~/pagination.per"],s:"_2+1===_0?_1:(_2+1)*_3"}}," of ",{t:2,r:"~/rows.length"},{t:4,f:[" (",{t:2,r:"~/items.length"}," total)"],n:50,r:"~/isFiltered"}],n:50,x:{r:["pagination","rows.length"],s:"_0&&_1"}}," ",{t:4,f:["​"],n:50,x:{r:["_paginate"],s:"_0===1"}}]}," ",{t:7,e:"div",m:[{t:13,n:"class",f:"rtable-select-all-all",g:1}],f:[{t:4,f:[{t:2,r:"selections.length"}," of ",{t:2,r:"rows.length"}," selected",{t:4,f:[" - ",{t:7,e:"a",m:[{n:"href",f:"#",t:13,g:1},{n:["click"],t:70,f:"selectAllAll"}],f:["Select All"]}],n:50,x:{r:["@this","selections.length","rows.length"],s:"_0._allSelected()&&_1<_2"}}],n:50,x:{r:["selections.length"],s:"_0>0"}}]}," ",{t:7,e:"div",m:[{t:13,n:"class",f:"rtable-pages",g:1}],f:[{t:4,f:[{t:7,e:"span",m:[{n:["click"],t:70,f:{r:["@this","~/page"],s:"[_0.set(\"page\",_1-1)]"}}],f:["Previous"]}],n:50,x:{r:["~/page"],s:"_0>0"}}," ",{t:4,f:[{t:4,f:[{t:7,e:"input",m:[{n:["change"],t:70,f:{r:["~/pagination.total","@node.value","@this","@node","~/page"],s:"[(/^\\d+$/.test(_1)&&+_1>0&&+_1<=_0&&_2.set(\"page\",+_1-1))||_2.nodeSet(_3,\"value\",_4+1)]"}},{n:"value",f:[{t:2,r:"."}],t:13},{t:73,v:"t",f:"false"}]}],n:50,x:{r:[".","~/page"],s:"_0==_1+1"}},{t:4,f:[{t:7,e:"span",m:[{n:["click"],t:70,f:{r:["@this","@index","../"],s:"[_0.set(\"page\",_2[_1-1])]"}}],f:["..."]}," "],n:50,x:{r:["."],s:"_0===\"...\""},l:1},{t:4,f:[" ",{t:7,e:"span",m:[{n:["click"],t:70,f:{r:["@this","."],s:"[_0.set(\"page\",_1-1)]"}}],f:[{t:2,r:"."}]}],n:51,l:1}],n:52,r:"~/pagination.array"}," ",{t:4,f:[{t:7,e:"span",m:[{n:["click"],t:70,f:{r:["@this","~/page"],s:"[_0.set(\"page\",_1+1)]"}}],f:["Next"]}],n:50,x:{r:["~/page","~/pagination.total"],s:"_0<_1-1"}}]}]}],grid:[{t:7,e:"div",m:[{t:16,r:"extra-attributes"},{n:"grid",t:71},{t:4,f:[{n:"style-margin-top",f:[{t:2,r:"~/virtual.above"},"px"],t:13},{n:"style-margin-bottom",f:[{t:2,r:"~/virtual.below"},"px"],t:13}],n:50,x:{r:["~/paginate"],s:"_0===\"virtual\""}}],f:[{t:4,f:[{t:8,r:"grid-head"}],n:51,r:"~/fixedHeader"}," ",{t:4,f:[{t:7,e:"div",m:[{t:13,n:"style",f:"display: none;",g:1},{t:13,n:"class",f:"rtable-row-wrap",g:1}]}],n:50,x:{r:["~/virtual.offset"],s:"_0%2===1"}}," ",{t:4,f:[{t:8,r:"grid-row"}],n:52,z:[{n:"source",x:{r:"~/items"}},{n:"shuffle",x:{x:{r:[],s:"true"}}}],r:"~/visibleRows"}," ",{t:4,f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rtable-row row t1",g:1}],f:[{t:16,r:"empty"}]}],n:50,x:{r:["~/rows.length"],s:"!_0"}}]}],table:[{t:7,e:"table",m:[{t:16,r:"extra-attributes"},{t:4,f:[{n:"style-margin-top",f:[{t:2,r:"~/virtual.above"},"px"],t:13},{n:"style-margin-bottom",f:[{t:2,r:"~/virtual.below"},"px"],t:13}],n:50,x:{r:["~/paginate"],s:"_0===\"virtual\""}}],f:[{t:8,r:"table-head"}," ",{t:4,f:[{t:8,r:"table-row"}],n:52,z:[{n:"source",x:{r:"~/items"}},{n:"shuffle",x:{x:{r:[],s:"true"}}}],r:"~/visibleRows"}," ",{t:4,f:[{t:7,e:"tr",m:[{t:13,n:"class",f:"rtable-row",g:1}],f:[{t:7,e:"td",m:[{n:"colspan",f:[{t:2,x:{r:["~/columns.length","~/allowSelect"],s:"_0+(_1?1:0)"}}],t:13}],f:[{t:16,r:"empty"}]}]}],n:50,x:{r:["~/rows.length"],s:"!_0"}}]}]}},
         css: function(data) { return [(function(data) {
          var primary = Object.assign({}, data("raui.primary"), data("raui.table.primary"));
          var active = Object.assign({}, primary, data('raui.primary.active'), data('raui.table.primary.active'));
@@ -337,9 +297,9 @@ System.register(['ractive', './chunk7.js', './chunk8.js', './chunk2.js', './chun
           Table: false
         },
         syncComputedChildren: true,
-        decorators: { grid: grid },
+        decorators: { grid: grid, sized: sized },
         events: {},
-        use: [click({ name: 'clickd', count: 1 }), click({ name: 'dblclickd', count: 2 }), expand(), plugin()],
+        use: [click({ name: 'clickd', count: 1 }), click({ name: 'dblclickd', count: 2 }), expand(), scrolled()],
         on: {
           construct: construct,
           config: function config() {
@@ -423,7 +383,7 @@ System.register(['ractive', './chunk7.js', './chunk8.js', './chunk2.js', './chun
 
                   var fit = Math.floor((top.clientHeight - header.offsetHeight) / avg);
                   if (v === 'virtual') {
-                    fit = fit * 5;
+                    fit = fit * 3;
                     if (fit < 50) { fit = 50; }
                   }
                   this$1.set('_paginate', fit);
@@ -438,96 +398,86 @@ System.register(['ractive', './chunk7.js', './chunk8.js', './chunk2.js', './chun
                     fn();
                     tm = null;
                     if (this$1._scrollListener) { this$1._scrollListener.fn(); }
-                  }, 300);
+                  }, 50);
                 };
 
-                this._autoObserver = root.on('*.resize', fnd);
+                this._autoObserver = this.observe('~/tableHeight', fnd);
                 this._autoObserver.fire = fnd;
 
                 if (v === 'virtual') {
-                  var ready = true;
                   var lock = false;
-                  var raf = false;
+                  var node;
                   var fn$1 = function () {
-                    if (!this$1.rendered) { return; }
-                    var node = this$1.find('.rtable-top');
-                    if (!ready) {
-                      ready = true;
-                      return setTimeout(fn$1, 14);
+                    if (!this$1.rendered) {
+                      node = null;
+                      return;
                     }
+                    if (!node) { node = this$1.find('.rtable-top'); }
 
-                    if (!raf) {
-                      raf = true;
-                      return requestAnimationFrame(fn$1);
-                    } else {
-                      raf = false;
-                      ready = false;
+                    var top = node.scrollTop;
+                    var virtual = this$1.get('virtual') || {};
+                    var offset = virtual.offset;
+                    var visible = this$1.get('_paginate');
+                    var page = visible / 3;
+                    var count = this$1.get('rows.length');
+                    if (visible > count) { visible = count; }
+                    var avg = this$1._avgSize;
+                    var pageSize = page * avg;
+                    var wnd = Math.floor(top / avg);
+                    var first = wnd - page;
+                    if (first < 0) { first = 0; }
+                    var hardFirst = first;
+                    if (first + visible > count) { first = count - visible; }
 
-                      var top = node.scrollTop;
-                      var virtual = this$1.get('virtual') || {};
-                      var offset = virtual.offset;
-                      var visible = this$1.get('_paginate');
-                      var page = visible / 5;
-                      var count = this$1.get('rows.length');
-                      if (visible > count) { visible = count; }
-                      var avg = this$1._avgSize;
-                      var pageSize = page * avg;
-                      var wnd = Math.floor(top / avg);
-                      var first = wnd - page;
-                      if (first < 0) { first = 0; }
-                      var hardFirst = first;
-                      if (first + visible > count) { first = count - visible; }
-                      
-                      // check to see if the rendered area is approaching an edge
-                      if (!isNumber(offset) || isNaN(offset) || top < virtual.top + pageSize || top > virtual.bottom - pageSize - pageSize || offset > 0 && top < avg * page) {
-                        var amtAbove = hardFirst;
-                        var amtBelow = count - hardFirst - visible;
-                        if (amtAbove < 0) {
-                          amtBelow += amtAbove * -1;
-                          amtAbove = 0;
-                        } else if (amtAbove > count - visible) {
-                          amtAbove = count - visible;
-                        }
-                        if (amtBelow < 0) { amtBelow = 0; }
+                    if (offset === first) { return lock = false; }
+                    
+                    // check to see if the rendered area is approaching an edge
+                    if (!isNumber(offset) || isNaN(offset) || top < virtual.top + pageSize || top > virtual.bottom - pageSize * 2 || offset > 0 && top < avg * page) {
+                      var amtAbove = hardFirst;
+                      var amtBelow = count - hardFirst - visible;
+                      if (amtAbove < 0) {
+                        amtBelow += amtAbove * -1;
+                        amtAbove = 0;
+                      } else if (amtAbove > count - visible) {
+                        amtAbove = count - visible;
+                      }
+                      if (amtBelow < 0) { amtBelow = 0; }
 
-                        var above = amtAbove * avg;
-                        var below = amtBelow * avg;
+                      var above = amtAbove * avg;
+                      var below = amtBelow * avg;
 
-                        var vis, next;
-                        if (first < offset + visible && first > offset - visible) {
-                          if (first > offset) { vis = this$1.findAll('.rtable-live')[first - offset]; }
-                          else { vis = this$1.findAll('.rtable-live')[offset - first]; }
-                        }
-
-                        if (vis && first > 0) { next = vis.offsetTop; }
-
-                        this$1.set({
-                          'virtual.above': above,
-                          'virtual.below': below,
-                          'virtual.offset': first
-                        });
-
-                        if (typeof next === 'number') {
-                          if (next !== vis.offsetTop) { this$1.set('virtual.above', above + Math.abs(next - vis.offsetTop)); }
-                        }
-
-                        this$1.set({
-                          'virtual.top': this$1.get('virtual.above'),
-                          'virtual.bottom': node.scrollHeight - below
-                        });
+                      var vis, next;
+                      if (first < offset + visible && first > offset - visible) {
+                        if (first > offset) { vis = this$1.findAll('.rtable-live')[first - offset]; }
+                        else { vis = this$1.findAll('.rtable-live')[offset - first]; }
                       }
 
-                      lock = false;
+                      if (vis && first > 0 && vis.offsetTop > node.scrollTop - pageSize * 1.5 && vis.offsetTop < node.scrollTop + pageSize) { next = vis.offsetTop; }
+
+                      this$1.set({
+                        'virtual.above': above,
+                        'virtual.below': below,
+                        'virtual.offset': first
+                      });
+
+                      if (typeof next === 'number') {
+                        if (next !== vis.offsetTop) { this$1.set('virtual.above', above + (next - vis.offsetTop)); }
+                      }
+
+                      this$1.set({
+                        'virtual.top': this$1.get('virtual.above'),
+                        'virtual.bottom': node.scrollHeight - below
+                      });
                     }
+
+                    lock = false;
                   };
                   var scroll = this._scrollListener = this.on('scroll', function (ref) {
                     var node = ref.node;
 
-                    if (ready) { ready = false; }
-                    else if (!lock) {
-                      ready = true;
+                    if (!lock) {
                       lock = true;
-                      setTimeout(fn$1, 15);
+                      requestAnimationFrame(fn$1);
                     }
                   });
                   this._scrollListener.fn = fn$1;
@@ -1043,7 +993,8 @@ System.register(['ractive', './chunk7.js', './chunk8.js', './chunk2.js', './chun
             { t: 13, n: 'class-rtable-row-wrap' },
             { t: 13, n: 'class-row-wrap' },
             { t: 13, n: 'class-rtable-header' },
-            { t: 4, f: [{ n: 'style-opacity', f: '0', t: 13 }], n: 50, x: { r: ['~/fixedHeader', '~/virtual.offset'] , s: '!_0&&_1>0' } }
+            { t: 4, f: [{ n: 'style-opacity', f: '0', t: 13 }], n: 50, x: { r: ['~/fixedHeader', '~/virtual.offset'] , s: '!_0&&_1>0' } },
+            { t: 4, n: 50, r: '~/fixedHeader', f: [{ t: 13, n: 'style-padding-right', f: [{ t: 2, r: '~/scrollOffset' }, 'px'] }] }
           ], f: [{ t: 7, e: 'div', f: columns.filter(function (c) { return c.hidden !== true; }).map(function (c) {
             var div = { t: 7, e: 'div', f: [{ t: 7, e: 'div', f: c.label }], m: [{ t: 4, n: 53, r: ("~/columns." + (c.index)), f: [{ t: 70, n: ['click'], f: { r: ['@this', '.index', '@event'], s: sortKey } }] }, { t: 13, n: 'title', f: c.label }].concat(c.attrs.filter(function (a) { return a.n !== 'title'; })) };
             if (c.type) { div.m.push({ t: 13, n: ("class-rtable-" + (c.type) + "-column") }); }
@@ -1065,6 +1016,8 @@ System.register(['ractive', './chunk7.js', './chunk8.js', './chunk2.js', './chun
           header$1[0].f.unshift({
             t: 4, n: 50, r: '~/allowSelect', f: [{ t: 7, e: 'div', m: [{ t: 13, n: 'class-rtable-select-header' }, { t: 13, n: 'class-rtable-column' }, { t: 13, n: 'title', f: [{ t: 2, r: 'selections.length' }, ' items selected']}], f: [{ t: 7, e: 'div', f: [{ t: 4, n: 50, r: '~/allowSelectAll', f: [{ t: 7, e: 'input', m: [{ t: 73, v: 't', f: 'false' }, { t: 13, n: 'type', f: 'checkbox' }, { t: 13, n: 'checked', f: [{ t: 2, x: { r: ['@this'], s: '_0._allSelected()' } }] }, { t: 70, n: ['click'], f: 'selectAll' }, { t: 13, n: 'class-rtable-select' }] }] }] }] }]
           });
+
+          //header[0].f.push({t: 4, f: [{ t: 7, e: 'div', m: [{ t: 13, n: 'class', f: 'rtable-header-scroll', g: 1 }, { n: 'style-width', f: [{ t: 2, r: '~/scrollOffset' }], t: 13 }] }], n: 50, r: '~/fixedHeader' });
 
           var row$1 = [{ t: 7, e: 'div', m: [
             { t: 13, n: 'class-rtable-row-wrap' },
@@ -1178,7 +1131,7 @@ System.register(['ractive', './chunk7.js', './chunk8.js', './chunk2.js', './chun
         }
       }
 
-      function plugin$1(opts) {
+      function plugin(opts) {
         if ( opts === void 0 ) opts = {};
 
         return function(ref) {
@@ -1213,7 +1166,7 @@ System.register(['ractive', './chunk7.js', './chunk8.js', './chunk2.js', './chun
 
       var Table_ractive = exports('default', Window.extend({
         template: {v:4,t:[{t:7,e:"tabs",m:[{t:13,n:"class",f:"alt",g:1},{n:"height",f:"dynamic",t:13,g:1},{n:"pad",f:0,t:13},{n:"fill",f:0,t:13},{n:"transition",f:"fade",t:13,g:1}],f:[{t:7,e:"tab",m:[{n:"title",f:"Intro",t:13,g:1}],f:[{t:7,e:"marked",f:["    Just about every app needs to display some list of data at some point, preferably in a filterable, sortable way. To that end, raui provides a `table`, which is more like a desktop-style grid control than a plain html `table`. It comes with built-in filtering, sorting, declarative columns, pagination, selection, and responsive layout.\n\n    Columns are laid out using `column` child elements that specify the content of the column as their content and any other settings, like the label, filter field, sort field, etc as attributes. There's also an additional `row` child that allows adding an extra detail section to each row that is hidden by default but opens when a row is clicked (or tapped) once. When `row` is preset, row selection defaults to a double click (or tap). When it is absent, selection will fire on eith click or double click (or tap).\n\n    By default, the table uses the grid decorator for sizing columns to maintain some sort of reasonable responsiveness. It also has the benefit of allowing multi-line rows if that's something you need. The downside is that you need to specify column sizes manually, though there is sugared handling using size attributes on each column rather than manually having to add each class e.g. `<column t0 s1-4 l1-8 label=Name>{{.name}}</column>`, where the column will be hidden below the small break, 25% before the large break, and 12.5% after the large break.\n\n    There is also an HTML `table` mode available, should you need it.\n  "]}]}," ",{t:7,e:"tab",m:[{n:"title",f:"Usage",t:13,g:1}],f:[{t:7,e:"marked",f:["    ### Plugin Options\n\n    All options are optional.\n\n    * `name: string = 'data-table'` - The name to use when installing the plugin as a component\n    * `includeGrid: boolean = false` - Whether to include the grid styles within the table. Set this to `true` if you're not using the grid globally. It generates a pretty good deal of extra CSS, so if you _are_ using the grid globally, you should make sure this stays disabled.\n\n    ### Attributes\n\n    All attributes are optional.\n\n    * `items: Object[] = []` - The list of items to display in the table\n    * `filter: string` - The filter used to compare to each item to determine whether or not it should be displayed\n    * `paginate: falsey | number | 'auto' = null` -\n      * `falsey` - no pagination is applied\n      * `number` - the page size is set to the given number\n      * `'auto'` - the table will calculate the number of rows that it can display without causing its container to require a scroll bar (or at the very least have minimal scrolling) when no rows are expanded\n    * `display: 'grid' | 'table' = 'grid'` - Whether to render as a grid or an HTML table\n    * `allowSelect: boolean = true` - Whether to show the select checkbox on individual rows.\n    * `allowSelectAll: boolean = true` - Whether to show the select all checkbox in the header to allow selecting all displayed - and all total - rows.\n    \n    ### Children\n\n    * `column` - Defines a column in the table\n      * `label: string` - The string to display in the column header\n      * `filter: keypath` - A dotted keypath to the property used to filter the column. Filterable fields are automatically sortable.\n      * `sort: keypath = filter` - A dotted keypath to the property used to sort the column. Sortable fields will automatically have their header control sorting by the column.\n      * `hidden: boolean = false` - Whether to actually display the column in the table. This is useful for having a column participate in filtering without having to be displayed.\n\n    * `row` - In grid tables, the content of the `row` child is used for expandable content for each row in the table\n  "]}]}," ",{t:7,e:"tab",m:[{n:"title",f:"Example",t:13,g:1},{n:"no-pad",f:0,t:13}],f:[{t:7,e:"split",f:[{t:7,e:"pane",m:[{n:"size",f:"30",t:13,g:1}],f:[{t:7,e:"div",m:[{t:13,n:"style",f:"padding: 1em;",g:1}],f:[{t:7,e:"div",f:[{t:7,e:"label",m:[{n:"field",t:71}],f:["Filter",{t:7,e:"input",m:[{n:"value",f:[{t:2,r:"filter"}],t:13},{t:73,v:"l",f:"300"}]}]}," ",{t:7,e:"label",m:[{n:"field",t:71}],f:["Mode",{t:7,e:"select",m:[{n:"value",f:[{t:2,r:"mode"}],t:13}],f:[" ",{t:7,e:"option",m:[{n:"value",f:"grid",t:13}],f:["Grid"]}," ",{t:7,e:"option",m:[{n:"value",f:"table",t:13}],f:["Table"]}]}]}," ",{t:7,e:"label",m:[{n:"field",t:71}],f:[{t:7,e:"input",m:[{n:"type",f:"checkbox",t:13},{n:"checked",f:[{t:2,r:"border"}],t:13}]},"Border"]}," ",{t:7,e:"label",m:[{n:"field",t:71}],f:[{t:7,e:"input",m:[{n:"type",f:"checkbox",t:13},{n:"checked",f:[{t:2,r:"fixedHeader"}],t:13}]},"Fixed Header"]}," ",{t:7,e:"label",m:[{n:"field",t:71}],f:[{t:7,e:"input",m:[{n:"type",f:"checkbox",t:13},{n:"checked",f:[{t:2,r:"select"}],t:13}]},"Select"]}," ",{t:7,e:"label",m:[{n:"field",t:71}],f:[{t:7,e:"input",m:[{n:"type",f:"checkbox",t:13},{n:"checked",f:[{t:2,r:"selectAll"}],t:13}]},"Select All"]}," ",{t:7,e:"label",m:[{n:"field",t:71}],f:[{t:7,e:"input",m:[{n:"type",f:"checkbox",t:13},{n:"checked",f:[{t:2,r:"groups"}],t:13}]},"Show Groups"]}," ",{t:7,e:"label",m:[{n:"field",t:71}],f:[{t:7,e:"input",m:[{n:"type",f:"checkbox",t:13},{n:"checked",f:[{t:2,r:"groupSelect"}],t:13}]},"Group Select"]}," ",{t:7,e:"label",m:[{n:"field",t:71}],f:["Pagination",{t:7,e:"select",m:[{n:"value",f:[{t:2,r:"paginate"}],t:13}],f:[{t:7,e:"option",f:["auto"]},{t:7,e:"option",f:["virtual"]},{t:7,e:"option",f:["fixed"]},{t:7,e:"option",m:[{n:"value",f:[{t:2,x:{r:[],s:"null"}}],t:13}],f:["none"]}]}]}," ",{t:4,f:[{t:7,e:"label",m:[{n:"field",t:71}],f:["Items per page",{t:7,e:"input",m:[{n:"type",f:"number",t:13},{n:"value",f:[{t:2,r:"pages"}],t:13}]}]}],n:50,x:{r:["paginate"],s:"_0===\"fixed\""}}," ",{t:7,e:"label",m:[{n:"field",t:71}],f:[{t:7,e:"input",m:[{n:"type",f:"checkbox",t:13},{n:"checked",f:[{t:2,r:"editable"}],t:13}]}," Editable Bar"]}]}," ",{t:7,e:"marked",f:["          The table below is populated with 2,000 objects in the form `{ foo, bar, bat }` that are based on randomly generated strings (foo, bar) and booleans (bat).\n\n          ### Template:\n          ```handlebars\n          <data-table bind-display=mode bind-items bind-filter=\"[{ op: '||', value: [{ id: 'Foo', op: 'like', value: filter }, { id: 'Bar', op: 'like', value: filter }] }]\" bind-border bind-fixedHeader bind-paginate=\"paginate === 'fixed' ? pages : paginate\" bind-allowSelect=\"select\" bind-allowSelectAll=\"selectAll\" paginate=auto on-selected=\"console.log($1)\">\n            <row>\n              <h3>Extra stuff goes here</h3>\n              <p>I have a {{.foo}} that is {{.bar}}.</p>\n            </row>\n            <column t1 s1-2 m1-3 label=\"Foo\" filter=foo>{{.foo}}</column>\n            <column t0 s1-2 m1-3 label=\"Bar\" filter=bar bind-editable>{{.bar}}</column>\n            <column t0 m1-3 label=\"???\">{{.bat ? 'Yep' : 'Nope'}}</column>\n            <group by=bat select=\"{{groupSelect}}\" show=\"{{groups}}\">\n              <column t7-8>{{.bat ? 'Yeps' : 'Nopes'}}</column>\n            </group>\n          </data-table>\n          ```\n          ### Result:\n        "]}]}," "]},{t:7,e:"pane",m:[{t:13,n:"style",f:"display: flex; flex-direction: column;",g:1}],f:[" ",{t:7,e:"data-table",m:[{n:"display",t:13,f:[{t:2,r:"mode"}]},{n:"items",t:13,f:[{t:2,r:"items"}]},{n:"filter",t:13,f:[{t:2,x:{r:["filter"],s:"[{op:\"||\",value:[{id:\"Foo\",op:\"like\",value:_0},{id:\"Bar\",op:\"like\",value:_0}]}]"}}]},{n:"border",t:13,f:[{t:2,r:"border"}]},{n:"fixedHeader",t:13,f:[{t:2,r:"fixedHeader"}]},{n:"paginate",t:13,f:[{t:2,x:{r:["pages","paginate"],s:"_1===\"fixed\"?_0:_1"}}]},{n:"allowSelect",t:13,f:[{t:2,r:"select"}]},{n:"allowSelectAll",t:13,f:[{t:2,r:"selectAll"}]},{n:"paginate",f:"auto",t:13,g:1},{n:["selected"],t:70,f:{r:["$1"],s:"[console.log(_0)]"}}],f:[{t:7,e:"row",f:[{t:7,e:"h3",f:["Extra stuff goes here"]}," ",{t:7,e:"p",f:["I have a ",{t:2,r:".foo"}," that is ",{t:2,r:".bar"},"."]}]}," ",{t:7,e:"column",m:[{n:"t1",f:0,t:13},{n:"s1-2",f:0,t:13},{n:"m1-3",f:0,t:13},{n:"label",f:"Foo",t:13,g:1},{n:"filter",f:"foo",t:13,g:1}],f:[{t:2,r:".foo"}]}," ",{t:7,e:"column",m:[{n:"t0",f:0,t:13},{n:"s1-2",f:0,t:13},{n:"m1-3",f:0,t:13},{n:"label",f:"Bar",t:13,g:1},{n:"filter",f:"bar",t:13,g:1},{n:"editable",t:13,f:[{t:2,r:"editable"}]}],f:[{t:2,r:".bar"}]}," ",{t:7,e:"column",m:[{n:"t0",f:0,t:13},{n:"m1-3",f:0,t:13},{n:"label",f:"???",t:13,g:1}],f:[{t:2,x:{r:[".bat"],s:"_0?\"Yep\":\"Nope\""}}]}," ",{t:7,e:"field",m:[{n:"id",f:"when",t:13,g:1},{n:"path",f:"when",t:13,g:1},{n:"type",f:"date",t:13,g:1}]}," ",{t:7,e:"group",m:[{n:"by",f:"bat",t:13,g:1},{n:"select",f:[{t:2,r:"groupSelect"}],t:13},{n:"show",f:[{t:2,r:"groups"}],t:13}],f:[{t:7,e:"column",m:[{n:"t7-8",f:0,t:13}],f:[{t:7,e:"strong",f:[{t:2,x:{r:[".bat"],s:"_0?\"Yeps\":\"Nopes\""}}]}]}]}]}]}]}]}]}],e:{"null":function (){return(null);},"_0===\"fixed\"":function (_0){return(_0==="fixed");},"[{op:\"||\",value:[{id:\"Foo\",op:\"like\",value:_0},{id:\"Bar\",op:\"like\",value:_0}]}]":function (_0){return([{op:"||",value:[{id:"Foo",op:"like",value:_0},{id:"Bar",op:"like",value:_0}]}]);},"_1===\"fixed\"?_0:_1":function (_0,_1){return(_1==="fixed"?_0:_1);},"[console.log(_0)]":function (_0){return([console.log(_0)]);},"_0?\"Yep\":\"Nope\"":function (_0){return(_0?"Yep":"Nope");},"_0?\"Yeps\":\"Nopes\"":function (_0){return(_0?"Yeps":"Nopes");}}},
-        use: [plugin$1(), split()],
+        use: [plugin(), split()],
         options: {
           title: 'Component :: Table',
           resizable: true, flex: true,

@@ -8,7 +8,51 @@ System.register(['./chunk2.js'], function (exports, module) {
     execute: function () {
 
       exports('style', style);
+      exports('sized', sized);
       exports('grid', grid);
+      /** @param { HTMLElement } node  */
+      function sized(node, attrs) {
+        var ctx = attrs.context || this.getContext(node);
+        var start = {
+          position: node.style.position,
+          overflowY: node.style.overflowY
+        };
+
+        var obj = document.createElement('object');
+        obj.setAttribute('style', 'display: block; position: absolute; top: 0; left: 0; height: 100%; width: 100%; overflow: hidden; pointer-events: none; z-index: -1;');
+        obj.type = 'text/html';
+
+        var refresh = function () {
+          if (attrs.offsetWidth) { ctx.set(attrs.offsetWidth, node.offsetWidth); }
+          if (attrs.offsetHeight) { ctx.set(attrs.offsetHeight, node.offsetHeight); }
+          if (attrs.clientWidth) { ctx.set(attrs.clientWidth, node.clientWidth); }
+          if (attrs.clientHeight) { ctx.set(attrs.clientHeight, node.clientHeight); }
+          if (attrs.diffWidth) { ctx.set(attrs.diffWidth, node.offsetWidth - node.clientWidth); }
+          if (attrs.diffHeight) { ctx.set(attrs.diffHeight, node.offsetHeight - node.clientHeight); }
+        };
+
+        obj.onload = function () {
+          obj.contentDocument.defaultView.addEventListener('resize', refresh);
+        };
+        
+        if (/Trident/.test(navigator.userAgent)) {
+          node.appendChild(obj);
+          obj.data = 'about:blank';
+        } else {
+          obj.data = 'about:blank';
+          node.appendChild(obj);
+        }
+
+        return {
+          refresh: refresh,
+          teardown: function teardown() {
+            node.removeChild(obj);
+            node.style.position = start.position;
+            node.style.overflowY = start.overflowY;
+          }
+        }
+      }
+
       var el;
       function sizer() {
         if (!el) {
@@ -66,9 +110,7 @@ System.register(['./chunk2.js'], function (exports, module) {
         var opts = options || {};
         var breaks;
 
-        function resize() {
-          var size = node.clientWidth;
-
+        function resize(size) {
           if (!opts.type || opts.type === 'class') {
             var match, max = -1;
             for (var k in points) {
@@ -101,13 +143,12 @@ System.register(['./chunk2.js'], function (exports, module) {
             if (!regexps[k]) { regexps[k] = new RegExp(("\\b" + k + "\\b"), 'g'); }
           }
           s.style.width = 0;
-          resize();
+          resize(node.clientWidth);
         }
 
-        var sizeCallback = function () { return requestAnimationFrame(resize); };
-        var listener = this.root.on('*.resize', sizeCallback);
         var observer = this.observe('@style.break', settings, { init: false });
-        window.addEventListener('resize', sizeCallback);
+        var listener = ctx.observe('@local.width', resize, { init: false });
+        var watcher = sized.call(this, node, { clientWidth: '@local.width' });
 
         node.className += ' grid grid-root';
         if (opts.immediate) { settings(); }
@@ -117,13 +158,13 @@ System.register(['./chunk2.js'], function (exports, module) {
           update: function update(options) {
             // TODO: if type changes, undo whatever the original did first
             opts = options || {};
-            requestAnimationFrame(resize);
+            requestAnimationFrame(function () { return resize(node.clientWidth); });
           },
           teardown: function teardown() {
             node.className = node.className.replace(regexps['grid grid-root'], '').trim();
             listener.cancel();
             observer.cancel();
-            window.removeEventListener('resize', sizeCallback);
+            watcher.teardown();
           }
         };
       }
@@ -176,7 +217,7 @@ System.register(['./chunk2.js'], function (exports, module) {
 
       grid.style = style;
 
-      function plugin(opts) {
+      function plugin$1(opts) {
         if ( opts === void 0 ) opts = {};
 
         return function(ref) {
@@ -203,7 +244,7 @@ System.register(['./chunk2.js'], function (exports, module) {
       }
 
       globalRegister('grid', 'decorators', grid);
-      exports('default', plugin);
+      exports('default', plugin$1);
 
     }
   };
