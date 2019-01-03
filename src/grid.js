@@ -1,4 +1,5 @@
 import globalRegister from './globalRegister';
+import { sized } from './watch-size';
 
 let el;
 function sizer() {
@@ -57,10 +58,7 @@ export function grid(node, options) {
   let opts = options || {};
   let breaks;
 
-  function resize() {
-    let matches = [];
-    const size = node.clientWidth;
-
+  function resize(size) {
     if (!opts.type || opts.type === 'class') {
       let match, max = -1;
       for (const k in points) {
@@ -93,13 +91,12 @@ export function grid(node, options) {
       if (!regexps[k]) regexps[k] = new RegExp(`\\b${k}\\b`, 'g');
     }
     s.style.width = 0;
-    resize();
+    resize(node.clientWidth);
   }
 
-  const sizeCallback = () => requestAnimationFrame(resize);
-  const listener = this.root.on('*.resize', sizeCallback);
   const observer = this.observe('@style.break', settings, { init: false });
-  window.addEventListener('resize', sizeCallback);
+  const listener = ctx.observe('@local.width', resize, { init: false });
+  const watcher = sized.call(this, node, { clientWidth: '@local.width' });
 
   node.className += ' grid grid-root';
   if (opts.immediate) settings();
@@ -109,13 +106,13 @@ export function grid(node, options) {
     update(options) {
       // TODO: if type changes, undo whatever the original did first
       opts = options || {};
-      requestAnimationFrame(resize);
+      requestAnimationFrame(() => resize(node.clientWidth));
     },
     teardown() {
       node.className = node.className.replace(regexps['grid grid-root'], '').trim();
       listener.cancel();
       observer.cancel();
-      window.removeEventListener('resize', sizeCallback);
+      watcher.teardown();
     }
   };
 }
