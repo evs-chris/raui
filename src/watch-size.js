@@ -10,15 +10,17 @@ export function sized(node, attrs) {
   obj.setAttribute('style', 'display: block; position: absolute; top: 0; left: 0; height: 100%; width: 100%; overflow: hidden; pointer-events: none; z-index: -1;');
   obj.type = 'text/html';
 
+  const refresh = () => {
+    if (attrs.offsetWidth) ctx.set(attrs.offsetWidth, node.offsetWidth);
+    if (attrs.offsetHeight) ctx.set(attrs.offsetHeight, node.offsetHeight);
+    if (attrs.clientWidth) ctx.set(attrs.clientWidth, node.clientWidth);
+    if (attrs.clientHeight) ctx.set(attrs.clientHeight, node.clientHeight);
+    if (attrs.diffWidth) ctx.set(attrs.diffWidth, node.offsetWidth - node.clientWidth);
+    if (attrs.diffHeight) ctx.set(attrs.diffHeight, node.offsetHeight - node.clientHeight);
+  };
+
   obj.onload = () => {
-    obj.contentDocument.defaultView.addEventListener('resize', () => {
-      if (attrs.offsetWidth) ctx.set(attrs.offsetWidth, node.offsetWidth);
-      if (attrs.offsetHeight) ctx.set(attrs.offsetHeight, node.offsetHeight);
-      if (attrs.clientWidth) ctx.set(attrs.clientWidth, node.clientWidth);
-      if (attrs.clientHeight) ctx.set(attrs.clientHeight, node.clientHeight);
-      if (attrs.diffWidth) ctx.set(attrs.diffWidth, node.offsetWidth - node.clientWidth);
-      if (attrs.diffHeight) ctx.set(attrs.diffHeight, node.offsetHeight - node.clientHeight);
-    });
+    obj.contentDocument.defaultView.addEventListener('resize', refresh);
   };
   
   if (/Trident/.test(navigator.userAgent)) {
@@ -30,6 +32,7 @@ export function sized(node, attrs) {
   }
 
   return {
+    refresh,
     teardown() {
       node.removeChild(obj);
       node.style.position = start.position;
