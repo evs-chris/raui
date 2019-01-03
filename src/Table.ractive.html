@@ -8,7 +8,7 @@
   class-rtable-with-select="~/allowSelect"
 >
   {{#if ~/fixedHeader && ~/display === 'grid'}}<div as-grid>{{>grid-head}}</div>{{/if}}
-  <div class-rtable-top {{#if ~/paginate === 'virtual'}}on-scroll="scroll"{{/if}} {{#if ~/fixedHeader && ~/display === 'grid'}}as-scrolled=`~/scroll`{{/if}}>
+  <div class-rtable-top {{#if ~/paginate === 'virtual'}}on-scroll="scroll" as-sized="{ offsetHeight: '~/tableHeight', diffWidth: '~/scrollOffset' }"{{/if}} {{#if ~/fixedHeader && ~/display === 'grid'}}as-scrolled=`~/scroll`{{/if}}>
     {{#if ~/display === 'grid'}}
       {{>grid}}
     {{else}}
@@ -94,6 +94,7 @@
   import click from './event-click';
   import expand from './transition-expand';
   import scrolled from './scrolled';
+  import { sized } from './watch-size';
   import globalRegister from './globalRegister';
 
   const sortRE = /^([-+])?([^\s]+)$/;
@@ -353,7 +354,7 @@
       Table: false
     },
     syncComputedChildren: true,
-    decorators: { grid },
+    decorators: { grid, sized },
     events: {},
     use: [click({ name: 'clickd', count: 1 }), click({ name: 'dblclickd', count: 2 }), expand(), scrolled()],
     on: {
@@ -455,7 +456,7 @@
               }, 50);
             }
 
-            this._autoObserver = root.on('*.resize', fnd);
+            this._autoObserver = this.observe('~/tableHeight', fnd);
             this._autoObserver.fire = fnd;
 
             if (v === 'virtual') {
@@ -1039,7 +1040,8 @@
         { t: 13, n: 'class-rtable-row-wrap' },
         { t: 13, n: 'class-row-wrap' },
         { t: 13, n: 'class-rtable-header' },
-        { t: 4, f: [{ n: 'style-opacity', f: '0', t: 13 }], n: 50, x: { r: ['~/fixedHeader', '~/virtual.offset'] , s: '!_0&&_1>0' } }
+        { t: 4, f: [{ n: 'style-opacity', f: '0', t: 13 }], n: 50, x: { r: ['~/fixedHeader', '~/virtual.offset'] , s: '!_0&&_1>0' } },
+        { t: 4, n: 50, r: '~/fixedHeader', f: [{ t: 13, n: 'style-padding-right', f: [{ t: 2, r: '~/scrollOffset' }, 'px'] }] }
       ], f: [{ t: 7, e: 'div', f: columns.filter(c => c.hidden !== true).map(c => {
         const div = { t: 7, e: 'div', f: [{ t: 7, e: 'div', f: c.label }], m: [{ t: 4, n: 53, r: `~/columns.${c.index}`, f: [{ t: 70, n: ['click'], f: { r: ['@this', '.index', '@event'], s: sortKey } }] }, { t: 13, n: 'title', f: c.label }].concat(c.attrs.filter(a => a.n !== 'title')) };
         if (c.type) div.m.push({ t: 13, n: `class-rtable-${c.type}-column` });
@@ -1061,6 +1063,8 @@
       header[0].f.unshift({
         t: 4, n: 50, r: '~/allowSelect', f: [{ t: 7, e: 'div', m: [{ t: 13, n: 'class-rtable-select-header' }, { t: 13, n: 'class-rtable-column' }, { t: 13, n: 'title', f: [{ t: 2, r: 'selections.length' }, ' items selected']}], f: [{ t: 7, e: 'div', f: [{ t: 4, n: 50, r: '~/allowSelectAll', f: [{ t: 7, e: 'input', m: [{ t: 73, v: 't', f: 'false' }, { t: 13, n: 'type', f: 'checkbox' }, { t: 13, n: 'checked', f: [{ t: 2, x: { r: ['@this'], s: '_0._allSelected()' } }] }, { t: 70, n: ['click'], f: 'selectAll' }, { t: 13, n: 'class-rtable-select' }] }] }] }] }]
       });
+
+      //header[0].f.push({t: 4, f: [{ t: 7, e: 'div', m: [{ t: 13, n: 'class', f: 'rtable-header-scroll', g: 1 }, { n: 'style-width', f: [{ t: 2, r: '~/scrollOffset' }], t: 13 }] }], n: 50, r: '~/fixedHeader' });
 
       const row = [{ t: 7, e: 'div', m: [
         { t: 13, n: 'class-rtable-row-wrap' },
