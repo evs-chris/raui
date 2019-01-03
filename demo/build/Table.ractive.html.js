@@ -689,11 +689,11 @@ System.register(['ractive', './chunk7.js', './chunk8.js', './chunk2.js', './chun
       });
 
       function applyPath(src, path) {
-        if (path.length && typeof src !== 'object') { return; }
+        if (path.length && !src && typeof src !== 'object') { return; }
         var res = src;
         for (var i = 0; i < path.length; i++) {
           res = res[path[i]];
-          if (typeof res !== 'object') { return i + 1 < path.length ? undefined : res; }
+          if (typeof res !== 'object' || !res) { return i + 1 < path.length ? undefined : res; }
         }
         return res;
       }
