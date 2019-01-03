@@ -1,6 +1,6 @@
-<div class-rtabs {{yield extra-attributes}} class-rtabs-flat="~/flat" class-rtabs-margin="~/margin" class-rtabs-fill="~/fill">
+<div class-rtabs {{yield extra-attributes}} class-rtabs-flat="~/flat" class-rtabs-margin="~/margin" class-rtabs-fill="~/fill" as-sized="{ clientWidth: '~/clientWidth' }">
   <div class-rtabs-tab-window-wrapper class-rtabs-scroll-right="@._scrollsRight()" class-rtabs-scroll-left="@._scrollsLeft()">
-    <div class-rtabs-tab-window {{#if .direction === 'left'}}class-rtabs-going-left{{else}}class-rtabs-going-right{{/if}} as-scrolled=`~/scroll`>
+    <div class-rtabs-tab-window {{#if .direction === 'left'}}class-rtabs-going-left{{else}}class-rtabs-going-right{{/if}} as-scrolled=`~/scrollStatus`>
       <div class-rtabs-tabs>
         <div class-rtabs-left class-rtabs-center="~/center">
           {{#each .tabs}}{{#if !.right && !@._hidden(@index)}}{{>tab}}{{/if}}{{/each}}
@@ -56,10 +56,8 @@
 <script>
   import Ractive from 'ractive';
   import { scrolled } from './scrolled';
+  import { sized } from './watch-size';
   import globalRegister from './globalRegister';
-
-  let resizer;
-  const instances = [];
 
   export class Tabs extends Ractive {
     constructor(opts) {
@@ -67,6 +65,9 @@
     }
 
     updateIndicator() {
+      if (!this.rendered) return;
+      const ctx = this.getContext(this.find('.rtabs-tab-window'));
+      if (ctx.decorators.scrolled) ctx.decorators.scrolled.refresh();
       if (this.get('@style.raui.tabs.boxy')) return;
       const node = this._tabs[this.get('selected')];
       if (!node || !node.offsetParent) return;
@@ -115,12 +116,12 @@
     }
 
     _scrollsRight() {
-      const scroll = this.get('scroll') || '';
+      const scroll = this.get('scrollStatus') || '';
       if (/hscroll.*(hmiddle|left)/.test(scroll) && !/right/.test(scroll)) return true;
     }
 
     _scrollsLeft() {
-      const scroll = this.get('scroll') || '';
+      const scroll = this.get('scrollStatus') || '';
       if (/hscroll.*(hmiddle|right)/.test(scroll) && !/left/.test(scroll)) return true;
     }
   }
@@ -141,7 +142,7 @@
         selected: -1,
         selectedContent: -1,
         opacity: 1,
-        scroll: ''
+        scrollStatus: ''
       }
     },
     on: {
@@ -162,18 +163,7 @@
       select,
       close,
       teardown() {
-        instances.splice(instances.indexOf(this), 1);
         this.indicatorObservers.forEach(o => o.cancel());
-      },
-      render() {
-        this._resizeListener = this.root.on('*.resize', () => this.updateIndicator());
-        setTimeout(() => this.updateIndicator());
-      },
-      unrender() {
-        if (this._resizeListener) {
-          this._resizeListener.cancel();
-          this._resizeListener = null;
-        }
       }
     },
     observe: {
@@ -189,6 +179,9 @@
           });
         },
         init: false
+      },
+      clientWidth() {
+        this.updateIndicator();
       }
     },
     decorators: {
@@ -211,7 +204,7 @@
           }
         };
       },
-      scrolled
+      scrolled, sized
     }
   });
 
@@ -272,15 +265,6 @@
     });
 
     this._tabs = tabs;
-
-    if (!resizer && typeof window !== undefined) {
-      resizer = true;
-      window.addEventListener('resize', () => {
-        instances.forEach(i => i.updateIndicator());
-      });
-    }
-
-    instances.push(this);
   }
 
   function select(ctx, idx) {
