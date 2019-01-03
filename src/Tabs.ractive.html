@@ -395,7 +395,7 @@
     width: 10px;
     opacity: 0;
     transition: opacity 0.3s ease-in-out;
-    background: linear-gradient(to right, ${primary.bc || '#ccc'}, transparent);
+    background: linear-gradient(to right, ${primary.indicator.color || primary.fga || '#07e'}, transparent);
     z-index: 999;
     pointer-events: none;
   }
@@ -411,7 +411,7 @@
     height: 100%;
     width: 10px;
     opacity: 0;
-    background: linear-gradient(to left, ${primary.bc || '#ccc'}, transparent);
+    background: linear-gradient(to left, ${primary.indicator.color || primary.fga || '#07e'}, transparent);
     transition: opacity 0.3s ease-in-out;
     pointer-events: none;
   }
@@ -648,10 +648,10 @@
     `}
   }
   .rtabs.${t} > .rtabs-tab-window-wrapper:before {
-    background: linear-gradient(to right, ${theme.bc || '#ccc'}, transparent);
+    background: linear-gradient(to right, ${theme.indicator.color || theme.fga || '#07e'}, transparent);
   }
   .rtabs.${t} > .rtabs-tab-window-wrapper:after {
-    background: linear-gradient(to left, ${theme.bc || '#ccc'}, transparent);
+    background: linear-gradient(to left, ${theme.indicator.color || theme.fga || '#07e'}, transparent);
   }
   .rtabs.${t}.alt > div > .rtabs-tab-window {
     color: ${theme.bg || '#fff'};
