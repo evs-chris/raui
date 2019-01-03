@@ -2,6 +2,7 @@
   <div class-rcard class-rcard-no-pad="_card.noPad" class-rcard-section="_card.section" class-rcard-flat="'flat' in _card ? _card.flat : @style.card.flat" class-rcard-deep="'flat' in _card ? !_card.flat : !@style.card.flat" class-rcard-popout="_card.popout" class-rcard-collapsed="_card.expandable && _card.expanded === false" class-rcard-expandable="_card.expandable" class-rcard-arrow="_card.arrow" class-rcard-no-fill="_card.noFill">
     {{#if _card.titleP || _card.subtitleP || _card.avatarP || _card.title || _card.subtitle || (_card.avatar && typeof _card.avatar === 'string' || (_card.tabs && _card.section))}}
       <div class-rcard-header {{#if _card.expandable && _card.arrow}}class-rcard-clickable on-click="@context.set('_card.expanded', _card.expanded === false ? true : false)"{{/if}}>
+        <div class-rcard-title-pad>&nbsp;</div>
         {{#if _card.avatar && typeof _card.avatar === 'string'}}<div class-rcard-avatar class-rcard-avatar-round="_card.round">
           <div class-rcard-avatar-inner style-background-image="url({{_card.avatar}})" />
         </div>
@@ -34,7 +35,7 @@
       {{#if _card.footerP}}<div class-rcard-footer {{#if _card.footerA}}{{>_card.footerA}}{{/if}} {{#if _card.expandable}}expand-in-out{{/if}}>{{>_card.footerP}}</div>{{/if}}
       {{#if _card.actions.length}}
         <div class-rcard-actions {{#if _card.expandable}}expand-in-out{{/if}}>
-          {{#each _card.actions}}{{#if .P}}{{>.P}}{{else}}<button {{>.attrs}}>{{>.content}}</button>{{/if}}{{/each}}
+          {{#each _card.actions}}{{#if .P}}{{>.P}}{{else}}<button {{>.attrs || []}}>{{>.content}}</button>{{/if}}{{/each}}
         </div>
       {{/if}}
     {{/if}}
@@ -281,10 +282,15 @@
   }
 
   .rcard-section > .rcard-header:first-of-type {
-    padding: ${header.padding || '0'};${header.gradient ? `
+    padding: 0;${header.gradient ? `
     background: ${header.gradient};
     color: ${header.fg || '#222'};
     border-bottom: 1px solid ${header.bc || '#ccc'};` : ''}
+  }
+  .rcard-header .rcard-title-pad {
+    height: 100%;
+    width: 0;${header.padding ? `
+    margin: ${header.padding} 0;` : ''}
   }
 
   .rcard-avatar {
@@ -465,7 +471,7 @@
   }
 
   .rcard-tab.rcard-tab-selected {
-    border-top: 0.15em solid ${primary.fga || '#07e;'}
+    border-top: 0.15em solid ${primary.fga || '#07e;'};
     opacity: 1;
     font-weight: 500;
     cursor: default;
@@ -481,11 +487,11 @@
   }
   .rcard-section > .rcard-header .rcard-tab {
     margin-top: 0;
-    border-color: ${primary.bg || '#fff'};
+    border-color: ${header.gradient ? (primary.bc || '#ccc') : (primary.bg || '#fff')};
     border-style: solid;
     border-width: 1px 1px 0 0;
-    background-color: ${primary.fga || '#07e'};
-    color: ${primary.bg || '#fff'};
+    background-color: transparent;
+    color: ${header.gradient ? (primary.fga || '#07e') : (header.bg || '#fff')};
   }
   .rcard-section > .rcard-header .rcard-tab:first-of-type {
     border-width: 1px 1px 0 1px;
@@ -493,7 +499,10 @@
   .rcard-section > .rcard-header .rcard-tab-selected {
     background-color: ${primary.bg || '#fff'};
     color: ${primary.fg || '#222'};
-  }
+  }${header.gradient ? `
+  .rcard-section > .rcard-header .rcard-tabs-window {
+    margin-bottom: -1px;
+  }` : ''}
   
 
   .rcard-tab-window {
@@ -631,7 +640,10 @@
     background: ${header.gradient};
     color: ${header.fg || '#222'};
     border-bottom: 1px solid ${header.bc || '#ccc'};` : ''}
-  }
+  }${header.gradient ? `
+  ${t}.rcard-section > .rcard-header .rcard-tabs {
+    margin-bottom: -1px;
+  }` : ''}
 
   .${t} > .rcard-header.rcard-expand svg path {
     fill: ${header.fg || '#222'};
