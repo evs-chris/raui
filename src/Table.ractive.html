@@ -34,7 +34,6 @@
 <template id="grid">
   <div {{yield extra-attributes}} as-grid {{#if ~/paginate === 'virtual'}}style-margin-top="{{~/virtual.above}}px" style-margin-bottom="{{~/virtual.below}}px"{{/if}}>
     {{#unless ~/fixedHeader}}{{>grid-head}}{{/unless}}
-    {{#if ~/virtual.offset % 2 === 1}}<div class-rtable-row-wrap style-display=none />{{/if}}
     {{#each ~/visibleRows, ~/items as source, true as shuffle}}
       {{>grid-row}}
     {{/each}}
@@ -74,6 +73,7 @@
 
 <template id="csp-dummy">
   <div
+    class-rtable-odd="(@index + ~/virtual.offset) % 2 === 1"
     on-click="@this._setSort(.index, @event)"
     on-click="@this._select(., @event), false"
     on-click="['select', ., ~/rows.indexOf(.), ~/visibleRows.indexOf(.)]"
@@ -438,8 +438,8 @@
 
               let fit = Math.floor((top.clientHeight - header.offsetHeight) / avg);
               if (v === 'virtual') {
-                fit = fit * 3;
-                if (fit < 50) fit = 50;
+                fit = fit + 10;
+                if (fit < 30) fit = 30;
               }
               this.set('_paginate', fit);
 
@@ -473,13 +473,13 @@
                 const virtual = this.get('virtual') || {};
                 let offset = virtual.offset;
                 let visible = this.get('_paginate');
-                const page = visible / 3;
+                const page = visible - 10;
                 const count = this.get('rows.length');
                 if (visible > count) visible = count;
                 const avg = this._avgSize;
                 const pageSize = page * avg;
                 let wnd = Math.floor(top / avg);
-                let first = wnd - page;
+                let first = wnd - 5;
                 if (first < 0) first = 0;
                 const hardFirst = first;
                 if (first + visible > count) first = count - visible;
@@ -487,7 +487,7 @@
                 if (offset === first) return lock = false;
                 
                 // check to see if the rendered area is approaching an edge
-                if (!isNumber(offset) || isNaN(offset) || top < virtual.top + pageSize || top > virtual.bottom - pageSize * 2 || offset > 0 && top < avg * page) {
+                if (!isNumber(offset) || isNaN(offset) || top < virtual.top + pageSize || top > virtual.bottom - pageSize || offset > 0 && top < avg * page) {
                   let amtAbove = hardFirst;
                   let amtBelow = count - hardFirst - visible;
                   if (amtAbove < 0) {
@@ -507,7 +507,7 @@
                     else vis = this.findAll('.rtable-live')[offset - first];
                   }
 
-                  if (vis && first > 0 && vis.offsetTop > node.scrollTop - pageSize * 1.5 && vis.offsetTop < node.scrollTop + pageSize) next = vis.offsetTop;
+                  if (vis && first > 0 && vis.offsetTop > node.scrollTop - pageSize - 5 && vis.offsetTop < node.scrollTop + pageSize) next = vis.offsetTop;
 
                   this.set({
                     'virtual.above': above,
@@ -1068,6 +1068,7 @@
 
       const row = [{ t: 7, e: 'div', m: [
         { t: 13, n: 'class-rtable-row-wrap' },
+        { t: 13, n: 'class-rtable-odd', f: [{ t: 2, x: { r: ['@index','~/virtual.offset'], s: '(_0+_1)%2===1' } }] },
         { t: 13, n: 'class-row-wrap' },
         { t: 13, n: 'class-rtable-live' },
         { t: 13, n: 'class-rtable-selected', f: [{ t: 2, x: { r: ['~/selections', '.'], s: '~_0.indexOf(_1)' } }] }
@@ -1273,7 +1274,7 @@
     border-width: 0 0 1px 0;
     background-color: ${table.even || primary.bga || '#f4f4f4'};
   }
-  .rtable-row-wrap:nth-child(odd) {
+  .rtable-row-wrap.rtable-odd {
     background-color: ${table.odd || primary.bg || '#fff'};
   }
   .rtable-row-wrap:hover, .rtable-row-wrap.rtable-selected:hover {
@@ -1287,7 +1288,7 @@
     background-color: ${table.selected.bg || 'rgba(0, 119, 238, 0.12)'};
     color: ${table.selected.fg || primary.fg || '#222'};
   }
-  .rtable-row-wrap.rtable-selected:nth-child(odd) {
+  .rtable-row-wrap.rtable-selected.rtable-odd {
     background-color: ${table.selected.odd || 'rgba(0, 119, 238, 0.1)'};
   }
 
