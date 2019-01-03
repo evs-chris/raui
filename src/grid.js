@@ -122,7 +122,7 @@ export function style(data, optDefaults) {
   const wrappers = (data('raui.grid.wrappers') || ['.row-wrap > ', '.row-wrap > .row-wrap > ']).slice();
   wrappers.unshift('');
 
-  let out = `.row > * { position: relative; width: 100%; transition-duration: 0.2s; transition-timing-function: ease-in-out; transition-property: width, padding, margin; box-sizing: border-box; }
+  let out = `.row > * { position: relative; width: 100%; transition-duration: 0.2s; transition-timing-function: ease-in-out; transition-property: padding, margin; box-sizing: border-box; }
 .grid { display: block; }
 .grid .row { display: flex; flex-wrap: wrap; min-height: fit-content; width: 100%; }
 .grid .row.row-pad > * { padding: ${data('raui.grid.padding') || '0.5em'}; }
