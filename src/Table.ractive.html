@@ -736,11 +736,11 @@
   });
 
   function applyPath(src, path) {
-    if (path.length && typeof src !== 'object') return;
+    if (path.length && !src && typeof src !== 'object') return;
     let res = src;
     for (let i = 0; i < path.length; i++) {
       res = res[path[i]];
-      if (typeof res !== 'object') return i + 1 < path.length ? undefined : res;
+      if (typeof res !== 'object' || !res) return i + 1 < path.length ? undefined : res;
     }
     return res;
   }
