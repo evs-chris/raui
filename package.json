@@ -1,6 +1,6 @@
 {
   "name": "@evs-chris/raui",
-  "version": "0.4.28",
+  "version": "0.5.0",
   "description": "Components, decorators, and helpers for Ractive apps that are generally Material-ish",
   "homepage": "https://github.com/evs-chris/raui",
   "bugs": "https://github.com/evs-chris/raui/issues",
@@ -24,7 +24,7 @@
     "terser": "^3.11.0"
   },
   "peerDependencies": {
-    "ractive": ">= 0.10.2"
+    "ractive": ">= 1.2.0"
   },
   "scripts": {
     "build": "bash scripts/esm.sh",
