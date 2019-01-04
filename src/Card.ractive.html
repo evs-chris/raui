@@ -1,13 +1,13 @@
 <div class-rcard-wrapper {{>extra-attributes}} class-rcard-margin="_card.margin" class-rcard-wrapper-popout="_card.popout">
   <div class-rcard class-rcard-no-pad="_card.noPad" class-rcard-section="_card.section" class-rcard-flat="'flat' in _card ? _card.flat : @style.card.flat" class-rcard-deep="'flat' in _card ? !_card.flat : !@style.card.flat" class-rcard-popout="_card.popout" class-rcard-collapsed="_card.expandable && _card.expanded === false" class-rcard-expandable="_card.expandable" class-rcard-arrow="_card.arrow" class-rcard-no-fill="_card.noFill">
     {{#if _card.titleP || _card.subtitleP || _card.avatarP || _card.title || _card.subtitle || (_card.avatar && typeof _card.avatar === 'string' || (_card.tabs && _card.section))}}
-      <div class-rcard-header {{#if _card.expandable && _card.arrow}}class-rcard-clickable on-click="@context.set('_card.expanded', _card.expanded === false ? true : false)"{{/if}}>
+      <div class-rcard-header {{#if _card.expandable && _card.arrow && _card.expandLinked}}class-rcard-clickable on-click="@context.set('_card.expanded', _card.expanded === false ? true : false)"{{/if}}>
         <div class-rcard-title-pad>&nbsp;</div>
         {{#if _card.avatar && typeof _card.avatar === 'string'}}<div class-rcard-avatar class-rcard-avatar-round="_card.round">
           <div class-rcard-avatar-inner style-background-image="url({{_card.avatar}})" />
         </div>
         {{elseif _card.avatarP}}<div class-rcard-avatar {{#if _card.avatarA}}{{>_card.avatarA}}{{/if}}>{{>_card.avatarP}}</div>{{/if}}
-        <div class-rcard-titles class-rcard-with-sub="_card.subtitle || _card.subtitleP" class-rcard-with-tabs="_card.tabs" {{#if _card.expandable && !_card.arrow}}class-rcard-shrink class-rcard-clickable on-click="@context.set('_card.expanded', _card.expanded === false ? true : false)"{{/if}}>
+        <div class-rcard-titles class-rcard-with-sub="_card.subtitle || _card.subtitleP" class-rcard-with-tabs="_card.tabs" {{#if _card.expandable && !_card.arrow && _card.expandLinked}}class-rcard-shrink class-rcard-clickable on-click="@context.set('_card.expanded', _card.expanded === false ? true : false)"{{/if}}>
           {{#if _card.title}}<div class-rcard-title>{{_card.title}}</div>
           {{else}}<div class-rcard-title {{#if _card.titleA}}{{>_card.titleA}}{{/if}}>{{>_card.titleP}}</div>{{/if}}
           {{#if _card.subtitle}}<div class-rcard-subtitle>{{_card.subtitle}}</div>
@@ -22,13 +22,13 @@
       </div>
     {{/if}}
     {{#if !_card.expandable || _card.expanded !== false}}
-      {{#if _card.tabs && _card.section}}<div class-rcard-tab-wrapper {{#if _card.expandable}}expand-in-out{{/if}}>{{>tab-body}}</div>{{/if}}
+      {{#if _card.tabs && _card.section}}<div class-rcard-tab-wrapper {{#if _card.expandable}}expand-in-out{{/if}}>{{>tab-bodies}}</div>{{/if}}
       {{#if _card.image}}<div class-rcard-image {{#if _card.expandable}}expand-in-out{{/if}}><img src="{{_card.image}}" alt="{{_card.alt}}"/></div>
       {{elseif _card.imageP}}<div class-rcard-image {{#if _card.expandable}}expand-in-out{{/if}} {{#if _card.imageA}}{{>_card.imageA}}{{/if}}>{{>_card.imageP}}</div>{{/if}}
       {{#if _card.contentP}}<div class-rcard-content {{#if _card.expandable}}expand-in-out{{/if}}>{{>_card.contentP}}</div>{{/if}}
       {{#if _card.tabs && !_card.section}}
       <div class-rcard-tab-wrapper {{#if _card.expandable}}expand-in-out{{/if}}>
-        {{>tab-body}}
+        {{>tab-bodies}}
         {{>tabs}}
       </div>
       {{/if}}
@@ -46,23 +46,41 @@
   <div class-rcard-tabs-window>
     <div class-rcard-tabs>
     {{#each _card.tabs}}
-      <div class-rcard-tab class-rcard-tab-selected="_card.selected === @index || (!_card.selected && !@index)" on-click="@context.set('_card.selected', @index), @context.set('_card.expanded', true), false">
+      <div class-rcard-tab class-rcard-tab-selected="_card.selected === @index || (!_card.selected && !@index)" on-click="@context.set('_card.selected', @index), _card.expandLinked && @context.set('_card.expanded', true), false">
         {{>.title}}
       </div>
     {{/each}}
+    {{#if _card.tablist}}
+      {{>_card.tablist.tab}}
+    {{/if}}
+    </div>
+  </div>
+</template>
+
+<template id="tab">
+  <div class-rcard-tab class-rcard-tab-selected="_card.selected === @index + _card.tabs.length || (!_card.selected && !@index && !_card.tabs.length)" on-click="@context.set('_card.selected', _card.tabs.length + @index), _card.expandLinked && @context.set('_card.expanded', true), false">
+    {{>.title}}
+  </div>
+</template>
+
+<template id="tab-bodies">
+  <div class-rcard-tab-window>
+    <div class-rcard-tab-contents style-left="-{{(_card.selected || 0) * 100}}%">
+    {{#each _card.tabs}}
+    <div class-rcard-tab-content class-rcard-content-selected="_card.selected === @index || (!_card.selected && !@index)">
+      {{>.content}}
+    </div>
+    {{/each}}
+    {{#if _card.tablist}}
+      {{>_card.tablist.body}}
+    {{/if}}
     </div>
   </div>
 </template>
 
 <template id="tab-body">
-  <div class-rcard-tab-window>
-    <div class-rcard-tab-contents style-left="-{{(_card.selected || 0) * 100}}%">
-    {{#each _card.tabs}}
-      <div class-rcard-tab-content class-rcard-content-selected="_card.selected === @index || (!_card.selected && !@index)">
-        {{>.content}}
-      </div>
-    {{/each}}
-    </div>
+  <div class-rcard-tab-content class-rcard-content-selected="_card.selected === @index + _card.tabs.length || (!_card.selected && !@index && !_card.tabs.length)">
+    {{>.content}}
   </div>
 </template>
 
@@ -103,6 +121,8 @@
     const tpl = h.partials.content;
     const content = [];
     h.partials.tabs = template.p.tabs;
+    h.partials['tab-bodies'] = template.p['tab-bodies'];
+    h.partials.tab = template.p.tab;
     h.partials['tab-body'] = template.p['tab-body'];
 
     tpl.forEach(n => {
@@ -165,10 +185,43 @@
           });
         }
       }
+      else if (n.e === 'tablist') {
+        const tablist = { tab: [], body: [] };
+        const items = n.m.find(a => a.n === 'items');
+        if (typeof items.f === 'string') {
+          tablist.items = items.f;
+          tablist.tab.push({ t: 4, n: 52, r: items.f, f: [] });
+          tablist.body.push({ t: 4, n: 52, r: items.f, f: [] });
+          let e = n.f.find(e => e.e === 'title') || n.m.find(a => a.n === 'title');
+          if (e && e.f) tablist.tab[0].f = [Object.assign({}, template.p.tab[0], { f: e.f })];
+          e = n.f.find(e => e.e === 'tab');
+          if (e && e.f) tablist.body[0].f = [Object.assign({}, template.p['tab-body'][0], { f: e.f })];
+          data.tablist = tablist;
+          if (!data.tabs) data.tabs = [];
+        }
+      }
       else content.push(n);
     });
 
+    if (data.tablist) {
+      data._observer = h.observe(`_card.tabs.length ${data.tablist.items}.length _card.selected`, () => {
+        const len = data.tabs.length + h.get(`${data.tablist.items}.length`);
+        if (h.get('_card.selected') >= len) {
+          setTimeout(() => h.set('_card.selected', len - 1));
+        }
+      }, { init: false })
+    }
+
     data.contentP = content;
+
+    h.select = idx => h.set('_card.selected', idx);
+
+    return {
+      unrender() {
+        console.log('unrender!');
+        if (data._observer) data._observer.cancel();
+      }
+    };
   }
 
   const keys = ['title', 'subtitle', 'image', 'section', 'flat', 'popout', 'margin', 'expandable'];
@@ -183,8 +236,17 @@
     if ('expanded' in h.attributes && h._link !== h.attributes.expanded) {
       if (h._link && typeof h._link === 'string') h.unlink(h._link);
       h._link = h.attributes.expanded;
-      if (h._link && typeof h._link === 'string') h.link(h._link, '_card.expanded');
-      else h.set('_card.expanded', h.attributes.expanded);
+      if (h._link && typeof h._link === 'string') {
+        h.link(h._link, '_card.expanded');
+        h.set('_card.expandLinked', true);
+      } else {
+        h.set({
+          '_card.expanded': h.attributes.expanded,
+          '_card.expandLinked': false
+        });
+      }
+    } else {
+      h.set('_card.expandLinked', true);
     }
   }
 
