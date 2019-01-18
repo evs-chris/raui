@@ -72,6 +72,8 @@ export function grid(node, options) {
         node.className = node.className.replace(regexps[k], '').trim();
       }
 
+      if (!match) return;
+
       if (!regexps[match].test(node.className)) node.className += ` ${match}`;
 
       if (opts.value) ctx.set(opts.value, breaks[match].value);
