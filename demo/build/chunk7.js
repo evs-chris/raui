@@ -18,6 +18,8 @@ System.register(['./chunk2.js'], function (exports, module) {
           overflowY: node.style.overflowY
         };
 
+        if (node.style.position === '' || node.style.position === 'static') { node.style.position = 'relative'; }
+
         var obj = document.createElement('object');
         obj.setAttribute('style', 'display: block; position: absolute; top: 0; left: 0; height: 100%; width: 100%; overflow: hidden; pointer-events: none; z-index: -1;');
         obj.type = 'text/html';
@@ -33,6 +35,7 @@ System.register(['./chunk2.js'], function (exports, module) {
 
         obj.onload = function () {
           obj.contentDocument.defaultView.addEventListener('resize', refresh);
+          refresh();
         };
         
         if (/Trident/.test(navigator.userAgent)) {
@@ -123,6 +126,8 @@ System.register(['./chunk2.js'], function (exports, module) {
               }
               node.className = node.className.replace(regexps[k], '').trim();
             }
+
+            if (!match) { return; }
 
             if (!regexps[match].test(node.className)) { node.className += " " + match; }
 
