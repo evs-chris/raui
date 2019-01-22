@@ -1,13 +1,16 @@
 <div class-rcard-wrapper {{>extra-attributes}} class-rcard-margin="_card.margin" class-rcard-wrapper-popout="_card.popout">
   <div class-rcard class-rcard-no-pad="_card.noPad" class-rcard-section="_card.section" class-rcard-flat="'flat' in _card ? _card.flat : @style.card.flat" class-rcard-deep="'flat' in _card ? !_card.flat : !@style.card.flat" class-rcard-popout="_card.popout" class-rcard-collapsed="_card.expandable && _card.expanded === false" class-rcard-expandable="_card.expandable" class-rcard-arrow="_card.arrow" class-rcard-no-fill="_card.noFill">
     {{#if _card.titleP || _card.subtitleP || _card.avatarP || _card.title || _card.subtitle || (_card.avatar && typeof _card.avatar === 'string' || (_card.tabs && _card.section))}}
-      <div class-rcard-header {{#if _card.expandable && _card.arrow && _card.expandLinked}}class-rcard-clickable on-click="@context.set('_card.expanded', _card.expanded === false ? true : false)"{{/if}}>
+      <div class-rcard-header {{#if _card.expandable && _card.arrow}}class-rcard-clickable on-click="@context.set('_card.expanded', _card.expanded === false ? true : false)"{{/if}}>
+        {{#if _card.arrow && _card.expandable}}
+          <div class-rcard-expand class-rcard-expanded="_card.expanded !== false"><svg><path d="M16.59 8.59L12 13.17 7.41 8.59 6 10l6 6 6-6z"></path></svg></div>
+        {{/if}}
         <div class-rcard-title-pad>&nbsp;</div>
         {{#if _card.avatar && typeof _card.avatar === 'string'}}<div class-rcard-avatar class-rcard-avatar-round="_card.round">
           <div class-rcard-avatar-inner style-background-image="url({{_card.avatar}})" />
         </div>
         {{elseif _card.avatarP}}<div class-rcard-avatar {{#if _card.avatarA}}{{>_card.avatarA}}{{/if}}>{{>_card.avatarP}}</div>{{/if}}
-        <div class-rcard-titles class-rcard-with-sub="_card.subtitle || _card.subtitleP" class-rcard-with-tabs="_card.tabs" {{#if _card.expandable && !_card.arrow && _card.expandLinked}}class-rcard-shrink class-rcard-clickable on-click="@context.set('_card.expanded', _card.expanded === false ? true : false)"{{/if}}>
+        <div class-rcard-titles class-rcard-with-sub="_card.subtitle || _card.subtitleP" class-rcard-with-tabs="_card.tabs" {{#if _card.expandable && !_card.arrow }}class-rcard-shrink class-rcard-clickable on-click="@context.set('_card.expanded', _card.expanded === false ? true : false)"{{/if}}>
           {{#if _card.title}}<div class-rcard-title>{{_card.title}}</div>
           {{else}}<div class-rcard-title {{#if _card.titleA}}{{>_card.titleA}}{{/if}}>{{>_card.titleP}}</div>{{/if}}
           {{#if _card.subtitle}}<div class-rcard-subtitle>{{_card.subtitle}}</div>
@@ -15,9 +18,6 @@
         </div>
         {{#if _card.tabs && _card.section}}
           {{>tabs}}
-        {{/if}}
-        {{#if _card.arrow && _card.expandable}}
-          <div class-rcard-expand class-rcard-expanded="_card.expanded !== false"><svg><path d="M16.59 8.59L12 13.17 7.41 8.59 6 10l6 6 6-6z"></path></svg></div>
         {{/if}}
       </div>
     {{/if}}
@@ -46,7 +46,7 @@
   <div class-rcard-tabs-window>
     <div class-rcard-tabs>
     {{#each _card.tabs}}
-      <div class-rcard-tab class-rcard-tab-selected="_card.selected === @index || (!_card.selected && !@index)" on-click="@context.set('_card.selected', @index), _card.expandLinked && @context.set('_card.expanded', true), false">
+      <div class-rcard-tab class-rcard-tab-selected="_card.selected === @index || (!_card.selected && !@index)" on-click="@context.set('_card.selected', @index), @context.set('_card.expanded', true), false">
         {{>.title}}
       </div>
     {{/each}}
@@ -58,7 +58,7 @@
 </template>
 
 <template id="tab">
-  <div class-rcard-tab class-rcard-tab-selected="_card.selected === @index + _card.tabs.length || (!_card.selected && !@index && !_card.tabs.length)" on-click="@context.set('_card.selected', _card.tabs.length + @index), _card.expandLinked && @context.set('_card.expanded', true), false">
+  <div class-rcard-tab class-rcard-tab-selected="_card.selected === @index + _card.tabs.length || (!_card.selected && !@index && !_card.tabs.length)" on-click="@context.set('_card.selected', _card.tabs.length + @index), @context.set('_card.expanded', true), false">
     {{>.title}}
   </div>
 </template>
@@ -220,6 +220,7 @@
       unrender() {
         console.log('unrender!');
         if (data._observer) data._observer.cancel();
+        if (h.get('_card.expandLinked')) h.unlink('_card.expandLinked');
       }
     };
   }
@@ -281,6 +282,7 @@
     height: auto;
   }
   .rcard {
+    position: relative;
     display: block;
     color: ${primary.fg || '#222'};
     background-color: ${primary.bg || '#fff'};
@@ -329,12 +331,14 @@
   }
 
   .rcard-header {
+    position: relative;
     display: flex;
     align-items: center;
     transition-duration: ${header.duration || '0.2s'};
     transition-timing-function: ${header.easing || 'ease-in-out'};
     transition-property: color, background-color, padding, height;
     min-height: 4em;
+    flex-wrap: wrap;
   }
 
   .rcard-section > .rcard-header {
@@ -449,18 +453,23 @@
     font-size: 1.2em;
   }
 
-  .rcard-expandable > .rcard-header {
+  .rcard-expandable > .rcard-header:first-of-type {
     transition-property: color, background-color, height;
+    padding-right: 2em;
   }
   .rcard-clickable {
     cursor: pointer;
   }
-  .rcard-expand {
-    flex-shrink: 1;
+  .rcard-header > .rcard-expand {
+    position: absolute;
     height: 24px;
-    transition: transform 0.2s ease-in-out;
-    margin-right: 1em;
-    margin-top: 1em;
+    top: 1.7em;
+    right: 0.5em;
+    transition: transform 0.2s ease-in-out, top 0.2s ease-in-out;
+    z-index: 1;
+  }
+  .rcard-section > .rcard-header .rcard-expand {
+    top: 0.8em;
   }
   .rcard-expand.rcard-expanded {
     transform: rotate(180deg);
@@ -473,9 +482,6 @@
   .rcard-expand svg path {
     fill: ${header.fg || '#222'};
     stroke: ${header.fg || '#222'};
-  }
-  .rcard-section > .rcard-header .rcard-expand {
-    margin-top: 0;
   }
   .rcard-section > .rcard-header .rcard-expand svg path {
     fill: ${header.bg || '#fff'};
@@ -527,20 +533,17 @@
     border-top: 0.15em solid transparent;
     margin-top: -0.15em;
     white-space: nowrap;
+    border-top: 0.15em solid ${primary.bga || '#f4f4f4'};
   }
   .rcard-tab:hover {
     opacity: 1;
   }
 
   .rcard-tab.rcard-tab-selected {
-    border-top: 0.15em solid ${primary.fga || '#07e;'};
+    border-top: 0.15em solid ${primary.fga || '#07e'};
     opacity: 1;
     font-weight: 500;
     cursor: default;
-  }
-
-  .rcard-tab-wrapper {
-    margin-right: 1em;
   }
 
   .rcard-section > .rcard-header .rcard-tabs {
@@ -552,7 +555,6 @@
     border-color: ${header.gradient ? (primary.bc || '#ccc') : (primary.bg || '#fff')};
     border-style: solid;
     border-width: 1px 1px 0 0;
-    background-color: transparent;
     color: ${header.gradient ? (primary.fga || '#07e') : (header.bg || '#fff')};
   }
   .rcard-section > .rcard-header .rcard-tab:first-of-type {
