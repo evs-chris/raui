@@ -1,6 +1,6 @@
 <div
   class-rtoggle
-  {{yield extra-attributes}}
+  {{>extra-attributes}}
   class-rtoggle-disabled="__toggle.disabled"
   class-rtoggle-true="__toggle._value"
   class-rtoggle-false="__toggle._value === false || (!__toggle.nullable && (__toggle._value === null || __toggle._value === undefined))"
@@ -21,7 +21,12 @@
     (handle, attrs) => {
       const obj = {
         observers: [],
-        update(attrs) { handle.set('@local', attrs, { deep: true }); },
+        update(attrs) {
+          handle.set('@local', attrs, { deep: true });
+          if ('value' in attrs && typeof attrs.value !== 'string') {
+            change(attrs.value);
+          }
+        },
         teardown() {
           obj.observers.forEach( o => o.cancel() );
         }
@@ -30,26 +35,38 @@
       handle.aliasLocal('__toggle');
 
       let lock = false;
-      if (attrs.value) {
+      if (attrs.value && typeof attrs.value === 'string') {
+        handle.set('@local._value', handle.get(attrs.value));
         obj.observers.push(handle.observe(attrs.value, v => {
           if (!lock) {
             lock = true;
-            handle.set('@local._value', v);
+            change(v);
             lock = false;
           }
-        }));
+        }, { init: false }));
         obj.observers.push(handle.observe('@local._value', v => {
           if (!lock) {
             lock = true;
             handle.set(handle.attributes.value, v);
             lock = false;
           }
-        }));
-      }
+        }, { init: false }));
+      } else handle.set('@local._value', attrs.value);
 
       handle.set('@local', attrs, { deep: true });
 
       handle.setTemplate(template);
+      
+      function change(next) {
+        const cur = handle.get('@local._value');
+        if (cur !== next) {
+          handle.set('@local._value', next);
+          const div = handle.find('div');
+          if (div) {
+            Ractive.getContext(div).raise('change', {}, next);
+          }
+        }
+      }
 
       handle.set('@local.toggle', function () {
         const { _value, nullable } = handle.get('@local');
@@ -63,7 +80,7 @@
           value = true;
         }
 
-        handle.set('@local._value', value);
+        change(value);
 
         return false;
       });
