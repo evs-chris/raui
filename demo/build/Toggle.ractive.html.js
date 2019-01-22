@@ -10,13 +10,18 @@ System.register(['ractive', './chunk2.js'], function (exports, module) {
     }],
     execute: function () {
 
-      var template = {v:4,t:[{t:7,e:"div",m:[{t:13,n:"class",f:"rtoggle",g:1},{t:16,r:"extra-attributes"},{n:"class-rtoggle-disabled",t:13,f:[{t:2,r:"__toggle.disabled"}]},{n:"class-rtoggle-true",t:13,f:[{t:2,r:"__toggle._value"}]},{n:"class-rtoggle-false",t:13,f:[{t:2,x:{r:["__toggle.nullable","__toggle._value"],s:"_1===false||(!_0&&(_1===null||_1===undefined))"}}]},{n:"class-rtoggle-null",t:13,f:[{t:2,x:{r:["__toggle.nullable","__toggle._value"],s:"_0&&(_1===null||_1===undefined)"}}]},{t:4,f:[{n:["click"],t:70,f:{r:["__toggle"],s:"[_0.toggle()]"}}],n:51,r:"__toggle.disabled"}],f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rtoggle-rail",g:1}]}," ",{t:7,e:"div",m:[{t:13,n:"class",f:"rtoggle-nubbin",g:1}]}]}],e:{"_1===false||(!_0&&(_1===null||_1===undefined))":function (_0,_1){return(_1===false||(!_0&&(_1===null||_1===undefined)));},"_0&&(_1===null||_1===undefined)":function (_0,_1){return(_0&&(_1===null||_1===undefined));},"[_0.toggle()]":function (_0){return([_0.toggle()]);}}};
+      var template = {v:4,t:[{t:7,e:"div",m:[{t:13,n:"class",f:"rtoggle",g:1},{t:8,r:"extra-attributes"},{n:"class-rtoggle-disabled",t:13,f:[{t:2,r:"__toggle.disabled"}]},{n:"class-rtoggle-true",t:13,f:[{t:2,r:"__toggle._value"}]},{n:"class-rtoggle-false",t:13,f:[{t:2,x:{r:["__toggle.nullable","__toggle._value"],s:"_1===false||(!_0&&(_1===null||_1===undefined))"}}]},{n:"class-rtoggle-null",t:13,f:[{t:2,x:{r:["__toggle.nullable","__toggle._value"],s:"_0&&(_1===null||_1===undefined)"}}]},{t:4,f:[{n:["click"],t:70,f:{r:["__toggle"],s:"[_0.toggle()]"}}],n:51,r:"__toggle.disabled"}],f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rtoggle-rail",g:1}]}," ",{t:7,e:"div",m:[{t:13,n:"class",f:"rtoggle-nubbin",g:1}]}]}],e:{"_1===false||(!_0&&(_1===null||_1===undefined))":function (_0,_1){return(_1===false||(!_0&&(_1===null||_1===undefined)));},"_0&&(_1===null||_1===undefined)":function (_0,_1){return(_0&&(_1===null||_1===undefined));},"[_0.toggle()]":function (_0){return([_0.toggle()]);}}};
 
       var Toggle = Ractive$1.macro(
         function (handle, attrs) {
           var obj = {
             observers: [],
-            update: function update(attrs) { handle.set('@local', attrs, { deep: true }); },
+            update: function update(attrs) {
+              handle.set('@local', attrs, { deep: true });
+              if ('value' in attrs && typeof attrs.value !== 'string') {
+                change(attrs.value);
+              }
+            },
             teardown: function teardown() {
               obj.observers.forEach( function (o) { return o.cancel(); } );
             }
@@ -25,26 +30,38 @@ System.register(['ractive', './chunk2.js'], function (exports, module) {
           handle.aliasLocal('__toggle');
 
           var lock = false;
-          if (attrs.value) {
+          if (attrs.value && typeof attrs.value === 'string') {
+            handle.set('@local._value', handle.get(attrs.value));
             obj.observers.push(handle.observe(attrs.value, function (v) {
               if (!lock) {
                 lock = true;
-                handle.set('@local._value', v);
+                change(v);
                 lock = false;
               }
-            }));
+            }, { init: false }));
             obj.observers.push(handle.observe('@local._value', function (v) {
               if (!lock) {
                 lock = true;
                 handle.set(handle.attributes.value, v);
                 lock = false;
               }
-            }));
-          }
+            }, { init: false }));
+          } else { handle.set('@local._value', attrs.value); }
 
           handle.set('@local', attrs, { deep: true });
 
           handle.setTemplate(template);
+          
+          function change(next) {
+            var cur = handle.get('@local._value');
+            if (cur !== next) {
+              handle.set('@local._value', next);
+              var div = handle.find('div');
+              if (div) {
+                Ractive$1.getContext(div).raise('change', {}, next);
+              }
+            }
+          }
 
           handle.set('@local.toggle', function () {
             var ref = handle.get('@local');
@@ -60,7 +77,7 @@ System.register(['ractive', './chunk2.js'], function (exports, module) {
               value = true;
             }
 
-            handle.set('@local._value', value);
+            change(value);
 
             return false;
           });
