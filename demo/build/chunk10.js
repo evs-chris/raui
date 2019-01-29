@@ -148,6 +148,13 @@ System.register(['./chunk2.js', 'ractive', './chunk5.js'], function (exports, mo
             }
 
             if (fit) {
+              var el = parent;
+
+              if (this.get('offsets')) {
+                var i = this.get('offsets');
+                while (i--) { el = el.offsetParent; }
+              }
+
               var owidth = parent.scrollWidth;
               var oheight = parent.scrollHeight;
 
@@ -203,7 +210,7 @@ System.register(['./chunk2.js', 'ractive', './chunk5.js'], function (exports, mo
       }(Ractive$1));
 
       Ractive$1.extendWith(Popover, {
-        attributes: ['popped', 'tail', 'where', 'align', 'top', 'left', 'fit', 'clickClose', 'noClickout', 'gap'],
+        attributes: ['popped', 'tail', 'where', 'align', 'top', 'left', 'fit', 'clickClose', 'noClickout', 'gap', 'offsets'],
         use: [plugin(), clickout()],
         template: {v:4,t:[{t:4,f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rpop-wrapper",g:1},{n:"class-rpop-with-tail",t:13,f:[{t:2,r:"position.tail"}]},{n:"class",f:["rpop-",{t:2,x:{r:["where"],s:"_0||\"below\""}}," rpop-align-",{t:2,x:{r:["align"],s:"_0||\"middle\""}}],t:13},{t:4,f:[{n:"style-top",f:[{t:2,r:"position.popTop"},"px"],t:13},{n:"style-left",f:[{t:2,r:"position.popLeft"},"px"],t:13}],n:50,r:"position"},{t:4,f:[{t:4,f:[{n:"style-top",f:[{t:2,r:"top"}],t:13}],n:50,r:"top"},{t:4,f:[{n:"style-left",f:[{t:2,r:"left"}],t:13}],n:50,r:"left"}],n:51,l:1},{n:"pop",t:72,f:{r:["where"],s:"[{dir:_0||\"below\"}]"},v:"t2"},{n:"cleanup",t:71},{t:4,f:[{n:["click"],t:70,f:{r:["@this"],s:"[_0.set(\"popped\",false)]"}}],n:50,r:"clickClose"},{t:4,f:[{n:["click"],t:70,f:{r:[],s:"[false,false]"}}],n:51,l:1},{t:4,f:[{n:["clickout"],t:70,f:{r:["@this"],s:"[_0.set(\"popped\",false)]"}}],n:51,r:"noClickout"},{t:16,r:"extra-attributes"}],f:[{t:4,f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rpop-tail",g:1},{t:4,f:[{n:"style-top",f:[{t:2,x:{r:["position.tailTop","position.vert"],s:"_0+(_1?1:0)"}},"px"],t:13}],n:50,r:"position.tailTop"},{t:4,f:[{n:"style-bottom",f:[{t:2,x:{r:["position.tailBottom","position.vert"],s:"_0+(_1?1:0)"}},"px"],t:13}],n:50,r:"position.tailBottom"},{t:4,f:[{n:"style-left",f:[{t:2,x:{r:["position.tailLeft","position.vert"],s:"_0+(_1?0:1)"}},"px"],t:13}],n:50,r:"position.tailLeft"},{t:4,f:[{n:"style-right",f:[{t:2,x:{r:["position.tailRight","position.vert"],s:"_0+(_1?0:1)"}},"px"],t:13}],n:50,r:"position.tailRight"}]}," ",{t:7,e:"div",m:[{t:13,n:"class",f:"rpop-tail-outer",g:1},{t:4,f:[{n:"style-top",f:[{t:2,x:{r:["position.tailTop"],s:"_0-2"}},"px"],t:13}],n:50,r:"position.tailTop"},{t:4,f:[{n:"style-bottom",f:[{t:2,x:{r:["position.tailBottom"],s:"_0-2"}},"px"],t:13}],n:50,r:"position.tailBottom"},{t:4,f:[{n:"style-left",f:[{t:2,x:{r:["position.tailLeft"],s:"_0-2"}},"px"],t:13}],n:50,r:"position.tailLeft"},{t:4,f:[{n:"style-right",f:[{t:2,x:{r:["position.tailRight"],s:"_0-2"}},"px"],t:13}],n:50,r:"position.tailRight"}]}],n:50,r:"~/tail"}," ",{t:7,e:"div",m:[{t:13,n:"class",f:"rpop",g:1}],f:[{t:16,r:"content"}]}]}],n:50,r:"_popped"}],e:{"_0||\"below\"":function (_0){return(_0||"below");},"_0||\"middle\"":function (_0){return(_0||"middle");},"[{dir:_0||\"below\"}]":function (_0){return([{dir:_0||"below"}]);},"[_0.set(\"popped\",false)]":function (_0){return([_0.set("popped",false)]);},"[false,false]":function (){return([false,false]);},"_0+(_1?1:0)":function (_0,_1){return(_0+(_1?1:0));},"_0+(_1?0:1)":function (_0,_1){return(_0+(_1?0:1));},"_0-2":function (_0){return(_0-2);}}},
         css: function(data) { return [(function(data) {
