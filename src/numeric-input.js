@@ -19,6 +19,7 @@ export function numeric(options = {}) {
     const o = Object.assign({}, options, opts);
     const ctx = this.getContext(node);
     const cleanup = [];
+    let lock = false;
 
     if (typeof o.bind !== 'string') delete o.bind;
 
@@ -27,6 +28,8 @@ export function numeric(options = {}) {
     node.className += ' rn-numeric';
 
     function update() {
+      if (lock) return;
+
       const cur = node.value;
       const num = [cur.substr(0, node.selectionStart).replace(notNumRE, '').length, cur.substr(0, node.selectionEnd).replace(notNumRE, '').length];
       const dir = node.selectionDirection;
@@ -47,7 +50,11 @@ export function numeric(options = {}) {
         next = next.substr(0, o.whole);
       }
 
-      if (o.bind) ctx.set(o.bind, next.replace(endsWithDecRE, ''));
+      if (o.bind) {
+        lock = true;
+        ctx.set(o.bind, next.replace(endsWithDecRE, ''));
+        lock = false;
+      }
 
       next = `${o.prefix || ''}${number(next)}${o.suffix || ''}`;
 
@@ -75,13 +82,50 @@ export function numeric(options = {}) {
     cleanup.push(ctx.listen('blur', () => {
       const cur = node.value.replace(notNumRE, '');
       node.value = cur.replace(endsWithDecRE, '');
-      if (o.bind) ctx.set(o.bind, node.value);
+      if (o.bind) {
+        lock = true;
+        ctx.set(o.bind, node.value);
+        lock = false;
+      }
+      node.setSelectionRange(0, 0);
+      update();
+    }).cancel);
+
+    cleanup.push(ctx.listen('focus', () => {
+      if (node.selectionStart === 0 && node.selectionEnd === 0) {
+        setTimeout(() => {
+          const cur = node.value;
+          let pos;
+          if (!numRE.test(cur)) {
+            pos = (o.prefix || '').length;
+            node.setSelectionRange(pos, pos);
+          } else if (decimalRE.test(cur)) {
+            pos = cur.indexOf('.');
+            node.setSelectionRange(pos, pos);
+          } else if (numRE.test(cur)) {
+            let i = cur.length;
+            while (i--) {
+              if (numRE.test(cur[i])) {
+                pos = i;
+                node.setSelectionRange(i, i);
+                break;
+              }
+            }
+          } else {
+            pos = cur.length - (o.suffix || '').length;
+            node.setSelectionRange(pos, pos);
+          }
+        });
+      }
     }).cancel);
 
     if (o.bind) {
-      const cur = ctx.get(o.bind);
-      node.value = cur;
-      update();
+      ctx.observe(o.bind, v => {
+        if (lock) return;
+        const cur = ctx.get(o.bind);
+        node.value = cur;
+        update();
+      });
     }
 
     return {
