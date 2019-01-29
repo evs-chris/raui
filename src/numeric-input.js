@@ -4,6 +4,7 @@ const intRE = /(\d)(?=(\d{3})+$)/g;
 const decRE = /(\d)(?=(\d{3})+\.)/g;
 const decimalRE = /\./g;
 const endsWithDecRE = /\.$/;
+const startsZeroRE = /^(0(?!\.))+/;
 
 // TODO: configurable decimal and separators
 
@@ -35,6 +36,14 @@ export function numeric(options = {}) {
       const dir = node.selectionDirection;
 
       let next = cur.replace(notNumRE, '');
+
+      if (startsZeroRE.test(next)) {
+        const len = next.length;
+        next = next.replace(startsZeroRE, '');
+        num[0] -= len - next.length;
+        num[1] -= len - next.length;
+      }
+
       const dec = next.indexOf('.');
       if (~dec) {
         let preDec = next.substr(0, dec);
@@ -106,8 +115,8 @@ export function numeric(options = {}) {
             let i = cur.length;
             while (i--) {
               if (numRE.test(cur[i])) {
-                pos = i;
-                node.setSelectionRange(i, i);
+                pos = i + 1;
+                node.setSelectionRange(pos, pos);
                 break;
               }
             }
