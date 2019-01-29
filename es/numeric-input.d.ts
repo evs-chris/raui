@@ -1,0 +1,1 @@
+export { default, numeric, plugin, DecoratorOpts, PluginOpts } from '../src/numeric-input';
