@@ -129,6 +129,12 @@
 
         if (fit) {
           let el = parent;
+
+          if (this.get('offsets')) {
+            let i = this.get('offsets');
+            while (i--) el = el.offsetParent;
+          }
+
           let owidth = parent.scrollWidth;
           let oheight = parent.scrollHeight;
 
@@ -182,7 +188,7 @@
   }
 
   Ractive.extendWith(Popover, {
-    attributes: ['popped', 'tail', 'where', 'align', 'top', 'left', 'fit', 'clickClose', 'noClickout', 'gap'],
+    attributes: ['popped', 'tail', 'where', 'align', 'top', 'left', 'fit', 'clickClose', 'noClickout', 'gap', 'offsets'],
     use: [pop(), clickout()],
     template: $TEMPLATE,
     css: $CSS,

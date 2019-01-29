@@ -1,6 +1,6 @@
 <span class-rautocomplete class-field-wrapper on-pop="@context.set('rac.pop', $1)" on-focusout="@context.set('rac.popped', false), rac.updateDisplay(@event)">
   <input {{>extra-attributes}} on-dblclick="rac.pop.show(@node)" on-focus="rac.stash()" on-input="rac.input(@event)" on-keydown="rac.key(@event)" twoway=false value="{{rac.display}}" />
-  <rac-pop class-rac-pop on-init="@context.raise('pop', {}, $1)" bind-popped="rac.popped" where=below align=end style-padding=0 gap=[[2]]>
+  <rac-pop class-rac-pop on-init="@context.raise('pop', {}, $1)" bind-popped="rac.popped" where=below align=end style-padding=0 gap=[[2]] bind-offsets="rac.offsets" bind-fit="rac.fit">
     <div class-rac-list tabindex=-1>
       {{#await rac.list}}<div class-rac-item class-rac-invalid>Loading...</div>{{then items}}
       {{#each items}}<div tabindex=-1 class-rac-item class-rac-selected="rac.value === ." class-rac-hover="rac.selected === @index" on-click="@context.set('rac.value', .), console.log(rac.value)" on-mouseover="@context.set('rac.selected', @index)">{{rac._member(.)}}</div>{{/each}}
@@ -156,6 +156,12 @@
       if (attrs.value) h.link(attrs.value, 'rac.value');
       if (attrs.selected) h.link(attrs.selected, 'rac.selected');
       if ('member' in attrs) h.set('rac.member', attrs.member);
+      if ('offsets' in attrs) {
+        h.set('rac.offsets', attrs.offsets);
+        h.set('rac.fit', true);
+      } else {
+        h.set('rac.fit', false);
+      }
       h.set('rac.limit', attrs['limit-set']);
       if (h.get('rac.limit') && h.get('input')) {
         const el = h.get('input');
@@ -177,7 +183,7 @@
 
     return { teardown, update, render() { root = h.find('span'); } };
   }, {
-    attributes: ['items', 'selected', 'display', 'value', 'member', 'limit-set'],
+    attributes: ['items', 'selected', 'display', 'value', 'member', 'limit-set', 'offsets'],
     css: $CSS,
     cssId: 'rautocomplete',
     noCssTransform: true
