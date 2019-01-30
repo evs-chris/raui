@@ -1,4 +1,4 @@
-{{#if _popped}}
+{{#if __popped}}
 <div
   class-rpop-wrapper
   class-rpop-with-tail="position.tail"
@@ -33,13 +33,24 @@
 </div>
 {{/if}}
 
+<template id="modal">
+  {{#if contents.length}}{{#with contents[0]}}
+  <div fade-in fade-out="{ delay: 200 }" class="rpop rpop-modal" {{#unless .noClickout}}on-click=".done(), false"{{/unless}}>
+    <div pop-in="{ delay: 200 }" pop-out class-rpop on-click=".clickClose ? .done() : false, false" {{> .attrs .context}}>{{> .content .context}}</div>
+  </div>
+  {{/with}}{{/if}}
+</template>
+
 <script>
   import Ractive from 'ractive';
   import pop from './transition-pop';
   import clickout from './event-clickout';
+  import fade from './transition-fade';
+
+  const template = $TEMPLATE;
 
   function noop() {}
-  let source, tailSource;
+  let source, tailSource, mobilePopped, mobilePop;
 
   export class Popover extends Ractive {
     constructor(opts) { super(opts); }
@@ -189,8 +200,8 @@
 
   Ractive.extendWith(Popover, {
     attributes: ['popped', 'tail', 'where', 'align', 'top', 'left', 'fit', 'clickClose', 'noClickout', 'gap', 'offsets'],
-    use: [pop(), clickout()],
-    template: $TEMPLATE,
+    use: [pop(), clickout(), fade()],
+    template,
     css: $CSS,
     cssId: 'rpop',
     noCssTransform: true,
@@ -205,6 +216,31 @@
         }, 100);
       },
       _popped: {
+        handler(v) {
+          if (v) {
+            const mobile = this.get('@style.raui.pop.mobile');
+            if (mobile && window.matchMedia(`(max-width: ${mobile})`).matches) {
+              if (!mobilePop) {
+                mobilePop = new MobilePop({ target: document.body, append: true });
+                mobilePop.observe('contents', v => {
+                  mobilePopped = (v || []).length > 0;
+                });
+              }
+              mobilePop.unshift('contents', { content: this.partials.content, context: this.getContext().getParent(true), attrs: this.partials['extra-attributes'] || [], clickClose: this.get('clickClose'), noClickout: this.get('noClickout'), done: () => { this.set('popped', false); } });
+            } else {
+              this.set('__popped', true);
+            }
+          } else {
+            if (mobilePopped) {
+              mobilePop.shift('contents');
+            } else {
+              this.set('__popped', false);
+            }
+          }
+        },
+        defer: true
+      },
+      __popped: {
         handler(v) {
           if (v) {
             let el = this.find('div');
@@ -334,6 +370,18 @@
     };
   }
 
+  class MobilePop extends Ractive {
+    constructor(opts) { super(opts); }
+  }
+
+  Ractive.extendWith(MobilePop, {
+    template: { v: template.v, t: template.p.modal },
+    data() {
+      return { contents: [] };
+    },
+    use: [pop(), fade()]
+  })
+
   export default function plugin(options = {}) {
     return function({ instance }) {
       instance.components[options.name || 'pop'] = Popover;
@@ -381,6 +429,21 @@
     color: ${primary.fg || '#222'};
     padding: 0.5em;
     z-index: 2;
+  }
+
+  .rpop-modal {
+    position: fixed;
+    display: flex;
+    z-index: 10;
+    background-color: rgba(0, 0, 0, 0.2);
+    align-items: center;
+    justify-content: center;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 1em;
+    overflow: auto;
   }
 
   .rpop-tail, .rpop-tail-outer {
