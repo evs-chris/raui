@@ -1,6 +1,7 @@
 <span class-rautocomplete class-field-wrapper on-pop="@context.set('rac.pop', $1)">
   <input {{>extra-attributes}} on-dblclick="rac.pop.show(@node)" on-focus="rac.stash()" on-input="rac.input(@event)" on-keydown="rac.key(@event)" twoway=false value="{{rac.display}}" />
   <rac-pop class-rac-pop on-init="@context.raise('pop', {}, $1)" bind-popped="rac.popped" where=below align=end style-padding=0 gap=[[2]] bind-offsets="rac.offsets" bind-fit="rac.fit">
+    {{#if inModal}}<input class-rac-modal on-input="rac.input(@event)" on-keydown="rac.key(@event)" twoway=false value="{{rac.display}}" as-autocompletefocus />{{/if}}
     <div class-rac-list tabindex=-1>
       {{#await rac.list}}<div class-rac-item class-rac-invalid>Loading...</div>{{then items}}
       {{#each items}}<div tabindex=-1 class-rac-item class-rac-selected="rac.value === ." class-rac-hover="rac.selected === @index" on-click="@context.set('rac.value', .)" on-mouseover="@context.set('rac.selected', @index)">{{rac._member(.)}}</div>{{/each}}
@@ -14,6 +15,7 @@
   import Ractive from 'ractive';
 
   import { Popover } from './Popover';
+  import { autofocus } from './form';
 
   const template = $TEMPLATE;
 
@@ -204,6 +206,7 @@
     return function({ instance }) {
       instance.partials[opts.name || 'autocomplete'] = Autocomplete;
       instance.components['rac-pop'] = Popover;
+      instance.decorators['autocompletefocus'] = autofocus;
     }
   }
 
@@ -253,5 +256,10 @@
   
   .rac-invalid {
     cursor: not-allowed;
+  }
+  
+  input.rac-modal {
+    width: 100%;
+    box-sizing: border-box;
   }`;
 </script>
