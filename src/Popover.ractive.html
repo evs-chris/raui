@@ -36,7 +36,7 @@
 <template id="modal">
   {{#if contents.length}}{{#with contents[0]}}
   <div fade-in fade-out="{ delay: 200 }" class="rpop rpop-modal" {{#unless .noClickout}}on-click=".done(), false"{{/unless}}>
-    <div pop-in="{ delay: 200 }" pop-out class-rpop on-click=".clickClose ? .done() : false, false" {{> .attrs .context}}>{{> .content .context}}</div>
+    <div pop-in="{ delay: 200 }" pop-out class-rpop on-click=".clickClose ? .done() : false, false" {{> .attrs .context}}>{{> .content .context, true as inModal}}</div>
   </div>
   {{/with}}{{/if}}
 </template>
