@@ -1,4 +1,4 @@
-System.register(['./chunk3.js', './chunk4.js', './chunk6.js', './chunk2.js', './chunk7.js', './Hello.ractive.html.js', 'ractive', './chunk11.js', './chunk12.js'], function (exports, module) {
+System.register(['./chunk3.js', './chunk4.js', './chunk6.js', './chunk2.js', './chunk7.js', './Hello.ractive.html.js', 'ractive', './chunk12.js', './chunk13.js'], function (exports, module) {
   'use strict';
   var Shell, AppBar, Menu, Host, globalRegister, style, sized, Hello, Ractive$1, scrolled, marked;
   return {
@@ -497,6 +497,7 @@ System.register(['./chunk3.js', './chunk4.js', './chunk6.js', './chunk2.js', './
         var ctx = this.getContext(node);
 
         var isField, isCheck, isRadio, isArea, isSelect, isFile, isButton, isPlain, isInput;
+        var change;
 
         function invalidate() {
           var val = setup().split(/\s+/).filter(function (c) { return !!c; });
@@ -507,8 +508,19 @@ System.register(['./chunk3.js', './chunk4.js', './chunk6.js', './chunk2.js', './
             isField = true;
           }
 
-          isCheck = !!node.querySelector('input[type=checkbox]');
+          isCheck = node.querySelector('input[type=checkbox]');
           if (isCheck && !~val.indexOf('check')) { val.push('check'); }
+          if (isCheck && isCheck.checked && !~val.indexOf('checked')) { val.push('checked'); } 
+          if (!isCheck && change) {
+            change.cancel();
+            change = 0;
+          } else if (isCheck) {
+            change = this.getContext(isCheck).listen('change', function () {
+              var checked = isCheck.checked;
+              if (checked && !~node.className.indexOf('checked')) { node.className += ' checked'; }
+              else if (!checked && ~node.className.indexOf('checked')) { node.className = node.className.replace(/\bchecked\b/g, '').replace(/ +/g, ' ').trim(); }
+            });
+          }
 
           isRadio = !!node.querySelector('input[type=radio]');
           if (isRadio && !~val.indexOf('radio')) { val.push('radio'); }
@@ -539,7 +551,7 @@ System.register(['./chunk3.js', './chunk4.js', './chunk6.js', './chunk2.js', './
           var cls = node.className;
 
           if (!isField) { cls = cls.replace(/\bfield\b/g, '').trim(); }
-          if (!isCheck) { cls = cls.replace(/\bcheck\b/g, '').trim(); }
+          if (!isCheck) { cls = cls.replace(/\bcheck(ed)?\b/g, '').trim(); }
           if (!isRadio) { cls = cls.replace(/\bradio\b/g, '').trim(); }
           if (!isArea) { cls = cls.replace(/\btextarea\b/g, '').trim(); }
           if (!isSelect) { cls = cls.replace(/\bselect\b/g, '').trim(); }
@@ -555,17 +567,18 @@ System.register(['./chunk3.js', './chunk4.js', './chunk6.js', './chunk2.js', './
         var focus = ctx.listen('focusin', focused);
         var blur = ctx.listen('focusout', blurred);
 
-        invalidate();
+        invalidate.call(this);
 
         return {
           update: noop,
-          invalidate: invalidate,
+          invalidate: invalidate.bind(this),
           teardown: function teardown() {
             var cls = setup();
             cls = cls.replace(/\bfocus\b/g, '').trim();
 
             focus.cancel();
             blur.cancel();
+            change && change.cancel();
 
             node.className = cls;
           }

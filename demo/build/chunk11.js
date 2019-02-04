@@ -1,56 +1,34 @@
-System.register([], function (exports, module) {
+System.register(['./chunk2.js'], function (exports, module) {
   'use strict';
+  var globalRegister;
   return {
+    setters: [function (module) {
+      globalRegister = module.default;
+    }],
     execute: function () {
 
-      exports('scrolled', scrolled);
-      function scrolled(node, opts) {
-        if ( opts === void 0 ) opts = {};
-
-        var bind = typeof opts === 'string' ? opts : opts.bind;
-        if (typeof bind !== 'string') { return { teardown: function teardown() {} }; }
-
-        var allow = opts.allow || 2;
-
-        var ctx = this.getContext(node);
-
-        function watch() {
-          var str = '';
-          if (node.scrollHeight > node.clientHeight) { str += 'vscroll'; }
-          if (node.scrollWidth > node.clientWidth) { str += (str ? ' ' : '') + 'hscroll'; }
-
-          if (node.scrollTop <= allow) { str += ' top'; }
-          else if (node.scrollTop >= node.scrollHeight - node.clientHeight - allow) { str += ' bottom'; }
-          else { str += ' vmiddle'; }
-
-          if (node.scrollLeft <= allow) { str += ' left'; }
-          else if (node.scrollLeft >= node.scrollWidth - node.clientWidth - allow) { str += ' right'; }
-          else { str += ' hmiddle'; }
-
-          ctx.set(bind, str);
-        }
-
-        node.addEventListener('scroll', watch, { passive: true });
-
-        requestAnimationFrame(watch);
-
-        return {
-          refresh: watch,
-          teardown: function teardown() {
-            node.removeEventListener('scroll', watch);
-          }
+      function fade(t, params) {
+        var p = t.processParams(params, { duration: 200, easing: 'easeInOut' });
+        if (t.isIntro || p.intro) {
+          t.setStyle('opacity', 0);
+          return t.animateStyle('opacity', 1, p);
+        } else {
+          t.setStyle('opacity', 1);
+          return t.animateStyle('opacity', 0, p);
         }
       }
 
-      function plugin(options) {
-        if ( options === void 0 ) options = {};
+      function plugin(opts) {
+        if ( opts === void 0 ) opts = {};
 
         return function(ref) {
           var instance = ref.instance;
 
-          instance.decorators[options.name || 'scrolled'] = scrolled;
+          instance.transitions[opts.name || 'fade'] = fade;
         }
       }
+
+      globalRegister('fade', 'transitions', fade);
       exports('default', plugin);
 
     }

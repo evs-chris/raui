@@ -1,6 +1,6 @@
-System.register(['./chunk2.js', 'ractive', './chunk5.js'], function (exports, module) {
+System.register(['./chunk2.js', 'ractive', './chunk5.js', './chunk11.js'], function (exports, module) {
   'use strict';
-  var globalRegister, Ractive$1, clickout;
+  var globalRegister, Ractive$1, clickout, fade;
   return {
     setters: [function (module) {
       globalRegister = module.default;
@@ -8,6 +8,8 @@ System.register(['./chunk2.js', 'ractive', './chunk5.js'], function (exports, mo
       Ractive$1 = module.default;
     }, function (module) {
       clickout = module.default;
+    }, function (module) {
+      fade = module.default;
     }],
     execute: function () {
 
@@ -54,8 +56,10 @@ System.register(['./chunk2.js', 'ractive', './chunk5.js'], function (exports, mo
 
       globalRegister('pop', 'transitions', pop);
 
+      var template = {v:4,t:[{t:4,f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rpop-wrapper",g:1},{n:"class-rpop-with-tail",t:13,f:[{t:2,r:"position.tail"}]},{n:"class",f:["rpop-",{t:2,x:{r:["where"],s:"_0||\"below\""}}," rpop-align-",{t:2,x:{r:["align"],s:"_0||\"middle\""}}],t:13},{t:4,f:[{n:"style-top",f:[{t:2,r:"position.popTop"},"px"],t:13},{n:"style-left",f:[{t:2,r:"position.popLeft"},"px"],t:13}],n:50,r:"position"},{t:4,f:[{t:4,f:[{n:"style-top",f:[{t:2,r:"top"}],t:13}],n:50,r:"top"},{t:4,f:[{n:"style-left",f:[{t:2,r:"left"}],t:13}],n:50,r:"left"}],n:51,l:1},{n:"pop",t:72,f:{r:["where"],s:"[{dir:_0||\"below\"}]"},v:"t2"},{n:"cleanup",t:71},{t:4,f:[{n:["click"],t:70,f:{r:["@this"],s:"[_0.set(\"popped\",false)]"}}],n:50,r:"clickClose"},{t:4,f:[{n:["click"],t:70,f:{r:[],s:"[false,false]"}}],n:51,l:1},{t:4,f:[{n:["clickout"],t:70,f:{r:["@this"],s:"[_0.set(\"popped\",false)]"}}],n:51,r:"noClickout"},{t:16,r:"extra-attributes"}],f:[{t:4,f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rpop-tail",g:1},{t:4,f:[{n:"style-top",f:[{t:2,x:{r:["position.tailTop","position.vert"],s:"_0+(_1?1:0)"}},"px"],t:13}],n:50,r:"position.tailTop"},{t:4,f:[{n:"style-bottom",f:[{t:2,x:{r:["position.tailBottom","position.vert"],s:"_0+(_1?1:0)"}},"px"],t:13}],n:50,r:"position.tailBottom"},{t:4,f:[{n:"style-left",f:[{t:2,x:{r:["position.tailLeft","position.vert"],s:"_0+(_1?0:1)"}},"px"],t:13}],n:50,r:"position.tailLeft"},{t:4,f:[{n:"style-right",f:[{t:2,x:{r:["position.tailRight","position.vert"],s:"_0+(_1?0:1)"}},"px"],t:13}],n:50,r:"position.tailRight"}]}," ",{t:7,e:"div",m:[{t:13,n:"class",f:"rpop-tail-outer",g:1},{t:4,f:[{n:"style-top",f:[{t:2,x:{r:["position.tailTop"],s:"_0-2"}},"px"],t:13}],n:50,r:"position.tailTop"},{t:4,f:[{n:"style-bottom",f:[{t:2,x:{r:["position.tailBottom"],s:"_0-2"}},"px"],t:13}],n:50,r:"position.tailBottom"},{t:4,f:[{n:"style-left",f:[{t:2,x:{r:["position.tailLeft"],s:"_0-2"}},"px"],t:13}],n:50,r:"position.tailLeft"},{t:4,f:[{n:"style-right",f:[{t:2,x:{r:["position.tailRight"],s:"_0-2"}},"px"],t:13}],n:50,r:"position.tailRight"}]}],n:50,r:"~/tail"}," ",{t:7,e:"div",m:[{t:13,n:"class",f:"rpop",g:1}],f:[{t:16,r:"content"}]}]}],n:50,r:"__popped"}],e:{"_0||\"below\"":function (_0){return(_0||"below");},"_0||\"middle\"":function (_0){return(_0||"middle");},"[{dir:_0||\"below\"}]":function (_0){return([{dir:_0||"below"}]);},"[_0.set(\"popped\",false)]":function (_0){return([_0.set("popped",false)]);},"[false,false]":function (){return([false,false]);},"_0+(_1?1:0)":function (_0,_1){return(_0+(_1?1:0));},"_0+(_1?0:1)":function (_0,_1){return(_0+(_1?0:1));},"_0-2":function (_0){return(_0-2);},"[{delay:200}]":function (){return([{delay:200}]);},"[_0.done(),false]":function (_0){return([_0.done(),false]);},"[_0?_1.done():false,false]":function (_0,_1){return([_0?_1.done():false,false]);},"true":function (){return(true);}},p:{modal:[{t:4,f:[{t:4,f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rpop rpop-modal",g:1},{n:"fade",t:72,v:"t1"},{n:"fade",t:72,f:{r:[],s:"[{delay:200}]"},v:"t2"},{t:4,f:[{n:["click"],t:70,f:{r:["."],s:"[_0.done(),false]"}}],n:51,r:".noClickout"}],f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rpop",g:1},{n:"pop",t:72,f:{r:[],s:"[{delay:200}]"},v:"t1"},{n:"pop",t:72,v:"t2"},{n:["click"],t:70,f:{r:[".clickClose","."],s:"[_0?_1.done():false,false]"}},{t:8,r:".attrs",c:{r:".context"}}],f:[{t:8,r:".content",c:{r:".context"},z:[{n:"inModal",x:{x:{r:[],s:"true"}}}]}]}]}],n:54,r:"contents.0"}],n:50,r:"contents.length"}]}};
+
       function noop() {}
-      var source, tailSource;
+      var source, tailSource, mobilePopped, mobilePop;
 
       var Popover = (function (Ractive) {
         function Popover(opts) { Ractive.call(this, opts); }
@@ -211,15 +215,15 @@ System.register(['./chunk2.js', 'ractive', './chunk5.js'], function (exports, mo
 
       Ractive$1.extendWith(Popover, {
         attributes: ['popped', 'tail', 'where', 'align', 'top', 'left', 'fit', 'clickClose', 'noClickout', 'gap', 'offsets'],
-        use: [plugin(), clickout()],
-        template: {v:4,t:[{t:4,f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rpop-wrapper",g:1},{n:"class-rpop-with-tail",t:13,f:[{t:2,r:"position.tail"}]},{n:"class",f:["rpop-",{t:2,x:{r:["where"],s:"_0||\"below\""}}," rpop-align-",{t:2,x:{r:["align"],s:"_0||\"middle\""}}],t:13},{t:4,f:[{n:"style-top",f:[{t:2,r:"position.popTop"},"px"],t:13},{n:"style-left",f:[{t:2,r:"position.popLeft"},"px"],t:13}],n:50,r:"position"},{t:4,f:[{t:4,f:[{n:"style-top",f:[{t:2,r:"top"}],t:13}],n:50,r:"top"},{t:4,f:[{n:"style-left",f:[{t:2,r:"left"}],t:13}],n:50,r:"left"}],n:51,l:1},{n:"pop",t:72,f:{r:["where"],s:"[{dir:_0||\"below\"}]"},v:"t2"},{n:"cleanup",t:71},{t:4,f:[{n:["click"],t:70,f:{r:["@this"],s:"[_0.set(\"popped\",false)]"}}],n:50,r:"clickClose"},{t:4,f:[{n:["click"],t:70,f:{r:[],s:"[false,false]"}}],n:51,l:1},{t:4,f:[{n:["clickout"],t:70,f:{r:["@this"],s:"[_0.set(\"popped\",false)]"}}],n:51,r:"noClickout"},{t:16,r:"extra-attributes"}],f:[{t:4,f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rpop-tail",g:1},{t:4,f:[{n:"style-top",f:[{t:2,x:{r:["position.tailTop","position.vert"],s:"_0+(_1?1:0)"}},"px"],t:13}],n:50,r:"position.tailTop"},{t:4,f:[{n:"style-bottom",f:[{t:2,x:{r:["position.tailBottom","position.vert"],s:"_0+(_1?1:0)"}},"px"],t:13}],n:50,r:"position.tailBottom"},{t:4,f:[{n:"style-left",f:[{t:2,x:{r:["position.tailLeft","position.vert"],s:"_0+(_1?0:1)"}},"px"],t:13}],n:50,r:"position.tailLeft"},{t:4,f:[{n:"style-right",f:[{t:2,x:{r:["position.tailRight","position.vert"],s:"_0+(_1?0:1)"}},"px"],t:13}],n:50,r:"position.tailRight"}]}," ",{t:7,e:"div",m:[{t:13,n:"class",f:"rpop-tail-outer",g:1},{t:4,f:[{n:"style-top",f:[{t:2,x:{r:["position.tailTop"],s:"_0-2"}},"px"],t:13}],n:50,r:"position.tailTop"},{t:4,f:[{n:"style-bottom",f:[{t:2,x:{r:["position.tailBottom"],s:"_0-2"}},"px"],t:13}],n:50,r:"position.tailBottom"},{t:4,f:[{n:"style-left",f:[{t:2,x:{r:["position.tailLeft"],s:"_0-2"}},"px"],t:13}],n:50,r:"position.tailLeft"},{t:4,f:[{n:"style-right",f:[{t:2,x:{r:["position.tailRight"],s:"_0-2"}},"px"],t:13}],n:50,r:"position.tailRight"}]}],n:50,r:"~/tail"}," ",{t:7,e:"div",m:[{t:13,n:"class",f:"rpop",g:1}],f:[{t:16,r:"content"}]}]}],n:50,r:"_popped"}],e:{"_0||\"below\"":function (_0){return(_0||"below");},"_0||\"middle\"":function (_0){return(_0||"middle");},"[{dir:_0||\"below\"}]":function (_0){return([{dir:_0||"below"}]);},"[_0.set(\"popped\",false)]":function (_0){return([_0.set("popped",false)]);},"[false,false]":function (){return([false,false]);},"_0+(_1?1:0)":function (_0,_1){return(_0+(_1?1:0));},"_0+(_1?0:1)":function (_0,_1){return(_0+(_1?0:1));},"_0-2":function (_0){return(_0-2);}}},
+        use: [plugin(), clickout(), fade()],
+        template: template,
         css: function(data) { return [(function(data) {
          var primary = Object.assign({}, data('raui.primary'), data('raui.pop.primary'));
          var themes = (data('raui.themes') || []).slice();
          (data('raui.pop.themes') || []).forEach(function (t) {
            if (!~themes.indexOf(t)) { themes.push(t); }
          });
-         return "\n   .rpop-wrapper {\n     position: absolute;\n     display: inline-block;\n     z-index: 11;\n     transition-property: top, left, padding;\n     transition-timing-function: ease-in-out;\n     transition-duration: 0.3s;\n   }\n   .rpop-with-tail.rpop-above {\n     padding-bottom: 10px;\n   }\n   .rpop-with-tail.rpop-below {\n     padding-top: 10px;\n   }\n   .rpop-with-tail.rpop-left {\n     padding-right: 10px;\n   }\n   .rpop-with-tail.rpop-right {\n     padding-left: 10px;\n   }\n \n   .rpop {\n     position: relative;\n     box-shadow: 0 1px 4px 0 rgba(0,0,0,0.24);\n     border: 1px solid #ccc;\n     border-radius: 0.2em;\n     background-color: " + (primary.bg || '#fff') + ";\n     color: " + (primary.fg || '#222') + ";\n     padding: 0.5em;\n     z-index: 2;\n   }\n \n   .rpop-tail, .rpop-tail-outer {\n     z-index: 3;\n     width: 0;\n     height: 0;\n     position: absolute;\n     border-style: solid;\n     border-width: 10px;\n     border-color: transparent;\n     transition-property: top, left, bottom, right, border-color;\n     transition-timing-function: ease-in-out;\n     transition-duration: 0.3s;\n   }\n   .rpop-tail-outer {\n     z-index: 1;\n     border-width: 12px;\n     border-color: transparent;\n   }\n \n   .rpop-below .rpop-tail {\n     border-bottom-color: " + (primary.bg || '#fff') + ";\n   }\n   .rpop-below .rpop-tail-outer {\n     border-bottom-color: " + (primary.bc || '#ccc') + ";\n   }\n \n   .rpop-above .rpop-tail {\n     border-top-color: " + (primary.bg || '#fff') + ";\n   }\n   .rpop-above .rpop-tail-outer {\n     border-top-color: " + (primary.bc || '#ccc') + ";\n   }\n \n   .rpop-left .rpop-tail {\n     border-left-color: " + (primary.bg || '#fff') + ";\n   }\n   .rpop-left .rpop-tail-outer {\n     border-left-color: " + (primary.bc || '#ccc') + ";\n   }\n   \n   .rpop-right .rpop-tail {\n     border-right-color: " + (primary.bg || '#fff') + ";\n   }\n   .rpop-right .rpop-tail-outer {\n     border-right-color: " + (primary.bc || '#ccc') + ";\n   }\n   " + themes.map(function (t) {
+         return "\n   .rpop-wrapper {\n     position: absolute;\n     display: inline-block;\n     z-index: 11;\n     transition-property: top, left, padding;\n     transition-timing-function: ease-in-out;\n     transition-duration: 0.3s;\n   }\n   .rpop-with-tail.rpop-above {\n     padding-bottom: 10px;\n   }\n   .rpop-with-tail.rpop-below {\n     padding-top: 10px;\n   }\n   .rpop-with-tail.rpop-left {\n     padding-right: 10px;\n   }\n   .rpop-with-tail.rpop-right {\n     padding-left: 10px;\n   }\n \n   .rpop {\n     position: relative;\n     box-shadow: 0 1px 4px 0 rgba(0,0,0,0.24);\n     border: 1px solid #ccc;\n     border-radius: 0.2em;\n     background-color: " + (primary.bg || '#fff') + ";\n     color: " + (primary.fg || '#222') + ";\n     padding: 0.5em;\n     z-index: 2;\n   }\n \n   .rpop-modal {\n     position: fixed;\n     display: flex;\n     z-index: 10;\n     background-color: rgba(0, 0, 0, 0.2);\n     align-items: center;\n     justify-content: center;\n     top: 0;\n     bottom: 0;\n     left: 0;\n     right: 0;\n     padding: 1em;\n     overflow: auto;\n   }\n \n   .rpop-tail, .rpop-tail-outer {\n     z-index: 3;\n     width: 0;\n     height: 0;\n     position: absolute;\n     border-style: solid;\n     border-width: 10px;\n     border-color: transparent;\n     transition-property: top, left, bottom, right, border-color;\n     transition-timing-function: ease-in-out;\n     transition-duration: 0.3s;\n   }\n   .rpop-tail-outer {\n     z-index: 1;\n     border-width: 12px;\n     border-color: transparent;\n   }\n \n   .rpop-below .rpop-tail {\n     border-bottom-color: " + (primary.bg || '#fff') + ";\n   }\n   .rpop-below .rpop-tail-outer {\n     border-bottom-color: " + (primary.bc || '#ccc') + ";\n   }\n \n   .rpop-above .rpop-tail {\n     border-top-color: " + (primary.bg || '#fff') + ";\n   }\n   .rpop-above .rpop-tail-outer {\n     border-top-color: " + (primary.bc || '#ccc') + ";\n   }\n \n   .rpop-left .rpop-tail {\n     border-left-color: " + (primary.bg || '#fff') + ";\n   }\n   .rpop-left .rpop-tail-outer {\n     border-left-color: " + (primary.bc || '#ccc') + ";\n   }\n   \n   .rpop-right .rpop-tail {\n     border-right-color: " + (primary.bg || '#fff') + ";\n   }\n   .rpop-right .rpop-tail-outer {\n     border-right-color: " + (primary.bc || '#ccc') + ";\n   }\n   " + themes.map(function (t) {
            var theme = Object.assign({}, data('raui.primary'), data('raui.pop.primary'), data(("raui." + t)), data(("raui.pop." + t)));
            return ("\n   ." + t + " .rpop {\n     background-color: " + (theme.bg || '#fff') + ";\n     color: " + (theme.fg || '#222') + ";\n   }\n \n   ." + t + ".rpop-below .rpop-tail {\n     border-bottom-color: " + (theme.bg || '#fff') + ";\n   }\n   ." + t + ".rpop-below .rpop-tail-outer {\n     border-bottom-color: " + (theme.bc || '#ccc') + ";\n   }\n \n   ." + t + ".rpop-above .rpop-tail {\n     border-top-color: " + (theme.bg || '#fff') + ";\n   }\n   ." + t + ".rpop-above .rpop-tail-outer {\n     border-top-color: " + (theme.bc || '#ccc') + ";\n   }\n \n   ." + t + ".rpop-left .rpop-tail {\n     border-left-color: " + (theme.bg || '#fff') + ";\n   }\n   ." + t + ".rpop-left .rpop-tail-outer {\n     border-left-color: " + (theme.bc || '#ccc') + ";\n   }\n   \n   ." + t + ".rpop-right .rpop-tail {\n     border-right-color: " + (theme.bg || '#fff') + ";\n   }\n   ." + t + ".rpop-right .rpop-tail-outer {\n     border-right-color: " + (theme.bc || '#ccc') + ";\n   }\n   ");
          });
@@ -239,6 +243,33 @@ System.register(['./chunk2.js', 'ractive', './chunk5.js'], function (exports, mo
             }, 100);
           },
           _popped: {
+            handler: function handler(v) {
+              var this$1 = this;
+
+              if (v) {
+                var mobile = this.get('@style.raui.pop.mobile');
+                if (mobile && window.matchMedia(("(max-width: " + mobile + ")")).matches) {
+                  if (!mobilePop) {
+                    mobilePop = new MobilePop({ target: document.body, append: true });
+                    mobilePop.observe('contents', function (v) {
+                      mobilePopped = (v || []).length > 0;
+                    });
+                  }
+                  mobilePop.unshift('contents', { content: this.partials.content, context: this.getContext().getParent(true), attrs: this.partials['extra-attributes'] || [], clickClose: this.get('clickClose'), noClickout: this.get('noClickout'), done: function () { this$1.set('popped', false); } });
+                } else {
+                  this.set('__popped', true);
+                }
+              } else {
+                if (mobilePopped) {
+                  mobilePop.shift('contents');
+                } else {
+                  this.set('__popped', false);
+                }
+              }
+            },
+            defer: true
+          },
+          __popped: {
             handler: function handler(v) {
               if (v) {
                 var el = this.find('div');
@@ -373,6 +404,24 @@ System.register(['./chunk2.js', 'ractive', './chunk5.js'], function (exports, mo
           };
         };
       }
+
+      var MobilePop = (function (Ractive) {
+        function MobilePop(opts) { Ractive.call(this, opts); }
+
+        if ( Ractive ) MobilePop.__proto__ = Ractive;
+        MobilePop.prototype = Object.create( Ractive && Ractive.prototype );
+        MobilePop.prototype.constructor = MobilePop;
+
+        return MobilePop;
+      }(Ractive$1));
+
+      Ractive$1.extendWith(MobilePop, {
+        template: { v: template.v, t: template.p.modal },
+        data: function data() {
+          return { contents: [] };
+        },
+        use: [plugin(), fade()]
+      });
 
       function plugin$1(options) {
         if ( options === void 0 ) options = {};
