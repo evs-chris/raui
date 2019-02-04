@@ -352,6 +352,7 @@ export function field(node) {
   const ctx = this.getContext(node);
 
   let isField, isCheck, isRadio, isArea, isSelect, isFile, isButton, isPlain, isInput;
+  let change;
 
   function invalidate() {
     let val = setup().split(/\s+/).filter(c => !!c);
@@ -362,8 +363,19 @@ export function field(node) {
       isField = true;
     }
 
-    isCheck = !!node.querySelector('input[type=checkbox]');
+    isCheck = node.querySelector('input[type=checkbox]');
     if (isCheck && !~val.indexOf('check')) val.push('check');
+    if (isCheck && isCheck.checked && !~val.indexOf('checked')) val.push('checked'); 
+    if (!isCheck && change) {
+      change.cancel();
+      change = 0;
+    } else if (isCheck) {
+      change = this.getContext(isCheck).listen('change', () => {
+        const checked = isCheck.checked;
+        if (checked && !~node.className.indexOf('checked')) node.className += ' checked';
+        else if (!checked && ~node.className.indexOf('checked')) node.className = node.className.replace(/\bchecked\b/g, '').replace(/ +/g, ' ').trim();
+      });
+    }
 
     isRadio = !!node.querySelector('input[type=radio]');
     if (isRadio && !~val.indexOf('radio')) val.push('radio');
@@ -394,7 +406,7 @@ export function field(node) {
     let cls = node.className;
 
     if (!isField) cls = cls.replace(/\bfield\b/g, '').trim();
-    if (!isCheck) cls = cls.replace(/\bcheck\b/g, '').trim();
+    if (!isCheck) cls = cls.replace(/\bcheck(ed)?\b/g, '').trim();
     if (!isRadio) cls = cls.replace(/\bradio\b/g, '').trim();
     if (!isArea) cls = cls.replace(/\btextarea\b/g, '').trim();
     if (!isSelect) cls = cls.replace(/\bselect\b/g, '').trim();
@@ -410,17 +422,18 @@ export function field(node) {
   const focus = ctx.listen('focusin', focused);
   const blur = ctx.listen('focusout', blurred);
 
-  invalidate();
+  invalidate.call(this);
 
   return {
     update: noop,
-    invalidate,
+    invalidate: invalidate.bind(this),
     teardown() {
       let cls = setup();
       cls = cls.replace(/\bfocus\b/g, '').trim();
 
       focus.cancel();
       blur.cancel();
+      change && change.cancel();
 
       node.className = cls;
     }
