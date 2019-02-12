@@ -289,6 +289,7 @@ export function style(data) {
   }
   label.field .with-buttons input {
     border-radius: ${primary.radius || '0.2em'} 0 0 ${primary.radius || '0.2em'};
+    min-width: 0;
   }
   ` : ''}
 
@@ -494,8 +495,19 @@ export const macro = Ractive.macro(handle => {
         f: body
       }];
     }
-  } else { // passthru
-    body.push.apply(body, content);
+  } else { // mostly passthru
+    // check for button wrapping
+    const els = content.filter(e => e.e);
+    if (els.find(e => e.e === 'button') && els.length > 1) {
+      body = [{
+        t: 7, e: 'span', m: [
+          { t: 13, n: 'class', f: 'field-wrapper with-buttons', g: 1 }
+        ],
+        f: content
+      }];
+    } else {
+      body.push.apply(body, content);
+    }
   }
 
   const label = attrs.find(a => a.n === 'label');
