@@ -367,19 +367,20 @@ export function field(node) {
     isCheck = node.querySelector('input[type=checkbox]');
     if (isCheck && !~val.indexOf('check')) val.push('check');
     if (isCheck && isCheck.checked && !~val.indexOf('checked')) val.push('checked'); 
-    if (!isCheck && change) {
+
+    isRadio = !!node.querySelector('input[type=radio]');
+    if (isRadio && !~val.indexOf('radio')) val.push('radio');
+
+    if (!(isCheck || isRadio) && change) {
       change.cancel();
       change = 0;
-    } else if (isCheck) {
+    } else if (isCheck || isRadio) {
       change = this.getContext(isCheck).listen('change', () => {
         const checked = isCheck.checked;
         if (checked && !~node.className.indexOf('checked')) node.className += ' checked';
         else if (!checked && ~node.className.indexOf('checked')) node.className = node.className.replace(/\bchecked\b/g, '').replace(/ +/g, ' ').trim();
       });
     }
-
-    isRadio = !!node.querySelector('input[type=radio]');
-    if (isRadio && !~val.indexOf('radio')) val.push('radio');
 
     isArea = !!node.querySelector('textarea');
     if (isArea && !~val.indexOf('textarea')) val.push('textarea');
