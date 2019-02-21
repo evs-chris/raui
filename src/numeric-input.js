@@ -134,7 +134,7 @@ export function numeric(options = {}) {
         const cur = ctx.get(o.bind);
         node.value = cur;
         update();
-      });
+      }, { defer: true });
     }
 
     return {
