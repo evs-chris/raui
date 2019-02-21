@@ -64,7 +64,7 @@ export default function plugin(options = {}) {
           groups.value = v;
           updateDate(v, groups);
           node.value = printDate(groups)
-        }));
+        }, { defer: true }));
       } else groups.value = getDateValue(opts.date || defaultDate());
 
       function sendValue() {
