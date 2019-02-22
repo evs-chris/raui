@@ -1,5 +1,5 @@
 <div class-rcard-wrapper {{>extra-attributes}} class-rcard-margin="_card.margin" class-rcard-wrapper-popout="_card.popout">
-  <div class-rcard class-rcard-no-pad="_card.noPad" class-rcard-section="_card.section" class-rcard-flat="'flat' in _card ? _card.flat : @style.card.flat" class-rcard-deep="'flat' in _card ? !_card.flat : !@style.card.flat" class-rcard-popout="_card.popout" class-rcard-collapsed="_card.expandable && _card.expanded === false" class-rcard-expandable="_card.expandable" class-rcard-arrow="_card.arrow" class-rcard-no-fill="_card.noFill">
+  <div class-rcard class-rcard-no-pad="_card.noPad" class-rcard-section="_card.section" class-rcard-flat="'flat' in _card ? _card.flat : @style.card.flat" class-rcard-deep="'flat' in _card ? !_card.flat : !@style.card.flat" class-rcard-popout="_card.popout" class-rcard-collapsed="_card.expandable && _card.expanded === false" class-rcard-expandable="_card.expandable" class-rcard-arrow="_card.arrow" class-rcard-no-fill="_card.noFill" class-rcard-with-header="_card.titleP || _card.subtitleP || _card.avatarP || _card.title || _card.subtitle || (_card.avatar && typeof _card.avatar === 'string' || (_card.tabs && _card.section))">
     {{#if _card.titleP || _card.subtitleP || _card.avatarP || _card.title || _card.subtitle || (_card.avatar && typeof _card.avatar === 'string' || (_card.tabs && _card.section))}}
       <div class-rcard-header {{#if _card.expandable && _card.arrow}}class-rcard-clickable on-click="@context.set('_card.expanded', _card.expanded === false ? true : false)"{{/if}}>
         {{#if _card.arrow && _card.expandable}}
@@ -296,7 +296,7 @@
   .rcard > div {
     margin-top: 1em;
   }
-  .rcard > div:first-of-type {
+  .rcard.rcard-with-header > div:first-of-type {
     margin-top: 0;
   }
   .rcard > div:last-of-type {
