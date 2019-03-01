@@ -13,7 +13,7 @@ export function style(data) {
     color: ${primary.fg || '#222'};
     transition: 0.2s ease-in-out;
     transition-property: color;
-    vertical-align: middle;
+    vertical-align: top;
     box-sizing: border-box;
     padding: 0.25em 0.5em;
     line-height: 1.5em;
@@ -60,7 +60,6 @@ export function style(data) {
     transition: 0.2s ease-in-out;
     transition-property: box-shadow, color;
     outline: none;
-    ${boxy ? 'padding: 0 0.75em;' : ''}
     box-shadow: none;
     width: 100%;
     margin-bottom: 0.8em;
@@ -68,6 +67,18 @@ export function style(data) {
     font-weight: 400;
     font-family: inherit;
   }
+
+  label.field input:disabled,
+  label.field select:disabled {
+    padding: 0 0.75em;
+  }
+
+  label.field input:disabled,
+  label.field select:disabled,
+  label.field textarea:disabled {
+    background: #f4f4f4;
+  }
+
   label.field textarea {
     line-height: 1.2em;
   }
@@ -84,57 +95,257 @@ export function style(data) {
   label.field.file:hover:after {
     box-shadow: 0 0.0625em 0 0 ${primary.bc || '#ccc'};
   }
-  label.field.check:hover input:before,
-  label.field.radio:hover input:before,
+
   label.field.textarea:hover {
     box-shadow: 0.0625em 0.0625em ${primary.bc || '#ccc'},
       -0.0625em 0.0625em ${primary.bc || '#ccc'},
       0.0625em -0.0625em ${primary.bc || '#ccc'},
       -0.0625em -0.0625em ${primary.bc || '#ccc'};
   }
-  label.field.check.focus input:before,
-  label.field.radio.focus input:before {
-    box-shadow: 0.0625em 0.0625em ${active.fg || primary.fga || '#07e'},
-      -0.0625em 0.0625em ${active.fg || primary.fga || '#07e'},
-      0.0625em -0.0625em ${active.fg || primary.fga || '#07e'},
-      -0.0625em -0.0625em ${active.fg || primary.fga || '#07e'};
-  }
+
   label.field.textarea.focus:hover {
     box-shadow: 0.0625em 0.0625em ${active.fg || primary.fga || '#07e'},
       -0.0625em 0.0625em ${active.fg || primary.fga || '#07e'},
       0.0625em -0.0625em ${active.fg || primary.fga || '#07e'},
       -0.0625em -0.0625em ${active.fg || primary.fga || '#07e'};
-  }
-  label.field.check input:checked:before,
-  label.field.radio input:checked:before {
-    box-shadow: -0.0625em 0.0625em ${primary.checked || primary.fga || '#07e'};
-  }
-  label.field.check.focus input:checked:before,
-  label.field.radio.focus input:checked:before {
-    box-shadow: -0.0625em 0.0625em ${active.checked || active.fga || primary.fga || '#07e'};
   }` : ''}
 
-  label.field.check, label.field.radio {
-    vertical-align: top;
-    cursor: pointer;${boxy ? `
-    padding-top: 1.8em;
-    line-height: 3.1em;` : `
-    line-height: 1.1em;
-    padding-top: 2.5em;`}
+  /**** CHECK BOXES ****/
+
+  label.field.check {
+    position:relative;
+    z-index: 0;
+    overflow: visible;
+    cursor: pointer;
+    padding-top: 2.1em;
   }
 
-  label.field.check input, label.field.radio input {
-    width: 1em;
-    height: 1em;
-    border: none;
-    ${boxy ? `margin-left: -0.5em;
-    margin-right: 0.75em` : `margin-right: 0.5em;
-    position: relative;
-    margin-top: 0.2em;`};
-    float: left;
+  label.field.check input {
+    appearance: none;
+    -moz-appearance: none;
+    -webkit-appearance: none;
+    z-index: -1;
+    position: absolute;
+    left: -3px;
+    top: 2px;
+    display: block;
+    margin: 0;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    background-color: rgba(0, 0, 0, 0.6);
     box-shadow: none;
-    background-color: transparent;
+    outline: none;
+    opacity: 0;
+    transform: scale(1);
+    pointer-events: none;
+    transition: opacity 0.3s, transform 0.2s;
   }
+
+  label.field.check input:checked {
+    background-color: rgb(33, 150, 243);
+  }
+
+  label.field.check:hover > input {
+    opacity: 0.04;
+  }
+
+  label.field.check input:focus {
+    opacity: 0.12;
+  }
+
+  label.field.check:hover > input:focus {
+    opacity: 0.16;
+  }
+
+  label.field.check input:active {
+    opacity: 1;
+    transform: scale(0);
+    transition: transform 0s, opacity 0s;
+  }
+
+  label.field.check:before {
+    content: "";
+    display: inline-block;
+    box-sizing: border-box;
+    margin: 3px 11px 3px 1px;
+    border: solid 2px; /* Safari */
+    border-color: rgba(0, 0, 0, 0.6);
+    border-radius: 2px;
+    width: 18px;
+    height: 18px;
+    vertical-align: bottom;
+    transition: border-color 0.2s, background-color 0.2s;
+  }
+
+  label.field.check:after {
+    content: "";
+    display: block;
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    width: 10px;
+    height: 5px;
+    border: solid 2px transparent;
+    border-right: none;
+    border-top: none;
+    transform: translate(11px, 17px) rotate(-45deg);
+  }
+
+  label.field.check.inline:after {
+    transform: translate(11px, 18px) rotate(-45deg);
+  }
+
+  label.field.check.checked:before {
+    border-color: rgb(33, 150, 243);
+    background-color: rgb(33, 150, 243);
+  }
+
+  label.field.check.checked:after {
+    border-color: rgb(255, 255, 255);
+  }
+
+  label.field.check input:disabled {
+    opacity: 0;
+  }
+
+  label.field.check.disabled {
+    color: rgba(0, 0, 0, 0.38);
+    cursor: initial;
+  }
+
+  label.field.check.disabled:before {
+    border-color: currentColor;
+  }
+
+  label.field.check.checked.disabled:before {
+    border-color: transparent;
+    background-color: currentColor;
+  }
+
+
+  /**** RADIO BUTTONS ****/
+  
+  label.field.radio {
+    z-index: 0;
+    position: relative;
+    display: inline-block;
+    color: rgba(0, 0, 0, 0.87);
+    overflow: visible;
+    padding-top: 2.2em;
+  }
+
+  label.field.radio.inline,
+  label.field.check.inline {
+    padding-top: 0.8em;
+  }
+
+  label.field.radio input {
+    appearance: none;
+    -moz-appearance: none;
+    -webkit-appearance: none;
+    z-index: -1;
+    position: absolute;
+    left: 0;
+    top: 0;
+    display: block;
+    margin: 0;
+    border-radius: 50%;
+    width: 41px;
+    height: 40px;
+    background-color: rgba(0, 0, 0, 0.6);
+    outline: none;
+    opacity: 0;
+    transform: translate(-2px, 5px) scale(1);
+    pointer-events: none;
+    transition: opacity 0.3s, transform 0.3s;
+  }
+
+  label.field.radio {
+    cursor: pointer;
+    position:relative;
+  }
+
+  label.field.radio:before {
+    content: "";
+    display: inline-block;
+    box-sizing: border-box;
+    margin: 2px 10px 2px 0;
+    border: solid 2px; /* Safari */
+    border-color: rgba(0, 0, 0, 0.6);
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    vertical-align: middle;
+    transition: border-color 0.2s;
+  }
+
+  label.field.radio:after {
+    content: "";
+    display: block;
+    position: absolute;
+    border-radius: 50%;
+    width: 10px;
+    height: 10px;
+    background-color: rgb(33, 150, 243);
+    transform: translate(5px, -17px) scale(0);
+    transition: transform 0.2s;
+  }
+
+  label.field.radio input:checked {
+    background-color: rgb(33, 150, 243);
+  }
+
+  label.field.radio.checked:before {
+    border-color: rgb(33, 150, 243);
+  }
+
+  label.field.radio.checked:after {
+    transform: translate(5px, -17px) scale(1);
+  }
+
+  label.field.radio:hover input {
+    opacity: 0.04;
+  }
+
+  label.field.radio input:focus {
+    opacity: 0.12;
+    transform: translate(-2px, 5px) scale(1);
+    transition: transform 0.2s, opacity 0.2s;
+  }
+
+  label.field.radio:hover input:focus {
+    opacity: 0.16;
+  }
+
+  label.field.radio input:active {
+    opacity: 1;
+    transform: translate(-3px, 3px) scale(0);
+    transition: transform 0s, opacity 0s;
+  }
+
+  label.field.radio.checked:before {
+    border-color: rgb(33, 150, 243);
+  }
+
+  label.field.radio input:disabled {
+    opacity: 0;
+  }
+
+  label.field.radio.disabled {
+    color: rgba(0, 0, 0, 0.38);
+    cursor: initial;
+  }
+
+  label.field.radio.disabled:before {
+    border-color: currentColor;
+  }
+
+  label.field.radio.disabled:after {
+    background-color: currentColor;
+  }
+
+
 
   label.field select {
     padding-right: 2em;
@@ -150,13 +361,14 @@ export function style(data) {
     position: absolute;
     display: block;
     width: 0.6em;
-    right: 1em;
+    right: 19px;
     height: 0.6em;
     top: 2.${boxy ? '6' : '5'}em;
     border-bottom: 0.125em solid;
     border-right: 0.125em solid;
     transform: rotate(45deg);
     pointer-events: none;
+    color:#888;
   }
 
   label.field textarea {
@@ -164,40 +376,6 @@ export function style(data) {
     padding: 0;` : ''}
   }
 
-  label.field.check input:before,
-  label.field.radio input:before {
-    content: '';
-    display: block;
-    border: 0.0625em solid ${primary.bc || '#ccc'};
-    width: 1em;
-    height: 1em;
-    box-sizing: border-box;
-    transition: 0.2s ease-in-out;
-    transition-property: transform, border-color, height, width, box-shadow, border-radius, margin-top;
-    ${boxy ? `margin-top: 0.5em;` :
-    `margin-top: -0.25em;`}
-    border-radius: 0.2em;
-  }
-
-  label.field.check.focus input:before,
-  label.field.radio.focus input:before {
-    border-color: ${active.fg || primary.fga || '#07e'};
-  }
-
-  label.field.check input:checked:before,
-  label.field.radio input:checked:before {
-    height: 0.7em;
-    width: 1.3em;
-    border-width: 0.125em;
-    border-color: ${primary.checked || primary.fga || '#07e'};
-    border-top-color: transparent;
-    border-right-color: transparent;
-    transform: rotate(-50deg);
-    border-radius: 0;
-    margin-top: ${boxy ? '0.5em' : '-0.4em'};
-  }
-
-  label.field.check input,
   label.field > select {
     -moz-appearance: none;
     -webkit-appearance: none;
@@ -226,6 +404,11 @@ export function style(data) {
     opacity: 0;
     z-index: -1;
   }
+  label.field.file {
+    position: relative;
+    min-width: 9em;
+    height: 5em;
+  }
   label.field.file:after {
     position: absolute;
     content: 'Choose a file';
@@ -240,7 +423,7 @@ export function style(data) {
     cursor: pointer;
     font-style: oblique;
     left: 0.25em;
-    top: 1.75em;
+    top: 1.6em;
     transition: 0.2s ease-in-out;
     transition-property: color, border-bolor, box-shadow;${ boxy ? `
     border-radius: ${primary.radius || '0.2em'};
@@ -304,10 +487,6 @@ export function style(data) {
     height: 3.3em;
   }
 
-  label.field.check.inline {
-    padding-top: ${boxy ? '0' : '1'}.5em;
-  }
-
   label.field.button.inline {
     margin-top: 0.2em;
     padding-top: 0.${boxy ? '4' : '12'}em;
@@ -353,7 +532,7 @@ export function field(node) {
   const ctx = this.getContext(node);
 
   let isField, isCheck, isRadio, isArea, isSelect, isFile, isButton, isPlain, isInput;
-  let change;
+  let change, attrs;
 
   function invalidate() {
     let val = setup().split(/\s+/).filter(c => !!c);
@@ -366,20 +545,47 @@ export function field(node) {
 
     isCheck = node.querySelector('input[type=checkbox]');
     if (isCheck && !~val.indexOf('check')) val.push('check');
-    if (isCheck && isCheck.checked && !~val.indexOf('checked')) val.push('checked'); 
 
-    isRadio = !!node.querySelector('input[type=radio]');
+    isRadio = node.querySelector('input[type=radio]');
     if (isRadio && !~val.indexOf('radio')) val.push('radio');
 
-    if (!(isCheck || isRadio) && change) {
+    const checkable = (isCheck || isRadio);
+    if (checkable && checkable.checked && !~val.indexOf('checked')) val.push('checked');
+    if (checkable && checkable.disabled && !~val.indexOf('disabled')) val.push('disabled');
+
+    if (!checkable && change) {
       change.cancel();
       change = 0;
-    } else if (isCheck || isRadio) {
-      change = this.getContext(isCheck).listen('change', () => {
-        const checked = isCheck.checked;
+      if (attrs) {
+        attrs.disconnect();
+        attrs = 0;
+      }
+      delete checkable._form_callback;
+    } else if (checkable) {
+      checkable._form_callback = (ev, init = true) => {
+        if (init && checkable.type === 'radio' && checkable.name) {
+          let list = [];
+          list.push.apply(list, document.querySelectorAll(`input[type=radio][name=${checkable.name}]`));
+          list = list.filter(i => i !== checkable);
+          list.forEach(l => l._form_callback && l._form_callback(ev, false));
+        }
+
+        const checked = checkable.checked;
         if (checked && !~node.className.indexOf('checked')) node.className += ' checked';
         else if (!checked && ~node.className.indexOf('checked')) node.className = node.className.replace(/\bchecked\b/g, '').replace(/ +/g, ' ').trim();
-      });
+      }
+
+      if (MutationObserver) {
+        attrs = new MutationObserver(() => {
+          let val;
+          val = checkable.disabled;
+          if (val && !~node.className.indexOf('disabled')) node.className += ' disabled';
+          else if (!val && ~node.className.indexOf('disabled')) node.className = node.className.replace(/\bdisabled\b/g, '').replace(/ +/g, ' ').trim();
+        });
+        attrs.observe(checkable, { attributes: true });
+      }
+
+      change = this.getContext(checkable).listen('change', checkable._form_callback);
     }
 
     isArea = !!node.querySelector('textarea');
