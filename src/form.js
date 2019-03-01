@@ -72,6 +72,9 @@ export function style(data) {
   label.field select${boxy ? '' : ':disabled'} {
     padding: 0 0.75em;
   }
+  label.field select${boxy ? '' : ':disabled'} {
+    padding-right: 2em;
+  }
 
   label.field input:disabled,
   label.field select:disabled,
@@ -363,7 +366,7 @@ export function style(data) {
     width: 0.6em;
     right: 19px;
     height: 0.6em;
-    top: 2.${boxy ? '6' : '5'}em;
+    top: 2.6em;
     border-bottom: 0.125em solid;
     border-right: 0.125em solid;
     transform: rotate(45deg);
@@ -500,7 +503,7 @@ export function style(data) {
   }
 
   label.field.inline.select:after {
-    top: 1.${boxy ? '4' : '2'}em;
+    top: 1.${boxy ? '15' : '1'}em;
   }
 
   label.field .field-tip {
