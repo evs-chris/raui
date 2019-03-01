@@ -434,8 +434,8 @@ export function style(data) {
     font-size: 1.1em;
     line-height: 1.5em;
     color: ${primary.fg || '#222'};
-    text-align: center;
-    padding: 0.5em 1em;
+    text-align: ${boxy ? 'center' : 'left'};
+    padding: 0.5em ${boxy ? '0.5em' : '0'};
     cursor: pointer;
     font-style: oblique;
     left: 0.25em;
