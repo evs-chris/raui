@@ -68,8 +68,8 @@ export function style(data) {
     font-family: inherit;
   }
 
-  label.field input:disabled,
-  label.field select:disabled {
+  label.field input${boxy ? '' : ':disabled'},
+  label.field select${boxy ? '' : ':disabled'} {
     padding: 0 0.75em;
   }
 
@@ -435,6 +435,9 @@ export function style(data) {
     border-bottom-style: solid;
     `}
   }
+  label.field.file.inline:after {
+    top: 0.2em;
+  }
 
   label.field.button {
     vertical-align: top;
@@ -442,7 +445,7 @@ export function style(data) {
   }
   label.field .with-buttons button, label.field.button button {
     font-size: 1.1em;
-    margin-top: ${boxy ? '0.1em' : '0'};
+    margin-top: ${boxy ? '0.15em' : '0'};
   }
 
   label.field .field-wrapper.with-buttons {
@@ -489,7 +492,11 @@ export function style(data) {
 
   label.field.button.inline {
     margin-top: 0.2em;
-    padding-top: 0.${boxy ? '4' : '12'}em;
+    padding-top: 0.12em;
+  }
+
+  label.field.button.inline button {
+    margin-top: 0;
   }
 
   label.field.inline.select:after {
