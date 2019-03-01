@@ -1,6 +1,6 @@
 #!/bin/sh
 
-export PATH=./node_modules/.bin:../node_modules/.bin:$PATH
+export PATH=./node_modules/.bin:../node_modules/.bin:"$PATH"
 
 if [ "$NODE_ENV" != "dev" ]; then
     rollup -c rollup.config.js
