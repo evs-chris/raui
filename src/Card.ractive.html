@@ -19,6 +19,9 @@
         {{#if _card.tabs && _card.section}}
           {{>tabs}}
         {{/if}}
+        {{#if _card.titleRightP}}
+          <div class-rcard-title-right on-click="false, false">{{>_card.titleRightP}}</div>
+        {{/if}}
       </div>
     {{/if}}
     {{#if !_card.expandable || _card.expanded !== false}}
@@ -128,7 +131,9 @@
     tpl.forEach(n => {
       if (n.e === 'title') {
         data.titleA = n.m;
-        data.titleP = n.f;
+        data.titleP = n.f.filter(e => e.e !== 'right');
+        const right = n.f.find(e => e.e === 'right');
+        if (right) data.titleRightP = right.f;
       }
       else if (n.e === 'subtitle') {
         data.subtitleA = n.m;
@@ -451,6 +456,16 @@
   }
   .rcard-section > .rcard-header .rcard-title {
     font-size: 1.2em;
+  }
+
+  .rcard-title-right {
+    margin-top: 1em;
+    margin-left: auto;
+    margin-right: 1em;
+    cursor: default;
+  }
+  .rcard-section > .rcard-header .rcard-title-right {
+    margin-top: 0;
   }
 
   .rcard-expandable > .rcard-header:first-of-type {
