@@ -126,7 +126,7 @@ export function style(data, optDefaults) {
 
   let out = `.row > * { position: relative; width: 100%; transition-duration: 0.2s; transition-timing-function: ease-in-out; transition-property: padding, margin; box-sizing: border-box; }
 .grid { display: block; }
-.grid .row { display: flex; flex-wrap: wrap; min-height: fit-content; width: 100%; }
+.grid .row { display: flex !important; flex-wrap: wrap; min-height: fit-content; width: 100%; align-content: flex-start; }
 .grid .row.row-pad > * { padding: ${data('raui.grid.padding') || '0.5em'}; }
 .grid .row > .pad { display: flex; flex-direction: column; padding: ${data('raui.grid.padding') || '0.5em'}; box-sizing: border-box; }`;
 
