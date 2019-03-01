@@ -120,7 +120,7 @@ export function style(data) {
     z-index: 0;
     overflow: visible;
     cursor: pointer;
-    padding-top: 2.1em;
+    padding-top: 2.2em;
   }
 
   label.field.check input {
@@ -130,7 +130,7 @@ export function style(data) {
     z-index: -1;
     position: absolute;
     left: -3px;
-    top: 2px;
+    top: 23px;
     display: block;
     margin: 0;
     border-radius: 50%;
@@ -143,6 +143,10 @@ export function style(data) {
     transform: scale(1);
     pointer-events: none;
     transition: opacity 0.3s, transform 0.2s;
+  }
+  label.field.inline.check input {
+    top: 3px;
+    left: -3px;
   }
 
   label.field.check input:checked {
@@ -192,11 +196,11 @@ export function style(data) {
     border: solid 2px transparent;
     border-right: none;
     border-top: none;
-    transform: translate(11px, 17px) rotate(-45deg);
+    transform: translate(0.8em, 2.6em) rotate(-45deg);
   }
 
   label.field.check.inline:after {
-    transform: translate(11px, 18px) rotate(-45deg);
+    transform: translate(0.8em, 1.25em) rotate(-45deg);
   }
 
   label.field.check.checked:before {
@@ -240,7 +244,7 @@ export function style(data) {
 
   label.field.radio.inline,
   label.field.check.inline {
-    padding-top: 0.8em;
+    padding-top: 0.75em;
   }
 
   label.field.radio input {
@@ -259,9 +263,12 @@ export function style(data) {
     background-color: rgba(0, 0, 0, 0.6);
     outline: none;
     opacity: 0;
-    transform: translate(-2px, 5px) scale(1);
     pointer-events: none;
+    transform: translate(-0.2em, 24px) scale(1);
     transition: opacity 0.3s, transform 0.3s;
+  }
+  label.field.inline.radio input {
+    transform: translate(-0.2em, 3px) scale(1);
   }
 
   label.field.radio {
@@ -313,8 +320,11 @@ export function style(data) {
 
   label.field.radio input:focus {
     opacity: 0.12;
-    transform: translate(-2px, 5px) scale(1);
+    transform: translate(-0.2em, 24px) scale(1);
     transition: transform 0.2s, opacity 0.2s;
+  }
+  label.field.inline.radio input:focus {
+    transform: translate(-0.2em, 3px) scale(1);
   }
 
   label.field.radio:hover input:focus {
@@ -323,8 +333,11 @@ export function style(data) {
 
   label.field.radio input:active {
     opacity: 1;
-    transform: translate(-3px, 3px) scale(0);
+    transform: translate(-0.2em, 24px) scale(0);
     transition: transform 0s, opacity 0s;
+  }
+  label.field.inline.radio input:active {
+    transform: translate(-0.2em, 3px) scale(0);
   }
 
   label.field.radio.checked:before {
