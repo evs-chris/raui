@@ -1,5 +1,6 @@
-const notNumRE = /[^0-9.]/g;
-const numRE = /[0-9.]/;
+const notNumRE = /[^-0-9\.]/g;
+const numRE = /[-0-9\.]/;
+const notMinusNumRE = /[^0-9\.]/g;
 const intRE = /(\d)(?=(\d{3})+$)/g;
 const decRE = /(\d)(?=(\d{3})+\.)/g;
 const decimalRE = /\./g;
@@ -21,6 +22,7 @@ export function numeric(options = {}) {
     const ctx = this.getContext(node);
     const cleanup = [];
     let lock = false;
+    let leave = false;
 
     if (typeof o.bind !== 'string') delete o.bind;
 
@@ -36,8 +38,10 @@ export function numeric(options = {}) {
       const dir = node.selectionDirection;
 
       let next = cur.replace(notNumRE, '');
+      // handle extra minus chars
+      next = (next[0] || '') + next.substr(1).replace(notMinusNumRE, '');
 
-      if (startsZeroRE.test(next)) {
+      if (startsZeroRE.test(next) && leave) {
         const len = next.length;
         next = next.replace(startsZeroRE, '');
         num[0] -= len - next.length;
@@ -97,7 +101,9 @@ export function numeric(options = {}) {
         lock = false;
       }
       node.setSelectionRange(0, 0);
+      leave = true;
       update();
+      leave = false;
     }).cancel);
 
     cleanup.push(ctx.listen('focus', () => {
