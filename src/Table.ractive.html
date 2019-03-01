@@ -406,6 +406,7 @@
             if (this._scrollListener) this._scrollListener.cancel();
 
             const root = v === 'auto' || v === 'virtual' ? this.root : v;
+            let sized = false;
 
             const fn = () => {
               if (!this.rendered) return;
@@ -422,7 +423,7 @@
               }
 
               const size = `${top.clientHeight},${top.clientWidth}`;
-              if (fn.last === size) return;
+              if (fn.last === size && sized) return;
 
               const header = this.find('.rtable-header');
               if (!header) return;
@@ -434,6 +435,8 @@
                 this.set('_paginate', auto);
                 rows = Array.apply(null, this.findAll('.rtable-live')).map(r => r.offsetHeight);
               }
+              if (rows.length > 0) sized = true;
+              else rows = [25];
               const avg = Math.ceil(rows.reduce((a, c) => a + c, 0) / rows.length);
               this._avgSize = avg;
 
@@ -453,7 +456,7 @@
               tm = setTimeout(() => {
                 fn();
                 tm = null;
-                if (this._scrollListener) this._scrollListener.fn();
+                if (sized && this._scrollListener) this._scrollListener.fn();
               }, 50);
             }
 
@@ -469,6 +472,7 @@
                   return;
                 }
                 if (!node) node = this.find('.rtable-top');
+                if (!sized) { return fnd(); }
 
                 const top = node.scrollTop;
                 const virtual = this.get('virtual') || {};
