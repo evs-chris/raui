@@ -136,7 +136,7 @@ export function style(data) {
     border-radius: 50%;
     width: 40px;
     height: 40px;
-    background-color: rgba(0, 0, 0, 0.6);
+    background-color: ${primary.bc || '#ccc'};
     box-shadow: none;
     outline: none;
     opacity: 0;
@@ -150,7 +150,7 @@ export function style(data) {
   }
 
   label.field.check input:checked {
-    background-color: rgb(33, 150, 243);
+    background-color: ${primary.fga || '#07e'};
   }
 
   label.field.check:hover > input {
@@ -166,7 +166,7 @@ export function style(data) {
   }
 
   label.field.check input:active {
-    opacity: 1;
+    opacity: 0.6;
     transform: scale(0);
     transition: transform 0s, opacity 0s;
   }
@@ -177,7 +177,7 @@ export function style(data) {
     box-sizing: border-box;
     margin: 3px 11px 3px 1px;
     border: solid 2px; /* Safari */
-    border-color: rgba(0, 0, 0, 0.6);
+    border-color: ${primary.fg || '#222'};
     border-radius: 2px;
     width: 18px;
     height: 18px;
@@ -204,12 +204,12 @@ export function style(data) {
   }
 
   label.field.check.checked:before {
-    border-color: rgb(33, 150, 243);
-    background-color: rgb(33, 150, 243);
+    border-color: ${primary.fga || '#07e'};
+    background-color: ${primary.fga || '#07e'};
   }
 
   label.field.check.checked:after {
-    border-color: rgb(255, 255, 255);
+    border-color: ${primary.bg || '#fff'};
   }
 
   label.field.check input:disabled {
@@ -217,17 +217,17 @@ export function style(data) {
   }
 
   label.field.check.disabled {
-    color: rgba(0, 0, 0, 0.38);
+    color: ${primary.bc || '#ccc'};
     cursor: initial;
   }
 
   label.field.check.disabled:before {
-    border-color: currentColor;
+    border-color: ${primary.bc || '#ccc'};
   }
 
   label.field.check.checked.disabled:before {
     border-color: transparent;
-    background-color: currentColor;
+    background-color: ${primary.bc || '#ccc'};
   }
 
 
@@ -237,7 +237,6 @@ export function style(data) {
     z-index: 0;
     position: relative;
     display: inline-block;
-    color: rgba(0, 0, 0, 0.87);
     overflow: visible;
     padding-top: 2.2em;
   }
@@ -260,7 +259,7 @@ export function style(data) {
     border-radius: 50%;
     width: 41px;
     height: 40px;
-    background-color: rgba(0, 0, 0, 0.6);
+    background-color: ${primary.bc || '#ccc'};
     outline: none;
     opacity: 0;
     pointer-events: none;
@@ -273,7 +272,7 @@ export function style(data) {
 
   label.field.radio {
     cursor: pointer;
-    position:relative;
+    position: relative;
   }
 
   label.field.radio:before {
@@ -282,7 +281,7 @@ export function style(data) {
     box-sizing: border-box;
     margin: 2px 10px 2px 0;
     border: solid 2px; /* Safari */
-    border-color: rgba(0, 0, 0, 0.6);
+    border-color: ${primary.fg || '#222'};
     border-radius: 50%;
     width: 20px;
     height: 20px;
@@ -297,17 +296,17 @@ export function style(data) {
     border-radius: 50%;
     width: 10px;
     height: 10px;
-    background-color: rgb(33, 150, 243);
+    background-color: ${primary.fga || '#07e'};
     transform: translate(5px, -17px) scale(0);
     transition: transform 0.2s;
   }
 
   label.field.radio input:checked {
-    background-color: rgb(33, 150, 243);
+    background-color: ${primary.fga || '#07e'};
   }
 
   label.field.radio.checked:before {
-    border-color: rgb(33, 150, 243);
+    border-color: ${primary.fga || '#07e'};
   }
 
   label.field.radio.checked:after {
@@ -341,7 +340,7 @@ export function style(data) {
   }
 
   label.field.radio.checked:before {
-    border-color: rgb(33, 150, 243);
+    border-color: ${primary.fga || '#07e'};
   }
 
   label.field.radio input:disabled {
@@ -349,16 +348,16 @@ export function style(data) {
   }
 
   label.field.radio.disabled {
-    color: rgba(0, 0, 0, 0.38);
+    color: ${primary.bc || '#ccc'};
     cursor: initial;
   }
 
   label.field.radio.disabled:before {
-    border-color: currentColor;
+    border-color: ${primary.bc || '#ccc'};
   }
 
   label.field.radio.disabled:after {
-    background-color: currentColor;
+    background-color: ${primary.bc || '#ccc'};
   }
 
 
@@ -384,7 +383,7 @@ export function style(data) {
     border-right: 0.125em solid;
     transform: rotate(45deg);
     pointer-events: none;
-    color:#888;
+    color: ${primary.bc || '#ccc'};
   }
 
   label.field textarea {
