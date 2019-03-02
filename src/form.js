@@ -36,7 +36,7 @@ export function style(data) {
   }
 
   label.field.focus {
-    color: ${active.fg || '#07e'};
+    color: ${active.fg || primary.fga || '#07e'};
   }
 
   label.field.textarea.focus {
@@ -210,6 +210,9 @@ export function style(data) {
     border-color: ${primary.fga || '#07e'};
     background-color: ${primary.fga || '#07e'};
   }
+  label.field.check.focus:before {
+    border-color: ${primary.fga || '#07e'};
+  }
 
   label.field.check.checked:after {
     border-color: ${primary.bg || '#fff'};
@@ -344,6 +347,10 @@ export function style(data) {
     border-color: ${primary.fga || '#07e'};
   }
 
+  label.field.radio.focus:before {
+    border-color: ${primary.fga || '#07e'};
+  }
+
   label.field.radio input:disabled {
     opacity: 0;
   }
@@ -474,13 +481,11 @@ export function style(data) {
     margin-top: 0;
     margin-right: 0;
     ${boxy ? `height: 2.5em;
-    line-height: 2.7em;
     box-shadow: none;
     border-radius: 0;
     border-left: 1px solid ${primary.bg || '#fff'};
     margin-left: 0;` : 
-    `height: 2.25em;
-    line-height: 2.5em;`}
+    `height: 2.25em;`}
   }${boxy ? `
   label.field .with-buttons button:first-of-type {
     margin-left: -0.05em;
