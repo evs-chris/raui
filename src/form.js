@@ -122,6 +122,9 @@ export function style(data) {
     cursor: pointer;
     padding-top: 2.2em;
   }
+  label.field.check.inline {
+    padding-top: 0.7em;
+  }
 
   label.field.check input {
     appearance: none;
@@ -196,11 +199,11 @@ export function style(data) {
     border: solid 2px transparent;
     border-right: none;
     border-top: none;
-    transform: translate(0.8em, 2.6em) rotate(-45deg);
+    transform: translate(0.8em, 2.65em) rotate(-45deg);
   }
 
   label.field.check.inline:after {
-    transform: translate(0.8em, 1.25em) rotate(-45deg);
+    transform: translate(0.8em, 1.2em) rotate(-45deg);
   }
 
   label.field.check.checked:before {
@@ -240,10 +243,8 @@ export function style(data) {
     overflow: visible;
     padding-top: 2.2em;
   }
-
-  label.field.radio.inline,
-  label.field.check.inline {
-    padding-top: 0.75em;
+  label.field.radio.inline {
+    padding-top: 0.8em;
   }
 
   label.field.radio input {
