@@ -187,6 +187,8 @@
       this.fire('selection', {}, { item: sels[sels.length - 1], items: sels });
 
       setTimeout(() => ev.target.checked = !~i);
+
+      return false;
     }
 
     select() {
@@ -272,6 +274,8 @@
       } else {
         this.push.apply(this, xs);
       }
+
+      return false;
     }
 
     _groupSelected(idx) {
@@ -1003,7 +1007,7 @@
 
       // selectall
       header[0].f.unshift({
-        t: 4, n: 50, r: '~/allowSelect', f: [{ t: 7, e: 'th', m: [{ t: 13, n: 'class-rtable-select-header' }, { t: 13, n: 'title', f: [{ t: 2, r: 'selections.length' }, ' items selected']}], f: [{ t: 4, n: 50, r: '~/allowSelectAll', f: [{ t: 7, e: 'input', m: [{ t: 73, v: 't', f: 'false' }, { t: 13, n: 'type', f: 'checkbox' }, { t: 13, n: 'checked', f: [{ t: 2, x: { r: ['@this'], s: '_0._allSelected()' } }] }, { t: 70, n: ['click'], f: 'selectAll' }, { t: 13, n: 'class-rtable-select' }] }] }] }]
+        t: 4, n: 50, r: '~/allowSelect', f: [{ t: 7, e: 'th', m: [{ t: 13, n: 'class-rtable-select-header' }, { t: 13, n: 'title', f: [{ t: 2, r: 'selections.length' }, ' items selected']}, { t: 13, n: 'class-rtable-all-selected', f: [{ t: 2, x: { r: ['@this'], s: '_0._allSelected()' } }] }, { t: 70, n: ['clickd'], f: 'selectAll' }], f: [{ t: 4, n: 50, r: '~/allowSelectAll', f: [{ t: 7, e: 'input', m: [{ t: 73, v: 't', f: 'false' }, { t: 13, n: 'type', f: 'checkbox' }, { t: 13, n: 'checked', f: [{ t: 2, x: { r: ['@this'], s: '_0._allSelected()' } }] }, { t: 70, n: ['click'], f: 'selectAll' }, { t: 13, n: 'class-rtable-select' }] }] }] }]
       });
 
       const row = [{ t: 7, e: 'tr', f: columns.filter(c => c.hidden !== true).map(c => {
@@ -1028,7 +1032,7 @@
 
       // select
       row[0].f.unshift({
-        t: 4, n: 50, r: '~/allowSelect', f: [{ t: 7, e: 'th', m: [{ t: 13, n: 'class-rtable-select-row' }, { t: 70, n: ['click'], f: { r: ['@this', '.', '@event'], s: '[_0._select(_1,_2),false]' } }], f: [{ t: 7, e: 'input', m: [{ t: 73, v: 't', f: 'false' }, { t: 13, n: 'type', f: 'checkbox' }, { t: 13, n: 'checked', f: [{ t: 2, x: { r: ['~/selections', '.'], s: '~_0.indexOf(_1)' } }] }, { t: 13, n: 'class-rtable-select' }] }] }]
+        t: 4, n: 50, r: '~/allowSelect', f: [{ t: 7, e: 'th', m: [{ t: 13, n: 'class-rtable-select-row' }, { t: 70, n: ['clickd'], f: { r: ['@this', '.', '@event'], s: '[_0._select(_1,_2),false]' } }], f: [{ t: 7, e: 'input', m: [{ t: 73, v: 't', f: 'false' }, { t: 13, n: 'type', f: 'checkbox' }, { t: 13, n: 'checked', f: [{ t: 2, x: { r: ['~/selections', '.'], s: '~_0.indexOf(_1)' } }] }, { t: 13, n: 'class-rtable-select' }, { t: 70, n: ['click'], f: { r: ['@this', '.', '@event'], s: '[_0._select(_1,_2),false]' } }] }] }]
       });
 
       this._init.partials['table-row'] = row;
@@ -1062,7 +1066,7 @@
 
       // selectall
       header[0].f.unshift({
-        t: 4, n: 50, r: '~/allowSelect', f: [{ t: 7, e: 'div', m: [{ t: 13, n: 'class-rtable-select-header' }, { t: 13, n: 'class-rtable-column' }, { t: 13, n: 'title', f: [{ t: 2, r: 'selections.length' }, ' items selected']}], f: [{ t: 7, e: 'div', f: [{ t: 4, n: 50, r: '~/allowSelectAll', f: [{ t: 7, e: 'input', m: [{ t: 73, v: 't', f: 'false' }, { t: 13, n: 'type', f: 'checkbox' }, { t: 13, n: 'checked', f: [{ t: 2, x: { r: ['@this'], s: '_0._allSelected()' } }] }, { t: 70, n: ['click'], f: 'selectAll' }, { t: 13, n: 'class-rtable-select' }] }] }] }] }]
+        t: 4, n: 50, r: '~/allowSelect', f: [{ t: 7, e: 'div', m: [{ t: 13, n: 'class-rtable-select-header' }, { t: 13, n: 'class-rtable-column' }, { t: 13, n: 'title', f: [{ t: 2, r: 'selections.length' }, ' items selected']}, { t: 13, n: 'class-rtable-all-selected', f: [{ t: 2, x: { r: ['@this'], s: '_0._allSelected()' } }] }], f: [{ t: 7, e: 'div', f: [{ t: 4, n: 50, r: '~/allowSelectAll', f: [{ t: 7, e: 'input', m: [{ t: 73, v: 't', f: 'false' }, { t: 13, n: 'type', f: 'checkbox' }, { t: 13, n: 'checked', f: [{ t: 2, x: { r: ['@this'], s: '_0._allSelected()' } }] }, { t: 13, n: 'class-rtable-select' }, { t: 70, n: ['click'], f: 'selectAll' }] }] }], m: [{ t: 70, n: ['clickd'], f: 'selectAll' }] }] }]
       });
 
       //header[0].f.push({t: 4, f: [{ t: 7, e: 'div', m: [{ t: 13, n: 'class', f: 'rtable-header-scroll', g: 1 }, { n: 'style-width', f: [{ t: 2, r: '~/scrollOffset' }], t: 13 }] }], n: 50, r: '~/fixedHeader' });
@@ -1122,7 +1126,7 @@
 
       // select
       row[0].f.unshift({
-        t: 4, n: 50, r: '~/allowSelect', f: [{ t: 7, e: 'div', m: [{ t: 13, n: 'class-rtable-select-row' }, { t: 13, n: 'class-rtable-column' }, { t: 70, n: ['clickd'], f: { r: ['@this', '.', '@event'], s: '[_0._select(_1,_2),false]' } }], f: [{ t: 7, e: 'div', f: [{ t: 7, e: 'input', m: [{ t: 73, v: 't', f: 'false' }, { t: 13, n: 'type', f: 'checkbox' }, { t: 13, n: 'checked', f: [{ t: 2, x: { r: ['~/selections', '.'], s: '~_0.indexOf(_1)' } }] }, { t: 13, n: 'class-rtable-select' }, { t: 70, n: ['click'], f: { r: [], s: '[false]' } }] }] }] }]
+        t: 4, n: 50, r: '~/allowSelect', f: [{ t: 7, e: 'div', m: [{ t: 13, n: 'class-rtable-select-row' }, { t: 13, n: 'class-rtable-column' }, { t: 70, n: ['clickd'], f: { r: ['@this', '.', '@event'], s: '[_0._select(_1,_2),false]' } }], f: [{ t: 7, e: 'div', f: [{ t: 7, e: 'input', m: [{ t: 73, v: 't', f: 'false' }, { t: 13, n: 'type', f: 'checkbox' }, { t: 13, n: 'checked', f: [{ t: 2, x: { r: ['~/selections', '.'], s: '~_0.indexOf(_1)' } }] }, { t: 13, n: 'class-rtable-select' }, { t: 70, n: ['click'], f: { r: ['@this', '.', '@event'], s: '[_0._select(_1,_2),false]' } }] }] }] }]
       });
 
       // group
@@ -1157,7 +1161,7 @@
 
         // select
         parts.unshift({
-          t: 4, n: 50, r: '~/allowGroupSelect', f: [{ t: 7, e: 'div', m: [{ t: 13, n: 'class-rtable-select-row' }, { t: 13, n: 'class-rtable-column' }, { t: 70, n: ['clickd'], f: { r: ['@this', '@index'], s: '[_0._selectGroup(_1),false]' } }], f: [{ t: 7, e: 'div', f: [{ t: 7, e: 'input', m: [{ t: 73, v: 't', f: 'false' }, { t: 13, n: 'type', f: 'checkbox' }, { t: 13, n: 'checked', f: [{ t: 2, x: { r: ['@this', '@index'], s: '_0._groupSelected(_1)' } }] }, { t: 13, n: 'class-rtable-select' }, { t: 70, n: ['click'], f: { r: [], s: '[false]' } }] }] }] }]
+          t: 4, n: 50, r: '~/allowGroupSelect', f: [{ t: 7, e: 'div', m: [{ t: 13, n: 'class-rtable-select-row' }, { t: 13, n: 'class-rtable-column' }, { t: 70, n: ['clickd'], f: { r: ['@this', '@index'], s: '[_0._selectGroup(_1),false]' } }, { t: 13, n: 'class-rtable-all-selected', f: [{ t: 2, x: { r: ['@this', '@index'], s: '_0._groupSelected(_1)' } }] }], f: [{ t: 7, e: 'div', f: [{ t: 7, e: 'input', m: [{ t: 73, v: 't', f: 'false' }, { t: 13, n: 'type', f: 'checkbox' }, { t: 13, n: 'checked', f: [{ t: 2, x: { r: ['@this', '@index'], s: '_0._groupSelected(_1)' } }] }, { t: 13, n: 'class-rtable-select' }, { t: 70, n: ['click'], f: { r: ['@this', '@index'], s: '[_0._selectGroup(_1),false]' } }] }] }] }]
         });
 
         
@@ -1389,55 +1393,106 @@
     text-decoration: underline;
   }
 
+  /* checkboxes */
   .rtable-select {
-    width: 1em;
-    height: 1em;
-    border: none;
-    margin-right: 0.5em;
-    position: relative;
-    margin-top: 0.2em;
-    float: left;
-    box-shadow: none;
-    background-color: transparent;
-    outline: none;
+    appearance: none;
     -moz-appearance: none;
     -webkit-appearance: none;
-  }
-  .rtable-select:before {
-    content: '';
+    position: absolute;
     display: block;
-    border: 0.125em solid ${primary.fg || '#222'};
-    width: 1.1em;
-    height: 1.1em;
+    margin: 0;
+    width: 2em;
+    height: 2em;
+    box-shadow: none;
+    outline: none;
+    opacity: 0;
+    top: 0;
+    left: 0;
+    border-radius: 2em;
+    transform: translate(-0.1em, 0) scale(1);
+    transition: transform 0.2s, opacity 0.2s;
+    background-color: ${primary.bc || '#ccc'};
+    cursor: pointer;
+  }
+
+  .rtable-select-header > div, .rtable-select-row > div, .rtable-header > div.rtable-select-header > div {
+    padding: 0;
+    overflow: visible;
+    width: 1.5em;
+    position: relative;
+    line-height: 1.8em;
+    cursor: pointer;
+  }
+
+  .rtable-select:checked {
+    background-color: ${primary.fga || '#07e'};
+  }
+
+  .rtable-select-header:hover .rtable-select, .rtable-select-row:hover .rtable-select {
+    opacity: 0.04;
+  }
+
+  .rtable-select:focus {
+    opacity: 0.12;
+    transform: translate(-0.1em, 0) scale(1);
+  }
+
+  .rtable-select-header:hover .rtable-select:focus, .rtable-select-row:hover .rtable.select:focus {
+    opacity: 0.16;
+  }
+
+  .rtable-select:active {
+    opacity: 0.4;
+    transform: translate(-0.1em, 0) scale(0);
+    transition: transform 0s, opacity 0s;
+  }
+
+  .rtable-select-row > div:before, .rtable-select-header > div:before {
+    content: "";
+    display: inline-block;
     box-sizing: border-box;
-    transition: 0.2s ease-in-out;
-    transition-property: transform, border-color, height, width, box-shadow, border-radius;
-    border-radius: 0.2em;
+    border: solid 2px; /* Safari */
+    border-color: ${primary.fg || '#222'};
+    border-radius: 2px;
+    width: 18px;
+    height: 18px;
+    vertical-align: middle;
+    transition: border-color 0.2s, background-color 0.2s;
   }
-  .rtable-select:checked:before {
-    height: 0.7em;
-    width: 1.3em;
-    border-width: 0.125em;
-    border-color: ${primary.checked || primary.fga || '#07e'};
-    border-top-color: transparent;
-    border-right-color: transparent;
-    transform: rotate(-50deg);
-    border-radius: 0;
-    box-shadow: -0.0625em 0.0625em ${primary.checked || primary.fga || '#07e'};
+
+  .rtable-select-row > div:after, .rtable-select-header > div:after {
+    content: "";
+    display: block;
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    width: 10px;
+    height: 5px;
+    border: solid 2px transparent;
+    border-right: none;
+    border-top: none;
+    transform: translate(0.35em, 0.55em) rotate(-45deg);
+    opacity: 0;
   }
+
+  .rtable-selected .rtable-select-row > div:before, .rtable-all-selected > div:before {
+    border-color: ${primary.fga || '#07e'};
+    background-color: ${primary.fga || '#07e'};
+  }
+
+  .rtable-selected .rtable-select-row > div:after, .rtable-all-selected > div:after {
+    border-color: ${primary.bg || '#fff'};
+    opacity: 1;
+  }
+
   .rtable-row-wrap > .rtable-select-header,
   .rtable-row-wrap > .rtable-select-row {
     text-align: center;
-    width: 1.5em;
     flex-shrink: 0;
-  }
-  .rtable-select-header .rtable-select:before {
-    margin-left: -0.6em;
-  }
-  .rtable-select-header .rtable-select:checked:before {
-    border-color: ${primary.fg || '#222'};
-    border-top-color: transparent;
-    border-right-color: transparent;
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    width: 2em;
   }
 
   .rtable-column button, .rtable-column .btn {
