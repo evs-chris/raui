@@ -62,9 +62,9 @@ class Handler {
       this.context.listen('touchstart', handleTouchstart);
     }
 
-    // native buttons, anchors, and button/submit input elements, should fire a tap event
+    // native buttons, anchors, checkboxes, radios, and button/submit input elements, should fire a tap event
     // when the space key is pressed
-    if (this.node.tagName === 'A' || this.node.tagName === 'BUTTON' || this.node.type === 'button' || this.node.type === 'submit') {
+    if (this.node.tagName === 'A' || this.node.tagName === 'BUTTON' || this.node.type === 'button' || this.node.type === 'submit' || this.node.type === 'checkbox' || this.node.type === 'radio') {
       this.context.listen('focus', handleFocus);
     }
   }
