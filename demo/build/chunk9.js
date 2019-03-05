@@ -78,7 +78,7 @@ System.register([], function (exports, module) {
                 groups.value = v;
                 updateDate(v, groups);
                 node.value = printDate(groups);
-              }));
+              }, { defer: true }));
             } else { groups.value = getDateValue(opts.date || defaultDate()); }
 
             function sendValue() {
