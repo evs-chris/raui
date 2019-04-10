@@ -105,7 +105,7 @@
   </select>
 </template>
 
-<div class-rje-wrapper class-rje-editable="~/editable" class-rje-readonly="!~/editable" {{yield extra-attributes}}>
+<div class-rje-wrapper class-rje-editable="~/editable" class-rje-readonly="!~/editable" class-rje-plain-keys="~/plainkeys" {{yield extra-attributes}}>
   {{#if !root}}{{>value root}}{{/if}}
   {{#with root}}
     {{>open}}
@@ -257,7 +257,7 @@
     css: $CSS,
     cssId: "json-editor",
     noCssTransform: true,
-    attributes: ['editable', 'root'],
+    attributes: ['editable', 'plainkeys', 'root', 'preservetoggles'],
     data() {
       return {
         getType,
@@ -276,12 +276,20 @@
         strict: true,
         init: false,
         handler() {
-          this.set({
-            toggles: { root: true },
-            keys: {},
-            values: {},
-            extras: {}
-          });
+          if (!this.get('preservetoggles')) {
+            this.set({
+              toggles: { root: true },
+              keys: {},
+              values: {},
+              extras: {}
+            });
+          } else {
+            this.set({
+              keys: {},
+              values: {},
+              extras: {}
+            });
+          }
         }
       }
     }
@@ -409,6 +417,7 @@
   .rje-entry {
     margin-left: 0.75em;
     line-height: 2em;
+    white-space: nowrap;
   }
   
   .rje-editable .rje-entry:nth-last-of-type(n+3) > .rje-value > .rje-close:after,
@@ -459,6 +468,12 @@
     content: '"';
     position: absolute;
   }
+  .rje-plain-keys .rje-key .rje-str:before, .rje-plain-keys .rje-key .rje-str:after {
+    content: '';
+  }
+  .rje-plain-keys .rje-key .rje-str {
+    margin: 0;
+  }
   .rje-str:before {
     left: -0.6em;
     width: 0.6em;
@@ -476,6 +491,7 @@
 
   .rje-obj {
     display: inline-block;
+    vertical-align: baseline;
   }
 
   .rje-icon {
@@ -500,30 +516,38 @@
   .rje-icon:hover {
     opacity: 1;
   }
+</style>
 
+<script rel="css">
+  const theme = data('raui.json') || {};
+  return `
   .rje-key .rje-str {
-    color: #005a00;
+    color: ${theme.key || '#005a00'};
+  }
+  .rje-idx {
+    color: ${theme.index || '#0000e6'};
   }
   .rje-num {
-    color: #0000e6;
+    color: ${theme.number || '#0000e6'};
     font-weight: 500;
   }
   .rje-bool {
-    color: #cc8400;
+    color: ${theme.boolean || '#cc8400'};
     font-weight: 500;
   }
   .rje-wat {
-    color: #e60000;
+    color: ${theme.wat || '#e60000'};
     font-weight: 500;
   }
   .rje-null {
-    color: #737373;
+    color: ${theme.null | '#737373'};
     font-weight: 500;
   }
   .rje-fn {
-    color: #005a00;
+    color: ${theme.function || '#005a00'};
   }
   .rje-str {
-    color: #753bb0;
+    color: ${theme.string || '#753bb0'};
   }
-</style>
+  `
+</script>
