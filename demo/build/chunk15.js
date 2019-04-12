@@ -147,6 +147,37 @@ System.register(['ractive', './chunk2.js'], function (exports, module) {
           return false;
         };
 
+        JSONEditor.prototype.openPath = function openPath (str) {
+          var this$1 = this;
+
+          if (str && typeof str === 'string') {
+            var path = Ractive.splitKeypath(str);
+            path.reduce(function (a, c) {
+              var path = a + '\\.' + c;
+              this$1.set(path, true);
+              return path;
+            }, 'toggles.root');
+            this.set('toggles.root', true);
+          }
+        };
+
+        JSONEditor.prototype.closePath = function closePath (str, toRoot) {
+          var this$1 = this;
+
+          if (str && typeof str === 'string') {
+            if (toRoot) {
+              var path = Ractive.splitKeypath(str);
+              path.reduce(function (a, c) {
+                var path = a + '\\.' + c;
+                this$1.set(path, false);
+                return path;
+              }, 'toggles.root');
+            } else {
+              this.set('toggles.root\\.' + Ractive.escapeKey(str), false);
+            }
+          }
+        };
+
         return JSONEditor;
       }(Ractive$1));
 
