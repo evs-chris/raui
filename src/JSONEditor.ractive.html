@@ -250,6 +250,33 @@
 
       return false;
     }
+
+    openPath(str) {
+      if (str && typeof str === 'string') {
+        const path = Ractive.splitKeypath(str);
+        path.reduce((a, c) => {
+          const path = a + '\\.' + c;
+          this.set(path, true);
+          return path;
+        }, 'toggles.root');
+        this.set('toggles.root', true);
+      }
+    }
+
+    closePath(str, toRoot) {
+      if (str && typeof str === 'string') {
+        if (toRoot) {
+          const path = Ractive.splitKeypath(str);
+          path.reduce((a, c) => {
+            const path = a + '\\.' + c;
+            this.set(path, false);
+            return path;
+          }, 'toggles.root');
+        } else {
+          this.set('toggles.root\\.' + Ractive.escapeKey(str), false);
+        }
+      }
+    }
   }
 
   Ractive.extendWith(JSONEditor, {
