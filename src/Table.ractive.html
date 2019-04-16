@@ -8,7 +8,7 @@
   class-rtable-with-select="~/allowSelect"
   {{yield extra-attributes}}
 >
-  {{#if ~/fixedHeader && ~/display === 'grid'}}<div as-grid>{{>grid-head}}</div>{{/if}}
+  {{#if ~/fixedHeader && ~/display === 'grid'}}<div as-grid="{ offset: ~/scrollOffset }">{{>grid-head}}</div>{{/if}}
   <div class-rtable-top {{#if ~/paginate === 'virtual'}}on-scroll="scroll" as-sized="{ offsetHeight: '~/tableHeight', diffWidth: '~/scrollOffset' }"{{/if}} {{#if ~/fixedHeader && ~/display === 'grid'}}as-scrolled=`~/scroll`{{/if}}>
     {{#if ~/display === 'grid'}}
       {{>grid}}
