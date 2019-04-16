@@ -59,6 +59,7 @@ export function grid(node, options) {
   let breaks;
 
   function resize(size) {
+    if (typeof opts.offset === 'number') size -= opts.offset;
     if (!opts.type || opts.type === 'class') {
       let match, max = -1;
       for (const k in points) {
