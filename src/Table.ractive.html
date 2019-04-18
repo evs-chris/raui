@@ -8,39 +8,18 @@
   class-rtable-with-select="~/allowSelect"
   {{yield extra-attributes}}
 >
-  {{#if ~/fixedHeader && ~/display === 'grid'}}<div as-grid="{ offset: ~/scrollOffset }">{{>grid-head}}</div>{{/if}}
-  <div class-rtable-top {{#if ~/paginate === 'virtual'}}on-scroll="scroll" as-sized="{ offsetHeight: '~/tableHeight', diffWidth: '~/scrollOffset' }"{{/if}} {{#if ~/fixedHeader && ~/display === 'grid'}}as-scrolled=`~/scroll`{{/if}}>
-    {{#if ~/display === 'grid'}}
-      {{>grid}}
-    {{else}}
-      {{>table}}
-    {{/if}}
+  {{#if ~/fixedHeader}}<div as-grid="{ offset: ~/scrollOffset }">{{>grid-head}}</div>{{/if}}
+  <div class-rtable-top {{#if ~/paginate === 'virtual'}}on-scroll="scroll" as-sized="{ offsetHeight: '~/tableHeight', diffWidth: '~/scrollOffset' }"{{/if}} {{#if ~/fixedHeader}}as-scrolled=`~/scroll`{{/if}}>
+    <div as-grid {{#if ~/paginate === 'virtual'}}style-margin-top="{{~/virtual.above}}px" style-margin-bottom="{{~/virtual.below}}px"{{/if}}>
+      {{#unless ~/fixedHeader}}{{>grid-head}}{{/unless}}
+      {{#each ~/visibleRows, ~/items as source, true as shuffle}}
+        {{>grid-row}}
+      {{/each}}
+      {{#if !~/rows.length}}<div class-rtable-row class-row class-t1>{{yield empty}}</div>{{/if}}
+    </div>
   </div>
   {{#if ~/paginate !== 'virtual'}}{{>pagination}}{{/if}}
 </div>
-
-<template id="table">
-  <table {{#if ~/paginate === 'virtual'}}style-margin-top="{{~/virtual.above}}px" style-margin-bottom="{{~/virtual.below}}px"{{/if}}>
-    {{>table-head}}
-    {{#each ~/visibleRows, ~/items as source, true as shuffle}}
-      {{>table-row}}
-    {{/each}}
-    {{#if !~/rows.length}}<tr class-rtable-row><td colspan="{{~/columns.length + (~/allowSelect ? 1 : 0)}}">{{yield empty}}</td></tr>{{/if}}
-  </table>
-</template>
-
-<template id="table-body">
-</template>
-
-<template id="grid">
-  <div as-grid {{#if ~/paginate === 'virtual'}}style-margin-top="{{~/virtual.above}}px" style-margin-bottom="{{~/virtual.below}}px"{{/if}}>
-    {{#unless ~/fixedHeader}}{{>grid-head}}{{/unless}}
-    {{#each ~/visibleRows, ~/items as source, true as shuffle}}
-      {{>grid-row}}
-    {{/each}}
-    {{#if !~/rows.length}}<div class-rtable-row class-row class-t1>{{yield empty}}</div>{{/if}}
-  </div>
-</template>
 
 <template id="pagination">
   <div class-rtable-bottom>
@@ -353,7 +332,7 @@
     css: $CSS,
     cssId: 'rtable',
     noCssTransform: true,
-    attributes: ['paginate', 'items', 'filter', 'sort', 'helpers', 'fixed', 'display', 'allowSelect', 'allowSelectAll', 'border', 'fixedHeader'],
+    attributes: ['paginate', 'items', 'filter', 'sort', 'helpers', 'fixed', 'allowSelect', 'allowSelectAll', 'border', 'fixedHeader'],
     components: {
       table: false,
       Table: false
@@ -571,7 +550,6 @@
     },
     data() {
       return {
-        display: 'grid',
         page: 0,
         selections: [],
         allowSelect: true,
@@ -872,7 +850,7 @@
     const cmp = this.component;
     if ( !cmp ) return;
 
-    let rowEl, groupEl, mappings;
+    let rowEl, groupEl, wrapperEl, mappings;
 
     const tpl = cmp.template.f || [];
     const attrs = cmp.template.m ? cmp.template.m.slice() : [];
@@ -987,75 +965,141 @@
 
     rowEl = tpl.find(e => e.e === 'row');
     groupEl = tpl.find(e => e.e === 'group');
+    wrapperEl = tpl.find(e => e.e === 'wrapper');
     
     this._init = { sets: grabColumns(tpl), partials: {} };
     const columns = this._init.sets.columns;
-    this._init.sets['meta.expand'] = rowEl && rowEl.f;
+    this._init.sets['meta.expand'] = rowEl && rowEl.f && rowEl.f.length;
 
     const sortKey = '[_0._setSort(_1,_2)]';
-    
-    // table
-    {
-      const header = [{ t: 7, e: 'tr', m: [{ t: 13, n: 'class-rtable-header' }, { t: 4, f: [{ n: 'style-opacity', f: '0', t: 13 }], n: 50, x: { r: ['~/virtual.offset'] , s: '_0>0' } }], f: columns.filter(c => c.hidden !== true).map(c => {
-        const th = { t: 7, e: 'th', f: c.label, m: [{ t: 13, n: 'class-rtable-header' }, { t: 4, n: 53, r: `~/columns.${c.index}`, f: [{ t: 70, n: ['click'], f: { r: ['@this', '.index', '@event'], s: sortKey } }] }].concat(c.attrs) };
-        if (c.type) th.m.push({ t: 13, n: `class-rtable-${c.type}-column` });
-        if (c.filter || c.sort) th.m.push({ t: 13, n: 'class-rtable-sortable' });
-        let res = th;
 
-        if (c.hidden && c.hidden.r) {
-          res = { t: 4, n: 51, r: c.hidden.r, f: [th] };
+    const header = [{ t: 7, e: 'div', m: [
+      { t: 13, n: 'class-rtable-row-wrap' },
+      { t: 13, n: 'class-row-wrap' },
+      { t: 13, n: 'class-rtable-header' },
+      { t: 4, f: [{ n: 'style-opacity', f: '0', t: 13 }], n: 50, x: { r: ['~/fixedHeader', '~/virtual.offset'] , s: '!_0&&_1>0' } },
+      { t: 4, n: 50, r: '~/fixedHeader', f: [{ t: 13, n: 'style-padding-right', f: [{ t: 2, r: '~/scrollOffset' }, 'px'] }] }
+    ], f: [{ t: 7, e: 'div', f: columns.filter(c => c.hidden !== true).map(c => {
+      const div = { t: 7, e: 'div', f: [{ t: 7, e: 'div', f: c.label }], m: [{ t: 4, n: 53, r: `~/columns.${c.index}`, f: [{ t: 70, n: ['click'], f: { r: ['@this', '.index', '@event'], s: sortKey } }] }, { t: 13, n: 'title', f: c.label }].concat(c.attrs.filter(a => a.n !== 'title')) };
+      if (c.type) div.m.push({ t: 13, n: `class-rtable-${c.type}-column` });
+      if (c.filter || c.sort) div.m.push({ t: 13, n: 'class-rtable-sortable' });
+      div.m.push({ t: 13, n: 'class-rtable-column' });
+      let res = div;
+
+      if (c.hidden && c.hidden.r) {
+        res = { t: 4, n: 51, r: c.hidden.r, f: [div] };
+      }
+
+      return res;
+    }), 
+    m: [
+      { t: 13, n: 'class-row' }
+    ] }] }];
+
+    // selectall
+    header[0].f.unshift({
+      t: 4, n: 50, r: '~/allowSelect', f: [{ t: 7, e: 'div', m: [{ t: 13, n: 'class-rtable-select-header' }, { t: 13, n: 'class-rtable-column' }, { t: 13, n: 'title', f: [{ t: 2, r: 'selections.length' }, ' items selected']}, { t: 13, n: 'class-rtable-all-selected', f: [{ t: 2, x: { r: ['@this'], s: '_0._allSelected()' } }] }], f: [{ t: 7, e: 'div', f: [{ t: 4, n: 50, r: '~/allowSelectAll', f: [{ t: 7, e: 'input', m: [{ t: 73, v: 't', f: 'false' }, { t: 13, n: 'type', f: 'checkbox' }, { t: 13, n: 'checked', f: [{ t: 2, x: { r: ['@this'], s: '_0._allSelected()' } }] }, { t: 13, n: 'class-rtable-select' }, { t: 70, n: ['click'], f: 'selectAll' }] }] }], m: [{ t: 70, n: ['clickd'], f: 'selectAll' }] }] }]
+    });
+
+    //header[0].f.push({t: 4, f: [{ t: 7, e: 'div', m: [{ t: 13, n: 'class', f: 'rtable-header-scroll', g: 1 }, { n: 'style-width', f: [{ t: 2, r: '~/scrollOffset' }], t: 13 }] }], n: 50, r: '~/fixedHeader' });
+
+    const row = [{ t: 7, e: 'div', m: [
+      { t: 13, n: 'class-rtable-row-wrap' },
+      { t: 13, n: 'class-rtable-odd', f: [{ t: 2, x: { r: ['@index','~/virtual.offset'], s: '(_0+_1)%2===1' } }] },
+      { t: 13, n: 'class-row-wrap' },
+      { t: 13, n: 'class-rtable-live' },
+      { t: 13, n: 'class-rtable-selected', f: [{ t: 2, x: { r: ['~/selections', '.'], s: '~_0.indexOf(_1)' } }] }
+    ], f: [{ t: 7, e: 'div', f: columns.filter(c => c.hidden !== true).map(c => {
+      let content = [{ t: 7, e: 'div', f: [{ t: 16, r: `~/columns.${columns.indexOf(c)}.content`, c: { r: '.' } }] }];
+      if (c.attrs.length) {
+        c.attrsP = c.attrs;
+        c.attrs = [{ t: 16, r: `~/columns.${columns.indexOf(c)}.attrsP`, c: { r: '.' } }];
+      } else {
+        c.attrs = [];
+      }
+      const attrs = c.attrs;
+      if (c.editable && c.filter) {
+        // TODO: moar types - pick, date, maybe custom via edit tag
+        const noclicky = { t: 70, n: ['click', 'mousedown', 'pointerdown', 'MSPointerDown', 'touchstart'], f: { r: ['@event'], s: '[_0.stopPropagation()]' } };
+        const editor = [
+          { t: 4, n: 50, x: { r: [`~/columns.${columns.indexOf(c)}.type`], s: "_0==='boolean'" }, f: [{ t: 7, e: 'input', m: [{ t: 13, n: 'type', f: 'checkbox' }, { t: 13, n: 'checked', f: [{ t: 2, r: c.filter }] }, noclicky] }] },
+          { t: 4, n: 51, l: 1, f: [{ t: 7, e: 'input', m: [{ t: 13, n: 'value', f: [{ t: 2, r: c.filter }] }, noclicky] }] }
+        ];
+        if (typeof c.editable === 'object') {
+          attrs.push({ t: 13, n: 'class-rtable-editing', f: c.editable });
+          content = [
+            Object.assign({}, c.editable, { t: 4, n: 50, f: editor }),
+            { t: 4, n: 51, l: 1, f: content }
+          ]
+        } else {
+          attrs.push({ t: 13, n: 'class-rtable-editing' });
+          content = editor;
         }
+      }
+      const div = { t: 7, e: 'div', f: content, m: attrs };
+      if (c.type) attrs.unshift({ t: 13, n: `class-rtable-${c.type}-column` });
+      attrs.push({ t: 13, n: 'class-rtable-column' });
+      if (!div.m.find(a => a.n === 'title')) attrs.unshift({ t: 13, n: 'title', f: c.content.find(e => e.e) ? c.label : c.content });
+      if (c.noPad === 0) attrs.push({ t: 13, n: 'class-rtable-no-pad' });
+      else if (c.noPad) attrs.push({ t: 13, n: 'class-rtable-no-pad', f: c.noPad });
+      let res = div;
 
-        return res;
-      }) }];
+      if (c.hidden && c.hidden.r) {
+        res = { t: 4, n: 51, r: c.hidden.r, f: [div] };
+      }
 
-      // selectall
-      header[0].f.unshift({
-        t: 4, n: 50, r: '~/allowSelect', f: [{ t: 7, e: 'th', m: [{ t: 13, n: 'class-rtable-select-header' }, { t: 13, n: 'title', f: [{ t: 2, r: 'selections.length' }, ' items selected']}, { t: 13, n: 'class-rtable-all-selected', f: [{ t: 2, x: { r: ['@this'], s: '_0._allSelected()' } }] }, { t: 70, n: ['clickd'], f: 'selectAll' }], f: [{ t: 4, n: 50, r: '~/allowSelectAll', f: [{ t: 7, e: 'input', m: [{ t: 73, v: 't', f: 'false' }, { t: 13, n: 'type', f: 'checkbox' }, { t: 13, n: 'checked', f: [{ t: 2, x: { r: ['@this'], s: '_0._allSelected()' } }] }, { t: 70, n: ['click'], f: 'selectAll' }, { t: 13, n: 'class-rtable-select' }] }] }] }]
-      });
+      return res;
+    }), m: [
+      { t: 13, n: 'class-row' }, { t: 13, n: 'class-rtable-row' },
+      { t: 70, n: (rowEl && rowEl.f ? ['dblclickd'] : ['click', 'dblclick']), f: { r: ['~/rows', '~/visibleRows', '.'], s: `[['selected',_2,_0.indexOf(_2),_1.indexOf(_2)]]` } }
+    ] }] }];
 
-      const row = [{ t: 7, e: 'tr', f: columns.filter(c => c.hidden !== true).map(c => {
-        // TODO: editable
-        const td = { t: 7, e: 'td', f: [{ t: 16, r: `~/columns.${columns.indexOf(c)}.content`, c: { r: '.' } }], m: c.attrs.slice() };
-        if (c.type) td.m.unshift({ t: 13, n: `class-rtable-${c.type}-column` }, { t: 13, n: 'class-rtable-column' });
-        if (!td.m.find(a => a.n === 'title')) td.m.unshift({ t: 13, n: 'title', f: c.content.find(e => e.e) ? c.label : c.content });
-        if (c.noPad === 0) td.m.push({ t: 13, n: 'class-rtable-no-pad' });
-        else if (c.noPad) td.m.push({ t: 13, n: 'class-rtable-no-pad', f: c.noPad });
-        let res = td;
-
-        if (c.hidden && c.hidden.r) {
-          res = { t: 4, n: 51, r: c.hidden.r, f: [td] };
-        }
-
-        return res;
-      }), m: [
-        { t: 13, n: 'class-rtable-row' },
-        { t: 13, n: 'class-rtable-selected', f: [{ t: 2, x: { r: ['~/selections', '.'], s: '~_0.indexOf(_1)' } }] },
-        { t: 70, n: ['click'], f: { r: ['~/rows', '~/visibleRows', '.'], s: `[['selected',_2,_0.indexOf(_2),_1.indexOf(_2)]]` } }
-      ].concat((rowEl && rowEl.m) || empty)}];
-
-      // select
-      row[0].f.unshift({
-        t: 4, n: 50, r: '~/allowSelect', f: [{ t: 7, e: 'th', m: [{ t: 13, n: 'class-rtable-select-row' }, { t: 70, n: ['clickd'], f: { r: ['@this', '.', '@event'], s: '[_0._select(_1,_2),false]' } }], f: [{ t: 7, e: 'input', m: [{ t: 73, v: 't', f: 'false' }, { t: 13, n: 'type', f: 'checkbox' }, { t: 13, n: 'checked', f: [{ t: 2, x: { r: ['~/selections', '.'], s: '~_0.indexOf(_1)' } }] }, { t: 13, n: 'class-rtable-select' }, { t: 70, n: ['click'], f: { r: ['@this', '.', '@event'], s: '[_0._select(_1,_2),false]' } }] }] }]
-      });
-
-      this._init.partials['table-row'] = row;
-      this._init.partials['table-head'] = header;
+    // extra row attrs
+    if (rowEl && rowEl.m && rowEl.m.length) {
+      this._init.sets.rowAttrs = rowEl.m.slice();
+      row[0].f[0].m.push({ t: 16, r: '~/rowAttrs', c: { r: '.' } });
     }
 
-    // grid
-    {
-      const header = [{ t: 7, e: 'div', m: [
-        { t: 13, n: 'class-rtable-row-wrap' },
-        { t: 13, n: 'class-row-wrap' },
-        { t: 13, n: 'class-rtable-header' },
-        { t: 4, f: [{ n: 'style-opacity', f: '0', t: 13 }], n: 50, x: { r: ['~/fixedHeader', '~/virtual.offset'] , s: '!_0&&_1>0' } },
-        { t: 4, n: 50, r: '~/fixedHeader', f: [{ t: 13, n: 'style-padding-right', f: [{ t: 2, r: '~/scrollOffset' }, 'px'] }] }
-      ], f: [{ t: 7, e: 'div', f: columns.filter(c => c.hidden !== true).map(c => {
-        const div = { t: 7, e: 'div', f: [{ t: 7, e: 'div', f: c.label }], m: [{ t: 4, n: 53, r: `~/columns.${c.index}`, f: [{ t: 70, n: ['click'], f: { r: ['@this', '.index', '@event'], s: sortKey } }] }, { t: 13, n: 'title', f: c.label }].concat(c.attrs.filter(a => a.n !== 'title')) };
-        if (c.type) div.m.push({ t: 13, n: `class-rtable-${c.type}-column` });
-        if (c.filter || c.sort) div.m.push({ t: 13, n: 'class-rtable-sortable' });
+    // extra wrapper attrs
+    if (wrapperEl && wrapperEl.m && wrapperEl.m.length) {
+      this._init.sets.wrapperAttrs = wrapperEl.m.slice();
+      row[0].m.push({ t: 16, r: '~/wrapperAttrs', c: { r: '.' } });
+    }
+
+    // expando rows
+    if (rowEl && rowEl.f && rowEl.f.length) {
+      row[0].f[0].f.push({ t: 4, n: 50, x: { r: ['.', '~/expanded'], s: '_0===_1' }, f: [
+        { t: 7, e: 'div', f: [{ t: 7, e: 'div', f: [{ t: 16, r: `~/meta.expand`, c: { r: '.' } }] }], m: [{ t: 13, n: 'class-t1' }, { t: 13, n: 'class-rtable-row-expand' }] }
+      ] });
+      row[0].f[0].m.push({ t: 70, n: ['clickd'], f: { r: ['@this', '@index'], s: '[_0._expand(_1)]' } });
+    }
+
+    // select
+    row[0].f.unshift({
+      t: 4, n: 50, r: '~/allowSelect', f: [{ t: 7, e: 'div', m: [{ t: 13, n: 'class-rtable-select-row' }, { t: 13, n: 'class-rtable-column' }, { t: 70, n: ['clickd'], f: { r: ['@this', '.', '@event'], s: '[_0._select(_1,_2),false]' } }], f: [{ t: 7, e: 'div', f: [{ t: 7, e: 'input', m: [{ t: 73, v: 't', f: 'false' }, { t: 13, n: 'type', f: 'checkbox' }, { t: 13, n: 'checked', f: [{ t: 2, x: { r: ['~/selections', '.'], s: '~_0.indexOf(_1)' } }] }, { t: 13, n: 'class-rtable-select' }, { t: 70, n: ['click'], f: { r: ['@this', '.', '@event'], s: '[_0._select(_1,_2),false]' } }] }] }] }]
+    });
+
+    // group
+    let by;
+    if (groupEl && groupEl.m && (by = groupEl.m.find(a => a.n === 'by')) && (isString(by.f) || (by.length === 1 && by[0].t === 2))) {
+      const group = {
+        t: 4, n: 50, f: [{
+          t: 7, e: 'div', m: [
+            { t: 13, n: 'class-row' }, { t: 13, n: 'class-rtable-group' },
+            { t: 13, n: 'class-rtable-selected', f: [{ t: 2, x: { r: ['~/selections', '.'], s: '~_0.indexOf(_1)' } }] },
+            { t: 70, n: (rowEl && rowEl.f ? ['dblclickd'] : ['click', 'dblclick']), f: { r: ['~/rows', '~/visibleRows', '.'], s: `[['selected',_2,_0.indexOf(_2),_1.indexOf(_2)]]` } }
+          ].concat(groupEl.m.filter(a => a.n !== 'by' && a.n !== 'select'))
+        }],
+        x: { s: `_0&&_1[(_1&&(_2*_3+_4))||_4]`, r: [ '~/showGroups', '~/groups', '~/page', '~/pagination.per', '@index' ] }
+      };
+      row.unshift(group);
+      this._init.by = by.f;
+
+      const parts = grabColumns(groupEl.f).columns.filter(c => c.hidden !== true).map(c => {
+        const div = { t: 7, e: 'div', f: [{ t: 7, e: 'div', f: c.content }], m: c.attrs };
+        if (c.type) div.m.unshift({ t: 13, n: `class-rtable-${c.type}-column` });
         div.m.push({ t: 13, n: 'class-rtable-column' });
+        if (!div.m.find(a => a.n === 'title')) div.m.unshift({ t: 13, n: 'title', f: c.content });
         let res = div;
 
         if (c.hidden && c.hidden.r) {
@@ -1063,129 +1107,30 @@
         }
 
         return res;
-      }), 
-      m: [
-        { t: 13, n: 'class-row' }
-      ] }] }];
-
-      // selectall
-      header[0].f.unshift({
-        t: 4, n: 50, r: '~/allowSelect', f: [{ t: 7, e: 'div', m: [{ t: 13, n: 'class-rtable-select-header' }, { t: 13, n: 'class-rtable-column' }, { t: 13, n: 'title', f: [{ t: 2, r: 'selections.length' }, ' items selected']}, { t: 13, n: 'class-rtable-all-selected', f: [{ t: 2, x: { r: ['@this'], s: '_0._allSelected()' } }] }], f: [{ t: 7, e: 'div', f: [{ t: 4, n: 50, r: '~/allowSelectAll', f: [{ t: 7, e: 'input', m: [{ t: 73, v: 't', f: 'false' }, { t: 13, n: 'type', f: 'checkbox' }, { t: 13, n: 'checked', f: [{ t: 2, x: { r: ['@this'], s: '_0._allSelected()' } }] }, { t: 13, n: 'class-rtable-select' }, { t: 70, n: ['click'], f: 'selectAll' }] }] }], m: [{ t: 70, n: ['clickd'], f: 'selectAll' }] }] }]
       });
-
-      //header[0].f.push({t: 4, f: [{ t: 7, e: 'div', m: [{ t: 13, n: 'class', f: 'rtable-header-scroll', g: 1 }, { n: 'style-width', f: [{ t: 2, r: '~/scrollOffset' }], t: 13 }] }], n: 50, r: '~/fixedHeader' });
-
-      const row = [{ t: 7, e: 'div', m: [
-        { t: 13, n: 'class-rtable-row-wrap' },
-        { t: 13, n: 'class-rtable-odd', f: [{ t: 2, x: { r: ['@index','~/virtual.offset'], s: '(_0+_1)%2===1' } }] },
-        { t: 13, n: 'class-row-wrap' },
-        { t: 13, n: 'class-rtable-live' },
-        { t: 13, n: 'class-rtable-selected', f: [{ t: 2, x: { r: ['~/selections', '.'], s: '~_0.indexOf(_1)' } }] }
-      ], f: [{ t: 7, e: 'div', f: columns.filter(c => c.hidden !== true).map(c => {
-        let content = [{ t: 7, e: 'div', f: [{ t: 16, r: `~/columns.${columns.indexOf(c)}.content`, c: { r: '.' } }] }];
-        const attrs = c.attrs.slice();
-        if (c.editable && c.filter) {
-          // TODO: moar types - pick, date, maybe custom via edit tag
-          const noclicky = { t: 70, n: ['click', 'mousedown', 'pointerdown', 'MSPointerDown', 'touchstart'], f: { r: ['@event'], s: '[_0.stopPropagation()]' } };
-          const editor = [
-            { t: 4, n: 50, x: { r: [`~/columns.${columns.indexOf(c)}.type`], s: "_0==='boolean'" }, f: [{ t: 7, e: 'input', m: [{ t: 13, n: 'type', f: 'checkbox' }, { t: 13, n: 'checked', f: [{ t: 2, r: c.filter }] }, noclicky] }] },
-            { t: 4, n: 51, l: 1, f: [{ t: 7, e: 'input', m: [{ t: 13, n: 'value', f: [{ t: 2, r: c.filter }] }, noclicky] }] }
-          ];
-          if (typeof c.editable === 'object') {
-            attrs.push({ t: 13, n: 'class-rtable-editing', f: c.editable });
-            content = [
-              Object.assign({}, c.editable, { t: 4, n: 50, f: editor }),
-              { t: 4, n: 51, l: 1, f: content }
-            ]
-          } else {
-            attrs.push({ t: 13, n: 'class-rtable-editing' });
-            content = editor;
-          }
-        }
-        const div = { t: 7, e: 'div', f: content, m: attrs };
-        if (c.type) attrs.unshift({ t: 13, n: `class-rtable-${c.type}-column` });
-        attrs.push({ t: 13, n: 'class-rtable-column' });
-        if (!div.m.find(a => a.n === 'title')) attrs.unshift({ t: 13, n: 'title', f: c.content.find(e => e.e) ? c.label : c.content });
-        if (c.noPad === 0) attrs.push({ t: 13, n: 'class-rtable-no-pad' });
-        else if (c.noPad) attrs.push({ t: 13, n: 'class-rtable-no-pad', f: c.noPad });
-        let res = div;
-
-        if (c.hidden && c.hidden.r) {
-          res = { t: 4, n: 51, r: c.hidden.r, f: [div] };
-        }
-
-        return res;
-      }), m: [
-        { t: 13, n: 'class-row' }, { t: 13, n: 'class-rtable-row' },
-        { t: 70, n: (rowEl && rowEl.f ? ['dblclickd'] : ['click', 'dblclick']), f: { r: ['~/rows', '~/visibleRows', '.'], s: `[['selected',_2,_0.indexOf(_2),_1.indexOf(_2)]]` } }
-      ].concat((rowEl && rowEl.m) || empty) }] }];
-
-      // expando rows
-      if (rowEl && rowEl.f) {
-        row[0].f[0].f.push({ t: 4, n: 50, x: { r: ['.', '~/expanded'], s: '_0===_1' }, f: [
-          { t: 7, e: 'div', f: [{ t: 7, e: 'div', f: [{ t: 16, r: `~/meta.expand`, c: { r: '.' } }] }], m: [{ t: 13, n: 'class-t1' }, { t: 13, n: 'class-rtable-row-expand' }] }
-        ] });
-        row[0].f[0].m.push({ t: 70, n: ['clickd'], f: { r: ['@this', '@index'], s: '[_0._expand(_1)]' } });
-      }
 
       // select
-      row[0].f.unshift({
-        t: 4, n: 50, r: '~/allowSelect', f: [{ t: 7, e: 'div', m: [{ t: 13, n: 'class-rtable-select-row' }, { t: 13, n: 'class-rtable-column' }, { t: 70, n: ['clickd'], f: { r: ['@this', '.', '@event'], s: '[_0._select(_1,_2),false]' } }], f: [{ t: 7, e: 'div', f: [{ t: 7, e: 'input', m: [{ t: 73, v: 't', f: 'false' }, { t: 13, n: 'type', f: 'checkbox' }, { t: 13, n: 'checked', f: [{ t: 2, x: { r: ['~/selections', '.'], s: '~_0.indexOf(_1)' } }] }, { t: 13, n: 'class-rtable-select' }, { t: 70, n: ['click'], f: { r: ['@this', '.', '@event'], s: '[_0._select(_1,_2),false]' } }] }] }] }]
+      parts.unshift({
+        t: 4, n: 50, r: '~/allowGroupSelect', f: [{ t: 7, e: 'div', m: [{ t: 13, n: 'class-rtable-select-row' }, { t: 13, n: 'class-rtable-column' }, { t: 70, n: ['clickd'], f: { r: ['@this', '@index'], s: '[_0._selectGroup(_1),false]' } }, { t: 13, n: 'class-rtable-all-selected', f: [{ t: 2, x: { r: ['@this', '@index'], s: '_0._groupSelected(_1)' } }] }], f: [{ t: 7, e: 'div', f: [{ t: 7, e: 'input', m: [{ t: 73, v: 't', f: 'false' }, { t: 13, n: 'type', f: 'checkbox' }, { t: 13, n: 'checked', f: [{ t: 2, x: { r: ['@this', '@index'], s: '_0._groupSelected(_1)' } }] }, { t: 13, n: 'class-rtable-select' }, { t: 70, n: ['click'], f: { r: ['@this', '@index'], s: '[_0._selectGroup(_1),false]' } }] }] }] }]
       });
 
-      // group
-      let by;
-      if (groupEl && groupEl.m && (by = groupEl.m.find(a => a.n === 'by')) && (isString(by.f) || (by.length === 1 && by[0].t === 2))) {
-        const group = {
-          t: 4, n: 50, f: [{
-            t: 7, e: 'div', m: [
-              { t: 13, n: 'class-row' }, { t: 13, n: 'class-rtable-group' },
-              { t: 13, n: 'class-rtable-selected', f: [{ t: 2, x: { r: ['~/selections', '.'], s: '~_0.indexOf(_1)' } }] },
-              { t: 70, n: (rowEl && rowEl.f ? ['dblclickd'] : ['click', 'dblclick']), f: { r: ['~/rows', '~/visibleRows', '.'], s: `[['selected',_2,_0.indexOf(_2),_1.indexOf(_2)]]` } }
-            ].concat(groupEl.m.filter(a => a.n !== 'by' && a.n !== 'select'))
-          }],
-          x: { s: `_0&&_1[(_1&&(_2*_3+_4))||_4]`, r: [ '~/showGroups', '~/groups', '~/page', '~/pagination.per', '@index' ] }
-        };
-        row.unshift(group);
-        this._init.by = by.f;
-
-        const parts = grabColumns(groupEl.f).columns.filter(c => c.hidden !== true).map(c => {
-          const div = { t: 7, e: 'div', f: [{ t: 7, e: 'div', f: c.content }], m: c.attrs };
-          if (c.type) div.m.unshift({ t: 13, n: `class-rtable-${c.type}-column` });
-          div.m.push({ t: 13, n: 'class-rtable-column' });
-          if (!div.m.find(a => a.n === 'title')) div.m.unshift({ t: 13, n: 'title', f: c.content });
-          let res = div;
-
-          if (c.hidden && c.hidden.r) {
-            res = { t: 4, n: 51, r: c.hidden.r, f: [div] };
-          }
-
-          return res;
-        });
-
-        // select
-        parts.unshift({
-          t: 4, n: 50, r: '~/allowGroupSelect', f: [{ t: 7, e: 'div', m: [{ t: 13, n: 'class-rtable-select-row' }, { t: 13, n: 'class-rtable-column' }, { t: 70, n: ['clickd'], f: { r: ['@this', '@index'], s: '[_0._selectGroup(_1),false]' } }, { t: 13, n: 'class-rtable-all-selected', f: [{ t: 2, x: { r: ['@this', '@index'], s: '_0._groupSelected(_1)' } }] }], f: [{ t: 7, e: 'div', f: [{ t: 7, e: 'input', m: [{ t: 73, v: 't', f: 'false' }, { t: 13, n: 'type', f: 'checkbox' }, { t: 13, n: 'checked', f: [{ t: 2, x: { r: ['@this', '@index'], s: '_0._groupSelected(_1)' } }] }, { t: 13, n: 'class-rtable-select' }, { t: 70, n: ['click'], f: { r: ['@this', '@index'], s: '[_0._selectGroup(_1),false]' } }] }] }] }]
-        });
-
-        
-        let attr;
-        if (attr = groupEl.m.find(a => a.n === 'select')) {
-          (mappings || (mappings = [])).push(Object.assign({}, attr, { n: 'allowGroupSelect' }));
-        }
-
-        if (attr = groupEl.m.find(a => a.n === 'show')) {
-          (mappings || (mappings = [])).push(Object.assign({}, attr, { n: 'showGroups' }));
-        }
-
-        group.f[0].f = parts;
+      
+      let attr;
+      if (attr = groupEl.m.find(a => a.n === 'select')) {
+        (mappings || (mappings = [])).push(Object.assign({}, attr, { n: 'allowGroupSelect' }));
       }
 
-      this._init.partials['grid-row'] = row;
-      this._init.partials['grid-head'] = header;
+      if (attr = groupEl.m.find(a => a.n === 'show')) {
+        (mappings || (mappings = [])).push(Object.assign({}, attr, { n: 'showGroups' }));
+      }
 
-      if (mappings && this.component) this.component.mappings = mappings;
+      group.f[0].f = parts;
     }
+
+    this._init.partials['grid-row'] = row;
+    this._init.partials['grid-head'] = header;
+
+    if (mappings && this.component) this.component.mappings = mappings;
   }
 
   export function plugin(opts = {}) {
@@ -1215,20 +1160,6 @@
     flex-grow: 2;
   }
 
-  .rtable > div > table {
-    width: 100%;
-    border-collapse: collapse;
-    display: table;
-  }
-
-  .rtable-auto > div > table,
-  .rtable-fixed > div > table {
-    table-layout: fixed;
-  }
-
-  .rtable td {
-    padding: 0.5em;
-  }
   .rtable-group > div > div,
   .rtable-header > div > div,
   .rtable-row > div > div {
@@ -1241,9 +1172,7 @@
     padding: 0;
   }
 
-  .rtable-auto td,
   .rtable-auto .row > *,
-  .rtable-fixed td,
   .rtable-fixed .row > *
   {
     text-overflow: ellipsis;
@@ -1338,10 +1267,6 @@
 
   .rtable-header.rtable-row-wrap {
     border-bottom: 2px solid ${table.divider || primary.bc || '#ccc'};
-  }
-
-  .rtable-header > th {
-    padding: 0.5em;
   }
 
   .rtable-top {
