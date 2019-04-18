@@ -6,6 +6,9 @@
   class-rtable-fixed-header="~/fixedHeader"
   class-rtable-scrolled="!~(~/scroll || '').indexOf('top')"
   class-rtable-with-select="~/allowSelect"
+  class-rtable-valign-top="~/valign === 'top'"
+  class-rtable-valign-center="~/valign === 'center'"
+  class-rtable-valign-bottom="~/valign === 'bottom'"
   {{yield extra-attributes}}
 >
   {{#if ~/fixedHeader}}<div as-grid="{ offset: ~/scrollOffset }">{{>grid-head}}</div>{{/if}}
@@ -54,6 +57,9 @@
 <template id="csp-dummy">
   <div
     class-rtable-odd="(@index + ~/virtual.offset) % 2 === 1"
+    class-top=".valign === 'top'"
+    class-bottom=".valign === 'bottom'"
+    class-center=".valign === 'center'"
     on-click="@this._setSort(.index, @event)"
     on-click="@this._select(., @event), false"
     on-click="['select', ., ~/rows.indexOf(.), ~/visibleRows.indexOf(.)]"
@@ -332,7 +338,7 @@
     css: $CSS,
     cssId: 'rtable',
     noCssTransform: true,
-    attributes: ['paginate', 'items', 'filter', 'sort', 'helpers', 'fixed', 'allowSelect', 'allowSelectAll', 'border', 'fixedHeader'],
+    attributes: ['paginate', 'items', 'filter', 'sort', 'helpers', 'fixed', 'allowSelect', 'allowSelectAll', 'border', 'fixedHeader', 'valign'],
     components: {
       table: false,
       Table: false
@@ -922,6 +928,10 @@
           else if (col.editable && isObject(col.editable.f)) col.editable = map(col.editable);
           else col.editable = false;
 
+          col.valign = attrs.find(a => a.n === 'valign');
+          if (col.valign && isObject(col.valign.f)) col.valign = map(col.valign);
+          else if (col.valign && typeof col.valign.f === 'string') col.valign = col.valign.f;
+
           col.attrs = attrs.filter(a => !~colAttrs.indexOf(a.n));
 
           // handle inline grid sizes without requiring the class prefix
@@ -1009,11 +1019,11 @@
       { t: 13, n: 'class-row-wrap' },
       { t: 13, n: 'class-rtable-live' },
       { t: 13, n: 'class-rtable-selected', f: [{ t: 2, x: { r: ['~/selections', '.'], s: '~_0.indexOf(_1)' } }] }
-    ], f: [{ t: 7, e: 'div', f: columns.filter(c => c.hidden !== true).map(c => {
-      let content = [{ t: 7, e: 'div', f: [{ t: 16, r: `~/columns.${columns.indexOf(c)}.content`, c: { r: '.' } }] }];
+    ], f: [{ t: 7, e: 'div', f: columns.filter(c => c.hidden !== true).map((c, cidx) => {
+      let content = [{ t: 7, e: 'div', f: [{ t: 16, r: `~/columns.${cidx}.content`, c: { r: '.' } }] }];
       if (c.attrs.length) {
         c.attrsP = c.attrs;
-        c.attrs = [{ t: 16, r: `~/columns.${columns.indexOf(c)}.attrsP`, c: { r: '.' } }];
+        c.attrs = [{ t: 16, r: `~/columns.${cidx}.attrsP`, c: { r: '.' } }];
       } else {
         c.attrs = [];
       }
@@ -1022,7 +1032,7 @@
         // TODO: moar types - pick, date, maybe custom via edit tag
         const noclicky = { t: 70, n: ['click', 'mousedown', 'pointerdown', 'MSPointerDown', 'touchstart'], f: { r: ['@event'], s: '[_0.stopPropagation()]' } };
         const editor = [
-          { t: 4, n: 50, x: { r: [`~/columns.${columns.indexOf(c)}.type`], s: "_0==='boolean'" }, f: [{ t: 7, e: 'input', m: [{ t: 13, n: 'type', f: 'checkbox' }, { t: 13, n: 'checked', f: [{ t: 2, r: c.filter }] }, noclicky] }] },
+          { t: 4, n: 50, x: { r: [`~/columns.${cidx}.type`], s: "_0==='boolean'" }, f: [{ t: 7, e: 'input', m: [{ t: 13, n: 'type', f: 'checkbox' }, { t: 13, n: 'checked', f: [{ t: 2, r: c.filter }] }, noclicky] }] },
           { t: 4, n: 51, l: 1, f: [{ t: 7, e: 'input', m: [{ t: 13, n: 'value', f: [{ t: 2, r: c.filter }] }, noclicky] }] }
         ];
         if (typeof c.editable === 'object') {
@@ -1036,6 +1046,15 @@
           content = editor;
         }
       }
+
+      if (c.valign) {
+        attrs.push(
+          { t: 13, n: 'class-rtable-valign-col-top', f: [{ t: 2, x: { r: [`~/columns.${cidx}.valign`], s: `_0==='top'` } }] },
+          { t: 13, n: 'class-rtable-valign-col-bottom', f: [{ t: 2, x: { r: [`~/columns.${cidx}.valign`], s: `_0==='bottom'` } }] },
+          { t: 13, n: 'class-rtable-valign-col-center', f: [{ t: 2, x: { r: [`~/columns.${cidx}.valign`], s: `_0==='center'` } }] },
+        );
+      }
+
       const div = { t: 7, e: 'div', f: content, m: attrs };
       if (c.type) attrs.unshift({ t: 13, n: `class-rtable-${c.type}-column` });
       attrs.push({ t: 13, n: 'class-rtable-column' });
@@ -1441,6 +1460,22 @@
     border: none;
     background-color: transparent;
     padding: 0.25em 0.5em;
+  }
+
+  .rtable-valign-top .grid > .rtable-row-wrap > .rtable-row > .rtable-column,
+  .rtable .grid > .rtable-row-wrap > .rtable-row > .rtable-column.rtable-valign-col-top {
+    display: flex;
+    align-items: flex-start;
+  }
+  .rtable-valign-bottom .grid > .rtable-row-wrap > .rtable-row > .rtable-column,
+  .rtable .grid > .rtable-row-wrap > .rtable-row > .rtable-column.rtable-valign-col-bottom {
+    display: flex;
+    align-items: flex-end;
+  }
+  .rtable-valign-center .grid > .rtable-row-wrap > .rtable-row > .rtable-column,
+  .rtable .grid > .rtable-row-wrap > .rtable-row > .rtable-column.rtable-valign-col-center {
+    display: flex;
+    align-items: center;
   }
   ` + (data('table.includeGrid') !== false ? gridStyle(data) : '');
 </script>
