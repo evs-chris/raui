@@ -50,7 +50,7 @@
     <div class-rcard-tabs>
     {{#each _card.tabs}}
       <div class-rcard-tab class-rcard-tab-selected="_card.selected === @index || (!_card.selected && !@index)" on-click="@context.set('_card.selected', @index), @context.set('_card.expanded', true), false">
-        {{>.title}}
+        {{>.title ^^/}}
       </div>
     {{/each}}
     {{#if _card.tablist}}
@@ -71,7 +71,7 @@
     <div class-rcard-tab-contents style-left="-{{(_card.selected || 0) * 100}}%">
     {{#each _card.tabs}}
     <div class-rcard-tab-content class-rcard-content-selected="_card.selected === @index || (!_card.selected && !@index)">
-      {{>.content}}
+      {{>.content ^^/}}
     </div>
     {{/each}}
     {{#if _card.tablist}}
