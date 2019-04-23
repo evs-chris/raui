@@ -87,7 +87,9 @@ export function numeric(options = {}) {
 
       node.value = next;
       range.push(dir);
-      node.setSelectionRange.apply(node, range);
+      try {
+        node.setSelectionRange.apply(node, range);
+      } catch (e) {}
     }
 
     cleanup.push(ctx.listen('input', update).cancel);
