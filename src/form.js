@@ -121,6 +121,7 @@ export function style(data) {
     overflow: visible;
     cursor: pointer;
     padding-top: 2.2em;
+    white-space: normal;
   }
   label.field.check.inline {
     padding-top: 0.7em;
@@ -245,6 +246,7 @@ export function style(data) {
     display: inline-block;
     overflow: visible;
     padding-top: 2.2em;
+    white-space: normal;
   }
   label.field.radio.inline {
     padding-top: 0.8em;
