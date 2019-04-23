@@ -114,6 +114,7 @@ System.register(['./chunk2.js'], function (exports, module) {
         var breaks;
 
         function resize(size) {
+          if (typeof opts.offset === 'number') { size -= opts.offset; }
           if (!opts.type || opts.type === 'class') {
             var match, max = -1;
             for (var k in points) {

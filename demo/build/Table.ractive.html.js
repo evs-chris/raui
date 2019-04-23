@@ -286,16 +286,16 @@ System.register(['ractive', './chunk7.js', './chunk8.js', './chunk2.js', './chun
       }
 
       Ractive$1.extendWith(Table, {
-        template: {v:4,t:[{t:7,e:"div",m:[{t:13,n:"class",f:"rtable",g:1},{n:"class-rtable-virtual",t:13,f:[{t:2,x:{r:["~/paginate"],s:"_0===\"virtual\""}}]},{n:"class-rtable-auto",t:13,f:[{t:2,x:{r:["~/paginate"],s:"_0===\"auto\""}}]},{n:"class-rtable-fixed",t:13,f:[{t:2,r:"~/fixed"}]},{n:"class-rtable-border",t:13,f:[{t:2,r:"~/border"}]},{n:"class-rtable-fixed-header",t:13,f:[{t:2,r:"~/fixedHeader"}]},{n:"class-rtable-scrolled",t:13,f:[{t:2,x:{r:["~/scroll"],s:"!~(_0||\"\").indexOf(\"top\")"}}]},{n:"class-rtable-with-select",t:13,f:[{t:2,r:"~/allowSelect"}]},{t:16,r:"extra-attributes"}],f:[{t:4,f:[{t:7,e:"div",m:[{n:"grid",t:71}],f:[{t:8,r:"grid-head"}]}],n:50,x:{r:["~/fixedHeader","~/display"],s:"_0&&_1===\"grid\""}}," ",{t:7,e:"div",m:[{t:13,n:"class",f:"rtable-top",g:1},{t:4,f:[{n:["scroll"],t:70,f:"scroll"},{n:"sized",t:71,f:{r:[],s:"[{offsetHeight:\"~/tableHeight\",diffWidth:\"~/scrollOffset\"}]"}}],n:50,x:{r:["~/paginate"],s:"_0===\"virtual\""}},{t:4,f:[{n:"scrolled",t:71,f:{r:[],s:"[\"~/scroll\"]"}}],n:50,x:{r:["~/fixedHeader","~/display"],s:"_0&&_1===\"grid\""}}],f:[{t:4,f:[{t:8,r:"grid"}],n:50,x:{r:["~/display"],s:"_0===\"grid\""}},{t:4,f:[{t:8,r:"table"}],n:51,l:1}]}," ",{t:4,f:[{t:8,r:"pagination"}],n:50,x:{r:["~/paginate"],s:"_0!==\"virtual\""}}]}],e:{"_0===\"virtual\"":function (_0){return(_0==="virtual");},"_0===\"auto\"":function (_0){return(_0==="auto");},"!~(_0||\"\").indexOf(\"top\")":function (_0){return(!~(_0||"").indexOf("top"));},"_0&&_1===\"grid\"":function (_0,_1){return(_0&&_1==="grid");},"[{offsetHeight:\"~/tableHeight\",diffWidth:\"~/scrollOffset\"}]":function (){return([{offsetHeight:"~/tableHeight",diffWidth:"~/scrollOffset"}]);},"[\"~/scroll\"]":function (){return(["~/scroll"]);},"_0===\"grid\"":function (_0){return(_0==="grid");},"_0!==\"virtual\"":function (_0){return(_0!=="virtual");},"(_0+_1)%2===1":function (_0,_1){return((_0+_1)%2===1);},"[_0._setSort(_1,_2)]":function (_0,_1,_2){return([_0._setSort(_1,_2)]);},"[_0._select(_1,_2),false]":function (_0,_1,_2){return([_0._select(_1,_2),false]);},"[[\"select\",_2,_0.indexOf(_2),_1.indexOf(_2)]]":function (_0,_1,_2){return([["select",_2,_0.indexOf(_2),_1.indexOf(_2)]]);},"[_0._expand(_1)]":function (_0,_1){return([_0._expand(_1)]);},"[_0.stopPropagation()]":function (_0){return([_0.stopPropagation()]);},"_0.indexOf(_1)":function (_0,_1){return(_0.indexOf(_1));},"_0===_1":function (_0,_1){return(_0===_1);},"_0>0":function (_0){return(_0>0);},"!_0&&_1>0":function (_0,_1){return(!_0&&_1>0);},"_0===\"boolean\"":function (_0){return(_0==="boolean");},"_0._allSelected()":function (_0){return(_0._allSelected());},"_0*_1+1":function (_0,_1){return(_0*_1+1);},"_2+1===_0?_1:(_2+1)*_3":function (_0,_1,_2,_3){return(_2+1===_0?_1:(_2+1)*_3);},"_0&&_1":function (_0,_1){return(_0&&_1);},"_0===1":function (_0){return(_0===1);},"_0._allSelected()&&_1<_2":function (_0,_1,_2){return(_0._allSelected()&&_1<_2);},"[_0.set(\"page\",_1-1)]":function (_0,_1){return([_0.set("page",_1-1)]);},"[(/^\\d+$/.test(_1)&&+_1>0&&+_1<=_0&&_2.set(\"page\",+_1-1))||_2.nodeSet(_3,\"value\",_4+1)]":function (_0,_1,_2,_3,_4){return([(/^\d+$/.test(_1)&&+_1>0&&+_1<=_0&&_2.set("page",+_1-1))||_2.nodeSet(_3,"value",_4+1)]);},"_0==_1+1":function (_0,_1){return(_0==_1+1);},"[_0.set(\"page\",_2[_1-1])]":function (_0,_1,_2){return([_0.set("page",_2[_1-1])]);},"_0===\"...\"":function (_0){return(_0==="...");},"[_0.set(\"page\",_1+1)]":function (_0,_1){return([_0.set("page",_1+1)]);},"_0<_1-1":function (_0,_1){return(_0<_1-1);},"true":function (){return(true);},"!_0":function (_0){return(!_0);},"_0+(_1?1:0)":function (_0,_1){return(_0+(_1?1:0));}},p:{"csp-dummy":[{t:7,e:"div",m:[{n:"class-rtable-odd",t:13,f:[{t:2,x:{r:["@index","~/virtual.offset"],s:"(_0+_1)%2===1"}}]},{n:["click"],t:70,f:{r:["@this",".index","@event"],s:"[_0._setSort(_1,_2)]"}},{n:["click"],t:70,f:{r:["@this",".","@event"],s:"[_0._select(_1,_2),false]"}},{n:["click"],t:70,f:{r:["~/rows","~/visibleRows","."],s:"[[\"select\",_2,_0.indexOf(_2),_1.indexOf(_2)]]"}},{n:["click"],t:70,f:{r:["@this","@index"],s:"[_0._expand(_1)]"}},{n:["click"],t:70,f:{r:["@event"],s:"[_0.stopPropagation()]"}}]}," ",{t:4,f:["..."],n:50,x:{r:["~/selections","."],s:"_0.indexOf(_1)"}}," ",{t:4,f:["..."],n:50,x:{r:[".","~/expanded"],s:"_0===_1"}}," ",{t:4,f:["..."],n:50,x:{r:["~/virtual.offset"],s:"_0>0"}}," ",{t:4,f:["..."],n:50,x:{r:["~/fixedHeader","~/virtual.offset"],s:"!_0&&_1>0"}}," ",{t:4,f:["..."],n:50,x:{r:["~/columns.0.type"],s:"_0===\"boolean\""}}," ",{t:4,f:["..."],n:50,x:{r:["@this"],s:"_0._allSelected()"}}],empty:[{t:7,e:"div",f:[{t:7,e:"div",f:["No data."]}]}],pagination:[{t:7,e:"div",m:[{t:13,n:"class",f:"rtable-bottom",g:1}],f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rtable-info",g:1}],f:[{t:4,f:[{t:2,x:{r:["~/page","~/pagination.per"],s:"_0*_1+1"}}," - ",{t:2,x:{r:["~/pagination.total","~/rows.length","~/page","~/pagination.per"],s:"_2+1===_0?_1:(_2+1)*_3"}}," of ",{t:2,r:"~/rows.length"},{t:4,f:[" (",{t:2,r:"~/items.length"}," total)"],n:50,r:"~/isFiltered"}],n:50,x:{r:["pagination","rows.length"],s:"_0&&_1"}}," ",{t:4,f:["​"],n:50,x:{r:["_paginate"],s:"_0===1"}}]}," ",{t:7,e:"div",m:[{t:13,n:"class",f:"rtable-select-all-all",g:1}],f:[{t:4,f:[{t:2,r:"selections.length"}," of ",{t:2,r:"rows.length"}," selected",{t:4,f:[" - ",{t:7,e:"a",m:[{n:"href",f:"#",t:13,g:1},{n:["click"],t:70,f:"selectAllAll"}],f:["Select All"]}],n:50,x:{r:["@this","selections.length","rows.length"],s:"_0._allSelected()&&_1<_2"}}],n:50,x:{r:["selections.length"],s:"_0>0"}}]}," ",{t:7,e:"div",m:[{t:13,n:"class",f:"rtable-pages",g:1}],f:[{t:4,f:[{t:7,e:"span",m:[{n:["click"],t:70,f:{r:["@this","~/page"],s:"[_0.set(\"page\",_1-1)]"}}],f:["Previous"]}],n:50,x:{r:["~/page"],s:"_0>0"}}," ",{t:4,f:[{t:4,f:[{t:7,e:"input",m:[{n:["change"],t:70,f:{r:["~/pagination.total","@node.value","@this","@node","~/page"],s:"[(/^\\d+$/.test(_1)&&+_1>0&&+_1<=_0&&_2.set(\"page\",+_1-1))||_2.nodeSet(_3,\"value\",_4+1)]"}},{n:"value",f:[{t:2,r:"."}],t:13},{t:73,v:"t",f:"false"}]}],n:50,x:{r:[".","~/page"],s:"_0==_1+1"}},{t:4,f:[{t:7,e:"span",m:[{n:["click"],t:70,f:{r:["@this","@index","../"],s:"[_0.set(\"page\",_2[_1-1])]"}}],f:["..."]}," "],n:50,x:{r:["."],s:"_0===\"...\""},l:1},{t:4,f:[" ",{t:7,e:"span",m:[{n:["click"],t:70,f:{r:["@this","."],s:"[_0.set(\"page\",_1-1)]"}}],f:[{t:2,r:"."}]}],n:51,l:1}],n:52,r:"~/pagination.array"}," ",{t:4,f:[{t:7,e:"span",m:[{n:["click"],t:70,f:{r:["@this","~/page"],s:"[_0.set(\"page\",_1+1)]"}}],f:["Next"]}],n:50,x:{r:["~/page","~/pagination.total"],s:"_0<_1-1"}}]}]}],grid:[{t:7,e:"div",m:[{n:"grid",t:71},{t:4,f:[{n:"style-margin-top",f:[{t:2,r:"~/virtual.above"},"px"],t:13},{n:"style-margin-bottom",f:[{t:2,r:"~/virtual.below"},"px"],t:13}],n:50,x:{r:["~/paginate"],s:"_0===\"virtual\""}}],f:[{t:4,f:[{t:8,r:"grid-head"}],n:51,r:"~/fixedHeader"}," ",{t:4,f:[{t:8,r:"grid-row"}],n:52,z:[{n:"source",x:{r:"~/items"}},{n:"shuffle",x:{x:{r:[],s:"true"}}}],r:"~/visibleRows"}," ",{t:4,f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rtable-row row t1",g:1}],f:[{t:16,r:"empty"}]}],n:50,x:{r:["~/rows.length"],s:"!_0"}}]}],table:[{t:7,e:"table",m:[{t:4,f:[{n:"style-margin-top",f:[{t:2,r:"~/virtual.above"},"px"],t:13},{n:"style-margin-bottom",f:[{t:2,r:"~/virtual.below"},"px"],t:13}],n:50,x:{r:["~/paginate"],s:"_0===\"virtual\""}}],f:[{t:8,r:"table-head"}," ",{t:4,f:[{t:8,r:"table-row"}],n:52,z:[{n:"source",x:{r:"~/items"}},{n:"shuffle",x:{x:{r:[],s:"true"}}}],r:"~/visibleRows"}," ",{t:4,f:[{t:7,e:"tr",m:[{t:13,n:"class",f:"rtable-row",g:1}],f:[{t:7,e:"td",m:[{n:"colspan",f:[{t:2,x:{r:["~/columns.length","~/allowSelect"],s:"_0+(_1?1:0)"}}],t:13}],f:[{t:16,r:"empty"}]}]}],n:50,x:{r:["~/rows.length"],s:"!_0"}}]}]}},
+        template: {v:4,t:[{t:7,e:"div",m:[{t:13,n:"class",f:"rtable",g:1},{n:"class-rtable-virtual",t:13,f:[{t:2,x:{r:["~/paginate"],s:"_0===\"virtual\""}}]},{n:"class-rtable-auto",t:13,f:[{t:2,x:{r:["~/paginate"],s:"_0===\"auto\""}}]},{n:"class-rtable-fixed",t:13,f:[{t:2,r:"~/fixed"}]},{n:"class-rtable-border",t:13,f:[{t:2,r:"~/border"}]},{n:"class-rtable-fixed-header",t:13,f:[{t:2,r:"~/fixedHeader"}]},{n:"class-rtable-scrolled",t:13,f:[{t:2,x:{r:["~/scroll"],s:"!~(_0||\"\").indexOf(\"top\")"}}]},{n:"class-rtable-with-select",t:13,f:[{t:2,r:"~/allowSelect"}]},{n:"class-rtable-valign-top",t:13,f:[{t:2,x:{r:["~/valign"],s:"_0===\"top\""}}]},{n:"class-rtable-valign-center",t:13,f:[{t:2,x:{r:["~/valign"],s:"_0===\"center\""}}]},{n:"class-rtable-valign-bottom",t:13,f:[{t:2,x:{r:["~/valign"],s:"_0===\"bottom\""}}]},{t:16,r:"extra-attributes"}],f:[{t:4,f:[{t:7,e:"div",m:[{n:"grid",t:71,f:{r:["~/scrollOffset"],s:"[{offset:_0}]"}}],f:[{t:8,r:"grid-head"}]}],n:50,r:"~/fixedHeader"}," ",{t:7,e:"div",m:[{t:13,n:"class",f:"rtable-top",g:1},{t:4,f:[{n:["scroll"],t:70,f:"scroll"},{n:"sized",t:71,f:{r:[],s:"[{offsetHeight:\"~/tableHeight\",diffWidth:\"~/scrollOffset\"}]"}}],n:50,x:{r:["~/paginate"],s:"_0===\"virtual\""}},{t:4,f:[{n:"scrolled",t:71,f:{r:[],s:"[\"~/scroll\"]"}}],n:50,r:"~/fixedHeader"}],f:[{t:7,e:"div",m:[{n:"grid",t:71},{t:4,f:[{n:"style-margin-top",f:[{t:2,r:"~/virtual.above"},"px"],t:13},{n:"style-margin-bottom",f:[{t:2,r:"~/virtual.below"},"px"],t:13}],n:50,x:{r:["~/paginate"],s:"_0===\"virtual\""}}],f:[{t:4,f:[{t:8,r:"grid-head"}],n:51,r:"~/fixedHeader"}," ",{t:4,f:[{t:8,r:"grid-row"}],n:52,z:[{n:"source",x:{r:"~/items"}},{n:"shuffle",x:{x:{r:[],s:"true"}}}],r:"~/visibleRows"}," ",{t:4,f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rtable-row row t1",g:1}],f:[{t:16,r:"empty"}]}],n:50,x:{r:["~/rows.length"],s:"!_0"}}]}]}," ",{t:4,f:[{t:8,r:"pagination"}],n:50,x:{r:["~/paginate"],s:"_0!==\"virtual\""}}]}],e:{"_0===\"virtual\"":function (_0){return(_0==="virtual");},"_0===\"auto\"":function (_0){return(_0==="auto");},"!~(_0||\"\").indexOf(\"top\")":function (_0){return(!~(_0||"").indexOf("top"));},"_0===\"top\"":function (_0){return(_0==="top");},"_0===\"center\"":function (_0){return(_0==="center");},"_0===\"bottom\"":function (_0){return(_0==="bottom");},"[{offset:_0}]":function (_0){return([{offset:_0}]);},"[{offsetHeight:\"~/tableHeight\",diffWidth:\"~/scrollOffset\"}]":function (){return([{offsetHeight:"~/tableHeight",diffWidth:"~/scrollOffset"}]);},"[\"~/scroll\"]":function (){return(["~/scroll"]);},"true":function (){return(true);},"!_0":function (_0){return(!_0);},"_0!==\"virtual\"":function (_0){return(_0!=="virtual");},"(_0+_1)%2===1":function (_0,_1){return((_0+_1)%2===1);},"[_0._setSort(_1,_2)]":function (_0,_1,_2){return([_0._setSort(_1,_2)]);},"[_0._select(_1,_2),false]":function (_0,_1,_2){return([_0._select(_1,_2),false]);},"[[\"select\",_2,_0.indexOf(_2),_1.indexOf(_2)]]":function (_0,_1,_2){return([["select",_2,_0.indexOf(_2),_1.indexOf(_2)]]);},"[_0._expand(_1)]":function (_0,_1){return([_0._expand(_1)]);},"[_0.stopPropagation()]":function (_0){return([_0.stopPropagation()]);},"_0.indexOf(_1)":function (_0,_1){return(_0.indexOf(_1));},"_0===_1":function (_0,_1){return(_0===_1);},"_0>0":function (_0){return(_0>0);},"!_0&&_1>0":function (_0,_1){return(!_0&&_1>0);},"_0===\"boolean\"":function (_0){return(_0==="boolean");},"_0._allSelected()":function (_0){return(_0._allSelected());},"_0*_1+1":function (_0,_1){return(_0*_1+1);},"_2+1===_0?_1:(_2+1)*_3":function (_0,_1,_2,_3){return(_2+1===_0?_1:(_2+1)*_3);},"_0&&_1":function (_0,_1){return(_0&&_1);},"_0===1":function (_0){return(_0===1);},"_0._allSelected()&&_1<_2":function (_0,_1,_2){return(_0._allSelected()&&_1<_2);},"[_0.set(\"page\",_1-1)]":function (_0,_1){return([_0.set("page",_1-1)]);},"[(/^\\d+$/.test(_1)&&+_1>0&&+_1<=_0&&_2.set(\"page\",+_1-1))||_2.nodeSet(_3,\"value\",_4+1)]":function (_0,_1,_2,_3,_4){return([(/^\d+$/.test(_1)&&+_1>0&&+_1<=_0&&_2.set("page",+_1-1))||_2.nodeSet(_3,"value",_4+1)]);},"_0==_1+1":function (_0,_1){return(_0==_1+1);},"[_0.set(\"page\",_2[_1-1])]":function (_0,_1,_2){return([_0.set("page",_2[_1-1])]);},"_0===\"...\"":function (_0){return(_0==="...");},"[_0.set(\"page\",_1+1)]":function (_0,_1){return([_0.set("page",_1+1)]);},"_0<_1-1":function (_0,_1){return(_0<_1-1);}},p:{"csp-dummy":[{t:7,e:"div",m:[{n:"class-rtable-odd",t:13,f:[{t:2,x:{r:["@index","~/virtual.offset"],s:"(_0+_1)%2===1"}}]},{n:"class-top",t:13,f:[{t:2,x:{r:[".valign"],s:"_0===\"top\""}}]},{n:"class-bottom",t:13,f:[{t:2,x:{r:[".valign"],s:"_0===\"bottom\""}}]},{n:"class-center",t:13,f:[{t:2,x:{r:[".valign"],s:"_0===\"center\""}}]},{n:["click"],t:70,f:{r:["@this",".index","@event"],s:"[_0._setSort(_1,_2)]"}},{n:["click"],t:70,f:{r:["@this",".","@event"],s:"[_0._select(_1,_2),false]"}},{n:["click"],t:70,f:{r:["~/rows","~/visibleRows","."],s:"[[\"select\",_2,_0.indexOf(_2),_1.indexOf(_2)]]"}},{n:["click"],t:70,f:{r:["@this","@index"],s:"[_0._expand(_1)]"}},{n:["click"],t:70,f:{r:["@event"],s:"[_0.stopPropagation()]"}}]}," ",{t:4,f:["..."],n:50,x:{r:["~/selections","."],s:"_0.indexOf(_1)"}}," ",{t:4,f:["..."],n:50,x:{r:[".","~/expanded"],s:"_0===_1"}}," ",{t:4,f:["..."],n:50,x:{r:["~/virtual.offset"],s:"_0>0"}}," ",{t:4,f:["..."],n:50,x:{r:["~/fixedHeader","~/virtual.offset"],s:"!_0&&_1>0"}}," ",{t:4,f:["..."],n:50,x:{r:["~/columns.0.type"],s:"_0===\"boolean\""}}," ",{t:4,f:["..."],n:50,x:{r:["@this"],s:"_0._allSelected()"}}],empty:[{t:7,e:"div",f:[{t:7,e:"div",f:["No data."]}]}],pagination:[{t:7,e:"div",m:[{t:13,n:"class",f:"rtable-bottom",g:1}],f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rtable-info",g:1}],f:[{t:4,f:[{t:2,x:{r:["~/page","~/pagination.per"],s:"_0*_1+1"}}," - ",{t:2,x:{r:["~/pagination.total","~/rows.length","~/page","~/pagination.per"],s:"_2+1===_0?_1:(_2+1)*_3"}}," of ",{t:2,r:"~/rows.length"},{t:4,f:[" (",{t:2,r:"~/items.length"}," total)"],n:50,r:"~/isFiltered"}],n:50,x:{r:["pagination","rows.length"],s:"_0&&_1"}}," ",{t:4,f:["​"],n:50,x:{r:["_paginate"],s:"_0===1"}}]}," ",{t:7,e:"div",m:[{t:13,n:"class",f:"rtable-select-all-all",g:1}],f:[{t:4,f:[{t:2,r:"selections.length"}," of ",{t:2,r:"rows.length"}," selected",{t:4,f:[" - ",{t:7,e:"a",m:[{n:"href",f:"#",t:13,g:1},{n:["click"],t:70,f:"selectAllAll"}],f:["Select All"]}],n:50,x:{r:["@this","selections.length","rows.length"],s:"_0._allSelected()&&_1<_2"}}],n:50,x:{r:["selections.length"],s:"_0>0"}}]}," ",{t:7,e:"div",m:[{t:13,n:"class",f:"rtable-pages",g:1}],f:[{t:4,f:[{t:7,e:"span",m:[{n:["click"],t:70,f:{r:["@this","~/page"],s:"[_0.set(\"page\",_1-1)]"}}],f:["Previous"]}],n:50,x:{r:["~/page"],s:"_0>0"}}," ",{t:4,f:[{t:4,f:[{t:7,e:"input",m:[{n:["change"],t:70,f:{r:["~/pagination.total","@node.value","@this","@node","~/page"],s:"[(/^\\d+$/.test(_1)&&+_1>0&&+_1<=_0&&_2.set(\"page\",+_1-1))||_2.nodeSet(_3,\"value\",_4+1)]"}},{n:"value",f:[{t:2,r:"."}],t:13},{t:73,v:"t",f:"false"}]}],n:50,x:{r:[".","~/page"],s:"_0==_1+1"}},{t:4,f:[{t:7,e:"span",m:[{n:["click"],t:70,f:{r:["@this","@index","../"],s:"[_0.set(\"page\",_2[_1-1])]"}}],f:["..."]}," "],n:50,x:{r:["."],s:"_0===\"...\""},l:1},{t:4,f:[" ",{t:7,e:"span",m:[{n:["click"],t:70,f:{r:["@this","."],s:"[_0.set(\"page\",_1-1)]"}}],f:[{t:2,r:"."}]}],n:51,l:1}],n:52,r:"~/pagination.array"}," ",{t:4,f:[{t:7,e:"span",m:[{n:["click"],t:70,f:{r:["@this","~/page"],s:"[_0.set(\"page\",_1+1)]"}}],f:["Next"]}],n:50,x:{r:["~/page","~/pagination.total"],s:"_0<_1-1"}}]}]}]}},
         css: function(data) { return [(function(data) {
          var primary = Object.assign({}, data("raui.primary"), data("raui.table.primary"));
          var active = Object.assign({}, primary, data('raui.primary.active'), data('raui.table.primary.active'));
          var table = Object.assign({ selected: {} }, data('raui.table'));
-         return "\n   .rtable {\n     display: flex;\n     flex-direction: column;\n     overflow: auto;\n     max-width: 100%;\n     max-height: 100%;\n     box-sizing: border-box;\n     flex-grow: 2;\n   }\n \n   .rtable > div > table {\n     width: 100%;\n     border-collapse: collapse;\n     display: table;\n   }\n \n   .rtable-auto > div > table,\n   .rtable-fixed > div > table {\n     table-layout: fixed;\n   }\n \n   .rtable td {\n     padding: 0.5em;\n   }\n   .rtable-group > div > div,\n   .rtable-header > div > div,\n   .rtable-row > div > div {\n     padding: 0.5em;\n     overflow: inherit;\n     text-overflow: inherit;\n     line-height: 1em;\n   }\n   .rtable-row > .rtable-no-pad > div {\n     padding: 0;\n   }\n \n   .rtable-auto td,\n   .rtable-auto .row > *,\n   .rtable-fixed td,\n   .rtable-fixed .row > *\n   {\n     text-overflow: ellipsis;\n     overflow: hidden;\n     white-space: nowrap;\n   }\n \n   .rtable-header > div > div, .rtable-column {\n     overflow: hidden;\n   }\n \n   .rtable-number-column {\n     text-align: right;\n   }\n   .rtable-date-column {\n     text-align: right;\n   }\n \n   .rtable-sortable {\n     cursor: pointer;\n     user-select: none;\n     -moz-user-select: none;\n     -ms-user-select: none;\n     -webkit-user-select: none;\n   }\n \n   .grid .row.rtable-row, .grid .rtable-header > .row {\n     width: auto;\n     min-width: min-content;\n     flex-grow: 1;\n   }\n \n   .rtable-row-wrap {\n     color: " + (primary.fg || '#222') + ";\n     border-style: solid;\n     border-color: " + (table.divider || primary.bc || '#ccc') + ";\n     border-width: 0 0 1px 0;\n     background-color: " + (table.even || primary.bga || '#f4f4f4') + ";\n   }\n   .rtable-row-wrap.rtable-odd {\n     background-color: " + (table.odd || primary.bg || '#fff') + ";\n   }\n   .rtable-row-wrap:hover, .rtable-row-wrap.rtable-selected:hover {\n     background-color: " + (table.over || active.bg || 'rgba(128, 182, 229, 0.2)') + ";\n     position: relative;\n     box-shadow: inset 1px 0 0 #dadce0,inset -1px 0 0 #dadce0, 0 1px 2px 0 rgba(60, 64, 67, 0.3), 0 1px 3px 1px rgba(60, 64, 67, 0.15);\n     z-index: 1;\n   }\n \n   .rtable-row-wrap.rtable-selected {\n     background-color: " + (table.selected.bg || 'rgba(0, 119, 238, 0.12)') + ";\n     color: " + (table.selected.fg || primary.fg || '#222') + ";\n   }\n   .rtable-row-wrap.rtable-selected.rtable-odd {\n     background-color: " + (table.selected.odd || 'rgba(0, 119, 238, 0.1)') + ";\n   }\n \n   .rtable-row-wrap {\n     display: flex;\n     flex-grow: 1;\n     align-items: center;\n   }\n \n   .rtable-border .rtable-row .rtable-column,\n   .rtable-border .rtable-group .rtable-column {\n     border-color: " + (table.divider || primary.bc || '#ccc') + ";\n     border-style: solid;\n     border-width: 0 0 1px 1px;\n     margin: 0 0 -1px -1px;\n   }\n \n   .rtable-border .rtable-row-wrap {\n     border-width: 0 1px 1px 1px;\n   }\n \n   .rtable-border .rtable-row-expand {\n     border-color: " + (table.divider || primary.bc || '#ccc') + ";\n     border-style: solid;\n     border-width: 1px 0 0 1px;\n     margin-left: -1px;\n     width: 100%;\n   }\n \n   .rtable-group {\n     border-bottom: 2px solid " + (table.divider || primary.bc || '#ccc') + ";\n   }\n \n   .rtable-header.rtable-row-wrap, .rtable-header.rtable-row-wrap:hover {\n     font-weight: bold;\n     background-color: " + (table.divider || primary.bc || '#ccc') + ";\n   }\n \n   .rtable-header.rtable-row-wrap {\n     border-bottom: 2px solid " + (table.divider || primary.bc || '#ccc') + ";\n   }\n \n   .rtable-header > th {\n     padding: 0.5em;\n   }\n \n   .rtable-top {\n     flex-grow: 5;\n     flex-shrink: 1;\n     overflow-y: auto;\n     margin: 0.5em 0;\n     position: relative;\n   }\n   .rtable-fixed-header .rtable-header {\n     margin-top: 0.5em;\n     position: relative;\n     z-index: 1;\n   }\n   .rtable-fixed-header.rtable-scrolled .rtable-header {\n     box-shadow: 0 1px 2px 0 rgba(60, 64, 67, 0.3), 0 1px 3px 1px rgba(60, 64, 67, 0.15);\n   }\n   .rtable-fixed-header .rtable-top {\n     margin-top: 0;\n   }\n \n   .rtable-bottom {\n     display: flex;\n     flex-wrap: wrap;\n     flex-shrink: 0;\n     padding: 0 0.5em 0.5em 0.5em;\n     justify-content: space-between;\n     user-select: none;\n     -moz-user-select: none;\n     -ms-user-select: none;\n     -webkit-user-select: none;\n   }\n \n   .rtable-bottom > * {\n     padding: 0.5em;\n   }\n \n   .rtable-pages span {\n     margin: 0.3em;\n     cursor: pointer;\n   }\n   .rtable-pages span:first-of-type {\n     margin-left: 0;\n   }\n   .rtable-pages input {\n     text-align: center;\n     width: 2.5em;\n     font-size: 1em;\n     background-color: transparent;\n     border: none;\n     padding: 0;\n     font-weight: bold;\n     text-decoration: underline;\n   }\n \n   /* checkboxes */\n   .rtable-select {\n     appearance: none;\n     -moz-appearance: none;\n     -webkit-appearance: none;\n     position: absolute;\n     display: block;\n     margin: 0;\n     width: 2em;\n     height: 2em;\n     box-shadow: none;\n     outline: none;\n     opacity: 0;\n     top: 0;\n     left: 0;\n     border-radius: 2em;\n     transform: translate(-0.1em, 0) scale(1);\n     transition: transform 0.2s, opacity 0.2s;\n     background-color: " + (primary.bc || '#ccc') + ";\n     cursor: pointer;\n   }\n \n   .rtable-select-header > div, .rtable-select-row > div, .rtable-header > div.rtable-select-header > div {\n     padding: 0;\n     overflow: visible;\n     width: 1.5em;\n     position: relative;\n     line-height: 1.8em;\n     cursor: pointer;\n   }\n \n   .rtable-select:checked {\n     background-color: " + (primary.fga || '#07e') + ";\n   }\n \n   .rtable-select-header:hover .rtable-select, .rtable-select-row:hover .rtable-select {\n     opacity: 0.04;\n   }\n \n   .rtable-select:focus {\n     opacity: 0.12;\n     transform: translate(-0.1em, 0) scale(1);\n   }\n \n   .rtable-select-header:hover .rtable-select:focus, .rtable-select-row:hover .rtable.select:focus {\n     opacity: 0.16;\n   }\n \n   .rtable-select:active {\n     opacity: 0.4;\n     transform: translate(-0.1em, 0) scale(0);\n     transition: transform 0s, opacity 0s;\n   }\n \n   .rtable-select-row > div:before, .rtable-select-header > div:before {\n     content: \"\";\n     display: inline-block;\n     box-sizing: border-box;\n     border: solid 2px; /* Safari */\n     border-color: " + (primary.fg || '#222') + ";\n     border-radius: 2px;\n     width: 18px;\n     height: 18px;\n     vertical-align: middle;\n     transition: border-color 0.2s, background-color 0.2s;\n   }\n \n   .rtable-select-row > div:after, .rtable-select-header > div:after {\n     content: \"\";\n     display: block;\n     position: absolute;\n     top: 0px;\n     left: 0px;\n     width: 10px;\n     height: 5px;\n     border: solid 2px transparent;\n     border-right: none;\n     border-top: none;\n     transform: translate(0.35em, 0.55em) rotate(-45deg);\n     opacity: 0;\n   }\n \n   .rtable-selected .rtable-select-row > div:before, .rtable-all-selected > div:before {\n     border-color: " + (primary.fga || '#07e') + ";\n     background-color: " + (primary.fga || '#07e') + ";\n   }\n \n   .rtable-selected .rtable-select-row > div:after, .rtable-all-selected > div:after {\n     border-color: " + (primary.bg || '#fff') + ";\n     opacity: 1;\n   }\n \n   .rtable-row-wrap > .rtable-select-header,\n   .rtable-row-wrap > .rtable-select-row {\n     text-align: center;\n     flex-shrink: 0;\n     display: flex;\n     align-items: center;\n     justify-content: space-around;\n     width: 2em;\n   }\n \n   .rtable-column button, .rtable-column .btn {\n     padding: 0 0.5em;\n     margin: 0.2em 0.5em;\n     min-height: 0;\n   }\n \n   .rtable-column.rtable-editing {\n     padding: 0;\n   }\n   .rtable-column.rtable-editing input {\n     width: 100%;\n     box-sizing: border-box;\n     height: 100%;\n     margin: 0;\n     border: none;\n     background-color: transparent;\n     padding: 0.25em 0.5em;\n   }\n   " + (data('table.includeGrid') !== false ? style(data) : '');
+         return "\n   .rtable {\n     display: flex;\n     flex-direction: column;\n     overflow: auto;\n     max-width: 100%;\n     max-height: 100%;\n     box-sizing: border-box;\n     flex-grow: 2;\n   }\n \n   .rtable-group > div > div,\n   .rtable-header > div > div,\n   .rtable-row > div > div {\n     padding: 0.5em;\n     overflow: inherit;\n     text-overflow: inherit;\n     line-height: 1em;\n   }\n   .rtable-row > .rtable-no-pad > div {\n     padding: 0;\n   }\n \n   .rtable-auto .row > *,\n   .rtable-fixed .row > *\n   {\n     text-overflow: ellipsis;\n     overflow: hidden;\n     white-space: nowrap;\n   }\n \n   .rtable-header > div > div, .rtable-column {\n     overflow: hidden;\n   }\n \n   .rtable-number-column {\n     text-align: right;\n   }\n   .rtable-date-column {\n     text-align: right;\n   }\n \n   .rtable-sortable {\n     cursor: pointer;\n     user-select: none;\n     -moz-user-select: none;\n     -ms-user-select: none;\n     -webkit-user-select: none;\n   }\n \n   .grid .row.rtable-row, .grid .rtable-header > .row {\n     width: auto;\n     min-width: min-content;\n     flex-grow: 1;\n   }\n \n   .rtable-row-wrap {\n     color: " + (primary.fg || '#222') + ";\n     border-style: solid;\n     border-color: " + (table.divider || primary.bc || '#ccc') + ";\n     border-width: 0 0 1px 0;\n     background-color: " + (table.even || primary.bga || '#f4f4f4') + ";\n   }\n   .rtable-row-wrap.rtable-odd {\n     background-color: " + (table.odd || primary.bg || '#fff') + ";\n   }\n   .rtable-row-wrap:hover, .rtable-row-wrap.rtable-selected:hover {\n     background-color: " + (table.over || active.bg || 'rgba(128, 182, 229, 0.2)') + ";\n     position: relative;\n     box-shadow: inset 1px 0 0 #dadce0,inset -1px 0 0 #dadce0, 0 1px 2px 0 rgba(60, 64, 67, 0.3), 0 1px 3px 1px rgba(60, 64, 67, 0.15);\n     z-index: 1;\n   }\n \n   .rtable-row-wrap.rtable-selected {\n     background-color: " + (table.selected.bg || 'rgba(0, 119, 238, 0.12)') + ";\n     color: " + (table.selected.fg || primary.fg || '#222') + ";\n   }\n   .rtable-row-wrap.rtable-selected.rtable-odd {\n     background-color: " + (table.selected.odd || 'rgba(0, 119, 238, 0.1)') + ";\n   }\n \n   .rtable-row-wrap {\n     display: flex;\n     flex-grow: 1;\n     align-items: center;\n   }\n \n   .rtable-border .rtable-row .rtable-column,\n   .rtable-border .rtable-group .rtable-column {\n     border-color: " + (table.divider || primary.bc || '#ccc') + ";\n     border-style: solid;\n     border-width: 0 0 1px 1px;\n     margin: 0 0 -1px -1px;\n   }\n \n   .rtable-border .rtable-row-wrap {\n     border-width: 0 1px 1px 1px;\n   }\n \n   .rtable-border .rtable-row-expand {\n     border-color: " + (table.divider || primary.bc || '#ccc') + ";\n     border-style: solid;\n     border-width: 1px 0 0 1px;\n     margin-left: -1px;\n     width: 100%;\n   }\n \n   .rtable-group {\n     border-bottom: 2px solid " + (table.divider || primary.bc || '#ccc') + ";\n   }\n \n   .rtable-header.rtable-row-wrap, .rtable-header.rtable-row-wrap:hover {\n     font-weight: bold;\n     background-color: " + (table.divider || primary.bc || '#ccc') + ";\n   }\n \n   .rtable-header.rtable-row-wrap {\n     border-bottom: 2px solid " + (table.divider || primary.bc || '#ccc') + ";\n   }\n \n   .rtable-top {\n     flex-grow: 5;\n     flex-shrink: 1;\n     overflow-y: auto;\n     margin: 0.5em 0;\n     position: relative;\n   }\n   .rtable-fixed-header .rtable-header {\n     margin-top: 0.5em;\n     position: relative;\n     z-index: 1;\n   }\n   .rtable-fixed-header.rtable-scrolled .rtable-header {\n     box-shadow: 0 1px 2px 0 rgba(60, 64, 67, 0.3), 0 1px 3px 1px rgba(60, 64, 67, 0.15);\n   }\n   .rtable-fixed-header .rtable-top {\n     margin-top: 0;\n   }\n \n   .rtable-bottom {\n     display: flex;\n     flex-wrap: wrap;\n     flex-shrink: 0;\n     padding: 0 0.5em 0.5em 0.5em;\n     justify-content: space-between;\n     user-select: none;\n     -moz-user-select: none;\n     -ms-user-select: none;\n     -webkit-user-select: none;\n   }\n \n   .rtable-bottom > * {\n     padding: 0.5em;\n   }\n \n   .rtable-pages span {\n     margin: 0.3em;\n     cursor: pointer;\n   }\n   .rtable-pages span:first-of-type {\n     margin-left: 0;\n   }\n   .rtable-pages input {\n     text-align: center;\n     width: 2.5em;\n     font-size: 1em;\n     background-color: transparent;\n     border: none;\n     padding: 0;\n     font-weight: bold;\n     text-decoration: underline;\n   }\n \n   /* checkboxes */\n   .rtable-select {\n     appearance: none;\n     -moz-appearance: none;\n     -webkit-appearance: none;\n     position: absolute;\n     display: block;\n     margin: 0;\n     width: 2em;\n     height: 2em;\n     box-shadow: none;\n     outline: none;\n     opacity: 0;\n     top: 0;\n     left: 0;\n     border-radius: 2em;\n     transform: translate(-0.1em, 0) scale(1);\n     transition: transform 0.2s, opacity 0.2s;\n     background-color: " + (primary.bc || '#ccc') + ";\n     cursor: pointer;\n   }\n \n   .rtable-select-header > div, .rtable-select-row > div, .rtable-header > div.rtable-select-header > div {\n     padding: 0;\n     overflow: visible;\n     width: 1.5em;\n     position: relative;\n     line-height: 1.8em;\n     cursor: pointer;\n   }\n \n   .rtable-select:checked {\n     background-color: " + (primary.fga || '#07e') + ";\n   }\n \n   .rtable-select-header:hover .rtable-select, .rtable-select-row:hover .rtable-select {\n     opacity: 0.04;\n   }\n \n   .rtable-select:focus {\n     opacity: 0.12;\n     transform: translate(-0.1em, 0) scale(1);\n   }\n \n   .rtable-select-header:hover .rtable-select:focus, .rtable-select-row:hover .rtable.select:focus {\n     opacity: 0.16;\n   }\n \n   .rtable-select:active {\n     opacity: 0.4;\n     transform: translate(-0.1em, 0) scale(0);\n     transition: transform 0s, opacity 0s;\n   }\n \n   .rtable-select-row > div:before, .rtable-select-header > div:before {\n     content: \"\";\n     display: inline-block;\n     box-sizing: border-box;\n     border: solid 2px; /* Safari */\n     border-color: " + (primary.fg || '#222') + ";\n     border-radius: 2px;\n     width: 18px;\n     height: 18px;\n     vertical-align: middle;\n     transition: border-color 0.2s, background-color 0.2s;\n   }\n \n   .rtable-select-row > div:after, .rtable-select-header > div:after {\n     content: \"\";\n     display: block;\n     position: absolute;\n     top: 0px;\n     left: 0px;\n     width: 10px;\n     height: 5px;\n     border: solid 2px transparent;\n     border-right: none;\n     border-top: none;\n     transform: translate(0.35em, 0.55em) rotate(-45deg);\n     opacity: 0;\n   }\n \n   .rtable-selected .rtable-select-row > div:before, .rtable-all-selected > div:before {\n     border-color: " + (primary.fga || '#07e') + ";\n     background-color: " + (primary.fga || '#07e') + ";\n   }\n \n   .rtable-selected .rtable-select-row > div:after, .rtable-all-selected > div:after {\n     border-color: " + (primary.bg || '#fff') + ";\n     opacity: 1;\n   }\n \n   .rtable-row-wrap > .rtable-select-header,\n   .rtable-row-wrap > .rtable-select-row {\n     text-align: center;\n     flex-shrink: 0;\n     display: flex;\n     align-items: center;\n     justify-content: space-around;\n     width: 2em;\n   }\n \n   .rtable-column button, .rtable-column .btn {\n     padding: 0 0.5em;\n     margin: 0.2em 0.5em;\n     min-height: 0;\n   }\n \n   .rtable-column.rtable-editing {\n     padding: 0;\n   }\n   .rtable-column.rtable-editing input {\n     width: 100%;\n     box-sizing: border-box;\n     height: 100%;\n     margin: 0;\n     border: none;\n     background-color: transparent;\n     padding: 0.25em 0.5em;\n   }\n \n   .rtable-valign-top .grid > .rtable-row-wrap > .rtable-row > .rtable-column > div,\n   .rtable .grid > .rtable-row-wrap > .rtable-row > .rtable-column.rtable-valign-col-top > div {\n     display: flex;\n     height: 100%;\n     align-items: flex-start;\n     box-sizing: border-box;\n   }\n   .rtable-valign-bottom .grid > .rtable-row-wrap > .rtable-row > .rtable-column > div,\n   .rtable .grid > .rtable-row-wrap > .rtable-row > .rtable-column.rtable-valign-col-bottom > div {\n     display: flex;\n     height: 100%;\n     align-items: flex-end;\n     box-sizing: border-box;\n   }\n   .rtable-valign-center .grid > .rtable-row-wrap > .rtable-row > .rtable-column > div,\n   .rtable .grid > .rtable-row-wrap > .rtable-row > .rtable-column.rtable-valign-col-center > div {\n     display: flex;\n     height: 100%;\n     align-items: center;\n     box-sizing: border-box;\n   }\n   " + (data('table.includeGrid') !== false ? style(data) : '');
       }).call(this, data)].join(' '); },
         cssId: 'rtable',
         noCssTransform: true,
-        attributes: ['paginate', 'items', 'filter', 'sort', 'helpers', 'fixed', 'display', 'allowSelect', 'allowSelectAll', 'border', 'fixedHeader'],
+        attributes: ['paginate', 'items', 'filter', 'sort', 'helpers', 'fixed', 'allowSelect', 'allowSelectAll', 'border', 'fixedHeader', 'valign'],
         components: {
           table: false,
           Table: false
@@ -517,7 +517,6 @@ System.register(['ractive', './chunk7.js', './chunk8.js', './chunk2.js', './chun
         },
         data: function data() {
           return {
-            display: 'grid',
             page: 0,
             selections: [],
             allowSelect: true,
@@ -824,7 +823,7 @@ System.register(['ractive', './chunk7.js', './chunk8.js', './chunk2.js', './chun
         var cmp = this.component;
         if ( !cmp ) { return; }
 
-        var rowEl, groupEl, mappings;
+        var rowEl, groupEl, wrapperEl, mappings;
 
         var tpl = cmp.template.f || [];
         var attrs = cmp.template.m ? cmp.template.m.slice() : [];
@@ -896,6 +895,10 @@ System.register(['ractive', './chunk7.js', './chunk8.js', './chunk2.js', './chun
               else if (col.editable && isObject(col.editable.f)) { col.editable = map(col.editable); }
               else { col.editable = false; }
 
+              col.valign = attrs.find(function (a) { return a.n === 'valign'; });
+              if (col.valign && isObject(col.valign.f)) { col.valign = map(col.valign); }
+              else if (col.valign && typeof col.valign.f === 'string') { col.valign = col.valign.f; }
+
               col.attrs = attrs.filter(function (a) { return !~colAttrs.indexOf(a.n); });
 
               // handle inline grid sizes without requiring the class prefix
@@ -939,127 +942,150 @@ System.register(['ractive', './chunk7.js', './chunk8.js', './chunk2.js', './chun
 
         rowEl = tpl.find(function (e) { return e.e === 'row'; });
         groupEl = tpl.find(function (e) { return e.e === 'group'; });
+        wrapperEl = tpl.find(function (e) { return e.e === 'wrapper'; });
         
         this._init = { sets: grabColumns(tpl), partials: {} };
         var columns = this._init.sets.columns;
-        this._init.sets['meta.expand'] = rowEl && rowEl.f;
+        this._init.sets['meta.expand'] = rowEl && rowEl.f && rowEl.f.length;
 
         var sortKey = '[_0._setSort(_1,_2)]';
-        
-        // table
-        {
-          var header = [{ t: 7, e: 'tr', m: [{ t: 13, n: 'class-rtable-header' }, { t: 4, f: [{ n: 'style-opacity', f: '0', t: 13 }], n: 50, x: { r: ['~/virtual.offset'] , s: '_0>0' } }], f: columns.filter(function (c) { return c.hidden !== true; }).map(function (c) {
-            var th = { t: 7, e: 'th', f: c.label, m: [{ t: 13, n: 'class-rtable-header' }, { t: 4, n: 53, r: ("~/columns." + (c.index)), f: [{ t: 70, n: ['click'], f: { r: ['@this', '.index', '@event'], s: sortKey } }] }].concat(c.attrs) };
-            if (c.type) { th.m.push({ t: 13, n: ("class-rtable-" + (c.type) + "-column") }); }
-            if (c.filter || c.sort) { th.m.push({ t: 13, n: 'class-rtable-sortable' }); }
-            var res = th;
 
-            if (c.hidden && c.hidden.r) {
-              res = { t: 4, n: 51, r: c.hidden.r, f: [th] };
-            }
+        var header = [{ t: 7, e: 'div', m: [
+          { t: 13, n: 'class-rtable-row-wrap' },
+          { t: 13, n: 'class-row-wrap' },
+          { t: 13, n: 'class-rtable-header' },
+          { t: 4, f: [{ n: 'style-opacity', f: '0', t: 13 }], n: 50, x: { r: ['~/fixedHeader', '~/virtual.offset'] , s: '!_0&&_1>0' } },
+          { t: 4, n: 50, r: '~/fixedHeader', f: [{ t: 13, n: 'style-padding-right', f: [{ t: 2, r: '~/scrollOffset' }, 'px'] }] }
+        ], f: [{ t: 7, e: 'div', f: columns.filter(function (c) { return c.hidden !== true; }).map(function (c) {
+          var div = { t: 7, e: 'div', f: [{ t: 7, e: 'div', f: c.label }], m: [{ t: 4, n: 53, r: ("~/columns." + (c.index)), f: [{ t: 70, n: ['click'], f: { r: ['@this', '.index', '@event'], s: sortKey } }] }, { t: 13, n: 'title', f: c.label }].concat(c.attrs.filter(function (a) { return a.n !== 'title'; })) };
+          if (c.type) { div.m.push({ t: 13, n: ("class-rtable-" + (c.type) + "-column") }); }
+          if (c.filter || c.sort) { div.m.push({ t: 13, n: 'class-rtable-sortable' }); }
+          div.m.push({ t: 13, n: 'class-rtable-column' });
+          var res = div;
 
-            return res;
-          }) }];
+          if (c.hidden && c.hidden.r) {
+            res = { t: 4, n: 51, r: c.hidden.r, f: [div] };
+          }
 
-          // selectall
-          header[0].f.unshift({
-            t: 4, n: 50, r: '~/allowSelect', f: [{ t: 7, e: 'th', m: [{ t: 13, n: 'class-rtable-select-header' }, { t: 13, n: 'title', f: [{ t: 2, r: 'selections.length' }, ' items selected']}, { t: 13, n: 'class-rtable-all-selected', f: [{ t: 2, x: { r: ['@this'], s: '_0._allSelected()' } }] }, { t: 70, n: ['clickd'], f: 'selectAll' }], f: [{ t: 4, n: 50, r: '~/allowSelectAll', f: [{ t: 7, e: 'input', m: [{ t: 73, v: 't', f: 'false' }, { t: 13, n: 'type', f: 'checkbox' }, { t: 13, n: 'checked', f: [{ t: 2, x: { r: ['@this'], s: '_0._allSelected()' } }] }, { t: 70, n: ['click'], f: 'selectAll' }, { t: 13, n: 'class-rtable-select' }] }] }] }]
-          });
+          return res;
+        }), 
+        m: [
+          { t: 13, n: 'class-row' }
+        ] }] }];
 
-          var row = [{ t: 7, e: 'tr', f: columns.filter(function (c) { return c.hidden !== true; }).map(function (c) {
-            // TODO: editable
-            var td = { t: 7, e: 'td', f: [{ t: 16, r: ("~/columns." + (columns.indexOf(c)) + ".content"), c: { r: '.' } }], m: c.attrs.slice() };
-            if (c.type) { td.m.unshift({ t: 13, n: ("class-rtable-" + (c.type) + "-column") }, { t: 13, n: 'class-rtable-column' }); }
-            if (!td.m.find(function (a) { return a.n === 'title'; })) { td.m.unshift({ t: 13, n: 'title', f: c.content.find(function (e) { return e.e; }) ? c.label : c.content }); }
-            if (c.noPad === 0) { td.m.push({ t: 13, n: 'class-rtable-no-pad' }); }
-            else if (c.noPad) { td.m.push({ t: 13, n: 'class-rtable-no-pad', f: c.noPad }); }
-            var res = td;
+        // selectall
+        header[0].f.unshift({
+          t: 4, n: 50, r: '~/allowSelect', f: [{ t: 7, e: 'div', m: [{ t: 13, n: 'class-rtable-select-header' }, { t: 13, n: 'class-rtable-column' }, { t: 13, n: 'title', f: [{ t: 2, r: 'selections.length' }, ' items selected']}, { t: 13, n: 'class-rtable-all-selected', f: [{ t: 2, x: { r: ['@this'], s: '_0._allSelected()' } }] }], f: [{ t: 7, e: 'div', f: [{ t: 4, n: 50, r: '~/allowSelectAll', f: [{ t: 7, e: 'input', m: [{ t: 73, v: 't', f: 'false' }, { t: 13, n: 'type', f: 'checkbox' }, { t: 13, n: 'checked', f: [{ t: 2, x: { r: ['@this'], s: '_0._allSelected()' } }] }, { t: 13, n: 'class-rtable-select' }, { t: 70, n: ['click'], f: 'selectAll' }] }] }], m: [{ t: 70, n: ['clickd'], f: 'selectAll' }] }] }]
+        });
 
-            if (c.hidden && c.hidden.r) {
-              res = { t: 4, n: 51, r: c.hidden.r, f: [td] };
-            }
+        //header[0].f.push({t: 4, f: [{ t: 7, e: 'div', m: [{ t: 13, n: 'class', f: 'rtable-header-scroll', g: 1 }, { n: 'style-width', f: [{ t: 2, r: '~/scrollOffset' }], t: 13 }] }], n: 50, r: '~/fixedHeader' });
 
-            return res;
-          }), m: [
-            { t: 13, n: 'class-rtable-row' },
-            { t: 13, n: 'class-rtable-selected', f: [{ t: 2, x: { r: ['~/selections', '.'], s: '~_0.indexOf(_1)' } }] },
-            { t: 70, n: ['click'], f: { r: ['~/rows', '~/visibleRows', '.'], s: "[['selected',_2,_0.indexOf(_2),_1.indexOf(_2)]]" } }
-          ].concat((rowEl && rowEl.m) || empty)}];
-
-          // select
-          row[0].f.unshift({
-            t: 4, n: 50, r: '~/allowSelect', f: [{ t: 7, e: 'th', m: [{ t: 13, n: 'class-rtable-select-row' }, { t: 70, n: ['clickd'], f: { r: ['@this', '.', '@event'], s: '[_0._select(_1,_2),false]' } }], f: [{ t: 7, e: 'input', m: [{ t: 73, v: 't', f: 'false' }, { t: 13, n: 'type', f: 'checkbox' }, { t: 13, n: 'checked', f: [{ t: 2, x: { r: ['~/selections', '.'], s: '~_0.indexOf(_1)' } }] }, { t: 13, n: 'class-rtable-select' }, { t: 70, n: ['click'], f: { r: ['@this', '.', '@event'], s: '[_0._select(_1,_2),false]' } }] }] }]
-          });
-
-          this._init.partials['table-row'] = row;
-          this._init.partials['table-head'] = header;
-        }
-
-        // grid
-        {
-          var header$1 = [{ t: 7, e: 'div', m: [
-            { t: 13, n: 'class-rtable-row-wrap' },
-            { t: 13, n: 'class-row-wrap' },
-            { t: 13, n: 'class-rtable-header' },
-            { t: 4, f: [{ n: 'style-opacity', f: '0', t: 13 }], n: 50, x: { r: ['~/fixedHeader', '~/virtual.offset'] , s: '!_0&&_1>0' } },
-            { t: 4, n: 50, r: '~/fixedHeader', f: [{ t: 13, n: 'style-padding-right', f: [{ t: 2, r: '~/scrollOffset' }, 'px'] }] }
-          ], f: [{ t: 7, e: 'div', f: columns.filter(function (c) { return c.hidden !== true; }).map(function (c) {
-            var div = { t: 7, e: 'div', f: [{ t: 7, e: 'div', f: c.label }], m: [{ t: 4, n: 53, r: ("~/columns." + (c.index)), f: [{ t: 70, n: ['click'], f: { r: ['@this', '.index', '@event'], s: sortKey } }] }, { t: 13, n: 'title', f: c.label }].concat(c.attrs.filter(function (a) { return a.n !== 'title'; })) };
-            if (c.type) { div.m.push({ t: 13, n: ("class-rtable-" + (c.type) + "-column") }); }
-            if (c.filter || c.sort) { div.m.push({ t: 13, n: 'class-rtable-sortable' }); }
-            div.m.push({ t: 13, n: 'class-rtable-column' });
-            var res = div;
-
-            if (c.hidden && c.hidden.r) {
-              res = { t: 4, n: 51, r: c.hidden.r, f: [div] };
-            }
-
-            return res;
-          }), 
-          m: [
-            { t: 13, n: 'class-row' }
-          ] }] }];
-
-          // selectall
-          header$1[0].f.unshift({
-            t: 4, n: 50, r: '~/allowSelect', f: [{ t: 7, e: 'div', m: [{ t: 13, n: 'class-rtable-select-header' }, { t: 13, n: 'class-rtable-column' }, { t: 13, n: 'title', f: [{ t: 2, r: 'selections.length' }, ' items selected']}, { t: 13, n: 'class-rtable-all-selected', f: [{ t: 2, x: { r: ['@this'], s: '_0._allSelected()' } }] }], f: [{ t: 7, e: 'div', f: [{ t: 4, n: 50, r: '~/allowSelectAll', f: [{ t: 7, e: 'input', m: [{ t: 73, v: 't', f: 'false' }, { t: 13, n: 'type', f: 'checkbox' }, { t: 13, n: 'checked', f: [{ t: 2, x: { r: ['@this'], s: '_0._allSelected()' } }] }, { t: 13, n: 'class-rtable-select' }, { t: 70, n: ['click'], f: 'selectAll' }] }] }], m: [{ t: 70, n: ['clickd'], f: 'selectAll' }] }] }]
-          });
-
-          //header[0].f.push({t: 4, f: [{ t: 7, e: 'div', m: [{ t: 13, n: 'class', f: 'rtable-header-scroll', g: 1 }, { n: 'style-width', f: [{ t: 2, r: '~/scrollOffset' }], t: 13 }] }], n: 50, r: '~/fixedHeader' });
-
-          var row$1 = [{ t: 7, e: 'div', m: [
-            { t: 13, n: 'class-rtable-row-wrap' },
-            { t: 13, n: 'class-rtable-odd', f: [{ t: 2, x: { r: ['@index','~/virtual.offset'], s: '(_0+_1)%2===1' } }] },
-            { t: 13, n: 'class-row-wrap' },
-            { t: 13, n: 'class-rtable-live' },
-            { t: 13, n: 'class-rtable-selected', f: [{ t: 2, x: { r: ['~/selections', '.'], s: '~_0.indexOf(_1)' } }] }
-          ], f: [{ t: 7, e: 'div', f: columns.filter(function (c) { return c.hidden !== true; }).map(function (c) {
-            var content = [{ t: 7, e: 'div', f: [{ t: 16, r: ("~/columns." + (columns.indexOf(c)) + ".content"), c: { r: '.' } }] }];
-            var attrs = c.attrs.slice();
-            if (c.editable && c.filter) {
-              // TODO: moar types - pick, date, maybe custom via edit tag
-              var noclicky = { t: 70, n: ['click', 'mousedown', 'pointerdown', 'MSPointerDown', 'touchstart'], f: { r: ['@event'], s: '[_0.stopPropagation()]' } };
-              var editor = [
-                { t: 4, n: 50, x: { r: [("~/columns." + (columns.indexOf(c)) + ".type")], s: "_0==='boolean'" }, f: [{ t: 7, e: 'input', m: [{ t: 13, n: 'type', f: 'checkbox' }, { t: 13, n: 'checked', f: [{ t: 2, r: c.filter }] }, noclicky] }] },
-                { t: 4, n: 51, l: 1, f: [{ t: 7, e: 'input', m: [{ t: 13, n: 'value', f: [{ t: 2, r: c.filter }] }, noclicky] }] }
+        var row = [{ t: 7, e: 'div', m: [
+          { t: 13, n: 'class-rtable-row-wrap' },
+          { t: 13, n: 'class-rtable-odd', f: [{ t: 2, x: { r: ['@index','~/virtual.offset'], s: '(_0+_1)%2===1' } }] },
+          { t: 13, n: 'class-row-wrap' },
+          { t: 13, n: 'class-rtable-live' },
+          { t: 13, n: 'class-rtable-selected', f: [{ t: 2, x: { r: ['~/selections', '.'], s: '~_0.indexOf(_1)' } }] }
+        ], f: [{ t: 7, e: 'div', f: columns.filter(function (c) { return c.hidden !== true; }).map(function (c, cidx) {
+          var content = [{ t: 7, e: 'div', f: [{ t: 16, r: ("~/columns." + cidx + ".content"), c: { r: '.' } }] }];
+          if (c.attrs.length) {
+            c.attrsP = c.attrs;
+            c.attrs = [{ t: 16, r: ("~/columns." + cidx + ".attrsP"), c: { r: '.' } }];
+          } else {
+            c.attrs = [];
+          }
+          var attrs = c.attrs;
+          if (c.editable && c.filter) {
+            // TODO: moar types - pick, date, maybe custom via edit tag
+            var noclicky = { t: 70, n: ['click', 'mousedown', 'pointerdown', 'MSPointerDown', 'touchstart'], f: { r: ['@event'], s: '[_0.stopPropagation()]' } };
+            var editor = [
+              { t: 4, n: 50, x: { r: [("~/columns." + cidx + ".type")], s: "_0==='boolean'" }, f: [{ t: 7, e: 'input', m: [{ t: 13, n: 'type', f: 'checkbox' }, { t: 13, n: 'checked', f: [{ t: 2, r: c.filter }] }, noclicky] }] },
+              { t: 4, n: 51, l: 1, f: [{ t: 7, e: 'input', m: [{ t: 13, n: 'value', f: [{ t: 2, r: c.filter }] }, noclicky] }] }
+            ];
+            if (typeof c.editable === 'object') {
+              attrs.push({ t: 13, n: 'class-rtable-editing', f: c.editable });
+              content = [
+                Object.assign({}, c.editable, { t: 4, n: 50, f: editor }),
+                { t: 4, n: 51, l: 1, f: content }
               ];
-              if (typeof c.editable === 'object') {
-                attrs.push({ t: 13, n: 'class-rtable-editing', f: c.editable });
-                content = [
-                  Object.assign({}, c.editable, { t: 4, n: 50, f: editor }),
-                  { t: 4, n: 51, l: 1, f: content }
-                ];
-              } else {
-                attrs.push({ t: 13, n: 'class-rtable-editing' });
-                content = editor;
-              }
+            } else {
+              attrs.push({ t: 13, n: 'class-rtable-editing' });
+              content = editor;
             }
-            var div = { t: 7, e: 'div', f: content, m: attrs };
-            if (c.type) { attrs.unshift({ t: 13, n: ("class-rtable-" + (c.type) + "-column") }); }
-            attrs.push({ t: 13, n: 'class-rtable-column' });
-            if (!div.m.find(function (a) { return a.n === 'title'; })) { attrs.unshift({ t: 13, n: 'title', f: c.content.find(function (e) { return e.e; }) ? c.label : c.content }); }
-            if (c.noPad === 0) { attrs.push({ t: 13, n: 'class-rtable-no-pad' }); }
-            else if (c.noPad) { attrs.push({ t: 13, n: 'class-rtable-no-pad', f: c.noPad }); }
+          }
+
+          if (c.valign) {
+            attrs.push(
+              { t: 13, n: 'class-rtable-valign-col-top', f: [{ t: 2, x: { r: [("~/columns." + cidx + ".valign")], s: "_0==='top'" } }] },
+              { t: 13, n: 'class-rtable-valign-col-bottom', f: [{ t: 2, x: { r: [("~/columns." + cidx + ".valign")], s: "_0==='bottom'" } }] },
+              { t: 13, n: 'class-rtable-valign-col-center', f: [{ t: 2, x: { r: [("~/columns." + cidx + ".valign")], s: "_0==='center'" } }] }
+            );
+          }
+
+          var div = { t: 7, e: 'div', f: content, m: attrs };
+          if (c.type) { attrs.unshift({ t: 13, n: ("class-rtable-" + (c.type) + "-column") }); }
+          attrs.push({ t: 13, n: 'class-rtable-column' });
+          if (!div.m.find(function (a) { return a.n === 'title'; })) { attrs.unshift({ t: 13, n: 'title', f: c.content.find(function (e) { return e.e; }) ? c.label : c.content }); }
+          if (c.noPad === 0) { attrs.push({ t: 13, n: 'class-rtable-no-pad' }); }
+          else if (c.noPad) { attrs.push({ t: 13, n: 'class-rtable-no-pad', f: c.noPad }); }
+          var res = div;
+
+          if (c.hidden && c.hidden.r) {
+            res = { t: 4, n: 51, r: c.hidden.r, f: [div] };
+          }
+
+          return res;
+        }), m: [
+          { t: 13, n: 'class-row' }, { t: 13, n: 'class-rtable-row' },
+          { t: 70, n: (rowEl && rowEl.f ? ['dblclickd'] : ['click', 'dblclick']), f: { r: ['~/rows', '~/visibleRows', '.'], s: "[['selected',_2,_0.indexOf(_2),_1.indexOf(_2)]]" } }
+        ] }] }];
+
+        // extra row attrs
+        if (rowEl && rowEl.m && rowEl.m.length) {
+          this._init.sets.rowAttrs = rowEl.m.slice();
+          row[0].f[0].m.push({ t: 16, r: '~/rowAttrs', c: { r: '.' } });
+        }
+
+        // extra wrapper attrs
+        if (wrapperEl && wrapperEl.m && wrapperEl.m.length) {
+          this._init.sets.wrapperAttrs = wrapperEl.m.slice();
+          row[0].m.push({ t: 16, r: '~/wrapperAttrs', c: { r: '.' } });
+        }
+
+        // expando rows
+        if (rowEl && rowEl.f && rowEl.f.length) {
+          row[0].f[0].f.push({ t: 4, n: 50, x: { r: ['.', '~/expanded'], s: '_0===_1' }, f: [
+            { t: 7, e: 'div', f: [{ t: 7, e: 'div', f: [{ t: 16, r: "~/meta.expand", c: { r: '.' } }] }], m: [{ t: 13, n: 'class-t1' }, { t: 13, n: 'class-rtable-row-expand' }] }
+          ] });
+          row[0].f[0].m.push({ t: 70, n: ['clickd'], f: { r: ['@this', '@index'], s: '[_0._expand(_1)]' } });
+        }
+
+        // select
+        row[0].f.unshift({
+          t: 4, n: 50, r: '~/allowSelect', f: [{ t: 7, e: 'div', m: [{ t: 13, n: 'class-rtable-select-row' }, { t: 13, n: 'class-rtable-column' }, { t: 70, n: ['clickd'], f: { r: ['@this', '.', '@event'], s: '[_0._select(_1,_2),false]' } }], f: [{ t: 7, e: 'div', f: [{ t: 7, e: 'input', m: [{ t: 73, v: 't', f: 'false' }, { t: 13, n: 'type', f: 'checkbox' }, { t: 13, n: 'checked', f: [{ t: 2, x: { r: ['~/selections', '.'], s: '~_0.indexOf(_1)' } }] }, { t: 13, n: 'class-rtable-select' }, { t: 70, n: ['click'], f: { r: ['@this', '.', '@event'], s: '[_0._select(_1,_2),false]' } }] }] }] }]
+        });
+
+        // group
+        var by;
+        if (groupEl && groupEl.m && (by = groupEl.m.find(function (a) { return a.n === 'by'; })) && (isString(by.f) || (by.length === 1 && by[0].t === 2))) {
+          var group = {
+            t: 4, n: 50, f: [{
+              t: 7, e: 'div', m: [
+                { t: 13, n: 'class-row' }, { t: 13, n: 'class-rtable-group' },
+                { t: 13, n: 'class-rtable-selected', f: [{ t: 2, x: { r: ['~/selections', '.'], s: '~_0.indexOf(_1)' } }] },
+                { t: 70, n: (rowEl && rowEl.f ? ['dblclickd'] : ['click', 'dblclick']), f: { r: ['~/rows', '~/visibleRows', '.'], s: "[['selected',_2,_0.indexOf(_2),_1.indexOf(_2)]]" } }
+              ].concat(groupEl.m.filter(function (a) { return a.n !== 'by' && a.n !== 'select'; }))
+            }],
+            x: { s: "_0&&_1[(_1&&(_2*_3+_4))||_4]", r: [ '~/showGroups', '~/groups', '~/page', '~/pagination.per', '@index' ] }
+          };
+          row.unshift(group);
+          this._init.by = by.f;
+
+          var parts = grabColumns(groupEl.f).columns.filter(function (c) { return c.hidden !== true; }).map(function (c) {
+            var div = { t: 7, e: 'div', f: [{ t: 7, e: 'div', f: c.content }], m: c.attrs };
+            if (c.type) { div.m.unshift({ t: 13, n: ("class-rtable-" + (c.type) + "-column") }); }
+            div.m.push({ t: 13, n: 'class-rtable-column' });
+            if (!div.m.find(function (a) { return a.n === 'title'; })) { div.m.unshift({ t: 13, n: 'title', f: c.content }); }
             var res = div;
 
             if (c.hidden && c.hidden.r) {
@@ -1067,77 +1093,30 @@ System.register(['ractive', './chunk7.js', './chunk8.js', './chunk2.js', './chun
             }
 
             return res;
-          }), m: [
-            { t: 13, n: 'class-row' }, { t: 13, n: 'class-rtable-row' },
-            { t: 70, n: (rowEl && rowEl.f ? ['dblclickd'] : ['click', 'dblclick']), f: { r: ['~/rows', '~/visibleRows', '.'], s: "[['selected',_2,_0.indexOf(_2),_1.indexOf(_2)]]" } }
-          ].concat((rowEl && rowEl.m) || empty) }] }];
-
-          // expando rows
-          if (rowEl && rowEl.f) {
-            row$1[0].f[0].f.push({ t: 4, n: 50, x: { r: ['.', '~/expanded'], s: '_0===_1' }, f: [
-              { t: 7, e: 'div', f: [{ t: 7, e: 'div', f: [{ t: 16, r: "~/meta.expand", c: { r: '.' } }] }], m: [{ t: 13, n: 'class-t1' }, { t: 13, n: 'class-rtable-row-expand' }] }
-            ] });
-            row$1[0].f[0].m.push({ t: 70, n: ['clickd'], f: { r: ['@this', '@index'], s: '[_0._expand(_1)]' } });
-          }
-
-          // select
-          row$1[0].f.unshift({
-            t: 4, n: 50, r: '~/allowSelect', f: [{ t: 7, e: 'div', m: [{ t: 13, n: 'class-rtable-select-row' }, { t: 13, n: 'class-rtable-column' }, { t: 70, n: ['clickd'], f: { r: ['@this', '.', '@event'], s: '[_0._select(_1,_2),false]' } }], f: [{ t: 7, e: 'div', f: [{ t: 7, e: 'input', m: [{ t: 73, v: 't', f: 'false' }, { t: 13, n: 'type', f: 'checkbox' }, { t: 13, n: 'checked', f: [{ t: 2, x: { r: ['~/selections', '.'], s: '~_0.indexOf(_1)' } }] }, { t: 13, n: 'class-rtable-select' }, { t: 70, n: ['click'], f: { r: ['@this', '.', '@event'], s: '[_0._select(_1,_2),false]' } }] }] }] }]
           });
 
-          // group
-          var by;
-          if (groupEl && groupEl.m && (by = groupEl.m.find(function (a) { return a.n === 'by'; })) && (isString(by.f) || (by.length === 1 && by[0].t === 2))) {
-            var group = {
-              t: 4, n: 50, f: [{
-                t: 7, e: 'div', m: [
-                  { t: 13, n: 'class-row' }, { t: 13, n: 'class-rtable-group' },
-                  { t: 13, n: 'class-rtable-selected', f: [{ t: 2, x: { r: ['~/selections', '.'], s: '~_0.indexOf(_1)' } }] },
-                  { t: 70, n: (rowEl && rowEl.f ? ['dblclickd'] : ['click', 'dblclick']), f: { r: ['~/rows', '~/visibleRows', '.'], s: "[['selected',_2,_0.indexOf(_2),_1.indexOf(_2)]]" } }
-                ].concat(groupEl.m.filter(function (a) { return a.n !== 'by' && a.n !== 'select'; }))
-              }],
-              x: { s: "_0&&_1[(_1&&(_2*_3+_4))||_4]", r: [ '~/showGroups', '~/groups', '~/page', '~/pagination.per', '@index' ] }
-            };
-            row$1.unshift(group);
-            this._init.by = by.f;
+          // select
+          parts.unshift({
+            t: 4, n: 50, r: '~/allowGroupSelect', f: [{ t: 7, e: 'div', m: [{ t: 13, n: 'class-rtable-select-row' }, { t: 13, n: 'class-rtable-column' }, { t: 70, n: ['clickd'], f: { r: ['@this', '@index'], s: '[_0._selectGroup(_1),false]' } }, { t: 13, n: 'class-rtable-all-selected', f: [{ t: 2, x: { r: ['@this', '@index'], s: '_0._groupSelected(_1)' } }] }], f: [{ t: 7, e: 'div', f: [{ t: 7, e: 'input', m: [{ t: 73, v: 't', f: 'false' }, { t: 13, n: 'type', f: 'checkbox' }, { t: 13, n: 'checked', f: [{ t: 2, x: { r: ['@this', '@index'], s: '_0._groupSelected(_1)' } }] }, { t: 13, n: 'class-rtable-select' }, { t: 70, n: ['click'], f: { r: ['@this', '@index'], s: '[_0._selectGroup(_1),false]' } }] }] }] }]
+          });
 
-            var parts = grabColumns(groupEl.f).columns.filter(function (c) { return c.hidden !== true; }).map(function (c) {
-              var div = { t: 7, e: 'div', f: [{ t: 7, e: 'div', f: c.content }], m: c.attrs };
-              if (c.type) { div.m.unshift({ t: 13, n: ("class-rtable-" + (c.type) + "-column") }); }
-              div.m.push({ t: 13, n: 'class-rtable-column' });
-              if (!div.m.find(function (a) { return a.n === 'title'; })) { div.m.unshift({ t: 13, n: 'title', f: c.content }); }
-              var res = div;
-
-              if (c.hidden && c.hidden.r) {
-                res = { t: 4, n: 51, r: c.hidden.r, f: [div] };
-              }
-
-              return res;
-            });
-
-            // select
-            parts.unshift({
-              t: 4, n: 50, r: '~/allowGroupSelect', f: [{ t: 7, e: 'div', m: [{ t: 13, n: 'class-rtable-select-row' }, { t: 13, n: 'class-rtable-column' }, { t: 70, n: ['clickd'], f: { r: ['@this', '@index'], s: '[_0._selectGroup(_1),false]' } }, { t: 13, n: 'class-rtable-all-selected', f: [{ t: 2, x: { r: ['@this', '@index'], s: '_0._groupSelected(_1)' } }] }], f: [{ t: 7, e: 'div', f: [{ t: 7, e: 'input', m: [{ t: 73, v: 't', f: 'false' }, { t: 13, n: 'type', f: 'checkbox' }, { t: 13, n: 'checked', f: [{ t: 2, x: { r: ['@this', '@index'], s: '_0._groupSelected(_1)' } }] }, { t: 13, n: 'class-rtable-select' }, { t: 70, n: ['click'], f: { r: ['@this', '@index'], s: '[_0._selectGroup(_1),false]' } }] }] }] }]
-            });
-
-            
-            var attr;
-            if (attr = groupEl.m.find(function (a) { return a.n === 'select'; })) {
-              (mappings || (mappings = [])).push(Object.assign({}, attr, { n: 'allowGroupSelect' }));
-            }
-
-            if (attr = groupEl.m.find(function (a) { return a.n === 'show'; })) {
-              (mappings || (mappings = [])).push(Object.assign({}, attr, { n: 'showGroups' }));
-            }
-
-            group.f[0].f = parts;
+          
+          var attr;
+          if (attr = groupEl.m.find(function (a) { return a.n === 'select'; })) {
+            (mappings || (mappings = [])).push(Object.assign({}, attr, { n: 'allowGroupSelect' }));
           }
 
-          this._init.partials['grid-row'] = row$1;
-          this._init.partials['grid-head'] = header$1;
+          if (attr = groupEl.m.find(function (a) { return a.n === 'show'; })) {
+            (mappings || (mappings = [])).push(Object.assign({}, attr, { n: 'showGroups' }));
+          }
 
-          if (mappings && this.component) { this.component.mappings = mappings; }
+          group.f[0].f = parts;
         }
+
+        this._init.partials['grid-row'] = row;
+        this._init.partials['grid-head'] = header;
+
+        if (mappings && this.component) { this.component.mappings = mappings; }
       }
 
       function plugin(opts) {
