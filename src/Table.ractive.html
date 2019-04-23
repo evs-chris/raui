@@ -1462,20 +1462,26 @@
     padding: 0.25em 0.5em;
   }
 
-  .rtable-valign-top .grid > .rtable-row-wrap > .rtable-row > .rtable-column,
-  .rtable .grid > .rtable-row-wrap > .rtable-row > .rtable-column.rtable-valign-col-top {
+  .rtable-valign-top .grid > .rtable-row-wrap > .rtable-row > .rtable-column > div,
+  .rtable .grid > .rtable-row-wrap > .rtable-row > .rtable-column.rtable-valign-col-top > div {
     display: flex;
+    height: 100%;
     align-items: flex-start;
+    box-sizing: border-box;
   }
-  .rtable-valign-bottom .grid > .rtable-row-wrap > .rtable-row > .rtable-column,
-  .rtable .grid > .rtable-row-wrap > .rtable-row > .rtable-column.rtable-valign-col-bottom {
+  .rtable-valign-bottom .grid > .rtable-row-wrap > .rtable-row > .rtable-column > div,
+  .rtable .grid > .rtable-row-wrap > .rtable-row > .rtable-column.rtable-valign-col-bottom > div {
     display: flex;
+    height: 100%;
     align-items: flex-end;
+    box-sizing: border-box;
   }
-  .rtable-valign-center .grid > .rtable-row-wrap > .rtable-row > .rtable-column,
-  .rtable .grid > .rtable-row-wrap > .rtable-row > .rtable-column.rtable-valign-col-center {
+  .rtable-valign-center .grid > .rtable-row-wrap > .rtable-row > .rtable-column > div,
+  .rtable .grid > .rtable-row-wrap > .rtable-row > .rtable-column.rtable-valign-col-center > div {
     display: flex;
+    height: 100%;
     align-items: center;
+    box-sizing: border-box;
   }
   ` + (data('table.includeGrid') !== false ? gridStyle(data) : '');
 </script>
