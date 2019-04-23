@@ -979,7 +979,7 @@
     
     this._init = { sets: grabColumns(tpl), partials: {} };
     const columns = this._init.sets.columns;
-    this._init.sets['meta.expand'] = rowEl && rowEl.f && rowEl.f.length;
+    this._init.sets['meta.expand'] = rowEl && rowEl.f.length && rowEl.f;
 
     const sortKey = '[_0._setSort(_1,_2)]';
 
