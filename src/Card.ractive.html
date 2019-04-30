@@ -1,7 +1,7 @@
 <div class-rcard-wrapper {{>extra-attributes}} class-rcard-margin="_card.margin" class-rcard-wrapper-popout="_card.popout">
   <div class-rcard class-rcard-no-pad="_card.noPad" class-rcard-section="_card.section" class-rcard-flat="'flat' in _card ? _card.flat : @style.card.flat" class-rcard-deep="'flat' in _card ? !_card.flat : !@style.card.flat" class-rcard-popout="_card.popout" class-rcard-collapsed="_card.expandable && _card.expanded === false" class-rcard-expandable="_card.expandable" class-rcard-arrow="_card.arrow" class-rcard-no-fill="_card.noFill" class-rcard-with-header="_card.titleP || _card.subtitleP || _card.avatarP || _card.title || _card.subtitle || (_card.avatar && typeof _card.avatar === 'string' || (_card.tabs && _card.section))">
     {{#if _card.titleP || _card.subtitleP || _card.avatarP || _card.title || _card.subtitle || (_card.avatar && typeof _card.avatar === 'string' || (_card.tabs && _card.section))}}
-      <div class-rcard-header {{#if _card.expandable && _card.arrow}}class-rcard-clickable on-click="@context.set('_card.expanded', _card.expanded === false ? true : false)"{{/if}}>
+      <div class-rcard-header {{#if _card.expandable && _card.arrow}}class-rcard-clickable on-click="_card.expand()"{{/if}}>
         {{#if _card.arrow && _card.expandable}}
           <div class-rcard-expand class-rcard-expanded="_card.expanded !== false"><svg><path d="M16.59 8.59L12 13.17 7.41 8.59 6 10l6 6 6-6z"></path></svg></div>
         {{/if}}
@@ -10,7 +10,7 @@
           <div class-rcard-avatar-inner style-background-image="url({{_card.avatar}})" />
         </div>
         {{elseif _card.avatarP}}<div class-rcard-avatar {{#if _card.avatarA}}{{>_card.avatarA}}{{/if}}>{{>_card.avatarP}}</div>{{/if}}
-        <div class-rcard-titles class-rcard-with-sub="_card.subtitle || _card.subtitleP" class-rcard-with-tabs="_card.tabs" {{#if _card.expandable && !_card.arrow }}class-rcard-shrink class-rcard-clickable on-click="@context.set('_card.expanded', _card.expanded === false ? true : false)"{{/if}}>
+        <div class-rcard-titles class-rcard-with-sub="_card.subtitle || _card.subtitleP" class-rcard-with-tabs="_card.tabs" {{#if _card.expandable && !_card.arrow }}class-rcard-shrink class-rcard-clickable on-click="_card.expand()"{{/if}}>
           {{#if _card.title}}<div class-rcard-title>{{_card.title}}</div>
           {{else}}<div class-rcard-title {{#if _card.titleA}}{{>_card.titleA}}{{/if}}>{{>_card.titleP}}</div>{{/if}}
           {{#if _card.subtitle}}<div class-rcard-subtitle>{{_card.subtitle}}</div>
@@ -49,7 +49,7 @@
   <div class-rcard-tabs-window>
     <div class-rcard-tabs>
     {{#each _card.tabs}}
-      <div class-rcard-tab class-rcard-tab-selected="_card.selected === @index || (!_card.selected && !@index)" on-click="@context.set('_card.selected', @index), @context.set('_card.expanded', true), false">
+      <div class-rcard-tab class-rcard-tab-selected="_card.selected === @index || (!_card.selected && !@index)" on-click="@context.set('_card.selected', @index), _card.expand(true), false">
         {{>.title ^^/}}
       </div>
     {{/each}}
@@ -61,7 +61,7 @@
 </template>
 
 <template id="tab">
-  <div class-rcard-tab class-rcard-tab-selected="_card.selected === @index + _card.tabs.length || (!_card.selected && !@index && !_card.tabs.length)" on-click="@context.set('_card.selected', _card.tabs.length + @index), @context.set('_card.expanded', true), false">
+  <div class-rcard-tab class-rcard-tab-selected="_card.selected === @index + _card.tabs.length || (!_card.selected && !@index && !_card.tabs.length)" on-click="@context.set('_card.selected', _card.tabs.length + @index), _card.expand(true), false">
     {{>.title}}
   </div>
 </template>
@@ -118,6 +118,16 @@
   function init(h) {
     const data = h.get('@local');
     h.aliasLocal('_card');
+
+    h.set('_card.expand', function(set) {
+      const expanded = h.get('_card.expanded');
+      if (set !== undefined && set === !!expanded) return;
+      const ctx = h.ractive.getContext(h.find('.rcard-wrapper'));
+      const ok = ctx.raise('expanded', {}, !expanded);
+      if (ok !== false) {
+        h.set('_card.expanded', expanded === false ? true : false);
+      }
+    });
 
     updateAttrs(h);
     
