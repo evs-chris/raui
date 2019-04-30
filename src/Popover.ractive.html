@@ -9,7 +9,7 @@
   {{/if}}
   pop-out="{ dir: where || 'below' }"
   as-cleanup
-  {{#if clickClose}}on-click="@.set('popped', false)"{{else}}on-click="false, false"{{/if}}
+  {{#if clickClose}}on-click="@.set('popped', false)"{{/if}}
   {{#unless noClickout}}on-clickout="@.set('popped', false)"{{/unless}}
   {{yield extra-attributes}}
 >
