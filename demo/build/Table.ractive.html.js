@@ -76,7 +76,8 @@ System.register(['ractive', './chunk7.js', './chunk8.js', './chunk2.js', './chun
         Table.prototype._setSort = function _setSort (idx, ev) {
           var col = this.get(("columns." + idx));
           if (!col || !(col.sort || col.filter)) { return; }
-          var sort = col.sort || col.filter;
+          var cs = col.sort || col.filter;
+          var sort = cs;
           if (isString(sort) && sort[0] === '~') { sort = this.get(sort); }
 
           var multi = ev.ctrlKey;
@@ -86,17 +87,17 @@ System.register(['ractive', './chunk7.js', './chunk8.js', './chunk2.js', './chun
           if (!sorts) { sorts = []; }
           else if (!Array.isArray(sorts)) { sorts = [sorts]; }
 
-          if (!sorts.length) { this.set('sort', sort.map(function (s) { return ("+" + s); })); }
+          if (!sorts.length) { this.set('sort', sort.map(function (s) { return ("" + (s === cs ? (col.dir || '+') : '+') + s); })); }
           else {
             var cur = sorts.map(function (s) { return sortRE.exec(s).slice(1); });
             var overlap = sort.reduce(function (a, c) { return a && !!cur.find(function (s) { return s[1] === c; }); }, true);
             if (overlap && sorts.length !== sort.length && !multi) { this.set('sort', sort.map(function (s) { return ("+" + sort); })); }
             else if (!multi) {
               if (overlap) { this.set('sort', cur.map(function (s) { return ("" + (s[0] === '+' ? '-' : '+') + (s[1])); })); }
-              else { this.set('sort', sort.map(function (s) { return ("+" + s); })); }
+              else { this.set('sort', sort.map(function (s) { return ("" + (s === cs ? (col.dir || '+') : '+') + s); })); }
             } else {
               if (overlap) { this.set('sort', cur.map(function (s) { return ~sort.indexOf(s[1]) ? ("" + (s[0] === '+' ? '-' : '+') + (s[1])) : s[0] + s[1]; })); }
-              else { this.set('sort', sorts.concat(sort.map(function (s) { return ("+" + s); }))); }
+              else { this.set('sort', sorts.concat(sort.map(function (s) { return ("" + (s === cs ? (col.dir || '+') : '+') + s); }))); }
             }
           }
         };
@@ -235,6 +236,7 @@ System.register(['ractive', './chunk7.js', './chunk8.js', './chunk2.js', './chun
 
       function columnGetter(table, col) {
         if (!table || !col) { return; }
+        if (typeof col.get === 'function') { return col.get; }
         var getters = table._getters || (table._getters = {});
         var v = col.filter;
         if (isString(v) && v.indexOf('~/') === 0) { v = table.get(v); }
@@ -259,6 +261,7 @@ System.register(['ractive', './chunk7.js', './chunk8.js', './chunk2.js', './chun
 
       function fieldGetter(table, field) {
         if (!table || !field) { return; }
+        if (typeof field.get === 'function') { return field.get; }
         var getters = table._getters || (table._getters = {});
         var v = field.path;
         if (isString(v) && v.indexOf('~/') === 0) { v = table.get(v); }
@@ -563,7 +566,7 @@ System.register(['ractive', './chunk7.js', './chunk8.js', './chunk2.js', './chun
                 try {
                   list = list.filter(function (l) {
                     return flts.reduce(function (ok, flt) {
-                      return ok && applyFilter(flt, l, recache);
+                      return ok && applyFilter.call(this$1, flt, l, recache);
                     }, true);
                   });
                 } catch (e) {}
@@ -574,24 +577,43 @@ System.register(['ractive', './chunk7.js', './chunk8.js', './chunk2.js', './chun
               if (Array.isArray(sort)) {
                 sort = sort.map(function (f) {
                   if (isString(f)) {
-                    return {
+                    var id = f[0] === '-' || f[0] === '+' ? f.substr(1) : f;
+                    var col = columns.find(function (c) { return c.id === id; });
+                    var fl = fields.find(function (c) { return c.id === id; });
+                    var res = {
                       dir: f[0] === '-' ? -1 : 1,
-                      get: fieldGetter(this$1, { path: f[0] === '-' || f[0] === '+' ? f.substr(1) : f })
+                      get: (col && columnGetter(this$1, col)) || (fl && fieldGetter(this$1, fl)) || columnGetter(this$1, { path: id })
                     };
-                  } else if (f) {
-                    return {
+                    if ((col && col.type === 'number') || (fl && fl.type === 'number')) {
+                      var get = res.get;
+                      res.get = function(v) {
+                        return numberify(get.call(this, v));
+                      };
+                    }
+                    return res;
+                  } else if (f && typeof f === 'object') {
+                    var col$1 = columns.find(function (c) { return c.id === f.id; });
+                    var fl$1 = fields.find(function (c) { return c.id === f.id; });
+                    var res$1 = {
                       dir: isNumber(f.dir) ? f.dir : f.dir === 'desc' ? -1 : 1,
-                      get: (f.id && (columnGetter(this$1, columns.find(function (c) { return c.id === f.id; })) || fieldGetter(this$1, fields.find(function (c) { return c.id === f.id; })))) || 
+                      get: (typeof f.get === 'function' && f.get) || (col$1 && columnGetter(this$1, col$1)) || (fl$1 && fieldGetter(this$1, fl$1)) || 
                            (f.path && (fieldGetter(this$1, { path: f.path, value: f.value })))
                     };
+                    if (f.type === 'number' || (col$1 && col$1.type === 'number') || (fl$1 && fl$1.type === 'number')) {
+                      var get$1 = res$1.get;
+                      res$1.get = function(v) {
+                        return numberify(get$1.call(this, v));
+                      };
+                    }
+                    return res$1;
                   }
                 }).filter(function (s) { return s && s.get; });
 
                 list.sort(function (a, b) {
                   var aa, bb, p;
                   for (var i = 0; i < sort.length; i++) {
-                    aa = sort[i].get(a);
-                    bb = sort[i].get(b);
+                    aa = sort[i].get.call(this$1, a);
+                    bb = sort[i].get.call(this$1, b);
                     p = sort[i].dir * compare(aa, bb);
 
                     if (p !== 0) { return p; }
@@ -767,52 +789,66 @@ System.register(['ractive', './chunk7.js', './chunk8.js', './chunk2.js', './chun
       }
 
       function applyFilter(flt, item, recache) {
+        var this$1 = this;
+
         if (!item || (!flt.get && flt.op !== 'and' && flt.op !== 'or' && flt.op !== '&&' && flt.op !== '||')) { return false; }
-        var v = flt.get && flt.get(item);
+        var v = flt.get && flt.get.call(this, item);
+        var val = flt.value;
         if (flt.op === '=' || flt.op === '==' || flt.op === 'is') {
-          if (flt.type === 'number' || flt.type === 'date') { return +v == +flt.value; }
-          return v == flt.value;
+          if (flt.type === 'number' || flt.type === 'date') { return +v == +val; }
+          return v == val;
         } else if (flt.op === '!=' || flt.op === '<>' || flt.op === 'not') {
-          if (flt.type === 'number' || flt.type === 'date') { return +v != +flt.value; }
-          return v != flt.value;
+          if (flt.type === 'number' || flt.type === 'date') { return +v != +val; }
+          return v != val;
         } else if (flt.op === '>' || flt.op === 'gt') {
-          return v > flt.value;
+          return numberify(v) > numberify(val);
         } else if (flt.op === '>=' || flt.op === 'gte') {
-          return v >= flt.value;
+          return numberify(v) >= numberify(val);
         } else if (flt.op === '<' || flt.op === 'lt') {
-          return v < flt.value;
+          return numberify(v) < numberify(val);
         } else if (flt.op === '<=' || flt.op === 'lte') {
-          return v <= flt.value;
+          return numberify(v) <= numberify(val);
         } else if (flt.op === 'like' || flt.op === 'notlike' || flt.op === '~' || flt.op === '!~') {
           var res = (flt.op === 'like' || flt.op === '~') ? true : false;
-          if (isString(flt.value)) {
+          if (isString(val)) {
             // special case - no pattern always matches
-            if (!flt.value) { return true; }
-            var re = recache[flt.value] || (recache[flt.value] = new RegExp((".*" + (flt.value.replace(/%/g, '.*')) + ".*"), 'gi'));
+            if (!val) { return true; }
+            var re = recache[val] || (recache[val] = new RegExp((".*" + (val.replace(/%/g, '.*')) + ".*"), 'gi'));
             res = re.test(v);
-          } else if (isRegex(flt.value)) {
-            res = flt.value.test(v);
+          } else if (isRegex(val)) {
+            res = val.test(v);
           }
           return (flt.op === 'like' || flt.op === '~') ? res : !res;
         } else if (flt.op === 'contains' || flt.op === '@') {
-          if (Array.isArray(v)) { return !!~v.indexOf(flt.value); }
+          if (Array.isArray(v)) { return !!~v.indexOf(val); }
         } else if (flt.op === 'containslike' || flt.op === '@~' || flt.op === 'containsnotlike' || flt.op === '@!~') {
           if (Array.isArray(v)) {
-            var re$1 = isRegex(flt.value) ? flt.value : isString(flt.value) ? recache[flt.value] || (recache[flt.value] = new RegExp((".*" + (flt.value.replace(/%/g, '.*')) + ".*"), 'gi')) : null;
+            var re$1 = isRegex(val) ? val : isString(val) ? recache[val] || (recache[val] = new RegExp((".*" + (val.replace(/%/g, '.*')) + ".*"), 'gi')) : null;
             if (!re$1) { return false; }
             var match = v.findIndex(function (x) { return re$1.test((x || '').toString()); });
             return (flt.op === 'containslike' || flt.op === '@~') ? match >= 0 : match < 0;
           }
-        } else if ((flt.op === 'or' || flt.op === '||') && Array.isArray(flt.value)) {
-          return flt.value.reduce(function (a, c) {
-            return a || applyFilter(c, item, recache);
+        } else if (flt.op === 'in' && Array.isArray(val)) {
+          return !!~val.indexOf(v); 
+        } else if ((flt.op === 'or' || flt.op === '||') && Array.isArray(val)) {
+          return val.reduce(function (a, c) {
+            return a || applyFilter.call(this$1, c, item, recache);
           }, false);
-        } else if ((flt.op === 'and' || flt.op === '&&') && Array.isArray(flt.value)) {
-          return flt.value.reduce(function (a, c) {
-            return a && applyFilter(c, item, recache);
+        } else if ((flt.op === 'and' || flt.op === '&&') && Array.isArray(val)) {
+          return val.reduce(function (a, c) {
+            return a && applyFilter.call(this$1, c, item, recache);
           }, true);
         }
         return true;
+      }
+
+      var notNumbers = /^[^\d]*/;
+      function numberify(v) {
+        if (isNumber(v)) { return v; }
+        if (!v) { return +Infinity; }
+        v = ("" + v).replace(notNumbers, '');
+        if (!v) { return +Infinity; }
+        return parseFloat(v);
       }
 
       var colAttrs = ['label', 'type', 'filter', 'hidden', 'sort', 'no-pad', 'id', 'editable'];
@@ -831,10 +867,11 @@ System.register(['ractive', './chunk7.js', './chunk8.js', './chunk2.js', './chun
         cmp.template = { e: t.e, f: t.f, t: t.t, m: attrs };
 
         var id = 0;
-        function map(attr, partial) {
+        function map(attr, partial, plain) {
           if (attr && attr.f && attr.f.length === 1 && attr.f[0].t === 2) {
             var n = "_a" + (id++);
             attrs.push({ t: 13, n: n, f: attr.f });
+            if (plain) { return n; }
             return partial ? { t: [{ t: 2, r: ("~/" + n) }] } : { t: 2, r: ("~/" + n) };
           }
           return attr && attr.f;
@@ -879,6 +916,12 @@ System.register(['ractive', './chunk7.js', './chunk8.js', './chunk2.js', './chun
                 if (col.sort.r) { col.sort = col.sort.r; }
               }
 
+              col.dir = attrs.find(function (a) { return a.n === 'dir'; });
+              if (col.dir && col.dir.f) {
+                col.dir = map(col.dir);
+                if (col.dir.r) { col.dir = col.dir.r; }
+              }
+
               col.hidden = attrs.find(function (a) { return a.n === 'hidden'; });
               if (col.hidden && col.hidden.f === 0) { col.hidden = true; }
               else if (col.hidden && isObject(col.hidden.f)) { col.hidden = map(col.hidden); }
@@ -899,6 +942,15 @@ System.register(['ractive', './chunk7.js', './chunk8.js', './chunk2.js', './chun
               if (col.valign && isObject(col.valign.f)) { col.valign = map(col.valign); }
               else if (col.valign && typeof col.valign.f === 'string') { col.valign = col.valign.f; }
 
+              attr = attrs.find(function (a) { return a.n === 'get'; });
+              if (attr && attr.f) {
+                var name = map(attr, false, true);
+                field.get = function(val) {
+                  var fn = this.get(name);
+                  return typeof fn === 'function' ? fn.call(this, val) : undefined;
+                };
+              }
+
               col.attrs = attrs.filter(function (a) { return !~colAttrs.indexOf(a.n); });
 
               // handle inline grid sizes without requiring the class prefix
@@ -908,32 +960,45 @@ System.register(['ractive', './chunk7.js', './chunk8.js', './chunk2.js', './chun
                 }
               });
             } else if (e.e === 'field') {
-              var field = {};
+              var field$1 = {};
               var attrs$1 = e.m || empty;
               var a;
 
               a = attrs$1.find(function (a) { return a.n === 'path'; });
-              if (isString(a)) { field.path = a; }
-              else if (a && a.f) { field.path = map(a); }
+              if (isString(a)) { field$1.path = a; }
+              else if (a && a.f) { field$1.path = map(a); }
 
               a = attrs$1.find(function (a) { return a.n === 'value'; });
-              if (a && a.f) { field.value = map(a); }
+              if (a && a.f) { field$1.value = map(a); }
               
               a = attrs$1.find(function (a) { return a.n === 'type'; });
-              if (isString(a)) { field.type = a; }
-              else if (a && a.f) { field.type = map(a); }
+              if (isString(a)) { field$1.type = a; }
+              else if (a && a.f) { field$1.type = map(a); }
 
               a = attrs$1.find(function (a) { return a.n === 'id'; });
-              if (isString(a.f)) { field.id = a.f; }
+              if (isString(a.f)) { field$1.id = a.f; }
+
+              a = attrs$1.find(function (a) { return a.n === 'dir'; });
+              if (isString(a)) { field$1.dir = a; }
+              else if (a && isString(a.f)) { field$1.dir = a.f; }
 
               a = attrs$1.find(function (a) { return a.n === 'label'; });
-              if (isString(a)) { field.label = a; }
-              else if (a && a.f) { field.label = map(a); }
+              if (isString(a)) { field$1.label = a; }
+              else if (a && a.f) { field$1.label = map(a); }
 
-              if (!field.id) { field.id = field.label; }
-              if (!field.path) { field.path = field.id; }
+              a = attrs$1.find(function (a) { return a.n === 'get'; });
+              if (a && a.f) {
+                var name$1 = map(a, false, true);
+                field$1.get = function(val) {
+                  var fn = this.get(name$1);
+                  return typeof fn === 'function' ? fn.call(this, val) : undefined;
+                };
+              }
 
-              fields.push(field);
+              if (!field$1.id) { field$1.id = field$1.label; }
+              if (!field$1.path) { field$1.path = field$1.id; }
+
+              fields.push(field$1);
             }
           });
 

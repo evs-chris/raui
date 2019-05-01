@@ -492,7 +492,7 @@ System.register(['./chunk3.js', './chunk4.js', './chunk6.js', './chunk2.js', './
         this.className = this.className.replace(/\bfocus\b/g, '').trim();
       }
 
-      function field(node) {
+      function field$1(node) {
         var ctx = this.getContext(node);
 
         var isField, isCheck, isRadio, isArea, isSelect, isFile, isButton, isPlain, isInput;
@@ -614,7 +614,7 @@ System.register(['./chunk3.js', './chunk4.js', './chunk6.js', './chunk2.js', './
         }
       }
 
-      field.style = style$1;
+      field$1.style = style$1;
 
       function findDeep(els, el) {
         if (!els) { return false; }
@@ -736,12 +736,12 @@ System.register(['./chunk3.js', './chunk4.js', './chunk6.js', './chunk2.js', './
           }
 
           instance.partials[opts.name || 'field'] = macro;
-          instance.decorators[opts.name || 'field'] = field;
+          instance.decorators[opts.name || 'field'] = field$1;
           instance.decorators[opts.autofocusName || 'autofocus'] = autofocus;
         }
       }
 
-      globalRegister('field', 'decorators', field);
+      globalRegister('field', 'decorators', field$1);
       globalRegister('field', 'partials', macro);
       globalRegister('autofocus', 'decorators', autofocus);
 
