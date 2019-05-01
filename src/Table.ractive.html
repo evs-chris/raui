@@ -130,7 +130,8 @@
     _setSort(idx, ev) {
       const col = this.get(`columns.${idx}`);
       if (!col || !(col.sort || col.filter)) return;
-      let sort = col.sort || col.filter;
+      const cs = col.sort || col.filter;
+      let sort = cs;
       if (isString(sort) && sort[0] === '~') sort = this.get(sort);
 
       const multi = ev.ctrlKey;
@@ -140,17 +141,17 @@
       if (!sorts) sorts = [];
       else if (!Array.isArray(sorts)) sorts = [sorts];
 
-      if (!sorts.length) this.set('sort', sort.map(s => `+${s}`));
+      if (!sorts.length) this.set('sort', sort.map(s => `${s === cs ? (col.dir || '+') : '+'}${s}`));
       else {
         const cur = sorts.map(s => sortRE.exec(s).slice(1));
         const overlap = sort.reduce((a, c) => a && !!cur.find(s => s[1] === c), true);
         if (overlap && sorts.length !== sort.length && !multi) this.set('sort', sort.map(s => `+${sort}`));
         else if (!multi) {
           if (overlap) this.set('sort', cur.map(s => `${s[0] === '+' ? '-' : '+'}${s[1]}`));
-          else this.set('sort', sort.map(s => `+${s}`));
+          else this.set('sort', sort.map(s => `${s === cs ? (col.dir || '+') : '+'}${s}`));
         } else {
           if (overlap) this.set('sort', cur.map(s => ~sort.indexOf(s[1]) ? `${s[0] === '+' ? '-' : '+'}${s[1]}` : s[0] + s[1]));
-          else this.set('sort', sorts.concat(sort.map(s => `+${s}`)));
+          else this.set('sort', sorts.concat(sort.map(s => `${s === cs ? (col.dir || '+') : '+'}${s}`)));
         }
       }
     }
@@ -283,6 +284,7 @@
 
   function columnGetter(table, col) {
     if (!table || !col) return;
+    if (typeof col.get === 'function') return col.get;
     const getters = table._getters || (table._getters = {});
     let v = col.filter;
     if (isString(v) && v.indexOf('~/') === 0) v = table.get(v);
@@ -307,6 +309,7 @@
 
   function fieldGetter(table, field) {
     if (!table || !field) return;
+    if (typeof field.get === 'function') return field.get;
     const getters = table._getters || (table._getters = {});
     let v = field.path;
     if (isString(v) && v.indexOf('~/') === 0) v = table.get(v);
@@ -600,7 +603,7 @@
             try {
               list = list.filter(l => {
                 return flts.reduce((ok, flt) => {
-                  return ok && applyFilter(flt, l, recache);
+                  return ok && applyFilter.call(this, flt, l, recache);
                 }, true);
               });
             } catch (e) {}
@@ -611,24 +614,43 @@
           if (Array.isArray(sort)) {
             sort = sort.map(f => {
               if (isString(f)) {
-                return {
+                const id = f[0] === '-' || f[0] === '+' ? f.substr(1) : f;
+                const col = columns.find(c => c.id === id);
+                const fl = fields.find(c => c.id === id);
+                const res = {
                   dir: f[0] === '-' ? -1 : 1,
-                  get: fieldGetter(this, { path: f[0] === '-' || f[0] === '+' ? f.substr(1) : f })
+                  get: (col && columnGetter(this, col)) || (fl && fieldGetter(this, fl)) || columnGetter(this, { path: id })
                 };
-              } else if (f) {
-                return {
+                if ((col && col.type === 'number') || (fl && fl.type === 'number')) {
+                  const get = res.get;
+                  res.get = function(v) {
+                    return numberify(get.call(this, v));
+                  }
+                }
+                return res;
+              } else if (f && typeof f === 'object') {
+                const col = columns.find(c => c.id === f.id);
+                const fl = fields.find(c => c.id === f.id);
+                const res = {
                   dir: isNumber(f.dir) ? f.dir : f.dir === 'desc' ? -1 : 1,
-                  get: (f.id && (columnGetter(this, columns.find(c => c.id === f.id)) || fieldGetter(this, fields.find(c => c.id === f.id)))) || 
+                  get: (typeof f.get === 'function' && f.get) || (col && columnGetter(this, col)) || (fl && fieldGetter(this, fl)) || 
                        (f.path && (fieldGetter(this, { path: f.path, value: f.value })))
                 };
+                if (f.type === 'number' || (col && col.type === 'number') || (fl && fl.type === 'number')) {
+                  const get = res.get;
+                  res.get = function(v) {
+                    return numberify(get.call(this, v));
+                  }
+                }
+                return res;
               }
             }).filter(s => s && s.get);
 
             list.sort((a, b) => {
               let aa, bb, p;
               for (let i = 0; i < sort.length; i++) {
-                aa = sort[i].get(a);
-                bb = sort[i].get(b);
+                aa = sort[i].get.call(this, a);
+                bb = sort[i].get.call(this, b);
                 p = sort[i].dir * compare(aa, bb);
 
                 if (p !== 0) return p;
@@ -801,51 +823,63 @@
 
   function applyFilter(flt, item, recache) {
     if (!item || (!flt.get && flt.op !== 'and' && flt.op !== 'or' && flt.op !== '&&' && flt.op !== '||')) return false;
-    const v = flt.get && flt.get(item);
+    const v = flt.get && flt.get.call(this, item);
+    const val = flt.value;
     if (flt.op === '=' || flt.op === '==' || flt.op === 'is') {
-      if (flt.type === 'number' || flt.type === 'date') return +v == +flt.value;
-      return v == flt.value;
+      if (flt.type === 'number' || flt.type === 'date') return +v == +val;
+      return v == val;
     } else if (flt.op === '!=' || flt.op === '<>' || flt.op === 'not') {
-      if (flt.type === 'number' || flt.type === 'date') return +v != +flt.value;
-      return v != flt.value;
+      if (flt.type === 'number' || flt.type === 'date') return +v != +val;
+      return v != val;
     } else if (flt.op === '>' || flt.op === 'gt') {
-      return v > flt.value;
+      return numberify(v) > numberify(val);
     } else if (flt.op === '>=' || flt.op === 'gte') {
-      return v >= flt.value;
+      return numberify(v) >= numberify(val);
     } else if (flt.op === '<' || flt.op === 'lt') {
-      return v < flt.value;
+      return numberify(v) < numberify(val);
     } else if (flt.op === '<=' || flt.op === 'lte') {
-      return v <= flt.value;
+      return numberify(v) <= numberify(val);
     } else if (flt.op === 'like' || flt.op === 'notlike' || flt.op === '~' || flt.op === '!~') {
       let res = (flt.op === 'like' || flt.op === '~') ? true : false;
-      if (isString(flt.value)) {
+      if (isString(val)) {
         // special case - no pattern always matches
-        if (!flt.value) return true;
-        const re = recache[flt.value] || (recache[flt.value] = new RegExp(`.*${flt.value.replace(/%/g, '.*')}.*`, 'gi'));
+        if (!val) return true;
+        const re = recache[val] || (recache[val] = new RegExp(`.*${val.replace(/%/g, '.*')}.*`, 'gi'));
         res = re.test(v);
-      } else if (isRegex(flt.value)) {
-        res = flt.value.test(v);
+      } else if (isRegex(val)) {
+        res = val.test(v);
       }
       return (flt.op === 'like' || flt.op === '~') ? res : !res;
     } else if (flt.op === 'contains' || flt.op === '@') {
-      if (Array.isArray(v)) return !!~v.indexOf(flt.value);
+      if (Array.isArray(v)) return !!~v.indexOf(val);
     } else if (flt.op === 'containslike' || flt.op === '@~' || flt.op === 'containsnotlike' || flt.op === '@!~') {
       if (Array.isArray(v)) {
-        const re = isRegex(flt.value) ? flt.value : isString(flt.value) ? recache[flt.value] || (recache[flt.value] = new RegExp(`.*${flt.value.replace(/%/g, '.*')}.*`, 'gi')) : null;
+        const re = isRegex(val) ? val : isString(val) ? recache[val] || (recache[val] = new RegExp(`.*${val.replace(/%/g, '.*')}.*`, 'gi')) : null;
         if (!re) return false;
         const match = v.findIndex(x => re.test((x || '').toString()));
         return (flt.op === 'containslike' || flt.op === '@~') ? match >= 0 : match < 0;
       }
-    } else if ((flt.op === 'or' || flt.op === '||') && Array.isArray(flt.value)) {
-      return flt.value.reduce((a, c) => {
-        return a || applyFilter(c, item, recache);
+    } else if (flt.op === 'in' && Array.isArray(val)) {
+      return !!~val.indexOf(v); 
+    } else if ((flt.op === 'or' || flt.op === '||') && Array.isArray(val)) {
+      return val.reduce((a, c) => {
+        return a || applyFilter.call(this, c, item, recache);
       }, false);
-    } else if ((flt.op === 'and' || flt.op === '&&') && Array.isArray(flt.value)) {
-      return flt.value.reduce((a, c) => {
-        return a && applyFilter(c, item, recache);
+    } else if ((flt.op === 'and' || flt.op === '&&') && Array.isArray(val)) {
+      return val.reduce((a, c) => {
+        return a && applyFilter.call(this, c, item, recache);
       }, true);
     }
     return true;
+  }
+
+  const notNumbers = /^[^\d]*/;
+  export function numberify(v) {
+    if (isNumber(v)) return v;
+    if (!v) return +Infinity;
+    v = `${v}`.replace(notNumbers, '');
+    if (!v) return +Infinity;
+    return parseFloat(v);
   }
 
   const colAttrs = ['label', 'type', 'filter', 'hidden', 'sort', 'no-pad', 'id', 'editable'];
@@ -864,10 +898,11 @@
     cmp.template = { e: t.e, f: t.f, t: t.t, m: attrs };
 
     let id = 0;
-    function map(attr, partial) {
+    function map(attr, partial, plain) {
       if (attr && attr.f && attr.f.length === 1 && attr.f[0].t === 2) {
         const n = `_a${id++}`;
         attrs.push({ t: 13, n, f: attr.f });
+        if (plain) return n;
         return partial ? { t: [{ t: 2, r: `~/${n}` }] } : { t: 2, r: `~/${n}` };
       }
       return attr && attr.f;
@@ -912,6 +947,12 @@
             if (col.sort.r) col.sort = col.sort.r;
           }
 
+          col.dir = attrs.find(a => a.n === 'dir');
+          if (col.dir && col.dir.f) {
+            col.dir = map(col.dir);
+            if (col.dir.r) col.dir = col.dir.r;
+          }
+
           col.hidden = attrs.find(a => a.n === 'hidden');
           if (col.hidden && col.hidden.f === 0) col.hidden = true;
           else if (col.hidden && isObject(col.hidden.f)) col.hidden = map(col.hidden);
@@ -931,6 +972,15 @@
           col.valign = attrs.find(a => a.n === 'valign');
           if (col.valign && isObject(col.valign.f)) col.valign = map(col.valign);
           else if (col.valign && typeof col.valign.f === 'string') col.valign = col.valign.f;
+
+          attr = attrs.find(a => a.n === 'get');
+          if (attr && attr.f) {
+            const name = map(attr, false, true);
+            field.get = function(val) {
+              const fn = this.get(name);
+              return typeof fn === 'function' ? fn.call(this, val) : undefined;
+            };
+          }
 
           col.attrs = attrs.filter(a => !~colAttrs.indexOf(a.n));
 
@@ -959,9 +1009,22 @@
           a = attrs.find(a => a.n === 'id');
           if (isString(a.f)) field.id = a.f;
 
+          a = attrs.find(a => a.n === 'dir');
+          if (isString(a)) field.dir = a;
+          else if (a && isString(a.f)) field.dir = a.f;
+
           a = attrs.find(a => a.n === 'label');
           if (isString(a)) field.label = a;
           else if (a && a.f) field.label = map(a);
+
+          a = attrs.find(a => a.n === 'get');
+          if (a && a.f) {
+            const name = map(a, false, true);
+            field.get = function(val) {
+              const fn = this.get(name);
+              return typeof fn === 'function' ? fn.call(this, val) : undefined;
+            };
+          }
 
           if (!field.id) field.id = field.label;
           if (!field.path) field.path = field.id;
