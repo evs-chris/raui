@@ -562,7 +562,7 @@ export function field(node) {
   const ctx = this.getContext(node);
 
   let isField, isCheck, isRadio, isArea, isSelect, isFile, isButton, isPlain, isInput;
-  let change, attrs;
+  let change, attrs, desc, last;
 
   function invalidate() {
     let val = setup().split(/\s+/).filter(c => !!c);
@@ -591,6 +591,10 @@ export function field(node) {
         attrs = 0;
       }
       delete checkable._form_callback;
+      if (last) {
+        delete last.checked;
+        desc = last = undefined;
+      }
     } else if (checkable) {
       checkable._form_callback = (ev, init = true) => {
         if (init && checkable.type === 'radio' && checkable.name) {
@@ -616,6 +620,20 @@ export function field(node) {
       }
 
       change = this.getContext(checkable).listen('change', checkable._form_callback);
+
+      desc = Object.getOwnPropertyDescriptor(Object.getPrototypeOf(checkable), 'checked');
+      if (desc && desc.configurable) {
+        last = checkable;
+        Object.defineProperty(checkable, 'checked', {
+          get: desc.get,
+          set(v) {
+            desc.set(v);
+            checkable._form_callback();
+          },
+          enumerable: true,
+          configurable: true
+        });
+      }
     }
 
     isArea = !!node.querySelector('textarea');
@@ -672,6 +690,11 @@ export function field(node) {
       focus.cancel();
       blur.cancel();
       change && change.cancel();
+      if (attrs) attrs.disconnect();
+      if (last) {
+        delete last.checked;
+        desc = last = undefined;
+      }
 
       node.className = cls;
     }
