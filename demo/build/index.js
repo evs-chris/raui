@@ -496,7 +496,7 @@ System.register(['./chunk3.js', './chunk4.js', './chunk6.js', './chunk2.js', './
         var ctx = this.getContext(node);
 
         var isField, isCheck, isRadio, isArea, isSelect, isFile, isButton, isPlain, isInput;
-        var change, attrs;
+        var change, attrs, desc, last;
 
         function invalidate() {
           var val = setup().split(/\s+/).filter(function (c) { return !!c; });
@@ -525,6 +525,10 @@ System.register(['./chunk3.js', './chunk4.js', './chunk6.js', './chunk2.js', './
               attrs = 0;
             }
             delete checkable._form_callback;
+            if (last) {
+              delete last.checked;
+              desc = last = undefined;
+            }
           } else if (checkable) {
             checkable._form_callback = function (ev, init) {
               if ( init === void 0 ) init = true;
@@ -552,6 +556,20 @@ System.register(['./chunk3.js', './chunk4.js', './chunk6.js', './chunk2.js', './
             }
 
             change = this.getContext(checkable).listen('change', checkable._form_callback);
+
+            desc = Object.getOwnPropertyDescriptor(Object.getPrototypeOf(checkable), 'checked');
+            if (desc && desc.configurable) {
+              last = checkable;
+              Object.defineProperty(checkable, 'checked', {
+                get: desc.get,
+                set: function set(v) {
+                  desc.set(v);
+                  checkable._form_callback();
+                },
+                enumerable: true,
+                configurable: true
+              });
+            }
           }
 
           isArea = !!node.querySelector('textarea');
@@ -608,6 +626,11 @@ System.register(['./chunk3.js', './chunk4.js', './chunk6.js', './chunk2.js', './
             focus.cancel();
             blur.cancel();
             change && change.cancel();
+            if (attrs) { attrs.disconnect(); }
+            if (last) {
+              delete last.checked;
+              desc = last = undefined;
+            }
 
             node.className = cls;
           }

@@ -582,7 +582,7 @@ System.register(['ractive', './chunk7.js', './chunk8.js', './chunk2.js', './chun
                     var fl = fields.find(function (c) { return c.id === id; });
                     var res = {
                       dir: f[0] === '-' ? -1 : 1,
-                      get: (col && columnGetter(this$1, col)) || (fl && fieldGetter(this$1, fl)) || columnGetter(this$1, { path: id })
+                      get: (col && columnGetter(this$1, col)) || (fl && fieldGetter(this$1, fl)) || columnGetter(this$1, { filter: id })
                     };
                     if ((col && col.type === 'number') || (fl && fl.type === 'number')) {
                       var get = res.get;
@@ -597,7 +597,7 @@ System.register(['ractive', './chunk7.js', './chunk8.js', './chunk2.js', './chun
                     var res$1 = {
                       dir: isNumber(f.dir) ? f.dir : f.dir === 'desc' ? -1 : 1,
                       get: (typeof f.get === 'function' && f.get) || (col$1 && columnGetter(this$1, col$1)) || (fl$1 && fieldGetter(this$1, fl$1)) || 
-                           (f.path && (fieldGetter(this$1, { path: f.path, value: f.value })))
+                           (f.path && (fieldGetter(this$1, { filter: f.path, value: f.value })))
                     };
                     if (f.type === 'number' || (col$1 && col$1.type === 'number') || (fl$1 && fl$1.type === 'number')) {
                       var get$1 = res$1.get;
