@@ -563,7 +563,7 @@ System.register(['./chunk3.js', './chunk4.js', './chunk6.js', './chunk2.js', './
               Object.defineProperty(checkable, 'checked', {
                 get: desc.get,
                 set: function set(v) {
-                  desc.set(v);
+                  desc.set.call(last, v);
                   checkable._form_callback();
                 },
                 enumerable: true,
