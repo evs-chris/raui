@@ -619,7 +619,7 @@
                 const fl = fields.find(c => c.id === id);
                 const res = {
                   dir: f[0] === '-' ? -1 : 1,
-                  get: (col && columnGetter(this, col)) || (fl && fieldGetter(this, fl)) || columnGetter(this, { path: id })
+                  get: (col && columnGetter(this, col)) || (fl && fieldGetter(this, fl)) || columnGetter(this, { filter: id })
                 };
                 if ((col && col.type === 'number') || (fl && fl.type === 'number')) {
                   const get = res.get;
@@ -634,7 +634,7 @@
                 const res = {
                   dir: isNumber(f.dir) ? f.dir : f.dir === 'desc' ? -1 : 1,
                   get: (typeof f.get === 'function' && f.get) || (col && columnGetter(this, col)) || (fl && fieldGetter(this, fl)) || 
-                       (f.path && (fieldGetter(this, { path: f.path, value: f.value })))
+                       (f.path && (fieldGetter(this, { filter: f.path, value: f.value })))
                 };
                 if (f.type === 'number' || (col && col.type === 'number') || (fl && fl.type === 'number')) {
                   const get = res.get;
