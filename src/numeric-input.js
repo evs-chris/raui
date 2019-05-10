@@ -94,19 +94,21 @@ export function numeric(options = {}) {
 
     cleanup.push(ctx.listen('input', update).cancel);
 
-    cleanup.push(ctx.listen('blur', () => {
-      const cur = node.value.replace(notNumRE, '');
-      node.value = cur.replace(endsWithDecRE, '');
-      if (o.bind) {
-        lock = true;
-        ctx.set(o.bind, node.value);
-        lock = false;
-      }
-      node.setSelectionRange(0, 0);
-      leave = true;
-      update();
-      leave = false;
-    }).cancel);
+    if (!(navigator.platform && /iPad|iPhone|iPod/.test(navigator.platform))) {
+      cleanup.push(ctx.listen('blur', () => {
+        const cur = node.value.replace(notNumRE, '');
+        node.value = cur.replace(endsWithDecRE, '');
+        if (o.bind) {
+          lock = true;
+          ctx.set(o.bind, node.value);
+          lock = false;
+        }
+        node.setSelectionRange(0, 0);
+        leave = true;
+        update();
+        leave = false;
+      }).cancel);
+    }
 
     cleanup.push(ctx.listen('focus', () => {
       if (node.selectionStart === 0 && node.selectionEnd === 0) {
