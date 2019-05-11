@@ -1011,7 +1011,7 @@ System.register(['ractive', './chunk7.js', './chunk8.js', './chunk2.js', './chun
         
         this._init = { sets: grabColumns(tpl), partials: {} };
         var columns = this._init.sets.columns;
-        this._init.sets['meta.expand'] = rowEl && rowEl.f.length && rowEl.f;
+        this._init.sets['meta.expand'] = rowEl && rowEl.f && rowEl.f.length;
 
         var sortKey = '[_0._setSort(_1,_2)]';
 
