@@ -170,6 +170,29 @@ System.register(['./chunk3.js', './chunk4.js', './chunk6.js', './chunk2.js', './
         Tabs.prototype = Object.create( Ractive && Ractive.prototype );
         Tabs.prototype.constructor = Tabs;
 
+        Tabs.prototype.addTab = function addTab (tab, idx) {
+          if (!tab.template) { tab.template = []; }
+
+          if (typeof idx === 'number') {
+            this.splice('tabs', idx, 0, tab);
+          } else {
+            this.push('tabs', tab);
+          }
+
+          var res = new Handle(this, tab);
+
+          if (tab.select) { this.select(res.index); }
+
+          return res;
+        };
+
+        Tabs.prototype.getTab = function getTab (id) {
+          var tabs = this.get('tabs');
+          var tab = tabs.find(function (t) { return t.id === id; });
+          if (tab) { return new Handle(this, tab); }
+          else if (id in tabs && typeof tabs[id] === 'object') { return new Handle(this, tabs[id]); }
+        };
+
         Tabs.prototype.updateIndicator = function updateIndicator () {
           if (!this.rendered) { return; }
           var ctx = this.getContext(this.find('.rtabs-tab-window'));
@@ -234,11 +257,11 @@ System.register(['./chunk3.js', './chunk4.js', './chunk6.js', './chunk2.js', './
         return Tabs;
       }(Ractive$1));
 
-      var tabAttrs = ['closable', 'disabled', 'title', 'right', 'button', 'no-pad', 'hidden'];
+      var tabAttrs = ['closable', 'disabled', 'title', 'right', 'button', 'no-pad', 'hidden', 'id'];
 
       // TODO: api handles
       Ractive$1.extendWith(Tabs, {
-        template: {v:4,t:[{t:7,e:"div",m:[{t:13,n:"class",f:"rtabs",g:1},{t:16,r:"extra-attributes"},{n:"class-rtabs-flat",t:13,f:[{t:2,r:"~/flat"}]},{n:"class-rtabs-margin",t:13,f:[{t:2,r:"~/margin"}]},{n:"class-rtabs-fill",t:13,f:[{t:2,r:"~/fill"}]},{n:"sized",t:71,f:{r:[],s:"[{clientWidth:\"~/clientWidth\"}]"}}],f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rtabs-tab-window-wrapper",g:1},{n:"class-rtabs-scroll-right",t:13,f:[{t:2,x:{r:["@this"],s:"_0._scrollsRight()"}}]},{n:"class-rtabs-scroll-left",t:13,f:[{t:2,x:{r:["@this"],s:"_0._scrollsLeft()"}}]}],f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rtabs-tab-window",g:1},{t:4,f:[{n:"class-rtabs-going-left",t:13}],n:50,x:{r:[".direction"],s:"_0===\"left\""}},{t:4,f:[{n:"class-rtabs-going-right",t:13}],n:51,l:1},{n:"scrolled",t:71,f:{r:[],s:"[\"~/scrollStatus\"]"}}],f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rtabs-tabs",g:1}],f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rtabs-left",g:1},{n:"class-rtabs-center",t:13,f:[{t:2,r:"~/center"}]}],f:[{t:4,f:[{t:4,f:[{t:8,r:"tab"}],n:50,x:{r:[".right","@this","@index"],s:"!_0&&!_1._hidden(_2)"}}],n:52,r:".tabs"}]}," ",{t:7,e:"div",m:[{t:13,n:"class",f:"rtabs-right",g:1}],f:[{t:4,f:[{t:4,f:[{t:8,r:"tab"}],n:50,x:{r:[".right","@this","@index"],s:"_0&&!_1._hidden(_2)"}}],n:52,r:".tabs"}]}," ",{t:4,f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rtabs-indicator",g:1},{n:"style-left",f:[{t:2,r:".selectedLeft"},"px"],t:13},{t:4,f:[{n:"style-right",f:[{t:2,r:".selectedRight"},"px"],t:13}],n:50,x:{r:[".selectedRight"],s:"_0!==undefined"}}]}],n:51,r:"@style.raui.tabs.boxy"}]}]}]}," ",{t:7,e:"div",m:[{t:13,n:"class",f:"rtabs-content-wrapper",g:1}],f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rtabs-content-window",g:1},{t:4,f:[{n:"class-rtabs-trans-fade",t:13}],n:50,x:{r:[".transition"],s:"_0===\"fade\""}},{t:4,f:[{n:"class-rtabs-trans-slide",t:13}],n:50,x:{r:[".transition"],s:"_0===\"slide\""},l:1},{n:["scroll"],t:70,f:{r:["@this","@node"],s:"[_0.stopHorizontalScroll(_1)]"}}],f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rtabs-contents",g:1},{n:"style-opacity",f:[{t:2,r:"~/opacity"}],t:13},{n:"style-left",f:[{t:2,x:{r:[".selectedContent"],s:"_0*-100"}},"%"],t:13},{n:"class-rtabs-pad",t:13,f:[{t:2,r:"~/pad"}]}],f:[{t:4,f:[{t:8,r:"tab-content"}],n:52,r:".tabs"}]}]}]}]}],e:{"[{clientWidth:\"~/clientWidth\"}]":function (){return([{clientWidth:"~/clientWidth"}]);},"_0._scrollsRight()":function (_0){return(_0._scrollsRight());},"_0._scrollsLeft()":function (_0){return(_0._scrollsLeft());},"_0===\"left\"":function (_0){return(_0==="left");},"[\"~/scrollStatus\"]":function (){return(["~/scrollStatus"]);},"!_0&&!_1._hidden(_2)":function (_0,_1,_2){return(!_0&&!_1._hidden(_2));},"_0&&!_1._hidden(_2)":function (_0,_1,_2){return(_0&&!_1._hidden(_2));},"_0!==undefined":function (_0){return(_0!==undefined);},"_0===\"fade\"":function (_0){return(_0==="fade");},"_0===\"slide\"":function (_0){return(_0==="slide");},"[_0.stopHorizontalScroll(_1)]":function (_0,_1){return([_0.stopHorizontalScroll(_1)]);},"_0*-100":function (_0){return(_0*-100);},"_0===_1":function (_0,_1){return(_0===_1);},"_0===\"dynamic\"":function (_0){return(_0==="dynamic");},"_0!==_1":function (_0,_1){return(_0!==_1);},"_0===false":function (_0){return(_0===false);},"[_0.checkSelection((_1),_2)]":function (_0,_1,_2){return([_0.checkSelection((_1),_2)]);},"!_0":function (_0){return(!_0);},"_0===_1&&!_2":function (_0,_1,_2){return(_0===_1&&!_2);},"typeof _1===\"string\"?_0[_1]:_1":function (_0,_1){return(typeof _1==="string"?_0[_1]:_1);},"[[\"select\",_0]]":function (_0){return([["select",_0]]);},"[_0]":function (_0){return([_0]);},"typeof _0===\"string\"":function (_0){return(typeof _0==="string");},"[[\"close\",_0]]":function (_0){return([["close",_0]]);},"_0&&!_1":function (_0,_1){return(_0&&!_1);}},p:{"tab-content":[{t:4,f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rtabs-tab-content",g:1},{n:"class-rtabs-selected-content",t:13,f:[{t:2,x:{r:["~/selectedContent","@index"],s:"_0===_1"}}]},{n:"class-rtabs-dyna",t:13,f:[{t:2,x:{r:["~/height"],s:"_0===\"dynamic\""}}]},{n:"class-rtabs-not-selected",t:13,f:[{t:2,x:{r:["~/selectedContent","@index"],s:"_0!==_1"}}]},{t:4,f:[{t:16,r:".extra"}],n:50,r:".extra"},{t:4,f:[{n:"class-rtabs-no-pad",t:13}],n:50,x:{r:[".pad"],s:"_0===false"}},{t:4,f:[{n:"class-rtabs-no-pad",t:13,f:[{t:2,rx:{r:"~/",m:[{t:30,n:".padRef"}]}}]}],n:50,r:".padRef",l:1},{n:["focus"],t:70,f:{r:["@this","@context","@index"],s:"[_0.checkSelection((_1),_2)]"}}],f:[{t:16,r:".template"}]}],n:50,x:{r:[".button"],s:"!_0"}},{t:4,f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rtabs-placeholder",g:1}]}],n:51,l:1}],tab:[{t:7,e:"div",m:[{t:13,n:"class",f:"rtabs-tab",g:1},{n:"class-rtabs-selected",t:13,f:[{t:2,x:{r:["~/selected","@index",".button"],s:"_0===_1&&!_2"}}]},{t:4,f:[{n:"class-rtabs-disabled",t:13}],n:50,x:{r:["~/",".disabled"],s:"typeof _1===\"string\"?_0[_1]:_1"}},{t:4,f:[{n:["click"],t:70,f:{r:["@index"],s:"[[\"select\",_0]]"}}],n:50,x:{r:[".button"],s:"!_0"},l:1},{n:"registered",t:71,f:{r:["@index"],s:"[_0]"}},{t:4,f:[{t:16,r:".extraTab"}],n:50,r:".extraTab"},{n:"data-tab-index",f:[{t:2,r:"@index"}],t:13}],f:[{t:4,f:[{t:2,r:"title"}],n:50,x:{r:[".title"],s:"typeof _0===\"string\""}},{t:4,f:[{t:16,r:".title"}],n:50,r:".title",l:1}," ",{t:4,f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rtabs-close",g:1},{n:["click"],t:70,f:{r:["@index"],s:"[[\"close\",_0]]"}}],f:["×"]}],n:50,x:{r:[".closable",".button"],s:"_0&&!_1"}}]}]}},
+        template: {v:4,t:[{t:7,e:"div",m:[{t:13,n:"class",f:"rtabs",g:1},{t:16,r:"extra-attributes"},{n:"class-rtabs-flat",t:13,f:[{t:2,r:"~/flat"}]},{n:"class-rtabs-margin",t:13,f:[{t:2,r:"~/margin"}]},{n:"class-rtabs-fill",t:13,f:[{t:2,r:"~/fill"}]},{n:"sized",t:71,f:{r:[],s:"[{clientWidth:\"~/clientWidth\"}]"}}],f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rtabs-tab-window-wrapper",g:1},{n:"class-rtabs-scroll-right",t:13,f:[{t:2,x:{r:["@this"],s:"_0._scrollsRight()"}}]},{n:"class-rtabs-scroll-left",t:13,f:[{t:2,x:{r:["@this"],s:"_0._scrollsLeft()"}}]}],f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rtabs-tab-window",g:1},{t:4,f:[{n:"class-rtabs-going-left",t:13}],n:50,x:{r:[".direction"],s:"_0===\"left\""}},{t:4,f:[{n:"class-rtabs-going-right",t:13}],n:51,l:1},{n:"scrolled",t:71,f:{r:[],s:"[\"~/scrollStatus\"]"}}],f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rtabs-tabs",g:1}],f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rtabs-left",g:1},{n:"class-rtabs-center",t:13,f:[{t:2,r:"~/center"}]}],f:[{t:4,f:[{t:4,f:[{t:8,r:"tab"}],n:50,x:{r:[".right","@this","@index"],s:"!_0&&!_1._hidden(_2)"}}],n:52,r:".tabs"}]}," ",{t:7,e:"div",m:[{t:13,n:"class",f:"rtabs-right",g:1}],f:[{t:4,f:[{t:4,f:[{t:8,r:"tab"}],n:50,x:{r:[".right","@this","@index"],s:"_0&&!_1._hidden(_2)"}}],n:52,r:".tabs"}]}," ",{t:4,f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rtabs-indicator",g:1},{n:"style-left",f:[{t:2,r:".selectedLeft"},"px"],t:13},{t:4,f:[{n:"style-right",f:[{t:2,r:".selectedRight"},"px"],t:13}],n:50,x:{r:[".selectedRight"],s:"_0!==undefined"}}]}],n:51,r:"@style.raui.tabs.boxy"}]}]}]}," ",{t:7,e:"div",m:[{t:13,n:"class",f:"rtabs-content-wrapper",g:1}],f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rtabs-content-window",g:1},{t:4,f:[{n:"class-rtabs-trans-fade",t:13}],n:50,x:{r:[".transition"],s:"_0===\"fade\""}},{t:4,f:[{n:"class-rtabs-trans-slide",t:13}],n:50,x:{r:[".transition"],s:"_0===\"slide\""},l:1},{n:["scroll"],t:70,f:{r:["@this","@node"],s:"[_0.stopHorizontalScroll(_1)]"}}],f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rtabs-contents",g:1},{n:"style-opacity",f:[{t:2,r:"~/opacity"}],t:13},{n:"style-left",f:[{t:2,x:{r:[".selectedContent"],s:"_0*-100"}},"%"],t:13},{n:"class-rtabs-pad",t:13,f:[{t:2,r:"~/pad"}]}],f:[{t:4,f:[{t:8,r:"tab-content"}],n:52,r:".tabs"}]}]}]}]}],e:{"[{clientWidth:\"~/clientWidth\"}]":function (){return([{clientWidth:"~/clientWidth"}]);},"_0._scrollsRight()":function (_0){return(_0._scrollsRight());},"_0._scrollsLeft()":function (_0){return(_0._scrollsLeft());},"_0===\"left\"":function (_0){return(_0==="left");},"[\"~/scrollStatus\"]":function (){return(["~/scrollStatus"]);},"!_0&&!_1._hidden(_2)":function (_0,_1,_2){return(!_0&&!_1._hidden(_2));},"_0&&!_1._hidden(_2)":function (_0,_1,_2){return(_0&&!_1._hidden(_2));},"_0!==undefined":function (_0){return(_0!==undefined);},"_0===\"fade\"":function (_0){return(_0==="fade");},"_0===\"slide\"":function (_0){return(_0==="slide");},"[_0.stopHorizontalScroll(_1)]":function (_0,_1){return([_0.stopHorizontalScroll(_1)]);},"_0*-100":function (_0){return(_0*-100);},"_0===_1":function (_0,_1){return(_0===_1);},"_0===\"dynamic\"":function (_0){return(_0==="dynamic");},"_0!==_1":function (_0,_1){return(_0!==_1);},"_0===false":function (_0){return(_0===false);},"[_0.checkSelection((_1),_2)]":function (_0,_1,_2){return([_0.checkSelection((_1),_2)]);},"!_0":function (_0){return(!_0);},"_0===_1&&!_2":function (_0,_1,_2){return(_0===_1&&!_2);},"typeof _1===\"string\"?_0[_1]:_1":function (_0,_1){return(typeof _1==="string"?_0[_1]:_1);},"[[\"select\",_0]]":function (_0){return([["select",_0]]);},"[_0.button()]":function (_0){return([_0.button()]);},"typeof _0===\"function\"":function (_0){return(typeof _0==="function");},"[_0]":function (_0){return([_0]);},"typeof _0===\"string\"":function (_0){return(typeof _0==="string");},"[[\"close\",_0]]":function (_0){return([["close",_0]]);},"_0&&!_1":function (_0,_1){return(_0&&!_1);}},p:{"tab-content":[{t:4,f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rtabs-tab-content",g:1},{n:"class-rtabs-selected-content",t:13,f:[{t:2,x:{r:["~/selectedContent","@index"],s:"_0===_1"}}]},{n:"class-rtabs-dyna",t:13,f:[{t:2,x:{r:["~/height"],s:"_0===\"dynamic\""}}]},{n:"class-rtabs-not-selected",t:13,f:[{t:2,x:{r:["~/selectedContent","@index"],s:"_0!==_1"}}]},{t:4,f:[{t:16,r:".extra"}],n:50,r:".extra"},{t:4,f:[{n:"class-rtabs-no-pad",t:13}],n:50,x:{r:[".pad"],s:"_0===false"}},{t:4,f:[{n:"class-rtabs-no-pad",t:13,f:[{t:2,rx:{r:"~/",m:[{t:30,n:".padRef"}]}}]}],n:50,r:".padRef",l:1},{n:["focus"],t:70,f:{r:["@this","@context","@index"],s:"[_0.checkSelection((_1),_2)]"}}],f:[{t:16,r:".template"}]}],n:50,x:{r:[".button"],s:"!_0"}},{t:4,f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rtabs-placeholder",g:1}]}],n:51,l:1}],tab:[{t:7,e:"div",m:[{t:13,n:"class",f:"rtabs-tab",g:1},{n:"class-rtabs-selected",t:13,f:[{t:2,x:{r:["~/selected","@index",".button"],s:"_0===_1&&!_2"}}]},{t:4,f:[{n:"class-rtabs-disabled",t:13}],n:50,x:{r:["~/",".disabled"],s:"typeof _1===\"string\"?_0[_1]:_1"}},{t:4,f:[{n:["click"],t:70,f:{r:["@index"],s:"[[\"select\",_0]]"}}],n:50,x:{r:[".button"],s:"!_0"},l:1},{t:4,f:[{n:["click"],t:70,f:{r:["."],s:"[_0.button()]"}}],n:50,x:{r:[".button"],s:"typeof _0===\"function\""},l:1},{n:"registered",t:71,f:{r:["@index"],s:"[_0]"}},{t:4,f:[{t:16,r:".extraTab"}],n:50,r:".extraTab"},{n:"data-tab-index",f:[{t:2,r:"@index"}],t:13}],f:[{t:4,f:[{t:2,r:"title"}],n:50,x:{r:[".title"],s:"typeof _0===\"string\""}},{t:4,f:[{t:16,r:".title"}],n:50,r:".title",l:1}," ",{t:4,f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rtabs-close",g:1},{n:["click"],t:70,f:{r:["@index"],s:"[[\"close\",_0]]"}}],f:["×"]}],n:50,x:{r:[".closable",".button"],s:"_0&&!_1"}}]}]}},
         cssId: 'rtab',
         noCssTransform: true,
         css: function(data) { return [(function(data) {
@@ -452,14 +475,85 @@ System.register(['./chunk3.js', './chunk4.js', './chunk6.js', './chunk2.js', './
         var tab = this.getContext(this._tabs[idx]);
         var ok = true;
 
-        if (tab.element.events.find(function (e) { return e.events.find(function (e) { return e.name === 'close'; }); })) {
-          ok = tab.raise('close');
+        if (typeof tab.onclose === 'function') {
+          ok = tab.onclose.call(undefined) !== false;
+        }
+
+        if (ok && tab.element.events.find(function (e) { return e.events.find(function (e) { return e.name === 'close'; }); })) {
+          ok = tab.raise('close') !== false;
         }
 
         if (ok) { this.splice('tabs', idx, 1); }
 
         return false;
       }
+
+      var Handle = function Handle(tabs, item) {
+        this.tabs = tabs;
+        this.item = item;
+      };
+
+      var prototypeAccessors = { keypath: { configurable: true },id: { configurable: true },index: { configurable: true },title: { configurable: true },template: { configurable: true },hidden: { configurable: true },right: { configurable: true },pad: { configurable: true },disabled: { configurable: true },button: { configurable: true },closable: { configurable: true } };
+
+      prototypeAccessors.keypath.get = function () {
+        if (this.removed) { return; }
+        return ("tabs." + (this.index));
+      };
+
+      prototypeAccessors.id.get = function () { return this.get('id'); };
+      prototypeAccessors.id.set = function (v) { this.set('id', v); };
+      prototypeAccessors.index.get = function () { return this.tabs.get('tabs').indexOf(this.item); };
+
+      prototypeAccessors.title.get = function () { return this.get('title'); };
+      prototypeAccessors.title.set = function (v) { this.set('title', v); };
+
+      prototypeAccessors.template.get = function () { return this.get('template'); };
+      prototypeAccessors.template.set = function (v) { return this.set('template', v); };
+
+      prototypeAccessors.hidden.get = function () { return this.get('hidden'); };
+      prototypeAccessors.hidden.set = function (v) { return this.set('hidden', v); };
+
+      prototypeAccessors.right.get = function () { return this.get('right'); };
+      prototypeAccessors.right.set = function (v) { return this.set('right', v); };
+
+      prototypeAccessors.pad.get = function () { return this.get('pad'); };
+      prototypeAccessors.pad.set = function (v) { return this.set('pad', v); };
+
+      prototypeAccessors.disabled.get = function () { return this.get('disabled'); };
+      prototypeAccessors.disabled.set = function (v) { return this.set('disabled', v); };
+
+      prototypeAccessors.button.get = function () { return this.get('button'); };
+      prototypeAccessors.button.set = function (v) { return this.set('button', v); };
+
+      prototypeAccessors.closable.get = function () { return this.get('closable'); };
+      prototypeAccessors.closable.set = function (v) { return this.set('closable', v); };
+
+      Handle.prototype.select = function select () {
+        if (this.removed) { return; }
+        this.tabs.select(this.index);
+      };
+
+      Handle.prototype.remove = function remove () {
+        if (this.removed) { return false; }
+        this.tabs.splice('tabs', this.index, 1);
+        this.removed = true;
+        return true;
+      };
+
+      Handle.prototype.get = function get (keypath) {
+        if (this.removed) { return false; }
+        if (!keypath) { return this.tabs.get(this.keypath); }
+        var key = keypath.replace(/^[\.\/]*/, '');
+        return this.tabs.get(((this.keypath) + "." + key));
+      };
+
+      Handle.prototype.set = function set (keypath, value) {
+        if (this.removed) { return false; }
+        var key = keypath.replace(/^[\.\/]*/, '');
+        return this.tabs.set(((this.keypath) + "." + key), value);
+      };
+
+      Object.defineProperties( Handle.prototype, prototypeAccessors );
 
       function plugin$1(opts) {
         if ( opts === void 0 ) opts = {};
