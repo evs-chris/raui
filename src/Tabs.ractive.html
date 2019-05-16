@@ -31,7 +31,8 @@
     class-rtabs-tab
     class-rtabs-selected="~/selected === @index && !.button"
     {{#if typeof .disabled === 'string' ? ~/[.disabled] : .disabled}}class-rtabs-disabled
-    {{elseif !.button}}on-click=['select', @index]{{/if}}
+    {{elseif !.button}}on-click=['select', @index]
+    {{elseif typeof .button === 'function'}}on-click=".button()"{{/if}}
     as-registered="@index"
     {{#if .extraTab}}{{yield .extraTab}}{{/if}}
     data-tab-index="{{@index}}"
@@ -62,6 +63,29 @@
   export class Tabs extends Ractive {
     constructor(opts) {
       super(opts);
+    }
+
+    addTab(tab, idx) {
+      if (!tab.template) tab.template = [];
+
+      if (typeof idx === 'number') {
+        this.splice('tabs', idx, 0, tab);
+      } else {
+        this.push('tabs', tab);
+      }
+
+      const res = new Handle(this, tab);
+
+      if (tab.select) this.select(res.index);
+
+      return res;
+    }
+
+    getTab(id) {
+      const tabs = this.get('tabs');
+      let tab = tabs.find(t => t.id === id);
+      if (tab) return new Handle(this, tab);
+      else if (id in tabs && typeof tabs[id] === 'object') return new Handle(this, tabs[id]);
     }
 
     updateIndicator() {
@@ -126,7 +150,7 @@
     }
   }
 
-  const tabAttrs = ['closable', 'disabled', 'title', 'right', 'button', 'no-pad', 'hidden'];
+  const tabAttrs = ['closable', 'disabled', 'title', 'right', 'button', 'no-pad', 'hidden', 'id'];
 
   // TODO: api handles
   Ractive.extendWith(Tabs, {
@@ -319,13 +343,83 @@
     const tab = this.getContext(this._tabs[idx]);
     let ok = true;
 
-    if (tab.element.events.find(e => e.events.find(e => e.name === 'close'))) {
-      ok = tab.raise('close');
+    if (typeof tab.onclose === 'function') {
+      ok = tab.onclose.call(undefined) !== false;
+    }
+
+    if (ok && tab.element.events.find(e => e.events.find(e => e.name === 'close'))) {
+      ok = tab.raise('close') !== false;
     }
 
     if (ok) this.splice('tabs', idx, 1);
 
     return false;
+  }
+
+  export class Handle {
+    constructor(tabs, item) {
+      this.tabs = tabs;
+      this.item = item;
+    }
+
+    get keypath() {
+      if (this.removed) return;
+      return `tabs.${this.index}`;
+    }
+
+    get id() { return this.get('id'); }
+    set id(v) { this.set('id', v); };
+
+    get index() { return this.tabs.get('tabs').indexOf(this.item); }
+
+    get title() { return this.get('title'); }
+    set title(v) { this.set('title', v); }
+
+    get template() { return this.get('template'); }
+    set template(v) { return this.set('template', v); }
+
+    get hidden() { return this.get('hidden'); }
+    set hidden(v) { return this.set('hidden', v); }
+
+    get right() { return this.get('right'); }
+    set right(v) { return this.set('right', v); }
+
+    get pad() { return this.get('pad'); }
+    set pad(v) { return this.set('pad', v); }
+
+    get disabled() { return this.get('disabled'); }
+    set disabled(v) { return this.set('disabled', v); }
+
+    get button() { return this.get('button'); }
+    set button(v) { return this.set('button', v); }
+
+    get closable() { return this.get('closable'); }
+    set closable(v) { return this.set('closable', v); }
+
+    select() {
+      if (this.removed) return;
+      this.tabs.select(this.index);
+    }
+
+    remove() {
+      if (this.removed) return false;
+      this.tabs.splice('tabs', this.index, 1);
+      this.removed = true;
+      return true;
+    }
+
+    get(keypath) {
+      if (this.removed) return false;
+      if (!keypath) return this.tabs.get(this.keypath);
+      const key = keypath.replace(/^[\.\/]*/, '');
+      return this.tabs.get(`${this.keypath}.${key}`);
+    }
+
+    set(keypath, value) {
+      if (this.removed) return false;
+      const key = keypath.replace(/^[\.\/]*/, '');
+      return this.tabs.set(`${this.keypath}.${key}`, value);
+    }
   }
 
   export function plugin(opts = {}) {
