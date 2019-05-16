@@ -5,7 +5,7 @@ export interface Options {
   top?: boolean;
   
   dismissable?: boolean;
-  type?: string;
+  type?: 'success'|'info'|'warn'|'error'|string;
   buttons?: Button[];
 
   timeout?: number;
