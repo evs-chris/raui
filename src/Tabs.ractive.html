@@ -51,7 +51,9 @@
       {{#if .pad === false}}class-rtabs-no-pad{{elseif .padRef}}class-rtabs-no-pad="~/[.padRef]"{{/if}}
       on-focus="@.checkSelection(@context, @index)"
     >
-      {{yield .template}}
+      {{#if (~/defer === 'always' && ~/selectedContent === @index) || (~/defer && .load) || !~/defer}}
+        {{yield .template}}
+      {{/if}}
     </div>{{else}}<div class-rtabs-placeholder />{{/if}}</template>
 
 <script>
@@ -150,7 +152,7 @@
     }
   }
 
-  const tabAttrs = ['closable', 'disabled', 'title', 'right', 'button', 'no-pad', 'hidden', 'id'];
+  const tabAttrs = ['closable', 'disabled', 'title', 'right', 'button', 'no-pad', 'hidden', 'id', 'load'];
 
   // TODO: api handles
   Ractive.extendWith(Tabs, {
@@ -158,7 +160,7 @@
     cssId: 'rtab',
     noCssTransform: true,
     css: $CSS,
-    attributes: ['transition', 'flat', 'pad', 'center', 'height', 'fill'],
+    attributes: ['transition', 'flat', 'pad', 'center', 'height', 'fill', 'defer'],
     data() {
       return {
         tabs: [],
@@ -312,6 +314,7 @@
         setTimeout(() => {
           this.set({
             selectedContent: idx,
+            [`tabs.${idx}.load`]: true,
             opacity: 1
           });
           if (ctx.hasListener('enter')) ctx.raise('enter');
@@ -319,6 +322,7 @@
         }, 150);
       } else if (trans === 'slide') {
         this.set('selected', idx);
+        this.set(`tabs.${idx}.load`, true);
         this.set('selectedContent', idx);
         this.updateIndicator();
         const ctx = this.getContext(this.find('.rtabs-selected'));
@@ -327,6 +331,7 @@
       } else {
         this.set({
           selected: idx,
+          [`tabs.${idx}.load`]: true,
           selectedContent: idx
         });
         this.updateIndicator();
@@ -395,6 +400,9 @@
 
     get closable() { return this.get('closable'); }
     set closable(v) { return this.set('closable', v); }
+
+    get load() { return this.get('load'); }
+    set load(v) { return this.set('load', v); }
 
     select() {
       if (this.removed) return;
