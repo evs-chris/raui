@@ -11,10 +11,10 @@
   class-rtable-valign-bottom="~/valign === 'bottom'"
   {{yield extra-attributes}}
 >
-  {{#if ~/header && ~/fixedHeader}}<div as-grid="{ offset: ~/scrollOffset }">{{>grid-head}}</div>{{/if}}
-  <div class-rtable-top {{#if ~/paginate === 'virtual'}}on-scroll="scroll" as-sized="{ offsetHeight: '~/tableHeight', diffWidth: '~/scrollOffset' }"{{/if}} {{#if ~/header && ~/fixedHeader}}as-scrolled=`~/scroll`{{/if}}>
+  {{#if !~/noHeader && ~/fixedHeader}}<div as-grid="{ offset: ~/scrollOffset }">{{>grid-head}}</div>{{/if}}
+  <div class-rtable-top {{#if ~/paginate === 'virtual'}}on-scroll="scroll" as-sized="{ offsetHeight: '~/tableHeight', diffWidth: '~/scrollOffset' }"{{/if}} {{#if !~/noHeader && ~/fixedHeader}}as-scrolled=`~/scroll`{{/if}}>
     <div as-grid {{#if ~/paginate === 'virtual'}}style-margin-top="{{~/virtual.above}}px" style-margin-bottom="{{~/virtual.below}}px"{{/if}}>
-      {{#if ~/header && !~/fixedHeader}}{{>grid-head}}{{/if}}
+      {{#if !~/noHeader && !~/fixedHeader}}{{>grid-head}}{{/if}}
       {{#each ~/visibleRows, ~/items as source, true as shuffle}}
         {{>grid-row}}
       {{/each}}
@@ -341,7 +341,7 @@
     css: $CSS,
     cssId: 'rtable',
     noCssTransform: true,
-    attributes: ['paginate', 'items', 'filter', 'sort', 'helpers', 'fixed', 'allowSelect', 'allowSelectAll', 'border', 'fixedHeader', 'valign', 'header', 'empty'],
+    attributes: ['paginate', 'items', 'filter', 'sort', 'helpers', 'fixed', 'allowSelect', 'allowSelectAll', 'border', 'fixedHeader', 'valign', 'noHeader', 'empty'],
     components: {
       table: false,
       Table: false
