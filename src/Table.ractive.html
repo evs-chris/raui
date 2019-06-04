@@ -11,10 +11,10 @@
   class-rtable-valign-bottom="~/valign === 'bottom'"
   {{yield extra-attributes}}
 >
-  {{#if ~/fixedHeader}}<div as-grid="{ offset: ~/scrollOffset }">{{>grid-head}}</div>{{/if}}
-  <div class-rtable-top {{#if ~/paginate === 'virtual'}}on-scroll="scroll" as-sized="{ offsetHeight: '~/tableHeight', diffWidth: '~/scrollOffset' }"{{/if}} {{#if ~/fixedHeader}}as-scrolled=`~/scroll`{{/if}}>
+  {{#if ~/header && ~/fixedHeader}}<div as-grid="{ offset: ~/scrollOffset }">{{>grid-head}}</div>{{/if}}
+  <div class-rtable-top {{#if ~/paginate === 'virtual'}}on-scroll="scroll" as-sized="{ offsetHeight: '~/tableHeight', diffWidth: '~/scrollOffset' }"{{/if}} {{#if ~/header && ~/fixedHeader}}as-scrolled=`~/scroll`{{/if}}>
     <div as-grid {{#if ~/paginate === 'virtual'}}style-margin-top="{{~/virtual.above}}px" style-margin-bottom="{{~/virtual.below}}px"{{/if}}>
-      {{#unless ~/fixedHeader}}{{>grid-head}}{{/unless}}
+      {{#if ~/header && !~/fixedHeader}}{{>grid-head}}{{/if}}
       {{#each ~/visibleRows, ~/items as source, true as shuffle}}
         {{>grid-row}}
       {{/each}}
@@ -341,7 +341,7 @@
     css: $CSS,
     cssId: 'rtable',
     noCssTransform: true,
-    attributes: ['paginate', 'items', 'filter', 'sort', 'helpers', 'fixed', 'allowSelect', 'allowSelectAll', 'border', 'fixedHeader', 'valign'],
+    attributes: ['paginate', 'items', 'filter', 'sort', 'helpers', 'fixed', 'allowSelect', 'allowSelectAll', 'border', 'fixedHeader', 'valign', 'header'],
     components: {
       table: false,
       Table: false
@@ -824,6 +824,7 @@
   function applyFilter(flt, item, recache) {
     if (!item || (!flt.get && flt.op !== 'and' && flt.op !== 'or' && flt.op !== '&&' && flt.op !== '||')) return false;
     const v = flt.get && flt.get.call(this, item);
+    if (typeof flt.op === 'function') return flt.op.call(undefined, item);
     const val = flt.value;
     if (flt.op === '=' || flt.op === '==' || flt.op === 'is') {
       if (flt.type === 'number' || flt.type === 'date') return +v == +val;
