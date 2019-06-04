@@ -18,7 +18,7 @@
       {{#each ~/visibleRows, ~/items as source, true as shuffle}}
         {{>grid-row}}
       {{/each}}
-      {{#if !~/rows.length}}<div class-rtable-row class-row class-t1>{{yield empty}}</div>{{/if}}
+      {{#if !~/rows.length}}<div class-rtable-row class-row class-t1>{{yield empty with ~/empty as message}}</div>{{/if}}
     </div>
   </div>
   {{#if ~/paginate !== 'virtual'}}{{>pagination}}{{/if}}
@@ -51,7 +51,7 @@
 </template>
 
 <template id="empty">
-  <div><div>No data.</div></div>
+  <div><div>{{message || 'No data.'}}</div></div>
 </template>
 
 <template id="csp-dummy">
@@ -341,7 +341,7 @@
     css: $CSS,
     cssId: 'rtable',
     noCssTransform: true,
-    attributes: ['paginate', 'items', 'filter', 'sort', 'helpers', 'fixed', 'allowSelect', 'allowSelectAll', 'border', 'fixedHeader', 'valign', 'header'],
+    attributes: ['paginate', 'items', 'filter', 'sort', 'helpers', 'fixed', 'allowSelect', 'allowSelectAll', 'border', 'fixedHeader', 'valign', 'header', 'empty'],
     components: {
       table: false,
       Table: false
@@ -566,7 +566,8 @@
         showGroups: true,
         allowGroupSelect: true,
         expanded: null,
-        minPerPage: 10
+        minPerPage: 10,
+        virtual: { offset: 0 }
       }
     },
     computed: {
