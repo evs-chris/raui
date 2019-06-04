@@ -1333,7 +1333,7 @@
     transform: rotate(45deg);
     transform-origin: center right;
     position: relative;
-    margin-right: 0.5em;
+    margin-right: 1.5em;
   }
   .rwindow-close:before {
     cursor: pointer;
@@ -1357,6 +1357,9 @@
     transform: rotate(-90deg);
     transform-origin: center left;
     position: absolute;
+  }
+  .rwindow-max-top .rwindow-controls > .rwindow-close {
+    margin-right: 0.5em;
   }
   ${typeof data('raui.window.extra') === 'function' ? data('raui.window.extra').call(this, data) : ''}
   `;
