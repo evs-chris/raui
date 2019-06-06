@@ -35,8 +35,8 @@ export class Window<T extends Window<T> = Window<any>> extends Ractive<T> {
   hide(): void;
   raise(show?: boolean): void;
   show(): void;
-  size(width: string | number, height: string | number): void;
-  move(top: string | number, left: string | number): void;
+  size(width: string | number, height: string | number): Promise<void>;
+  move(top: string | number, left: string | number): Promise<void>;
 
   static extend<U>(opts?: ExtendOpts<Window & U>): Static<Window<Window & U>>;
   static extendWith<U extends Window<U>, V extends InitOpts<any> = InitOpts, W extends ExtendOpts<U> = ExtendOpts<U>>(c: Constructor<U, V>, opts?: W): Static<Window<Window & U>>;

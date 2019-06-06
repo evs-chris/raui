@@ -3,14 +3,14 @@
   {{#if ~/currentMax && ~/_maxP}}
   <div class-rwindow-max-top {{#if ~/_maxAttrsP}}{{yield ~/_maxAttrsP}}{{/if}}>{{yield ~/_maxP with ~/current as window, { t: @this.partials.windowControls } as windowControls, @this as host }}</div>
   {{/if}}
-  <div class-rwhost-pane>
+  <div class-rwhost-pane class-rwhost-blocked="~/blocked">
     <div class-rwhost-pane-content>
       {{yield}}
     </div>
     {{#each @.children.byName.window}}
     <#window control="{{~/windows[.instance.id]}}" bind-root="~/" />
     {{/each}}
-    <div class-rwhost-modal {{#if ~/blocked}}class-rwhost-modal-active style-z-index="{{~/blocked}}"{{/if}} />
+    <div class-rwhost-modal as-tracked=`modalPane` {{#if ~/blocked}}class-rwhost-modal-active style-z-index="{{~/blocked}}"{{/if}} />
   </div>
   {{>toast}}
 </div>
@@ -783,15 +783,24 @@
     }
 
     move(top, left) {
-      if (typeof top === 'string') top = this.host.sizeInEm(top);
-      if (typeof left === 'string') left = this.host.sizeInEm(left);
+      return new Promise(ok => {
+        requestAnimationFrame(() => {
+          if (top === 'center') top = (this.host.modalPane.clientHeight / 2) - (this.wrapper.clientHeight / 2)
+          else if (typeof top === 'string') top = this.host.sizeInEm(top);
 
-      const set = {};
+          if (left === 'center') left = (this.host.modalPane.clientWidth / 2) - (this.wrapper.clientWidth / 2)
+          if (typeof left === 'string') left = this.host.sizeInEm(left);
 
-      if (typeof top === 'number') set['control.top'] = top;
-      if (typeof left === 'number') set['control.left'] = left;
+          const set = {};
 
-      this.set(set);
+          if (typeof top === 'number') set['control.top'] = top;
+          if (typeof left === 'number') set['control.left'] = left;
+
+          this.set(set);
+
+          ok();
+        });
+      });
     }
 
     _startMove(event) {
@@ -1148,6 +1157,9 @@
     overflow: auto;
     background-color: ${primary.host.bg || primary.bg || '#fff'};
     z-index: 1;
+  }
+  .rwhost-pane.blocked {
+    overflow: hidden;
   }
 
   .rwhost-pane-content {
