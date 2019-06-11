@@ -1131,7 +1131,7 @@
   const primary = Object.assign({}, data('raui.primary'), data('raui.window.primary'));
   primary.action = Object.assign({}, data('raui.window.action'), data('raui.window.primary.action'));
   primary.host = Object.assign({}, data('raui.window.host'), data('raui.window.primary.host'));
-  primary.title = Object.assign({}, data('raui.window.title'), data('raui.window.primary.title'));
+  primary.title = Object.assign({ inactive: {} }, data('raui.window.title'), data('raui.window.primary.title'));
   return `
   .rwhost {
     position: relative;
@@ -1168,10 +1168,11 @@
 
   .rwhost-modal {
     position: absolute;
+    position: sticky;
     top: 0;
     left: 0;
-    bottom: 0;
-    right: 0;
+    width: 100%;
+    height: 100%;
     z-index: -1;
     opacity: 0;
     transition: opacity 0.2s ease-in-out, z-index 0s linear 0.2s;
@@ -1239,8 +1240,8 @@
 
   .rwindow-pane-top,
   .rwindow-max-top {
-    background-color: ${primary.title.bg || primary.fga || '#07e'};
-    color: ${primary.title.fg || primary.bg || '#fff'};
+    background-color: ${primary.title.inactive.bg || primary.fg || '#222'};
+    color: ${primary.title.inactive.fg || primary.bg || '#fff'};
     flex-shrink: 0;
   }
 
@@ -1251,6 +1252,11 @@
   .rwindow-pane-top {
     display: flex;
     align-items: center;
+  }
+
+  .rwindow-topmost .rwindow-pane-top {
+    background-color: ${primary.title.bg || primary.fga || '#07e'};
+    color: ${primary.title.fg || primary.bg || '#fff'};
   }
 
   .rwindow-pane {
