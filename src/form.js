@@ -742,7 +742,7 @@ export const macro = Ractive.macro(handle => {
         else el.m.splice(el.m.indexOf(value), 1, Object.assign({}, value, { n: 'checked' }));
       }
     }
-    el.m = el.m.concat(attrs.filter(a => a.t === 73 || a.n === 'placeholder'));
+    el.m = el.m.concat(attrs.filter(a => a.t === 73 || a.t === 73 || a.n === 'placeholder'));
     body.push(el);
 
     const btns = content.filter(e => e.e === 'button' || findDeep(e.f, 'button'));
