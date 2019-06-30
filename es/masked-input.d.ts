@@ -1,1 +1,1 @@
-export { default, PluginOpts } from '../src/masked-input';
+export { default, masked, PluginOpts } from '../src/masked-input';
