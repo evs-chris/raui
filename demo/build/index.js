@@ -777,7 +777,7 @@ System.register(['./chunk3.js', './chunk4.js', './chunk6.js', './chunk2.js', './
               else { el.m.splice(el.m.indexOf(value), 1, Object.assign({}, value, { n: 'checked' })); }
             }
           }
-          el.m = el.m.concat(attrs.filter(function (a) { return a.t === 73 || a.n === 'placeholder'; }));
+          el.m = el.m.concat(attrs.filter(function (a) { return a.t === 73 || a.t === 73 || a.n === 'placeholder'; }));
           body.push(el);
 
           var btns = content.filter(function (e) { return e.e === 'button' || findDeep(e.f, 'button'); });

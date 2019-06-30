@@ -10,158 +10,165 @@ System.register(['./chunk2.js'], function (exports, module) {
 
 			var observables = ['value', 'masked', 'display'];
 
-			function masked(node, opt1, opt2, opt3) {
-				var ctx = this.getContext(node);
+			function masked(options) {
+				if ( options === void 0 ) options = {};
 
-				var opts;
-				if (typeof opt1 === 'object') { opts = opt1; }
-				else if (typeof opt2 === 'object') { opts = opt2; }
-				else if (typeof opt3 === 'object') { opts = opt3; }
-				else { opts = {}; }
+				return function(node, opt1, opt2, opt3) {
+					var ctx = this.getContext(node);
 
-				if (typeof opt1 === 'string') { opts.mask = opt1; }
-				if (typeof opt2 === 'string') { opts.bind = opt2; }
+					var opts = Object.assign({}, masked.defaults, options);
+					if (typeof opt1 === 'object') { Object.assign(opts, opt1); }
+					else if (typeof opt2 === 'object') { Object.assign(opts, opt2); }
+					else if (typeof opt3 === 'object') { Object.assign(opts, opt3); }
 
-				opts.mask = opts.mask || '';
-				opts.masks = opts.masks || masked.defaults.masks;
-				opts.maskChars = '';
-				opts.bind_value = opts.value;
-				opts.bind_masked = opts.masked;
-				opts.bind_display = opts.display;
+					if (typeof opt1 === 'string') { opts.mask = opt1; }
+					if (typeof opt2 === 'string') { opts.bind = opt2; }
 
-				for (var k in opts.masks) {
-					if (k.length > 1) {
-						for (var i = 0; i < k.length; i++) { opts.masks[k[i]] = opts.masks[k]; }
-					}
-				}
+					opts.mask = opts.mask || '';
+					opts.masks = opts.masks || masked.defaults.masks;
+					opts.maskChars = '';
+					opts.bind_value = opts.value;
+					opts.bind_masked = opts.masked;
+					opts.bind_display = opts.display;
 
-				var value = {};
-				var bound = {};
-				var observe;
-				var sync;
-
-				var orig = {
-					val: node.value
-				};
-
-				function update(init, nav) {
-					// if this isn't a focus event and there's more than one character selected, all bets are off, let the user do whatever
-					if (!init && Math.abs(node.selectionEnd - node.selectionStart) > 1) { return; }
-
-					var cursor = node.selectionStart;
-
-					var val = node.value;
-					var mask = opts.mask;
-					var len = mask.length;
-					var res = '';
-					var unmasked = '';
-					var masked = '';
-					var last = 0;
-					var range = 0;
-
-					for (var i = 0, j = 0; i < len; i++) {
-						var m = opts.masks[mask[i]];
-						var match = j < val.length && m && m.test(val[j]);
-
-						if (match) {
-							unmasked += val[j];
-							masked += val[j];
-							res += val[j++];
-							last = i + 1;
-						} else {
-							// if looking for a mask match, skip forward in val until one is found
-							if (m) {
-								while (!match && j++ < val.length) {
-									match = m.test(val[j]);
-								}
-								if (match && last === i) { range--; }
-							} else if (last === i) {
-								last = i + 1;
-								range++;
-								masked += mask[i];
-							}
-
-							if (!match) { res += mask[i]; }
-							else { i--; }
+					for (var k in opts.masks) {
+						if (k.length > 1) {
+							for (var i = 0; i < k.length; i++) { opts.masks[k[i]] = opts.masks[k]; }
 						}
 					}
 
-					value.value = unmasked;
-					value.masked = masked;
-					value.display = res;
+					var value = {};
+					var bound = {};
+					var observe;
+					var sync;
 
-					node.value = res;
-
-					// update the cursor position and selection if necessary
-					if (init) { cursor = last; } // on initial focus, select the last mask char
-					else if (!nav) { // don't adjust stuff on nav keys
-						if (cursor > last + range || (last + range <= mask.length && cursor + range === last)) { cursor = last; }
-						for (var i$1 = cursor; i$1 <= len; i$1++) {
-							if (opts.masks[mask[i$1]]) { break; }
-							cursor++;
-						}
-					}
-
-					// if not a nav key, select the char or value
-					if (!nav) {
-						if (init && cursor === mask.length) { node.setSelectionRange(0, cursor + 1); }
-						else { node.setSelectionRange(cursor, cursor + 1); }
-					} else { node.setSelectionRange(cursor, cursor); } // otherwise move the cursor back to where it should be
-
-					if (sync && opts.lazy === false) {
-						sync();
-					}
-				}
-
-				observables.forEach(function (k) {
-					if (opts[("bind_" + k)]) {
-						if (!observe) { observe = {}; }
-						observe[k] = ctx.observe(opts[("bind_" + k)], function (v) {
-							node.value = v;
-							update(false, false);
-						}, { init: false });
-						bound[k] = ctx.get(opts[("bind_" + k)]);
-					}
-				});
-
-				if (observe) {
-					sync = function(e) {
-						observables.forEach(function (k) {
-							if (observe[k] && value[k] !== bound[k]) {
-								observe[k].silence();
-								ctx.set(opts[("bind_" + k)], value[k]);
-								bound[k] = value[k];
-								observe[k].resume();
-							}
-						});
+					var orig = {
+						val: node.value
 					};
 
-					ctx.listen('blur', sync);
-				}
+					function update(init, nav) {
+						// if this isn't a focus event and there's more than one character selected, all bets are off, let the user do whatever
+						if (!init && Math.abs(node.selectionEnd - node.selectionStart) > 1) { return; }
 
-				var listener = function(e) {
-					update(e.type === 'focus', e.key && (~e.key.indexOf('Arrow') || ~e.key.indexOf('Backspace') || ~e.key.indexOf('Del')));
-				};
+						var cursor = node.selectionStart;
 
-				ctx.listen('keyup', listener);
-				ctx.listen('focus', listener);
+						var val = node.value;
+						var mask = opts.mask;
+						var len = mask.length;
+						var res = '';
+						var unmasked = '';
+						var masked = '';
+						var last = 0;
+						var range = 0;
 
-				// initialize the input mask
-				node.value = bound.value || bound.masked || bound.display || opts.mask;
-				if (observe) {
-					update(false, false);
-				}
+						for (var i = 0, j = 0; i < len; i++) {
+							var m = opts.masks[mask[i]];
+							var match = j < val.length && m && m.test(val[j]);
 
-				return {
-					teardown: function teardown() {
-						ctx.unlisten('keyup', listener);
-						ctx.unlisten('focus', listener);
-						if (observe) {
-							ctx.unlisten('blur', sync);
-							observables.forEach(function (k) { return observe[k] && observe[k].cancel(); });
+							if (match) {
+								unmasked += val[j];
+								masked += val[j];
+								res += val[j++];
+								last = i + 1;
+							} else {
+								// if looking for a mask match, skip forward in val until one is found
+								if (m) {
+									while (!match && j++ < val.length) {
+										match = m.test(val[j]);
+									}
+									if (match && last === i) { range--; }
+								} else if (last === i) {
+									last = i + 1;
+									range++;
+									masked += mask[i];
+								}
+
+								if (!match) { res += mask[i]; }
+								else { i--; }
+							}
+						}
+
+						value.value = unmasked;
+						value.masked = masked;
+						value.display = res;
+
+						node.value = res;
+
+						// update the cursor position and selection if necessary
+						if (init) { cursor = last; } // on initial focus, select the last mask char
+						else if (!nav) { // don't adjust stuff on nav keys
+							if (cursor > last + range || (last + range <= mask.length && cursor + range === last)) { cursor = last; }
+							for (var i$1 = cursor; i$1 <= len; i$1++) {
+								if (opts.masks[mask[i$1]]) { break; }
+								cursor++;
+							}
+						}
+
+						// if not a nav key, select the char or value
+						if (typeof node.setSelectionRange === 'function') {
+							if (!nav) {
+								if (init && cursor === mask.length) { node.setSelectionRange(0, cursor + 1); }
+								else { node.setSelectionRange(cursor, cursor + 1); }
+							} else { node.setSelectionRange(cursor, cursor); } // otherwise move the cursor back to where it should be
+						}
+
+						if (sync && opts.lazy === false) {
+							sync();
 						}
 					}
-				};
+
+					observables.forEach(function (k) {
+						if (opts[("bind_" + k)]) {
+							if (!observe) { observe = {}; }
+							observe[k] = ctx.observe(opts[("bind_" + k)], function (v) {
+								node.value = v;
+								update(false, false);
+							}, { init: false });
+							bound[k] = ctx.get(opts[("bind_" + k)]);
+						}
+					});
+
+					if (observe) {
+						sync = function(e) {
+							observables.forEach(function (k) {
+								if (observe[k] && value[k] !== bound[k]) {
+									observe[k].silence();
+									ctx.set(opts[("bind_" + k)], value[k]);
+									bound[k] = value[k];
+									observe[k].resume();
+								}
+							});
+						};
+
+						ctx.listen('blur', sync);
+					}
+
+					var listener = function(e) {
+						update(e.type === 'focus', e.key && (~e.key.indexOf('Arrow') || ~e.key.indexOf('Backspace') || ~e.key.indexOf('Del')));
+					};
+
+					ctx.listen('focus', listener);
+					// yech
+					if (window.navigator && ~window.navigator.userAgent.indexOf('Android')) { ctx.listen('input', listener); }
+					else { ctx.listen('keyup', listener); }
+
+					// initialize the input mask
+					node.value = bound.value || bound.masked || bound.display || opts.mask;
+					if (observe) {
+						update(false, false);
+					}
+
+					return {
+						teardown: function teardown() {
+							ctx.unlisten('keyup', listener);
+							ctx.unlisten('focus', listener);
+							if (observe) {
+								ctx.unlisten('blur', sync);
+								observables.forEach(function (k) { return observe[k] && observe[k].cancel(); });
+							}
+						}
+					};
+				}
 			}
 
 			masked.defaults = {
@@ -178,7 +185,7 @@ System.register(['./chunk2.js'], function (exports, module) {
 				return function(ref) {
 					var instance = ref.instance;
 
-					instance.decorators[opts.name || 'masked'] = masked;
+					instance.decorators[opts.name || 'masked'] = masked(opts);
 				}
 			}
 
