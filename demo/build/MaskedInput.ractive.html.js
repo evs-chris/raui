@@ -42,17 +42,13 @@ System.register(['./chunk2.js'], function (exports, module) {
 					var observe;
 					var sync;
 
-					var orig = {
-						val: node.value
-					};
-
 					function update(init, nav) {
 						// if this isn't a focus event and there's more than one character selected, all bets are off, let the user do whatever
 						if (!init && Math.abs(node.selectionEnd - node.selectionStart) > 1) { return; }
 
 						var cursor = node.selectionStart;
 
-						var val = node.value;
+						var val = node.value || '';
 						var mask = opts.mask;
 						var len = mask.length;
 						var res = '';
@@ -83,8 +79,10 @@ System.register(['./chunk2.js'], function (exports, module) {
 									masked += mask[i];
 								}
 
-								if (!match) { res += mask[i]; }
-								else { i--; }
+								if (!match) {
+									if (opts.blurMask && document.activeElement !== node && m) { res += opts.blurMask[0]; }
+									else { res += mask[i]; }
+								}	else { i--; }
 							}
 						}
 
@@ -154,14 +152,14 @@ System.register(['./chunk2.js'], function (exports, module) {
 
 					// initialize the input mask
 					node.value = bound.value || bound.masked || bound.display || opts.mask;
-					if (observe) {
-						update(false, false);
-					}
+					update(false, false);
+					ctx.listen('blur', listener);
 
 					return {
 						teardown: function teardown() {
 							ctx.unlisten('keyup', listener);
 							ctx.unlisten('focus', listener);
+							ctx.unlisten('blur', listener);
 							if (observe) {
 								ctx.unlisten('blur', sync);
 								observables.forEach(function (k) { return observe[k] && observe[k].cancel(); });
