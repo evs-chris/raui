@@ -32,17 +32,13 @@ export function masked(options = {}) {
 		let observe;
 		let sync;
 
-		const orig = {
-			val: node.value
-		};
-
 		function update(init, nav) {
 			// if this isn't a focus event and there's more than one character selected, all bets are off, let the user do whatever
 			if (!init && Math.abs(node.selectionEnd - node.selectionStart) > 1) return;
 
 			let cursor = node.selectionStart;
 
-			const val = node.value;
+			const val = node.value || '';
 			const mask = opts.mask;
 			const len = mask.length;
 			let res = '';
@@ -73,8 +69,10 @@ export function masked(options = {}) {
 						masked += mask[i];
 					}
 
-					if (!match) res += mask[i];
-					else i--;
+					if (!match) {
+						if (opts.blurMask && document.activeElement !== node && m) res += opts.blurMask[0];
+						else res += mask[i];
+					}	else i--;
 				}
 			}
 
@@ -144,14 +142,14 @@ export function masked(options = {}) {
 
 		// initialize the input mask
 		node.value = bound.value || bound.masked || bound.display || opts.mask;
-		if (observe) {
-			update(false, false);
-		}
+		update(false, false);
+		ctx.listen('blur', listener);
 
 		return {
 			teardown() {
 				ctx.unlisten('keyup', listener);
 				ctx.unlisten('focus', listener);
+				ctx.unlisten('blur', listener);
 				if (observe) {
 					ctx.unlisten('blur', sync);
 					observables.forEach(k => observe[k] && observe[k].cancel());

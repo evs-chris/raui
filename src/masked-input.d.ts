@@ -3,6 +3,7 @@ import { Plugin } from 'ractive';
 export interface PluginOpts {
   name?: string;
   mask?: string;
+  blurMask?: string;
   masks?: { [char: string]: RegExp };
 }
 
