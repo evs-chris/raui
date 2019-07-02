@@ -11,9 +11,9 @@
   <div class-rcal-wrapper class-rcal-pad="~/pad">
     <div class-rcal-block-outer>
       <div class-rcal-block-header>
-        <div>{{#if left}}<div class-rcal-left on-click="@.prev()" />{{/if}}</div>
-        <div class-rcal-click on-click="@.set('mode', 'months')">{{@.monthName(.month)}}{{#if .currentYear !== .year}}, {{.year}}{{/if}}</div>
-        <div>{{#if right}}<div class-rcal-right on-click="@.next()" />{{/if}}</div>
+        <div>{{#if left}}<div class-rcal-left on-click="@.prev(), false" />{{/if}}</div>
+        <div class-rcal-click on-click="@.set('mode', 'months'), false">{{@.monthName(.month)}}{{#if .currentYear !== .year}}, {{.year}}{{/if}}</div>
+        <div>{{#if right}}<div class-rcal-right on-click="@.next(), false" />{{/if}}</div>
       </div>
       <div class-rcal-month>
         {{#with . as month}}
@@ -37,15 +37,15 @@
   <div class-rcal-wrapper>
     <div class-rcal-block-outer>
       <div class-rcal-block-header>
-        <div>{{#if left}}<div class-rcal-left on-click="@.prev()" />{{/if}}</div>
-        <div class-rcal-click on-click="@.set('mode', 'year')">{{.year}}</div>
-        <div>{{#if right}}<div class-rcal-right on-click="@.next()" />{{/if}}</div>
+        <div>{{#if left}}<div class-rcal-left on-click="@.prev(), false" />{{/if}}</div>
+        <div class-rcal-click on-click="@.set('mode', 'year'), false">{{.year}}</div>
+        <div>{{#if right}}<div class-rcal-right on-click="@.next(), false" />{{/if}}</div>
       </div>
       <div class-rcal-year>
         {{#each .months}}
           <div class-rcal-inner-row>
             {{#each .}}
-              <div class-rcal-inner-pick class-rcal-current="@.isCurrent(.)" on-click="@.select(.)">{{@.shortMonthName(.m)}}</div>
+              <div class-rcal-inner-pick class-rcal-current="@.isCurrent(.)" on-click="@.select(.), false">{{@.shortMonthName(.m)}}</div>
             {{/each}}
           </div>
         {{/each}}
@@ -60,16 +60,16 @@
   <div class-rcal-wrapper>
     <div class-rcal-block-outer>
       <div class-rcal-block-header>
-        <div>{{#if left}}<div class-rcal-left on-click="@.prev()" />{{/if}}</div>
-        <div class-rcal-click on-click="@.set('mode', 'month')">{{.start}} - {{.end}}</div>
-        <div>{{#if right}}<div class-rcal-right on-click="@.next()" />{{/if}}</div>
+        <div>{{#if left}}<div class-rcal-left on-click="@.prev(), false" />{{/if}}</div>
+        <div class-rcal-click on-click="@.set('mode', 'month'), false">{{.start}} - {{.end}}</div>
+        <div>{{#if right}}<div class-rcal-right on-click="@.next(), false" />{{/if}}</div>
       </div>
       {{#with . as year}}
       <div class-rcal-decade>
         {{#each .years}}
           <div class-rcal-inner-row>
             {{#each .}}
-              <div class-rcal-inner-pick class-rcal-off-day=".y > year.end || .y < year.start" class-rcal-current="@.isCurrent(.)" on-click="@.select(.)">{{.y}}</div>
+              <div class-rcal-inner-pick class-rcal-off-day=".y > year.end || .y < year.start" class-rcal-current="@.isCurrent(.)" on-click="@.select(.), false">{{.y}}</div>
             {{/each}}
           </div>
         {{/each}}
