@@ -215,7 +215,7 @@
       else {
         let current = this.get('safeCurrent');
 
-        if (dt) this.set('current', new Date(dt.y || current.getFullYear(), dt.m || current.getMonth(), dt.d || current.getDate()));
+        if (dt) this.set('current', new Date(dt.y || current.getFullYear(), typeof dt.m === 'number' ? dt.m : current.getMonth(), dt.d || current.getDate()));
 
         const mode = this.get('mode');
         if (mode === 'year') this.set('mode', 'months');
