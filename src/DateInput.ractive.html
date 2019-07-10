@@ -1,6 +1,7 @@
 <span class-rdi-date class-field-wrapper>
-  <input as-rdi-reg=`node` as-rdi-date=`rdi.val` class-rdi-date />
-  <div class="rdi-pop" as-rdi-pop="{ path: 'rdi.popped', node: rdi.node, tail: rdi.tail }" on-click="false, false">
+  <input as-rdi-reg=`node` as-rdi-date="rdi.opts" class-rdi-date {{>extra-attributes}} />
+  {{#if rdi.opts.null && rdi.val !== null}}<div class="rdi-x" on-click="@context.set('rdi.val', null)" title="Clear">&times;</div>{{/if}}
+  <div class="rdi-pop" as-rdi-pop="{ path: 'rdi.popped', node: rdi.node, tail: rdi.tail }" on-click="false, false" title="Select from calendar">
     <svg as-rdi-reg=`tail` x="0px" y="0px" viewBox="0 0 48 48" xml:space="preserve">
       <rect y="1" x="1" height="46" width="46" style="opacity:0.5;fill:none;stroke-width:1;" />
       <rect y="1" x="1" height="8" width="46" />
@@ -29,6 +30,13 @@
   function setup(ctx) {
     if (ctx.attributes.value) ctx.link(ctx.attributes.value, 'rdi.val');
     else ctx.unlink('rdi.val');
+
+    const opts = { value: 'rdi.val' };
+    ['null', 'lazy', 'mask'].forEach(k => {
+      if (k in ctx.attributes) opts[k] = ctx.attributes[k];
+    });
+
+    ctx.set('rdi.opts', opts);
   }
 
   export const DateInput = Ractive.macro(ctx => {
@@ -43,7 +51,7 @@
     css: $CSS,
     cssId: 'rdi',
     noCssTransform: true,
-    attributes: ['value']
+    attributes: ['value', 'null', 'lazy', 'mask']
   });
 
   export default function plugin(opts = {}) {
@@ -65,6 +73,13 @@
   return `.rdi-date {
     position: relative;
     display: inline-block;
+  }
+
+  .rdi-x {
+    position: absolute;
+    right: 2em;
+    top: 0.025em;
+    cursor: pointer;
   }
 
   .rdi-pop {
