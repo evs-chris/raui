@@ -13,7 +13,7 @@
           <div class-rtoast-string>{{.message}}</div>
         {{/if}}
       </div>
-      {{#if .dismissable !== false || .buttons.length || .more}}
+      {{#if (.dismissable !== false && .closeButton !== false) || .buttons.length || .more}}
       <div class-rtoast-buttons>
         {{#each .buttons}}
           <button class="rtoast-button{{#if .class}} {{.class}}{{/if}}" {{#if typeof .action === 'function'}}on-click=".action()"{{/if}}>{{.label}}</button>
