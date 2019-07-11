@@ -44,6 +44,8 @@
 {{/with}}{{/if}}
 
 <script>
+  import { Ractive } from 'ractive';
+
   const DEFAULTS = {
     timeout: 6000,
     top: true
@@ -203,6 +205,12 @@
 
     updateButtons() { this.data === this.holder.active && this.data.instance.update('_toast.buttons'); }
 
+    set(key, value) {
+      this.data[key] = value;
+      if (this.data === this.holder.active) return this.data.instance.update(`_toast.${Ractive.escapeKey(key)}`);
+      else return Promise.resolve();
+    }
+
     get message() { return this.data.message; }
     set message(v) { this.data.message = v; this.data === this.holder.active && this.data.instance.update('_toast.message'); }
 
@@ -333,7 +341,6 @@
     transform: rotate(45deg);
     transition: transform 0.2s ease-in-out, top 0.2s ease-in-out;
     pointer-events: none;
-    color: ${primary.bc || '#ccc'};
   }
   .rtoast-expanded .rtoast-more:after {
     transform: rotate(225deg);

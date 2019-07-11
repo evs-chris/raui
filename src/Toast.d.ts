@@ -46,6 +46,7 @@ export interface Handle {
   close(timeout?: number): void;
   cancelClose(): void;
   updateButtons(): void;
+  set(key: string, value: any): Promise<void>;
 }
 
 export interface Toast {
