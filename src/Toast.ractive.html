@@ -78,6 +78,7 @@
       function closeToast(which) {
         if (active !== which) {
           toasts.splice(toasts.indexOf(opts), 1);
+          if (typeof which.onclose === 'function') which.onclose();
         } else {
           if (holder.tm) {
             clearTimeout(holder.tm);
@@ -86,6 +87,7 @@
 
           active.instance.set('_toast', null).then(() => {
             holder.active = active = null;
+            if (typeof which.onclose === 'function') which.onclose();
             if (toasts.length) showToast();
           });
         }
@@ -244,6 +246,14 @@
     set buttons(v) { this.data.buttons = v; this.data === this.holder.active && this.data.instance.update('_toast.buttons'); }
 
     get live() { return this.data === this.holder.active || ~this.holder.toasts.indexOf(this.data); }
+    get closed() {
+      if (!this.promise) {
+        this._promise = new Promise(ok => {
+          this.data.onclose = ok;
+        });
+      }
+      return this._promise;
+    }
   }
 </script>
 

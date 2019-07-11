@@ -40,7 +40,8 @@ export interface Handle {
   context?: ContextHelper;
   showMore?: boolean;
 
-  readonly live?: boolean;]
+  readonly live?: boolean;
+  readonly closed?: Promise<void>;
 
   close(timeout?: number): void;
   cancelClose(): void;
