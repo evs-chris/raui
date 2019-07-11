@@ -1,15 +1,43 @@
 {{#if ~/_toast}}{{#with ~/_toast}}
-<div class-rtoast class-rtoast-bottom=".bottom" class-rtoast-left=".left" class-rtoast-right=".right">
-  <div toast-in-out class="rtoast-body{{#if .type}} rtoast-{{.type}}{{/if}}{{#if .class}}{{.class}}{{/if}}" {{#if .dismissable !== false}}on-click="@._closeToast()"{{/if}}>
-    <div class-rtoast-message>{{.message}}</div>
-    {{#if .dismissable !== false || .buttons.length}}
-    <div class-rtoast-buttons>
-      {{#each .buttons}}
-        <button class="rtoast-button{{#if .class}} {{.class}}{{/if}}" {{#if typeof .action === 'function'}}on-click=".action()"{{/if}}>{{.label}}</button>
-      {{elseif .dismissable !== false}}
-        <button class-rtoast-button>Close</button>
-      {{/each}}
+<div class-rtoast class-rtoast-expanded=".showMore" class-rtoast-bottom=".bottom" class-rtoast-left=".left" class-rtoast-right=".right">
+  <div toast-in-out class="rtoast-body{{#if .type}} rtoast-{{.type}}{{/if}}{{#if .class}}{{.class}}{{/if}}" {{#if .dismissable !== false}}on-click=".close()"{{/if}}>
+    <div class-rtoast-upper>
+      <div class-rtoast-message>
+        {{#if Array.isArray(.message)}}
+          {{#if !!.context}}
+            {{>.message .context}}
+          {{else}}
+            {{>.message}}
+          {{/if}}
+        {{else}}
+          <div class-rtoast-string>{{.message}}</div>
+        {{/if}}
+      </div>
+      {{#if .dismissable !== false || .buttons.length || .more}}
+      <div class-rtoast-buttons>
+        {{#each .buttons}}
+          <button class="rtoast-button{{#if .class}} {{.class}}{{/if}}" {{#if typeof .action === 'function'}}on-click=".action()"{{/if}}>{{.label}}</button>
+        {{elseif .dismissable !== false && .closeButton !== false}}
+          <button class-rtoast-button>Close</button>
+        {{/each}}
+        {{#if .more}}
+          <div class="rtoast-more" title="Toggle more" on-click="@.toggle('_toast.showMore'), false"></div> 
+        {{/if}}
+      </div>
+      {{/if}}
     </div>
+    {{#if .more && .showMore}}
+      <div class-rtoast-expand toast-expand-in-out on-click="false, false">
+      {{#if Array.isArray(.more)}}
+        {{#if !!.context}}
+          {{>.more .context}}
+        {{else}}
+          {{>.more}}
+        {{/if}}
+      {{else}}
+        <div class-rtoast-string>{{.more}}</div>
+      {{/if}}
+      </div>
     {{/if}}
   </div>
 </div>
@@ -30,7 +58,7 @@
 
       const defaults = Object.assign({}, DEFAULTS, opts);
       const toasts = [];
-      let tm;
+      const holder = { toasts };
       let active;
 
       Object.defineProperty(proto, 'toastDefaults', {
@@ -41,28 +69,34 @@
 
       proto.toast = function toast(message, options) {
         const opts = Object.assign({ message, instance: this }, defaults, this.toastDefaults, options);
+        opts.close = () => closeToast(opts);
         toasts.push(opts);
         if (!active) showToast();
+        return new Handle(holder, opts);
       }
 
-      proto._closeToast = function() {
-        if (tm) {
-          clearTimeout(tm);
-          tm = null;
-        }
+      function closeToast(which) {
+        if (active !== which) {
+          toasts.splice(toasts.indexOf(opts), 1);
+        } else {
+          if (holder.tm) {
+            clearTimeout(holder.tm);
+            holder.tm = null;
+          }
 
-        active.instance.set('_toast', null).then(() => {
-          active = null;
-          if (toasts.length) showToast();
-        });
+          active.instance.set('_toast', null).then(() => {
+            holder.active = active = null;
+            if (toasts.length) showToast();
+          });
+        }
       };
 
       function showToast() {
-        active = toasts.shift();
+        holder.active = active = toasts.shift();
         active.instance.set('_toast', active).then(() => {
           if (active.timeout) {
-            tm = setTimeout(() => {
-              active.instance._closeToast();
+            holder.tm = setTimeout(() => {
+              active.close();
             }, active.timeout);
           }
         });
@@ -94,8 +128,30 @@
         }
       };
 
+      instance.transitions['toast-expand'] = function(t, ps) {
+        const params = t.processParams({ duration: 200, nested: false }, ps);
+        if (t.isIntro) {
+          const h = t.getStyle('height');
+          const w = t.getStyle('width');
+          t.setStyle('height', 0);
+          t.setStyle('width', 0);
+          return t.animateStyle('width', w, params).then(() => t.animateStyle('height', h, params)).then(() => {
+            t.setStyle('height', '');
+            t.setStyle('width', '');
+          });
+        } else {
+          const h = t.getStyle('height');
+          t.setStyle('height', h);
+          t.setStyle('width', t.getStyle('width'))
+          return t.animateStyle('height', 0, params).then(() => t.animateStyle('width', 0, params)).then(() => {
+            t.setStyle('height', '');
+            t.setStyle('width', '');
+          });
+        }
+      }
+
       proto.on['close-toast'] = function() {
-        this._closeToast();
+        if (active) active.close();
       };
 
       if (instance === Ractive || Ractive.isInstance(instance)) {
@@ -113,6 +169,82 @@
       return proto;
     }
   }
+
+  export class Handle {
+    constructor(holder, data) {
+      this.holder = holder;
+      this.data = data;
+    }
+
+    close(timeout) {
+      if (this.data === this.holder.active) {
+        clearTimeout(this.holder.tm);
+        if (timeout) {
+          this.holder.tm = setTimeout(() => {
+            this.data.close();
+          }, timeout);
+        } else this.data.close();
+      } else {
+        if (timeout) {
+          this.data.timeout = time;
+        } else this.data.close();
+      }
+    }
+
+    cancelClose() {
+      if (this.data === this.holder.active) {
+        clearTimeout(this.holder.tm);
+      } else {
+        this.data.timeout = 0;
+      }
+    }
+
+    updateButtons() { this.data === this.holder.active && this.data.instance.update('_toast.buttons'); }
+
+    get message() { return this.data.message; }
+    set message(v) { this.data.message = v; this.data === this.holder.active && this.data.instance.update('_toast.message'); }
+
+    get more() { return this.data.more; }
+    set more(v) { this.data.more = v; this.data === this.holder.active && this.data.instance.update('_toast.more'); }
+
+    get showMore() { return this.data.showMore; }
+    set showMore(v) { this.data.showMore = v; this.data === this.holder.active && this.data.instance.update('_toast.showMore'); }
+
+    get left() { return this.data.left; }
+    set left(v) { this.data.left = v; this.data.right = false; this.data === this.holder.active && this.data.instance.update('_toast.left') && this.data.instance.update('_toast.right') }
+
+    get right() { return this.data.right; }
+    set right(v) { this.data.right = v; this.data.left = false; this.data === this.holder.active && this.data.instance.update('_toast.right') && this.data.instance.update('_toast.left'); }
+
+    get top() { return !this.data.bottom; }
+    set top(v) { this.data.bottom = !v; this.data === this.holder.active && this.data.instance.update('_toast.bottom'); }
+
+    get bottom() { return this.data.bottom; }
+    set bottom(v) { this.data.bottom = v; this.data === this.holder.active && this.data.instance.update('_toast.bottom'); }
+
+    get center() { return !this.data.left && !this.data.right; }
+    set center(v) { this.data.left = false; this.data.right = false; this.data === this.holder.active && this.data.instance.update('_toast.right'); this.data.instance.update('_toast.left') }
+
+    get context() { return this.data.context; }
+    set context(v) { this.data.context = v; this.data === this.holder.active && this.data.instance.update('_toast.context'); }
+
+    get type() { return this.data.type; }
+    set type(v) { this.data.type = v; this.data === this.holder.active && this.data.instance.update('_toast.type'); }
+
+    get class() { return this.data.class; }
+    set class(v) { this.data.class = v; this.data === this.holder.active && this.data.instance.update('_toast.class'); }
+
+    get dismissable() { return this.data.dismissable; }
+    set dismissable(v) { this.data.dismissable = v; this.data === this.holder.active && this.data.instance.update('_toast.dismissable'); }
+
+    get closeButton() { return this.data.closeButton; }
+    set closeButton(v) { this.data.closeButton = v; this.data === this.holder.active && this.data.instance.update('_toast.closeButton'); }
+
+    get buttons() { return this.data.buttons; }
+    set buttons(v) { this.data.buttons = v; this.data === this.holder.active && this.data.instance.update('_toast.buttons'); }
+
+    get live() { return this.data === this.holder.active || ~this.holder.toasts.indexOf(this.data); }
+  }
 </script>
 
 <script rel="css">
@@ -121,6 +253,7 @@
   .rtoast {
     position: absolute;
     display: flex;
+    flex-wrap: wrap;
     justify-content: center;
     left: 1em;
     right: 1em;
@@ -128,24 +261,73 @@
     bottom: auto;
     z-index: 5;
     pointer-events: none;
+    overflow: hidden;
   }
   .rtoast-message {
-    padding: 0.5em 0.5em 0.5em 1em;
     flex-grow: 2;
+    display: flex;
+    align-items: center;
+  }
+  .rtoast-string {
+    white-space: pre-wrap;
+    line-height: 1.3em;
+    padding-top: 0.3em;
+  }
+  .rtoast-upper .rtoast-string {
+    
+  }
+  .rtoast-expand .rtoast-string {
+    padding-top: 0.5em;
   }
   .rtoast-buttons {
-    display: inline-block;
-    padding: 0.5em 1em 0.5em 0.5em;
+    display: flex;
+    padding-left: 0.5em;
     flex-shrink: 1;
+    align-items: center;
+    max-height: max-content;
+    margin-left: auto;
+  }
+  .rtoast-buttons button {
+    cursor: pointer;
   }
   .rtoast-button {
     background-color: transparent;
     border: none;
     color: inherit;
-    padding: 0.5em 1em;
-    margin: 0 0 0 1em;
+    padding: 0.5em 0.75em;
+    margin: 0 0 0 0.5em;
     line-height: 1em;
     box-shadow: none;
+  }
+  .rtoast-more {
+    cursor: pointer;
+    width: 2em;
+    position: relative;
+    flex-shrink: 2;
+    background-color: transparent;
+    border: none;
+    color: inherit;
+    margin: 0 0 0 0.5em;
+    height: 2em;
+  }
+  .rtoast-more:after {
+    content: ' ';
+    position: absolute;
+    display: block;
+    width: 0.6em;
+    height: 0.6em;
+    top: calc(50% - 0.55em);
+    left: calc(50% - 0.3em);
+    border-bottom: 0.125em solid;
+    border-right: 0.125em solid;
+    transform: rotate(45deg);
+    transition: transform 0.2s ease-in-out, top 0.2s ease-in-out;
+    pointer-events: none;
+    color: ${primary.bc || '#ccc'};
+  }
+  .rtoast-expanded .rtoast-more:after {
+    transform: rotate(225deg);
+    top: calc(50% - 0.1em);
   }
   .rtoast-bottom {
     bottom: 1em;
@@ -158,15 +340,20 @@
     justify-content: flex-end;
   }
   .rtoast-body {
-    display: flex;
-    flex-shrink: 2;
-    align-items: center;
-    border-radius: 2px;
+    border-radius: 0.2em;
+    padding: 0.5em 1em;
     color: ${primary.bg || '#fff'};
     background-color: ${primary.fg || '#222'};
     box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.14), 0 1px 5px 0 rgba(0, 0, 0, 0.12), 0 3px 1px -2px rgba(0, 0, 0, 0.2);
     opacity: 0.95;
     pointer-events: all;
+    transition: color 0.5s ease-in-out, background 0.5s ease-in-out;
+  }
+  .rtoast-upper {
+    display: flex;
+    flex-shrink: 2;
+    flex-wrap: wrap;
+    justify-content: space-between;
   }
 
   .rtoast-success {
