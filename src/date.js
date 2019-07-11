@@ -243,7 +243,7 @@ function updateValues(groups, target, pos = 0, leave = false) {
         const cen = Math.floor(n / 100) * 100;
         const val = Math.abs(n - (cen + +v)) < 20 ? cen + +v : (cen - 100) + +v;
         g.value = val;
-        g.display = padl(val, g.length);
+        g.input = g.display = padl(val, g.length);
         accepted = true;
       } else {
         g.display = padr(v, g.length, blankChar);
