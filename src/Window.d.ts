@@ -84,6 +84,7 @@ export class Host<T extends Host<T> = Host<any>> extends Ractive<Host> implement
   placement?: Placement;
 
   readonly windows: string[];
+  readonly topmost?: Window;
 
   addWindow<T extends Window>(window: T, opts?: WindowOpts): Promise<T>;
   getWindow(id: string): Window;

@@ -179,6 +179,13 @@
     get placement () { return this.get('placement'); }
     set placement (v) { return this.set('placement', v); }
 
+    get topmost () {
+      const windows = this.get('windows');
+      for (const k in windows) {
+        if (windows[k].topmost) return this.getWindow(windows[k].id);
+      }
+    }
+
     get windows () { return Object.keys(this.get('windows')); }
 
     addWindow(window, opts) {
