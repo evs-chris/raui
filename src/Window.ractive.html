@@ -43,7 +43,7 @@
         on-mousedown-touchstart="@.raise()"
       {{/if}}
     >
-      <div class-rwindow-modal class-rwindow-blocked="~/control.blockers.length"></div>
+      <div class-rwindow-modal class-rwindow-blocked="~/control.blockers.length || ~/control.blocked"></div>
       <div class-rwindow-pane as-tracked=`pane` {{#if ~/control.autosize}}class-rwindow-autosizing{{/if}}>
         {{>pane}}
       </div>
@@ -683,6 +683,8 @@
     set pad (v) { this.set('pad', v); }
     get buttons () { return this.get('buttons'); }
     set buttons (v) { return this.set('buttons', v); }
+    get blocked () { return this.get('control.blocked'); }
+    set blocked (v) { return this.set('control.blocked', v); }
 
     close(force) {
       if (force !== true) {

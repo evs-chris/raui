@@ -29,6 +29,7 @@ export class Window<T extends Window<T> = Window<any>> extends Ractive<T> {
   visible?: boolean;
   pad?: boolean;
   buttons?: WindowButton[];
+  blocked?: boolean;
 
   close(force?: boolean): boolean;
   minimize(): void;
