@@ -87,28 +87,24 @@ export function numeric(options = {}) {
 
       node.value = next;
       range.push(dir);
-      try {
-        node.setSelectionRange.apply(node, range);
-      } catch (e) {}
+      document.activeElement === node && typeof node.setSelectionRange === 'function' && node.setSelectionRange.apply(node, range);
     }
 
     cleanup.push(ctx.listen('input', update).cancel);
 
-    if (!(navigator.platform && /iPad|iPhone|iPod/.test(navigator.platform))) {
-      cleanup.push(ctx.listen('blur', () => {
-        const cur = node.value.replace(notNumRE, '');
-        node.value = cur.replace(endsWithDecRE, '');
-        if (o.bind) {
-          lock = true;
-          ctx.set(o.bind, node.value);
-          lock = false;
-        }
-        node.setSelectionRange(0, 0);
-        leave = true;
-        update();
-        leave = false;
-      }).cancel);
-    }
+    cleanup.push(ctx.listen('blur', () => {
+      const cur = node.value.replace(notNumRE, '');
+      node.value = cur.replace(endsWithDecRE, '');
+      if (o.bind) {
+        lock = true;
+        ctx.set(o.bind, node.value);
+        lock = false;
+      }
+      document.activeElement === node && node.setSelectionRange(0, 0);
+      leave = true;
+      update();
+      leave = false;
+    }).cancel);
 
     cleanup.push(ctx.listen('focus', () => {
       if (node.selectionStart === 0 && node.selectionEnd === 0) {

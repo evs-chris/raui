@@ -133,7 +133,7 @@ export default function plugin(options = {}) {
 
       const selectGroup = () => {
         const group = groupForPos(groups, node.selectionStart);
-        node.setSelectionRange(group.start, group.end);
+        document.activeElement === node && node.setSelectionRange(group.start, group.end);
       };
       handles.listeners.push(ctx.listen('click', selectGroup));
       handles.listeners.push(ctx.listen('focus', selectGroup));

@@ -93,7 +93,7 @@ export function masked(options = {}) {
 			}
 
 			// if not a nav key, select the char or value
-			if (typeof node.setSelectionRange === 'function') {
+			if (document.activeElement === node && typeof node.setSelectionRange === 'function') {
 				if (!nav) {
 					if (init && cursor === mask.length) node.setSelectionRange(0, cursor + 1);
 					else node.setSelectionRange(cursor, cursor + 1);
