@@ -425,7 +425,7 @@ const origin = new Date('0000-01-01T00:00:00');
 function getDateValue(thing) {
   let v = thing;
   if (typeof v === 'function') v = thing();
-  if (typeof v === 'string') try { v = Date.parse(v); } catch (e) { return defaultDate(); }
+  if (typeof v === 'string') try { v = new Date(v); } catch (e) { return defaultDate(); }
   if (v instanceof Date) return v;
   else return origin;
 }
