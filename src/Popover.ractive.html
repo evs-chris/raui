@@ -35,10 +35,10 @@
 
 <template id="modal">
   {{#if contents.length}}{{#with contents[0]}}
-  <div fade-in fade-out="{ delay: 200 }" class="rpop rpop-modal" {{#unless .noClickout}}on-click="@node === @event.target && .done(), true"{{/unless}}>
+  <div fade-in fade-out="{ delay: 200 }" class="rpop-modal" {{#unless .noClickout}}on-click="@node === @event.target && .done(), true"{{/unless}}>
     <div pop-in="{ delay: 200 }" pop-out class-rpop
       {{#if .clickClose}}on-click=".done()"{{/if}}
-      {{> .attrs .context}}
+      {{> .attrs .context, true as inModal}}
     >
       {{> .content .context, true as inModal}}
     </div>
@@ -231,7 +231,9 @@
                   mobilePopped = (v || []).length > 0;
                 });
               }
-              mobilePop.unshift('contents', { content: this.partials.content, context: this.getContext().getParent(true), attrs: this.partials['extra-attributes'] || [], clickClose: this.get('clickClose'), noClickout: this.get('noClickout'), done: () => { this.set('popped', false); } });
+              const context = this.getContext().getParent(true);
+              context.isContext = 1;
+              mobilePop.unshift('contents', { content: this.partials.content, context, attrs: this.partials['extra-attributes'] || [], clickClose: this.get('clickClose'), noClickout: this.get('noClickout'), done: () => { this.set('popped', false); } });
             } else {
               this.set('__popped', true);
             }
