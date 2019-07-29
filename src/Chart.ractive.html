@@ -1,0 +1,242 @@
+<div class="rg-graph rg-graph-{{.type}}" {{#if .type === 'bar'}}class-rg-graph-h="graph.horiz" class-rg-graph-v="!graph.horiz"{{/if}} {{yield extra-attributes}}>
+  {{#if .type === 'pie' || .type === 'donut' || .type === 'tire' || .type === 'hoop'}}
+    <svg width="100%" height="100%" viewBox="-60 -60 120 120">
+      {{#each chonks}}
+        <path d="{{.d}}" class="rg-chonk rg-chonk-{{@index}}" {{#if .click}}on-click=".click(@context, @.get('data.' + .idx), @.readLink('data.' + idx).keypath, .)"{{/if}} on-click="['select', @.get('data.' + .idx), @.readLink('data.' + idx).keypath, .]" style-fill="{{.color}}">
+          {{#if .label}}<title>{{.label}}</title>{{/if}}
+        </path>
+      {{/each}}
+    </svg>
+  {{elseif .type === 'bar' }}
+    <svg viewBox="0 0 {{graph.horiz ? 200 : graph.span}} {{graph.horiz ? graph.span : 200}}" {{#if graph.horiz}}style-min-height="{{graph.span}}px"{{else}}style-min-width="{{graph.span}}px"{{/if}}>
+      {{#if !graph.horiz}}
+      	<path d="M 0,{{graph.bottom}} {{graph.span}},{{graph.bottom}} Z" stroke="#000" stroke-width="1" />
+        {{#each graph.points}}
+          <path d="M {{.x}},{{.y}} {{.x}},{{.y2}}, {{.x2}},{{.y2}} {{.x2}},{{.y}} Z" style-fill="{{.color}}" {{#if .click}}on-click=".click(@context, @.get('data.' + .idx), @.readLink('data.' + idx).keypath, .)"{{/if}} on-click="['select', @.get('data.' + .idx), @.readLink('data.' + idx).keypath, .]">
+            <title>{{#if .label}}{{.label}} ({{.value}}){{else}}{{.value}}{{/if}}</title>
+          </path>
+        {{/each}}
+     	{{else}}
+      	<path d="M {{graph.bottom}},0 {{graph.bottom}},{{graph.span}} Z" stroke="#000" stroke-width="1" />
+      	{{#each graph.points}}
+          <path d="M {{.y}},{{.x}} {{.y}},{{.x2}}, {{.y2}},{{.x2}} {{.y2}},{{.x}} Z" style-fill="{{.color}}" {{#if .click}}on-click=".click(@context, @.get('data.' + .idx), @.readLink('data.' + idx).keypath, .)"{{/if}} on-click="['select', @.get('data.' + .idx), @.readLink('data.' + idx).keypath, .]">
+            <title>{{#if .label}}{{.label}} ({{.value}}){{else}}{{.value}}{{/if}}</title>
+          </path>
+     		{{/each}}
+      {{/if}}
+    </svg>
+  {{elseif .type === 'line'}}
+  	<svg viewBox="0 0 {{graph.span}} 200" style-min-width="{{graph.span}}px">
+      <path d="M 0,{{graph.bottom}} {{graph.span}},{{graph.bottom}} Z" stroke="#000" stroke-width="1" />
+      <path d="M {{graph.minX}},{{graph.bottom}}
+        {{#each graph.points}}{{#if 'sx' in .}}{{#if ~/project}}S {{.sx}},{{.sy}} {{.x}},{{.y2}}{{else}}C {{.sx}},{{.sy}} {{.ex}},{{.ey}} {{.x}},{{.y2}}{{/if}}{{else}}L {{.x}},{{.y2}}{{/if}}{{' '}}{{/each}}
+      L {{graph.maxX}},{{graph.bottom}} Z" fill="blue" opacity="0.8" stroke="#000" stroke-width="1" />
+      {{#each graph.points}}
+        <circle r={{~/dot}} cx="{{.x}}" cy="{{.y2}}" fill="{{.color}}"{{#if .click}}on-click=".click(@context, @.get('data.' + .idx), @.readLink('data.' + .idx, @.parent), .)"{{/if}} on-click="['select', @.get('data.' + .idx), @.readLink('data.' + idx).keypath, .]">
+          <title>{{#if .label}}{{.label}} ({{.value}}){{else}}{{.value}}{{/if}}</title>
+        </circle>
+      {{/each}}
+  	</svg>
+  {{/if}}
+</div>
+
+<script>
+  import globalRegister from './globalRegister';
+  import Ractive from 'ractive';
+
+  function chonk(r1, r2, startPct, pct) {
+    const t1 = ((startPct > 1 ? startPct / 100 : startPct) * 360) * (Math.PI / 180);
+    const cos1 = Math.cos(t1);
+    const sin1 = Math.sin(t1);
+    if (pct > 1) pct /= 100;
+    const t2 = (pct * 360) * (Math.PI / 180);
+    const cos2 = Math.cos(t2);
+    const sin2 = Math.sin(t2);
+    const pt1 = [0 * cos1 - r1 * sin1, 0 * sin1 + r1 * cos1];
+    const pt2 = [0 * cos1 - r2 * sin1, 0 * sin1 + r2 * cos1];
+    const pt3 = [pt1[0] * cos2 - pt1[1] * sin2, pt1[0] * sin2 + pt1[1] * cos2];
+    const pt4 = [pt2[0] * cos2 - pt2[1] * sin2, pt2[0] * sin2 + pt2[1] * cos2];
+    
+    const bits = pct < 0.5 ? ['0 0 1', '0 0 0'] : ['0 1 1', '0 1 0'];
+
+    return `M ${pt1[0]},${pt1[1]} ${pt2[0]},${pt2[1]} A ${Math.abs(r2)},${Math.abs(r2)} ${bits[0]} ${pt4[0]},${pt4[1]} L ${pt3[0]},${pt3[1]} A ${Math.abs(r1)},${Math.abs(r1)} ${bits[1]} ${pt1[0]},${pt1[1]} Z`;
+  }
+  
+  function bezierControl(start, cur, prev, next, smooth) {
+    const p = prev || cur;
+    const n = next || cur;
+    
+    let len, a;
+    {
+      const lenX = n.x - p.x;
+      const lenY = n.y2 - p.y2;
+      len = Math.sqrt(Math.pow(lenX, 2) + Math.pow(lenY, 2));
+      a = Math.atan2(lenY, lenX);
+    }
+    
+    if (!start) a += Math.PI;
+    len *= smooth;
+    
+    return [
+      cur.x + Math.cos(a) * len,
+      cur.y2 + Math.sin(a) * len
+    ];
+  }
+  
+  const BAR = 200;
+  
+  export class Chart extends Ractive {
+    constructor(opts) { super(opts); }
+  }
+
+  Ractive.extendWith(Chart, {
+    template: $TEMPLATE,
+    css: $CSS,
+    cssId: 'rchart',
+    noCssTransform: true,
+    attributes: ['data', 'type', 'horizontal', 'colors', 'point', 'space', 'flip', 'dot', 'smooth', 'project'],
+    computed: {
+      chonks() {
+        const data = this.get('data');
+        const total = data.reduce((a, c) => a + c.value, 0);
+        const type = this.get('type');
+        const colors = this.get('colors');
+        const inner = this.get('hole') || (type === 'pie' ? 0 : type === 'donut' ? 15 : type === 'tire' ? 25 : 40);
+        let agg = 0;
+        return data.map((d, i) => {
+          const percent = d.value / total;
+          const datum = Object.assign({
+            idx: i,
+            percent,
+            d: chonk(inner, 50, agg, percent)
+          }, d);
+          if (!datum.color) datum.color = colors[i % colors.length]
+          agg += percent;
+          return datum;
+        });
+      },
+      graph() {
+        const data = this.get('data');
+        const type = this.get('type');
+       const [min, max] = data.reduce((a, c) => {
+          if (c.value < a[0]) a[0] = c.value;
+          if (c.value > a[1]) a[1] = c.value;
+          return a;
+        }, [0, 0]);
+        const dot = this.get('dot') || 1;
+        const range = max - min;
+        let bottom = min < 0 ? min * -1 : -min;
+        const colors = this.get('colors');
+        const point = this.get('point');
+        const space = type === 'line' ? 0 : this.get('space');
+        
+        const horiz = this.get('horizontal');
+        const flip = horiz ? this.get('flip') : !this.get('flip');
+        
+        let bar = BAR;
+        if (type === 'line') {
+          bar -= 4 * dot;
+          bottom -= 2 * dot;
+        }
+        
+        const points = data.map((d, i) => {
+          const p = Object.assign({
+            x: i * point + i * space + space,
+            y: bottom,
+            y2: ((d.value + bottom) / range) * bar,
+            idx: i
+          }, d);
+          p.x2 = p.x + point;
+          if (type === 'line') {
+            p.x += dot;
+            p.x2 += dot;
+          }
+          if (flip) {
+            p.y = bar - p.y;
+            p.y2 = bar - p.y2;
+          }
+          if (!p.color) p.color = colors[i % colors.length];
+          return p;
+        });
+        
+        const smooth = type === 'line' && this.get('smooth');
+        if (smooth) {
+          points.forEach((p, i) => {
+            if (i === 0) return;
+           	[p.sx, p.sy] = bezierControl(true, points[i - 1], points[i - 2], p, smooth);
+            [p.ex, p.ey] = bezierControl(false, p, points[i - 1], points[i + 1], smooth);
+          });
+        }
+        
+        return {
+          bottom: flip ? bar - bottom : bottom,
+          min, max,
+          horiz, flip,
+          span: (type === 'line' ? data.length - 1 : data.length) * point + (data.length + 2) * space + (type === 'line' ? dot * 2 : 0),
+          minX: points[0].x,
+          maxX: points[points.length - 1].x,
+          points
+        };
+      }
+    },
+    data() {
+      return {
+        colors: ['#1f5b93', '#F8D306', '#03aa0f', '#d21a1a', '#2DD3C7', '#633294', '#FB4700'],
+        point: 30,
+        space: 5,
+        dot: 3
+      }
+    }
+  });
+
+  export function plugin(opts = {}) {
+    return function({ instance }) {
+      instance.components[opts.name || 'chart'] = Chart;
+    };
+  }
+
+  globalRegister('RMChart', 'components', Chart);
+
+  export default plugin;
+</script>
+
+<style>
+  .rg-graph svg {
+    box-sizing: border-box;
+  }
+  .rg-graph-pie .rg-chonk, .rg-graph-donut .rg-chonk, .rg-graph-tire .rg-chonk {
+    transition: transform 0.3s ease, opacity 0.3s ease;
+  }
+  .rg-chonk {
+    opacity: 0.8;
+    user-select: none;
+  }
+  .rg-chonk.clicky {
+    cursor: pointer;
+  }
+  .rg-graph-pie .rg-chonk:hover, .rg-graph-donut .rg-chonk:hover, .rg-graph-tire .rg-chonk:hover {
+    transform: scale(1.1);
+    opacity: 1;
+  }
+  .rg-graph-pie .rg-chonk:active, .rg-graph-donut .rg-chonk:active, .rg-graph-tire .rg-chonk:active {
+    transform: none;
+  }
+  .rg-graph-hoop .rg-chonk:hover {
+    opacity: 1;
+  }
+  
+  /* bar */
+  .rg-graph-bar.rg-graph-h {
+   	overflow-y: auto;
+  }
+  .rg-graph-bar.rg-graph-h svg {
+    width: 100%;
+  }
+  
+  .rg-graph-bar.rg-graph-v, .rg-graph-line {
+    overflow-x: auto;
+  }
+  .rg-graph-bar.rg-graph-v svg, .rg-graph-line svg {
+    height: 100%;
+  }
+</style>

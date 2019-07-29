@@ -1,0 +1,1 @@
+export { default, Chart, PluginOpts } from '../src/Chart';
