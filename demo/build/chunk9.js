@@ -149,7 +149,7 @@ System.register([], function (exports, module) {
 
             var selectGroup = function () {
               var group = groupForPos(groups, node.selectionStart);
-              node.setSelectionRange(group.start, group.end);
+              document.activeElement === node && node.setSelectionRange(group.start, group.end);
             };
             handles.listeners.push(ctx.listen('click', selectGroup));
             handles.listeners.push(ctx.listen('focus', selectGroup));
@@ -446,7 +446,7 @@ System.register([], function (exports, module) {
       function getDateValue(thing) {
         var v = thing;
         if (typeof v === 'function') { v = thing(); }
-        if (typeof v === 'string') { try { v = Date.parse(v); } catch (e) { return defaultDate(); } }
+        if (typeof v === 'string') { try { v = new Date(v); } catch (e) { return defaultDate(); } }
         if (v instanceof Date) { return v; }
         else { return origin; }
       }
