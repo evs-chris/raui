@@ -1,25 +1,32 @@
 <div class="rg-graph rg-graph-{{.type}}" {{#if .type === 'bar'}}class-rg-graph-h="graph.horiz" class-rg-graph-v="!graph.horiz"{{/if}} {{yield extra-attributes}}>
   {{#if .type === 'pie' || .type === 'donut' || .type === 'tire' || .type === 'hoop'}}
-    <svg width="100%" height="100%" viewBox="-60 -60 120 120">
-      {{#each chonks}}
-        <path d="{{.d}}" class="rg-chonk rg-chonk-{{@index}}" {{#if .click}}on-click=".click(@context, @.get('data.' + .idx), @.readLink('data.' + idx).keypath, .)"{{/if}} on-click="['select', @.get('data.' + .idx), @.readLink('data.' + idx).keypath, .]" style-fill="{{.color}}">
-          {{#if .label}}<title>{{.label}}</title>{{/if}}
-        </path>
-      {{/each}}
-    </svg>
+    <div class-rg-graph-circular>
+      {{#if (.type === 'donut' || .type === 'tire' || .type === 'hoop') && @.partials.content}}
+      <div class-rg-graph-middle>
+        <div class-rg-content>{{yield with ~/selected as selected, ~/hovered as hovered}}</div>
+      </div>
+      {{/if}}
+      <svg width="100%" height="100%" viewBox="-55 -55 110 110" on-mouseout="@.unlink('hovered')">
+        {{#each chonks}}
+          <path d="{{.d}}" class="rg-chonk rg-chonk-{{@index}}" {{#if .click}}on-click=".click(@context, @.get('data.' + .idx), @.readLink('data.' + idx).keypath, .)"{{/if}} on-click="['select', @.get('data.' + .idx), @.readLink('data.' + idx).keypath, ., 'data.' + idx]" style-fill="{{.color}}" on-mouseover="@.link('data.' + idx, 'hovered')">
+            {{#if .label}}<title>{{.label}}</title>{{/if}}
+          </path>
+        {{/each}}
+      </svg>
+    </div>
   {{elseif .type === 'bar' }}
     <svg viewBox="0 0 {{graph.horiz ? 200 : graph.span}} {{graph.horiz ? graph.span : 200}}" {{#if graph.horiz}}style-min-height="{{graph.span}}px"{{else}}style-min-width="{{graph.span}}px"{{/if}}>
       {{#if !graph.horiz}}
       	<path d="M 0,{{graph.bottom}} {{graph.span}},{{graph.bottom}} Z" stroke="#000" stroke-width="1" />
         {{#each graph.points}}
-          <path d="M {{.x}},{{.y}} {{.x}},{{.y2}}, {{.x2}},{{.y2}} {{.x2}},{{.y}} Z" style-fill="{{.color}}" {{#if .click}}on-click=".click(@context, @.get('data.' + .idx), @.readLink('data.' + idx).keypath, .)"{{/if}} on-click="['select', @.get('data.' + .idx), @.readLink('data.' + idx).keypath, .]">
+          <path d="M {{.x}},{{.y}} {{.x}},{{.y2}}, {{.x2}},{{.y2}} {{.x2}},{{.y}} Z" style-fill="{{.color}}" {{#if .click}}on-click=".click(@context, @.get('data.' + .idx), @.readLink('data.' + idx).keypath, .)"{{/if}} on-click="['select', @.get('data.' + .idx), @.readLink('data.' + idx).keypath, ., 'data.' + idx]">
             <title>{{#if .label}}{{.label}} ({{.value}}){{else}}{{.value}}{{/if}}</title>
           </path>
         {{/each}}
      	{{else}}
       	<path d="M {{graph.bottom}},0 {{graph.bottom}},{{graph.span}} Z" stroke="#000" stroke-width="1" />
       	{{#each graph.points}}
-          <path d="M {{.y}},{{.x}} {{.y}},{{.x2}}, {{.y2}},{{.x2}} {{.y2}},{{.x}} Z" style-fill="{{.color}}" {{#if .click}}on-click=".click(@context, @.get('data.' + .idx), @.readLink('data.' + idx).keypath, .)"{{/if}} on-click="['select', @.get('data.' + .idx), @.readLink('data.' + idx).keypath, .]">
+          <path d="M {{.y}},{{.x}} {{.y}},{{.x2}}, {{.y2}},{{.x2}} {{.y2}},{{.x}} Z" style-fill="{{.color}}" {{#if .click}}on-click=".click(@context, @.get('data.' + .idx), @.readLink('data.' + idx).keypath, .)"{{/if}} on-click="['select', @.get('data.' + .idx), @.readLink('data.' + idx).keypath, ., 'data.' + idx]">
             <title>{{#if .label}}{{.label}} ({{.value}}){{else}}{{.value}}{{/if}}</title>
           </path>
      		{{/each}}
@@ -32,7 +39,7 @@
         {{#each graph.points}}{{#if 'sx' in .}}{{#if ~/project}}S {{.sx}},{{.sy}} {{.x}},{{.y2}}{{else}}C {{.sx}},{{.sy}} {{.ex}},{{.ey}} {{.x}},{{.y2}}{{/if}}{{else}}L {{.x}},{{.y2}}{{/if}}{{' '}}{{/each}}
       L {{graph.maxX}},{{graph.bottom}} Z" fill="blue" opacity="0.8" stroke="#000" stroke-width="1" />
       {{#each graph.points}}
-        <circle r={{~/dot}} cx="{{.x}}" cy="{{.y2}}" fill="{{.color}}"{{#if .click}}on-click=".click(@context, @.get('data.' + .idx), @.readLink('data.' + .idx, @.parent), .)"{{/if}} on-click="['select', @.get('data.' + .idx), @.readLink('data.' + idx).keypath, .]">
+        <circle r={{~/dot}} cx="{{.x}}" cy="{{.y2}}" fill="{{.color}}"{{#if .click}}on-click=".click(@context, @.get('data.' + .idx), @.readLink('data.' + .idx, @.parent), .)"{{/if}} on-click="['select', @.get('data.' + .idx), @.readLink('data.' + idx).keypath, ., 'data.' + idx]">
           <title>{{#if .label}}{{.label}} ({{.value}}){{else}}{{.value}}{{/if}}</title>
         </circle>
       {{/each}}
@@ -186,6 +193,11 @@
         space: 5,
         dot: 3
       }
+    },
+    on: {
+      select(ctx, val, parentpath, local, srcpath) {
+        this.link(srcpath, 'selected');
+      } 
     }
   });
 
@@ -201,6 +213,19 @@
 </script>
 
 <style>
+  .rg-graph {
+    position: relative;
+  }
+
+  .rg-graph-circular {
+    position: relative;
+    width: 100%;
+    height: 0;
+    padding-bottom: 100%;
+  }
+  .rg-graph-circular svg {
+    position: absolute;
+  }
   .rg-graph svg {
     box-sizing: border-box;
   }
@@ -223,6 +248,35 @@
   }
   .rg-graph-hoop .rg-chonk:hover {
     opacity: 1;
+  }
+
+  .rg-graph-middle {
+    position: absolute;
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    text-align: center;
+  }
+  .rg-graph-middle .rg-content {
+    display: inline-block;
+  }
+  .rg-graph-donut .rg-graph-middle {
+    top: 36%;
+    left: 36%;
+    width: 28%;
+    height: 28%;
+  }
+  .rg-graph-tire .rg-graph-middle {
+    left: 28%;
+    top: 28%;
+    height: 43%;
+    width: 43%;
+  }
+  .rg-graph-hoop .rg-graph-middle {
+    left: 14%;
+    top: 14%;
+    width: 72%;
+    height: 72%;
   }
   
   /* bar */
