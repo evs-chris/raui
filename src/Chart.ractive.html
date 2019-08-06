@@ -15,7 +15,7 @@
       </svg>
     </div>
   {{elseif .type === 'bar' }}
-    <svg viewBox="0 0 {{graph.horiz ? 200 : graph.span}} {{graph.horiz ? graph.span : 200}}" {{#if graph.horiz}}style-min-height="{{graph.span}}px"{{else}}style-min-width="{{graph.span}}px"{{/if}}>
+    <svg viewBox="0 0 {{graph.horiz ? ~/span : graph.span}} {{graph.horiz ? graph.span : ~/span}}" {{#if graph.horiz}}style-min-height="{{graph.span}}px"{{else}}style-min-width="{{graph.span}}px"{{/if}}>
       {{#if !graph.horiz}}
       	<path d="M 0,{{graph.bottom}} {{graph.span}},{{graph.bottom}} Z" stroke="#000" stroke-width="1" />
         {{#each graph.points}}
@@ -33,7 +33,7 @@
       {{/if}}
     </svg>
   {{elseif .type === 'line'}}
-  	<svg viewBox="0 0 {{graph.span}} 200" style-min-width="{{graph.span}}px">
+  	<svg viewBox="0 -{{~/dot}} {{graph.span}} {{~/span + (2 * ~/dot)}}" style-min-width="{{graph.span}}px">
       <path d="M 0,{{graph.bottom}} {{graph.span}},{{graph.bottom}} Z" stroke="#000" stroke-width="1" />
       <path d="M {{graph.minX}},{{graph.bottom}}
         {{#each graph.points}}{{#if 'sx' in .}}{{#if ~/project}}S {{.sx}},{{.sy}} {{.x}},{{.y2}}{{else}}C {{.sx}},{{.sy}} {{.ex}},{{.ey}} {{.x}},{{.y2}}{{/if}}{{else}}L {{.x}},{{.y2}}{{/if}}{{' '}}{{/each}}
@@ -90,8 +90,6 @@
     ];
   }
   
-  const BAR = 200;
-  
   export class Chart extends Ractive {
     constructor(opts) { super(opts); }
   }
@@ -101,7 +99,7 @@
     css: $CSS,
     cssId: 'rchart',
     noCssTransform: true,
-    attributes: ['data', 'type', 'horizontal', 'colors', 'point', 'space', 'flip', 'dot', 'smooth', 'project'],
+    attributes: ['data', 'type', 'horizontal', 'colors', 'point', 'space', 'flip', 'dot', 'smooth', 'project', 'span'],
     computed: {
       chonks() {
         const data = this.get('data');
@@ -125,7 +123,7 @@
       graph() {
         const data = this.get('data');
         const type = this.get('type');
-       const [min, max] = data.reduce((a, c) => {
+        const [min, max] = data.reduce((a, c) => {
           if (c.value < a[0]) a[0] = c.value;
           if (c.value > a[1]) a[1] = c.value;
           return a;
@@ -140,16 +138,12 @@
         const horiz = this.get('horizontal');
         const flip = horiz ? this.get('flip') : !this.get('flip');
         
-        let bar = BAR;
-        if (type === 'line') {
-          bar -= 4 * dot;
-          bottom -= 2 * dot;
-        }
+        let bar = this.get('span');
         
         const points = data.map((d, i) => {
           const p = Object.assign({
             x: i * point + i * space + space,
-            y: bottom,
+            y: (bottom / range) * bar,
             y2: ((d.value + bottom) / range) * bar,
             idx: i
           }, d);
@@ -176,7 +170,7 @@
         }
         
         return {
-          bottom: flip ? bar - bottom : bottom,
+          bottom: flip ? bar - (bottom / range) * bar : (bottom / range) * bar,
           min, max,
           horiz, flip,
           span: (type === 'line' ? data.length - 1 : data.length) * point + (data.length + 2) * space + (type === 'line' ? dot * 2 : 0),
@@ -191,7 +185,8 @@
         colors: ['#1f5b93', '#F8D306', '#03aa0f', '#d21a1a', '#2DD3C7', '#633294', '#FB4700'],
         point: 30,
         space: 5,
-        dot: 3
+        dot: 3,
+        span: 200
       }
     },
     on: {
