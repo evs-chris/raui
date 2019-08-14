@@ -237,6 +237,8 @@ System.register(['ractive'], function (exports, module) {
             this.data.timeout = time;
           } else { this.data.close(); }
         }
+
+        return this.closed;
       };
 
       Handle.prototype.cancelClose = function cancelClose () {
@@ -250,9 +252,19 @@ System.register(['ractive'], function (exports, module) {
       Handle.prototype.updateButtons = function updateButtons () { this.data === this.holder.active && this.data.instance.update('_toast.buttons'); };
 
       Handle.prototype.set = function set (key, value) {
-        this.data[key] = value;
-        if (this.data === this.holder.active) { return this.data.instance.update(("_toast." + (Ractive$1.escapeKey(key)))); }
-        else { return Promise.resolve(); }
+          var this$1 = this;
+
+        if (typeof key === 'object') {
+          for (var k in key) {
+            this$1.data[k] = key[k];
+          }
+          if (this.data === this.holder.active) { return this.data.instance.update('_toast'); }
+          else { return Promise.resolve(); }
+        } else {
+          this.data[key] = value;
+          if (this.data === this.holder.active) { return this.data.instance.update(("_toast." + (Ractive$1.escapeKey(key)))); }
+          else { return Promise.resolve(); }
+        }
       };
 
       prototypeAccessors.message.get = function () { return this.data.message; };
@@ -301,7 +313,7 @@ System.register(['ractive'], function (exports, module) {
       prototypeAccessors.closed.get = function () {
           var this$1 = this;
 
-        if (!this.promise) {
+        if (!this._promise) {
           this._promise = new Promise(function (ok) {
             this$1.data.onclose = ok;
           });
@@ -918,7 +930,7 @@ System.register(['ractive'], function (exports, module) {
         Window.prototype = Object.create( Base && Base.prototype );
         Window.prototype.constructor = Window;
 
-        var prototypeAccessors$1 = { resizable: { configurable: true },title: { configurable: true },visible: { configurable: true },pad: { configurable: true },buttons: { configurable: true },blocked: { configurable: true } };
+        var prototypeAccessors$1 = { resizable: { configurable: true },title: { configurable: true },visible: { configurable: true },pad: { configurable: true },buttons: { configurable: true },blocked: { configurable: true },result: { configurable: true } };
 
         prototypeAccessors$1.resizable.get = function () { return this.get('control.resizable'); };
         prototypeAccessors$1.resizable.set = function (v) { return this.set('control.resizable', v); };
@@ -937,7 +949,24 @@ System.register(['ractive'], function (exports, module) {
         prototypeAccessors$1.blocked.get = function () { return this.get('control.blocked'); };
         prototypeAccessors$1.blocked.set = function (v) { return this.set('control.blocked', v); };
 
-        Window.prototype.close = function close (force) {
+        prototypeAccessors$1.result.get = function () {
+          var this$1 = this;
+
+          if (!this._result) {
+            this._result = {};
+            this._result.promise = new Promise(function (ok) {
+              this$1._result.ok = ok;
+            });
+          }
+          return this._result.promise;
+        };
+
+        Window.prototype.setResult = function setResult (v) {
+          this.result;
+          this._result.value = v;
+        };
+
+        Window.prototype.close = function close (force, result) {
           if (force !== true) {
             if (!this.parent) { return false; }
             if (this.get('control.blockers.length')) { return false; }
@@ -946,6 +975,7 @@ System.register(['ractive'], function (exports, module) {
           }
 
           this.fire('close');
+          if (this._result) { this._result.ok(this._result.value || result); }
 
           return true;
         };
