@@ -1,1 +1,1 @@
-export { default, Options, Button, Toast, PluginOpts } from '../src/Toast';
+export { default, Options, Button, Toast, PluginOpts, Handle, Sets } from '../src/Toast';

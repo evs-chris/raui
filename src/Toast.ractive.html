@@ -193,6 +193,8 @@
           this.data.timeout = time;
         } else this.data.close();
       }
+
+      return this.closed;
     }
 
     cancelClose() {
@@ -206,9 +208,17 @@
     updateButtons() { this.data === this.holder.active && this.data.instance.update('_toast.buttons'); }
 
     set(key, value) {
-      this.data[key] = value;
-      if (this.data === this.holder.active) return this.data.instance.update(`_toast.${Ractive.escapeKey(key)}`);
-      else return Promise.resolve();
+      if (typeof key === 'object') {
+        for (const k in key) {
+          this.data[k] = key[k];
+        }
+        if (this.data === this.holder.active) return this.data.instance.update('_toast');
+        else return Promise.resolve();
+      } else {
+        this.data[key] = value;
+        if (this.data === this.holder.active) return this.data.instance.update(`_toast.${Ractive.escapeKey(key)}`);
+        else return Promise.resolve();
+      }
     }
 
     get message() { return this.data.message; }
@@ -255,7 +265,7 @@
 
     get live() { return this.data === this.holder.active || ~this.holder.toasts.indexOf(this.data); }
     get closed() {
-      if (!this.promise) {
+      if (!this._promise) {
         this._promise = new Promise(ok => {
           this.data.onclose = ok;
         });
