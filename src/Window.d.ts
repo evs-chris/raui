@@ -1,5 +1,5 @@
 import Ractive, { InitOpts as BaseInitOpts, ExtendOpts as BaseExtendOpts, Plugin, Static, Constructor as BaseConstructor } from 'ractive';
-import { Toast, Options as ToastOptions } from './Toast';
+import { Toast, Options as ToastOptions, Handle } from './Toast';
 
 export interface InitOpts<T extends Window<T> = Window> extends BaseInitOpts<T> {
   options?: WindowOpts;
@@ -17,7 +17,7 @@ export interface WindowButton {
   where?: 'left'|'right'|'center';
 }
 
-export class Window<T extends Window<T> = Window<any>> extends Ractive<T> {
+export class Window<T extends Window<T> = Window<any>, Result = any> extends Ractive<T> {
   constructor(opts?: InitOpts<T>);
 
   host?: Host;
@@ -31,13 +31,17 @@ export class Window<T extends Window<T> = Window<any>> extends Ractive<T> {
   buttons?: WindowButton[];
   blocked?: boolean;
 
-  close(force?: boolean): boolean;
+  result: Promise<Result>;
+
+  close(force?: boolean, result?: Result): boolean;
   minimize(): void;
   hide(): void;
   raise(show?: boolean): void;
   show(): void;
   size(width: string | number, height: string | number): Promise<void>;
   move(top: string | number, left: string | number): Promise<void>;
+
+  protected setResult(result: Result): void;
 
   static extend<U>(opts?: ExtendOpts<Window & U>): Static<Window<Window & U>>;
   static extendWith<U extends Window<U>, V extends InitOpts<any> = InitOpts, W extends ExtendOpts<U> = ExtendOpts<U>>(c: Constructor<U, V>, opts?: W): Static<Window<Window & U>>;
@@ -80,7 +84,7 @@ export class Host<T extends Host<T> = Host<any>> extends Ractive<Host> implement
   current?: Window;
   currentId?: string;
   defaults?: WindowOpts;
-  get toastDefaults(): ToastOptions;
+  readonly toastDefaults: ToastOptions;
   placement?: Placement;
 
   readonly windows: string[];
@@ -92,7 +96,7 @@ export class Host<T extends Host<T> = Host<any>> extends Ractive<Host> implement
   sizeInPx(size: number | string): number;
   sizeInEm(size: number | string): number;
 
-  toast(message: string, options?: ToastOptions): void;
+  toast(message: string, options?: ToastOptions): Handle;
 }
 
 export interface PluginOpts {

@@ -693,7 +693,22 @@
     get blocked () { return this.get('control.blocked'); }
     set blocked (v) { return this.set('control.blocked', v); }
 
-    close(force) {
+    get result () {
+      if (!this._result) {
+        this._result = {};
+        this._result.promise = new Promise((ok) => {
+          this._result.ok = ok;
+        });
+      }
+      return this._result.promise;
+    }
+
+    setResult(v) {
+      this.result;
+      this._result.value = v;
+    }
+
+    close(force, result) {
       if (force !== true) {
         if (!this.parent) return false;
         if (this.get('control.blockers.length')) return false;
@@ -702,6 +717,7 @@
       }
 
       this.fire('close');
+      if (this._result) this._result.ok(this._result.value || result);
 
       return true;
     }
