@@ -796,12 +796,14 @@ System.register(['ractive', './chunk7.js', './chunk8.js', './chunk2.js', './chun
         var v = flt.get && flt.get.call(this, item);
         if (typeof flt.op === 'function') { return flt.op.call(undefined, item); }
         var val = flt.value;
-        if (flt.op === '=' || flt.op === '==' || flt.op === 'is') {
+        if (flt.op === '=' || flt.op === '==' || flt.op === 'is' || flt.op === 'eq') {
           if (flt.type === 'number' || flt.type === 'date') { return +v == +val; }
           return v == val;
-        } else if (flt.op === '!=' || flt.op === '<>' || flt.op === 'not') {
+        } else if (flt.op === '!=' || flt.op === '<>' || flt.op === 'ne' || flt.op === 'is not') {
           if (flt.type === 'number' || flt.type === 'date') { return +v != +val; }
           return v != val;
+        } else if (flt.op === 'not') {
+          return !v;
         } else if (flt.op === '>' || flt.op === 'gt') {
           return numberify(v) > numberify(val);
         } else if (flt.op === '>=' || flt.op === 'gte') {
@@ -830,8 +832,8 @@ System.register(['ractive', './chunk7.js', './chunk8.js', './chunk2.js', './chun
             var match = v.findIndex(function (x) { return re$1.test((x || '').toString()); });
             return (flt.op === 'containslike' || flt.op === '@~') ? match >= 0 : match < 0;
           }
-        } else if (flt.op === 'in' && Array.isArray(val)) {
-          return !!~val.indexOf(v); 
+        } else if ((flt.op === 'not in' || flt.op === 'in') && Array.isArray(val)) {
+          return flt.op === 'not in' ? !~val.indexOf(v) : !!~val.indexOf(v); 
         } else if ((flt.op === 'or' || flt.op === '||') && Array.isArray(val)) {
           return val.reduce(function (a, c) {
             return a || applyFilter.call(this$1, c, item, recache);

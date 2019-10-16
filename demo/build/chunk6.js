@@ -422,7 +422,7 @@ System.register(['ractive', './chunk2.js', './chunk5.js'], function (exports, mo
         if (this.removed) { return false; }
         var items = (this.keypath) + ".items";
         if (typeof idx === 'number') {
-          this.menu.splice(items, 0, idx, item);
+          this.menu.splice(items, idx, 0, item);
         } else {
           this.menu.push(items, item);
         }
