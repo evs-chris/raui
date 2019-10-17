@@ -4,7 +4,7 @@
     {{#if inModal}}<input class-rac-modal on-input="rac.input(@event)" on-keydown="rac.key(@event)" twoway=false value="{{rac.display}}" as-autocompletefocus />{{/if}}
     <div class-rac-list tabindex=-1>
       {{#await rac.list}}<div class-rac-item class-rac-invalid>Loading...</div>{{then items}}
-      {{#each items}}<div tabindex=-1 class-rac-item class-rac-selected="rac.value === ." class-rac-hover="rac.selected === @index" on-click="@context.set('rac.value', .)" on-mouseover="@context.set('rac.selected', @index)">{{rac._member(.)}}</div>{{/each}}
+      {{#each items}}<div tabindex=-1 class-rac-item class-rac-selected="rac.value === ." class-rac-hover="rac.selected === @index" on-click="@context.set('rac.value', .)" on-mouseover="@context.set('rac.selected', @index)">{{rac._display(.)}}</div>{{/each}}
       {{catch}}<div class-rac-item class-rac-invalid>Load failed.</div>
       {{/await}}
     </div>
@@ -39,7 +39,6 @@
       const k = e.which;
       if (k === 27) {
         h.set('rac.popped', false);
-        h.set('rac.display', '');
         h.set('rac.display', h.get('rac.tempDisplay'));
         h.set('rac.value', h.get('rac.tempValue'));
       } else if (k === 38 || k === 40) {
@@ -85,7 +84,7 @@
         if (typeof res === 'object' && typeof res.then === 'function') res.then(v => h.set('rac.list', v));
         else h.set('rac.list', res);
       } else if (Array.isArray(items)) {
-        const member = h.get('rac._member');
+        const member = h.get('rac._display');
         let re;
         try {
           re = new RegExp(filter || '', 'i');
@@ -97,17 +96,29 @@
     }
 
     function refresh(value, old, path) {
-      let v = h.get('rac.member');
-      if (h.get('rac.__member') !== v || h.get('rac._member') === undefined) {
+      let v = h.get('rac.displayprop');
+      if (h.get('rac.__display') !== v || h.get('rac._display') === undefined) {
         if (typeof v === 'string') {
           const path = Ractive.splitKeypath(v);
           v = v => v == null ? '(none)' : safeGet(v, path);
         } else if (Array.isArray(v)) v = v => v == null ? '(none)' : safeGet(v, v);
         else if (!v) v = v => v == null ? '(none)' : `${v}`;
 
+        h.set('rac._display', v);
+        h.set('rac.__display', h.get('rac.displayprop'));
+        h.set('rac.display', v(h.get('rac.value')));
+      }
+
+      v = h.get('rac.member')
+      if (h.get('rac.__member') !== v || h.get('rac._member') === undefined) {
+        if (typeof v === 'string') {
+          const path = Ractive.splitKeypath(v);
+          v = v => safeGet(v, path);
+        } else if (Array.isArray(v)) v = v => safeGet(v, v);
+        else if (!v) v = v => v;
+
         h.set('rac._member', v);
         h.set('rac.__member', h.get('rac.member'));
-        h.set('rac.display', v(h.get('rac.value')));
       }
 
       v = h.get('rac.items');
@@ -127,39 +138,35 @@
       list();
     }
 
-    const opts = { init: false, defer: true };
-    const watches = [
-      h.observe('rac.display', refresh, opts),
-      h.observe('rac.member', refresh, opts),
-      h.observe('rac.items', refresh, opts),
-      h.observe('rac.list', v => {
-        if (Array.isArray(v)) h.set('rac.selected', v.indexOf(h.get('rac.value')));
-        else h.set('rac.selected', -1);
-      }, opts),
-      h.observe('rac.value', v => {
-       display();
-        h.set('rac.popped', false);
-        h.set('rac.tempValue', v);
-      })
-    ];
-
     function display() {
-      const member = h.get('rac._member');
+      const member = h.get('rac._display');
       if (typeof member === 'function') {
         const disp = member(h.get('rac.value'));
         h.set('rac.display', disp);
         h.set('rac.tempDisplay', disp);
       }
     }
+
+    function value() {
+      if (h.get('rac._value') && !h.get('rac.value')) return;
+      const member = h.get('rac._member');
+      if (typeof member === 'function') {
+        const v = member(h.get('rac.value'));
+        h.set('rac._value', v);
+      }
+      (h.ractive.getContext(h.find('input'))).raise('selected', {}, h.get('rac._value'), h.get('rac.display'));
+    }
+
     h.set('rac.updateDisplay', function(ev) {
       setTimeout(() => { if (root && h.get('rac.limit') && !root.contains(document.activeElement)) display(); }, 140);
     });
 
     function update(attrs) {
       if (attrs.items) h.link(attrs.items, 'rac.items');
-      if (attrs.display) h.link(attrs.display, 'rac.display');
-      if (attrs.value) h.link(attrs.value, 'rac.value');
+      if (attrs.value) h.link(attrs.value, 'rac._value');
       if (attrs.selected) h.link(attrs.selected, 'rac.selected');
+      if (attrs['display-value']) h.link(attrs['display-value'], 'rac.display');
+      if ('display' in attrs) h.set('rac.displayprop', attrs.display);
       if ('member' in attrs) h.set('rac.member', attrs.member);
       if ('offsets' in attrs) {
         h.set('rac.offsets', attrs.offsets);
@@ -175,20 +182,42 @@
       refresh();
     }
 
+    update(h.attributes);
+
+    const opts = { init: false, defer: true };
+    const watches = [
+      h.observe('rac.displayprop', refresh, opts),
+      h.observe('rac.memberprop', refresh, opts),
+      h.observe('rac.items', refresh, opts),
+      h.observe('rac.list', v => {
+        if (Array.isArray(v)) h.set('rac.selected', v.indexOf(h.get('rac.value')));
+        else h.set('rac.selected', -1);
+      }, opts),
+      h.observe('rac.value', v => {
+       display();
+       value();
+        h.set('rac.popped', false);
+        h.set('rac.tempValue', v);
+      }),
+      h.observe('rac._value', v => {
+        const member = h.get('rac._member')
+        const which = h.get('rac.list').find(i => member(i) === v);
+        if (which !== h.get('rac.value')) h.set('rac.value', which);
+      })
+    ];
+
     function teardown() {
       h.unlink('rac.items');
-      h.unlink('rac.display');
-      h.unlink('rac.value');
+      h.unlink('rac._value');
       h.unlink('rac.selected');
+      h.unlink('rac.display');
 
       watches.forEach(w => w.cancel());
     }
 
-    update(h.attributes);
-
     return { teardown, update, render() { root = h.find('span'); } };
   }, {
-    attributes: ['items', 'selected', 'display', 'value', 'member', 'limit-set', 'offsets'],
+    attributes: ['items', 'selected', 'display', 'value', 'member', 'limit-set', 'offsets', 'display-value'],
     css: $CSS,
     cssId: 'rautocomplete',
     noCssTransform: true
@@ -232,7 +261,7 @@
     display: flex;
     flex-direction: column;
     max-height: 50vh;
-    min-height: 10em;
+    min-height: 2.125em;
     max-width: 100%;
     overflow: auto;
   }
