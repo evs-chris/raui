@@ -417,12 +417,11 @@
               const size = `${top.clientHeight},${top.clientWidth}`;
               if (fn.last === size && sized) return;
 
-              const header = this.find('.rtable-header');
-              if (!header) return;
+              const header = this.find('.rtable-header') || {};
 
               let rows = Array.apply(null, this.findAll('.rtable-live')).map(r => r.offsetHeight);
               if (rows.length < 5) {
-                let auto = Math.floor(top.clientHeight / header.offsetHeight);
+                let auto = Math.floor(top.clientHeight / (header.offsetHeight || 1));
                 if (auto < 5) auto = 5;
                 this.set('_paginate', auto);
                 rows = Array.apply(null, this.findAll('.rtable-live')).map(r => r.offsetHeight);
@@ -432,7 +431,7 @@
               const avg = Math.ceil(rows.reduce((a, c) => a + c, 0) / rows.length);
               this._avgSize = avg;
 
-              let fit = Math.floor((top.clientHeight - header.offsetHeight) / avg);
+              let fit = Math.floor((top.clientHeight - (header.offsetHeight || 1)) / avg);
               if (v === 'virtual') {
                 fit = fit + 10;
                 if (fit < 30) fit = 30;
@@ -481,10 +480,10 @@
                 const hardFirst = first;
                 if (first + visible > count) first = count - visible;
 
-                if (offset === first) return lock = false;
+                if (offset === first && !isNaN(virtual.top)) return lock = false;
                 
                 // check to see if the rendered area is approaching an edge
-                if (!isNumber(offset) || isNaN(offset) || top < virtual.top + pageSize || top > virtual.bottom - pageSize || offset > 0 && top < avg * page) {
+                if (!isNumber(offset) || isNaN(offset) || isNaN(virtual.top) || top < virtual.top + pageSize || top > virtual.bottom - pageSize || offset > 0 && top < avg * page) {
                   let amtAbove = hardFirst;
                   let amtBelow = count - hardFirst - visible;
                   if (amtAbove < 0) {
