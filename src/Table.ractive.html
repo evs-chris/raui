@@ -15,9 +15,15 @@
   <div class-rtable-top {{#if ~/paginate === 'virtual'}}on-scroll="scroll" as-sized="{ offsetHeight: '~/tableHeight', diffWidth: '~/scrollOffset' }"{{/if}} {{#if !~/noHeader && ~/fixedHeader}}as-scrolled=`~/scroll`{{/if}}>
     <div as-grid {{#if ~/paginate === 'virtual'}}style-margin-top="{{~/virtual.above}}px" style-margin-bottom="{{~/virtual.below}}px"{{/if}}>
       {{#if !~/noHeader && !~/fixedHeader}}{{>grid-head}}{{/if}}
-      {{#each ~/visibleRows, ~/items as source, true as shuffle}}
-        {{>grid-row}}
-      {{/each}}
+      {{#if ~/shuffle}}
+        {{#each ~/visibleRows, ~/items as source, ~/shuffle as shuffle}}
+          {{>grid-row}}
+        {{/each}}
+      {{else}}
+        {{#each ~/visibleRows}}
+          {{>grid-row}}
+        {{/each}}
+      {{/if}}
       {{#if !~/rows.length}}<div class-rtable-row class-row class-t1>{{yield empty with ~/empty as message}}</div>{{/if}}
     </div>
   </div>
@@ -189,6 +195,12 @@
       return this.get('selections') || [];
     }
 
+    set selections(v) {
+      const rows = this.get('rows');
+      const sels = Array.isArray(v) ? v.filter(i => ~rows.indexOf(i)) : [];
+      this.set('selections', sels);
+    }
+
     selectionOffset(offset) {
       const selected = this.get('selected');
       let visible = this.get('visibleRows');
@@ -341,7 +353,7 @@
     css: $CSS,
     cssId: 'rtable',
     noCssTransform: true,
-    attributes: ['paginate', 'items', 'filter', 'sort', 'helpers', 'fixed', 'allowSelect', 'allowSelectAll', 'border', 'fixedHeader', 'valign', 'noHeader', 'empty'],
+    attributes: ['paginate', 'items', 'filter', 'sort', 'helpers', 'fixed', 'allowSelect', 'allowSelectAll', 'border', 'fixedHeader', 'valign', 'noHeader', 'empty', 'shuffle'],
     components: {
       table: false,
       Table: false
@@ -566,7 +578,8 @@
         allowGroupSelect: true,
         expanded: null,
         minPerPage: 10,
-        virtual: { offset: 0 }
+        virtual: { offset: 0 },
+        shuffle: true
       }
     },
     computed: {
@@ -1076,8 +1089,6 @@
     header[0].f.unshift({
       t: 4, n: 50, r: '~/allowSelect', f: [{ t: 7, e: 'div', m: [{ t: 13, n: 'class-rtable-select-header' }, { t: 13, n: 'class-rtable-column' }, { t: 13, n: 'title', f: [{ t: 2, r: 'selections.length' }, ' items selected']}, { t: 13, n: 'class-rtable-all-selected', f: [{ t: 2, x: { r: ['@this'], s: '_0._allSelected()' } }] }], f: [{ t: 7, e: 'div', f: [{ t: 4, n: 50, r: '~/allowSelectAll', f: [{ t: 7, e: 'input', m: [{ t: 73, v: 't', f: 'false' }, { t: 13, n: 'type', f: 'checkbox' }, { t: 13, n: 'checked', f: [{ t: 2, x: { r: ['@this'], s: '_0._allSelected()' } }] }, { t: 13, n: 'class-rtable-select' }, { t: 70, n: ['click'], f: 'selectAll' }] }] }], m: [{ t: 70, n: ['clickd'], f: 'selectAll' }] }] }]
     });
-
-    //header[0].f.push({t: 4, f: [{ t: 7, e: 'div', m: [{ t: 13, n: 'class', f: 'rtable-header-scroll', g: 1 }, { n: 'style-width', f: [{ t: 2, r: '~/scrollOffset' }], t: 13 }] }], n: 50, r: '~/fixedHeader' });
 
     const row = [{ t: 7, e: 'div', m: [
       { t: 13, n: 'class-rtable-row-wrap' },
