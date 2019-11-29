@@ -41,9 +41,10 @@ export function numeric(options = {}) {
       // handle extra minus chars
       next = (next[0] || '') + next.substr(1).replace(notMinusNumRE, '');
 
-      if (startsZeroRE.test(next) && leave) {
+      if (startsZeroRE.test(next)) {
         const len = next.length;
         next = next.replace(startsZeroRE, '');
+        if (!next.length) next = '0';
         num[0] -= len - next.length;
         num[1] -= len - next.length;
       }
@@ -58,10 +59,13 @@ export function numeric(options = {}) {
         if (typeof o.decimal === 'number' && postDec.length > o.decimal) {
           postDec = postDec.substr(0, o.decimal);
         }
+        if (leave && !preDec) preDec = '0';
         next = `${preDec}.${postDec}`;
       } else if (typeof o.whole === 'number' && next.length > o.whole) {
         next = next.substr(0, o.whole);
       }
+
+      if (leave && !opts.optional && !next) next = '0';
 
       if (o.bind) {
         lock = true;
