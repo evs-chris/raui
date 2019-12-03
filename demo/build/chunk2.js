@@ -530,13 +530,16 @@ System.register(['ractive'], function (exports, module) {
           function blocks(id) {
             var bs = host.get(("windows." + (escape(id)) + ".blockers"));
             if (!bs) { return; }
-            bs.forEach(function (b) { return host.add(("windows." + (escape(b)) + ".index"), top++); });
-            bs.forEach(function (b) { return blocks(b); });
+            bs.forEach(function (b) {
+              host.add(("windows." + (escape(b)) + ".index"), top++);
+              blocks(b);
+            });
           }
 
           if (wnd) {
             if (opts.parent !== false && wnd.get('control.blocking')) {
-              top = this.get(("windows." + (wnd.get('control.blocking')) + ".index")) || 0;
+              var blocking = wnd.get("control.blocking");
+              top = this.get(("windows." + blocking + ".index")) || 0 + (this.get(("windows." + blocking + ".blockers.length")) || 0);
               wnds.forEach(function (w) {
                 if (w.index > top) { w.index++; }
               });
