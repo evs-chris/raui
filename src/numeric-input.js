@@ -56,8 +56,12 @@ export function numeric(options = {}) {
         if (typeof o.whole === 'number' && preDec.length > o.whole) {
           preDec = preDec.substr(0, o.whole);
         }
-        if (typeof o.decimal === 'number' && postDec.length > o.decimal) {
-          postDec = postDec.substr(0, o.decimal);
+        if (typeof o.decimal === 'number') {
+          if (postDec.length > o.decimal) {
+            postDec = postDec.substr(0, o.decimal);
+          } else if (postDec.length < o.decimal) {
+            for (let i = postDec.length; i < o.decimal; i++) postDec += '0';
+          }
         }
         if (leave && !preDec) preDec = '0';
         next = `${preDec}.${postDec}`;
