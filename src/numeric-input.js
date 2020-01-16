@@ -39,7 +39,8 @@ export function numeric(options = {}) {
 
       let next = cur.replace(notNumRE, '');
       // handle extra minus chars
-      next = (next[0] || '') + next.substr(1).replace(notMinusNumRE, '');
+      const minus = !!~next.indexOf('-');
+      next = next.replace(notMinusNumRE, '');
 
       if (startsZeroRE.test(next)) {
         const len = next.length;
@@ -70,6 +71,8 @@ export function numeric(options = {}) {
       }
 
       if (leave && !opts.optional && !next) next = '0';
+
+      if (minus) next = '-' + next;
 
       if (o.bind) {
         lock = true;
@@ -115,7 +118,8 @@ export function numeric(options = {}) {
     }).cancel);
 
     cleanup.push(ctx.listen('focus', () => {
-      if (node.selectionStart === 0 && node.selectionEnd === 0) {
+      const start = node.selectionStart, end = node.selectionEnd;
+      if (start === 0 && end === 0) {
         setTimeout(() => {
           const cur = node.value;
           let pos;
@@ -139,6 +143,12 @@ export function numeric(options = {}) {
             node.setSelectionRange(pos, pos);
           }
         });
+      } else if (start === end) {
+        if (start === node.value.length) {
+          node.setSelectionRange(0, start);
+        } else if ((o.suffix || '').length > 0 && start > node.value.length - o.suffix.length) {
+          node.setSelectionRange(start + 1 - o.suffix.length, start + 1 - o.suffix.length);
+        }
       }
     }).cancel);
 
