@@ -9,11 +9,12 @@
   class-rtable-valign-top="~/valign === 'top'"
   class-rtable-valign-center="~/valign === 'center'"
   class-rtable-valign-bottom="~/valign === 'bottom'"
+  class-rtable-nowrap="~/noWrap"
   {{yield extra-attributes}}
 >
-  {{#if !~/noHeader && ~/fixedHeader}}<div as-grid="{ offset: ~/scrollOffset }">{{>grid-head}}</div>{{/if}}
-  <div class-rtable-top {{#if ~/paginate === 'virtual'}}on-scroll="scroll" as-sized="{ offsetHeight: '~/tableHeight', diffWidth: '~/scrollOffset' }"{{/if}} {{#if !~/noHeader && ~/fixedHeader}}as-scrolled=`~/scroll`{{/if}}>
-    <div as-grid {{#if ~/paginate === 'virtual'}}style-margin-top="{{~/virtual.above}}px" style-margin-bottom="{{~/virtual.below}}px"{{/if}}>
+  {{#if !~/noHeader && ~/fixedHeader}}<div as-grid="{ offset: ~/scrollOffset }" class-rtable-header-fixed>{{>grid-head}}</div>{{/if}}
+  <div class-rtable-top {{#if ~/paginate === 'virtual'}}on-scroll="scroll" as-sized="{ offsetHeight: '~/tableHeight', diffWidth: '~/scrollOffset' }"{{/if}} {{#if !~/noHeader && ~/fixedHeader}}as-scrolled=`~/scroll`{{/if}} {{#if ~/fixedHeader && ~/noWrap}}as-scrollheader{{/if}}>
+    <div as-grid="{ size: '~/tableWidth' }" {{#if ~/paginate === 'virtual'}}style-margin-top="{{~/virtual.above}}px" style-margin-bottom="{{~/virtual.below}}px"{{/if}}>
       {{#if !~/noHeader && !~/fixedHeader}}{{>grid-head}}{{/if}}
       {{#if ~/shuffle}}
         {{#each ~/visibleRows, ~/items as source, ~/shuffle as shuffle}}
@@ -38,7 +39,7 @@
     </div>
     <div class-rtable-select-all-all>
       {{#if selections.length > 0}}
-        {{selections.length}} of {{rows.length}} selected{{#if @this._allSelected() && selections.length < rows.length}} - <a href="#" on-click="selectAllAll">Select All</a>{{/if}}
+        <strong>{{selections.length}}</strong> of <strong>{{rows.length}}</strong> selected{{#if @this._allSelected() && selections.length < rows.length}} - <a href="#" on-click="selectAllAll">Select All</a>{{/if}}
       {{/if}}
     </div>
     <div class-rtable-pages>
@@ -348,18 +349,28 @@
     }
   }
 
+  function scrollheader(node) {
+    const scroll = ev => {
+      requestAnimationFrame(() => this.find('.rtable-header-fixed').scrollLeft = ev.target.scrollLeft);
+    }
+    node.addEventListener('scroll', scroll, { passive: true });
+    return {
+      teardown() { node.removeEventListener('scroll', scroll); }
+    };
+  }
+
   Ractive.extendWith(Table, {
     template: $TEMPLATE,
     css: $CSS,
     cssId: 'rtable',
     noCssTransform: true,
-    attributes: ['paginate', 'items', 'filter', 'sort', 'helpers', 'fixed', 'allowSelect', 'allowSelectAll', 'border', 'fixedHeader', 'valign', 'noHeader', 'empty', 'shuffle'],
+    attributes: ['paginate', 'items', 'filter', 'sort', 'helpers', 'fixed', 'allow-select', 'allow-select-all', 'border', 'fixed-header', 'valign', 'no-header', 'empty', 'shuffle', 'no-wrap'],
     components: {
       table: false,
       Table: false
     },
     syncComputedChildren: true,
-    decorators: { grid, sized },
+    decorators: { grid, sized, scrollheader },
     events: {},
     use: [click({ name: 'clickd', count: 1 }), click({ name: 'dblclickd', count: 2 }), expand(), scrolled()],
     on: {
@@ -390,6 +401,7 @@
         }
 
         this.fire('selection', {}, { item, items: sel });
+        return false;
       },
       selectAllAll() {
         const item = null;
@@ -572,8 +584,10 @@
       return {
         page: 0,
         selections: [],
-        allowSelect: true,
-        allowSelectAll: true,
+        'allow-select': true,
+        'allow-select-all': true,
+        'fixed-header': true,
+        paginate: 'virtual',
         showGroups: true,
         allowGroupSelect: true,
         expanded: null,
@@ -583,6 +597,11 @@
       }
     },
     computed: {
+      allowSelect() { return this.get('allow-select'); },
+      allowSelectAll() { return this.get('allow-select-all'); },
+      fixedHeader() { return this.get('fixed-header'); },
+      noHeader() { return this.get('no-header'); },
+      noWrap() { return this.get('no-wrap'); },
       rows: {
         get() {
           const columns = this.viewmodel.value.columns;
@@ -898,7 +917,7 @@
     return parseFloat(v);
   }
 
-  const colAttrs = ['label', 'type', 'filter', 'hidden', 'sort', 'no-pad', 'id', 'editable'];
+  const colAttrs = ['label', 'type', 'filter', 'hidden', 'sort', 'no-pad', 'id', 'editable', 'fixed'];
   const cell = /^[a-z]{1,3}[0-9]+(?:-[0-9]+)?$/;
   const empty = [];
   function construct() {
@@ -906,7 +925,7 @@
     const cmp = this.component;
     if ( !cmp ) return;
 
-    let rowEl, groupEl, wrapperEl, mappings;
+    let expandEl, groupEl, wrapperEl, rowEl, mappings;
 
     const tpl = cmp.template.f || [];
     const attrs = cmp.template.m ? cmp.template.m.slice() : [];
@@ -989,6 +1008,10 @@
           if (col.valign && isObject(col.valign.f)) col.valign = map(col.valign);
           else if (col.valign && typeof col.valign.f === 'string') col.valign = col.valign.f;
 
+          col.fixed = attrs.find(a => a.n === 'fixed');
+          if (col.fixed && isObject(col.fixed.f)) col.fixed = map(col.fixed);
+          else if (col.fixed && typeof col.fixed.f === 'string') col.fixed = col.fixed.f;
+
           attr = attrs.find(a => a.n === 'get');
           if (attr && attr.f) {
             const name = map(attr, false, true);
@@ -1052,27 +1075,35 @@
       return { fields, columns };
     }
 
-    rowEl = tpl.find(e => e.e === 'row');
+    expandEl = tpl.find(e => e.e === 'expand');
     groupEl = tpl.find(e => e.e === 'group');
     wrapperEl = tpl.find(e => e.e === 'wrapper');
+    rowEl = tpl.find(e => e.e === 'row');
     
     this._init = { sets: grabColumns(tpl), partials: {} };
     const columns = this._init.sets.columns;
-    this._init.sets['meta.expand'] = rowEl && rowEl.f && rowEl.f.length && rowEl.f;
+    this._init.sets['meta.expand'] = expandEl && expandEl.f && expandEl.f.length && expandEl.f;
+    this._init.sets['meta.extra'] = rowEl && rowEl.f && rowEl.f.length && rowEl.f;
 
     const sortKey = '[_0._setSort(_1,_2)]';
 
+    // build header partial
     const header = [{ t: 7, e: 'div', m: [
       { t: 13, n: 'class-rtable-row-wrap' },
       { t: 13, n: 'class-row-wrap' },
       { t: 13, n: 'class-rtable-header' },
       { t: 4, f: [{ n: 'style-opacity', f: '0', t: 13 }], n: 50, x: { r: ['~/fixedHeader', '~/virtual.offset'] , s: '!_0&&_1>0' } },
       { t: 4, n: 50, r: '~/fixedHeader', f: [{ t: 13, n: 'style-padding-right', f: [{ t: 2, r: '~/scrollOffset' }, 'px'] }] }
-    ], f: [{ t: 7, e: 'div', f: columns.filter(c => c.hidden !== true).map(c => {
-      const div = { t: 7, e: 'div', f: [{ t: 7, e: 'div', f: c.label }], m: [{ t: 4, n: 53, r: `~/columns.${c.index}`, f: [{ t: 70, n: ['click'], f: { r: ['@this', '.index', '@event'], s: sortKey } }] }, { t: 13, n: 'title', f: c.label }].concat(c.attrs.filter(a => a.n !== 'title')) };
+    ], f: [{ t: 7, e: 'div', f: columns.filter(c => c.hidden !== true).map((c, cidx) => {
+      c.attrsHP = c.attrs.filter(a => a.n !== 'title');
+      const div = { t: 7, e: 'div', f: [{ t: 7, e: 'div', f: c.label }], m: [{ t: 4, n: 53, r: `~/columns.${cidx}`, f: [{ t: 70, n: ['click'], f: { r: ['@this', '.index', '@event'], s: sortKey } }] }, { t: 13, n: 'title', f: c.label }, { t: 16, r: `~/columns.${cidx}.attrsHP` }] };
       if (c.type) div.m.push({ t: 13, n: `class-rtable-${c.type}-column` });
       if (c.filter || c.sort) div.m.push({ t: 13, n: 'class-rtable-sortable' });
       div.m.push({ t: 13, n: 'class-rtable-column' });
+      if (c.fixed) {
+        div.m.push({ t: 13, n: 'class-rtable-fixed-column', f: [{ t: 2, r: `~/columns.${cidx}.fixed` }] });
+        div.m.push({ t: 4, n: 50, x: { r: [`~/noWrap`, `~/columns.${cidx}.fixed`], s: `_0&&typeof _1==='string'` }, f: [{ t: 13, n: 'style-left', f: [{ t: 2, r: `~/columns.${cidx}.fixed`}] }] });
+      }
       let res = div;
 
       if (c.hidden && c.hidden.r) {
@@ -1090,12 +1121,16 @@
       t: 4, n: 50, r: '~/allowSelect', f: [{ t: 7, e: 'div', m: [{ t: 13, n: 'class-rtable-select-header' }, { t: 13, n: 'class-rtable-column' }, { t: 13, n: 'title', f: [{ t: 2, r: 'selections.length' }, ' items selected']}, { t: 13, n: 'class-rtable-all-selected', f: [{ t: 2, x: { r: ['@this'], s: '_0._allSelected()' } }] }], f: [{ t: 7, e: 'div', f: [{ t: 4, n: 50, r: '~/allowSelectAll', f: [{ t: 7, e: 'input', m: [{ t: 73, v: 't', f: 'false' }, { t: 13, n: 'type', f: 'checkbox' }, { t: 13, n: 'checked', f: [{ t: 2, x: { r: ['@this'], s: '_0._allSelected()' } }] }, { t: 13, n: 'class-rtable-select' }, { t: 70, n: ['click'], f: 'selectAll' }] }] }], m: [{ t: 70, n: ['clickd'], f: 'selectAll' }] }] }]
     });
 
+    // buld row partial
     const row = [{ t: 7, e: 'div', m: [
       { t: 13, n: 'class-rtable-row-wrap' },
       { t: 13, n: 'class-rtable-odd', f: [{ t: 2, x: { r: ['@index','~/virtual.offset'], s: '(_0+_1)%2===1' } }] },
       { t: 13, n: 'class-row-wrap' },
       { t: 13, n: 'class-rtable-live' },
       { t: 13, n: 'class-rtable-selected', f: [{ t: 2, x: { r: ['~/selections', '.'], s: '~_0.indexOf(_1)' } }] }
+    ], f: [{ t: 7, e: 'div', m: [
+      { t: 13, n: 'class-row-wrap' },
+      { t: 13, n: 'class-rtable-inner-row-wrap' }
     ], f: [{ t: 7, e: 'div', f: columns.filter(c => c.hidden !== true).map((c, cidx) => {
       let content = [{ t: 7, e: 'div', f: [{ t: 16, r: `~/columns.${cidx}.content`, c: { r: '.' } }] }];
       if (c.attrs.length) {
@@ -1105,6 +1140,10 @@
         c.attrs = [];
       }
       const attrs = c.attrs;
+      if (c.fixed) {
+        c.attrs.push({ t: 13, n: 'class-rtable-fixed-column', f: [{ t: 2, r: `~/columns.${cidx}.fixed` }] });
+        c.attrs.push({ t: 4, n: 50, x: { r: [`~/noWrap`, `~/columns.${cidx}.fixed`], s: `_0&&typeof _1==='string'` }, f: [{ t: 13, n: 'style-left', f: [{ t: 2, r: `~/columns.${cidx}.fixed`}] }] });
+      }
       if (c.editable && c.filter) {
         // TODO: moar types - pick, date, maybe custom via edit tag
         const noclicky = { t: 70, n: ['click', 'mousedown', 'pointerdown', 'MSPointerDown', 'touchstart'], f: { r: ['@event'], s: '[_0.stopPropagation()]' } };
@@ -1147,13 +1186,13 @@
       return res;
     }), m: [
       { t: 13, n: 'class-row' }, { t: 13, n: 'class-rtable-row' },
-      { t: 70, n: (rowEl && rowEl.f ? ['dblclickd'] : ['click', 'dblclick']), f: { r: ['~/rows', '~/visibleRows', '.'], s: `[['selected',_2,_0.indexOf(_2),_1.indexOf(_2)]]` } }
-    ] }] }];
+      { t: 70, n: (expandEl && expandEl.f ? ['dblclickd'] : ['click', 'dblclick']), f: { r: ['~/rows', '~/visibleRows', '.'], s: `[['selected',_2,_0.indexOf(_2),_1.indexOf(_2)]]` } }
+    ] }] }] }];
 
     // extra row attrs
     if (rowEl && rowEl.m && rowEl.m.length) {
       this._init.sets.rowAttrs = rowEl.m.slice();
-      row[0].f[0].m.push({ t: 16, r: '~/rowAttrs', c: { r: '.' } });
+      row[0].f[0].f[0].m.push({ t: 16, r: '~/rowAttrs', c: { r: '.' } });
     }
 
     // extra wrapper attrs
@@ -1162,11 +1201,17 @@
       row[0].m.push({ t: 16, r: '~/wrapperAttrs', c: { r: '.' } });
     }
 
-    // expando rows
+    // extra fixed content
     if (rowEl && rowEl.f && rowEl.f.length) {
+      row[0].f[0].f.push({ t: 7, e: 'div', m: [{ t: 13, n: 'class-rtable-row-extra' }, { t: 4, n: 50, r: '~/noWrap', f: [{ t: 13, n: 'style-width', f: [{ t: 2, x: { r: ['~/tableWidth', '~/allowSelect'], s: `_1?'calc('+(_0-3)+'px - 2em)':(_0-3)+'px'` } }] }] }], f: [{ t: 16, r: '~/meta.extra', c: { r: '.' } }] });
+    }
+
+    // expando rows
+    if (expandEl && expandEl.f && expandEl.f.length) {
       row[0].f[0].f.push({ t: 4, n: 50, x: { r: ['.', '~/expanded'], s: '_0===_1' }, f: [
-        { t: 7, e: 'div', f: [{ t: 7, e: 'div', f: [{ t: 16, r: `~/meta.expand`, c: { r: '.' } }] }], m: [{ t: 13, n: 'class-t1' }, { t: 13, n: 'class-rtable-row-expand' }] }
+        { t: 7, e: 'div', f: [{ t: 7, e: 'div', f: [{ t: 16, r: `~/meta.expand`, c: { r: '.' } }] }], m: [{ t: 13, n: 'class-rtable-row-expand' }, { t: 4, n: 50, r: '~/noWrap', f: [{ t: 13, n: 'style-width', f: [{ t: 2, x: { r: ['~/tableWidth', '~/allowSelect'], s: `_1?'calc('+(_0-3)+'px - 2em)':(_0-3)+'px'` } }] }] }] }
       ] });
+      row[0].f[0].f[0].m.push({ t: 70, n: ['clickd'], f: { r: ['@this', '@index'], s: '[_0._expand(_1)]' } });
       row[0].f[0].m.push({ t: 70, n: ['clickd'], f: { r: ['@this', '@index'], s: '[_0._expand(_1)]' } });
     }
 
@@ -1183,7 +1228,7 @@
           t: 7, e: 'div', m: [
             { t: 13, n: 'class-row' }, { t: 13, n: 'class-rtable-group' },
             { t: 13, n: 'class-rtable-selected', f: [{ t: 2, x: { r: ['~/selections', '.'], s: '~_0.indexOf(_1)' } }] },
-            { t: 70, n: (rowEl && rowEl.f ? ['dblclickd'] : ['click', 'dblclick']), f: { r: ['~/rows', '~/visibleRows', '.'], s: `[['selected',_2,_0.indexOf(_2),_1.indexOf(_2)]]` } }
+            { t: 70, n: (expandEl && expandEl.f ? ['dblclickd'] : ['click', 'dblclick']), f: { r: ['~/rows', '~/visibleRows', '.'], s: `[['selected',_2,_0.indexOf(_2),_1.indexOf(_2)]]` } }
           ].concat(groupEl.m.filter(a => a.n !== 'by' && a.n !== 'select'))
         }],
         x: { s: `_0&&_1[(_1&&(_2*_3+_4))||_4]`, r: [ '~/showGroups', '~/groups', '~/page', '~/pagination.per', '@index' ] }
@@ -1259,7 +1304,7 @@
   .rtable-group > div > div,
   .rtable-header > div > div,
   .rtable-row > div > div {
-    padding: 0.5em;
+    padding: ${table.padding || '0.5em'};
     overflow: inherit;
     text-overflow: inherit;
     line-height: 1em;
@@ -1301,6 +1346,13 @@
     flex-grow: 1;
   }
 
+  .rtable-nowrap .grid .row {
+    flex-wrap: nowrap;
+  }
+  .rtable-nowrap .rtable-row-wrap, .rtable-inner-row-wrap {
+    flex-grow: 1;
+  } 
+
   .rtable-row-wrap {
     color: ${primary.fg || '#222'};
     border-style: solid;
@@ -1312,24 +1364,39 @@
     background-color: ${table.odd || primary.bg || '#fff'};
   }
   .rtable-row-wrap:hover, .rtable-row-wrap.rtable-selected:hover {
-    background-color: ${table.over || active.bg || 'rgba(128, 182, 229, 0.2)'};
+    background-color: ${table.over || active.bg || '#e6f0fa'};
     position: relative;
     box-shadow: inset 1px 0 0 #dadce0,inset -1px 0 0 #dadce0, 0 1px 2px 0 rgba(60, 64, 67, 0.3), 0 1px 3px 1px rgba(60, 64, 67, 0.15);
-    z-index: 1;
+    z-index: 2;
+  }
+  .rtable-header.rtable-row-wrap:hover {
+    box-shadow: none;
   }
 
   .rtable-row-wrap.rtable-selected {
-    background-color: ${table.selected.bg || 'rgba(0, 119, 238, 0.12)'};
+    background-color: ${table.selected.bg || '#cee5fd'};
     color: ${table.selected.fg || primary.fg || '#222'};
   }
   .rtable-row-wrap.rtable-selected.rtable-odd {
-    background-color: ${table.selected.odd || 'rgba(0, 119, 238, 0.1)'};
+    background-color: ${table.selected.odd || '#c5dffb'};
   }
 
   .rtable-row-wrap {
     display: flex;
     flex-grow: 1;
     align-items: center;
+    z-index: 2;
+    align-items: stretch;
+  }
+
+  .rtable-nowrap .rtable-row-wrap {
+    display: inline-flex;
+    min-width: 100%;
+    box-sizing: border-box;
+  }
+
+  .rtable-nowrap > .rtable-top > .grid {
+    line-height: 1em;
   }
 
   .rtable-border .rtable-row .rtable-column,
@@ -1344,12 +1411,17 @@
     border-width: 0 1px 1px 1px;
   }
 
-  .rtable-border .rtable-row-expand {
+  .rtable-border .rtable-row-expand, .rtable-border .rtable-row-extra {
     border-color: ${table.divider || primary.bc || '#ccc'};
     border-style: solid;
     border-width: 1px 0 0 1px;
     margin-left: -1px;
     width: 100%;
+  }
+
+  .rtable-row-expand, .rtable-row-extra {
+    box-sizing: border-box;
+    padding: ${table.padding || '0.5em'};
   }
 
   .rtable-group {
@@ -1358,7 +1430,10 @@
 
   .rtable-header.rtable-row-wrap, .rtable-header.rtable-row-wrap:hover {
     font-weight: bold;
-    background-color: ${table.divider || primary.bc || '#ccc'};
+    background-color: ${table.header || '#dedede'};
+  }
+  .rtable-header-fixed {
+    line-height: 1em;
   }
 
   .rtable-header.rtable-row-wrap {
@@ -1375,13 +1450,70 @@
   .rtable-fixed-header .rtable-header {
     margin-top: 0.5em;
     position: relative;
-    z-index: 1;
+    z-index: 2;
   }
-  .rtable-fixed-header.rtable-scrolled .rtable-header {
+  .rtable-fixed-header.rtable-scrolled .rtable-header-fixed {
     box-shadow: 0 1px 2px 0 rgba(60, 64, 67, 0.3), 0 1px 3px 1px rgba(60, 64, 67, 0.15);
+    z-index: 3;
   }
   .rtable-fixed-header .rtable-top {
     margin-top: 0;
+  }
+  .rtable-nowrap.rtable-fixed-header .rtable-top {
+    margin-top: -3px;
+  }
+  .rtable-with-select.rtable-nowrap.rtable-fixed-header .rtable-top {
+    margin-top: 0px;
+  }
+  .rtable-nowrap.rtable-fixed-header .rtable-header-fixed {
+    flex-shrink: 0;
+    width: 100%;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .rtable-fixed-header .rtable-header-fixed::-webkit-scrollbar {
+    width: 0;
+    height: 0;
+  }
+
+  .rtable-nowrap .rtable-fixed-column, .rtable-nowrap .rtable-row-extra, .rtable-nowrap .rtable-row-expand {
+    position: sticky;
+    left: 0;
+  }
+  .rtable-border..rtable-nowrap .rtable-fixed-column, .rtable-border.rtable-nowrap .rtable-row-extra, .rtable-border.rtable-nowrap .rtable-row-expand {
+    left: 1px;
+   }
+  .rtable-nowrap.rtable-with-select .rtable-fixed-column, .rtable-nowrap.rtable-with-select .rtable-row-extra, .rtable-nowrap.rtable-with-select .rtable-row-expand {
+    left: 2.1em;
+  }
+  .rtabe-border.rtable-nowrap.rtable-with-select .rtable-fixed-column, .rtabe-border.rtable-nowrap.rtable-with-select .rtable-row-extra, .rtabe-border.rtable-nowrap.rtable-with-select .rtable-row-expand {
+    left: calc(2.1em + 1px);
+  }
+
+  .rtable-nowrap .rtable-inner-row-wrap {
+    background-color: inherit;
+  }
+
+  .rtable-nowrap .row,
+  .rtable-nowrap .rtable-fixed-column,
+  .rtable-nowrap .rtable-select-row,
+  .rtable-nowrap .rtable-select-header {
+    background-color: inherit;
+    z-index: 1;
+  }
+
+  .rtable-nowrap .rtable-select-row,
+  .rtable-nowrap .rtable-select-header {
+    position: sticky;
+    left: 0.1em;
+    z-index: 1;
+  }
+  .rtable-nowrap .rtable-select-header {
+    z-index: 2;
+  }
+
+  .rtable-nowrap.rtable-border .rtable-fixed-column {
+    border-right-width: 1px;
   }
 
   .rtable-bottom {
@@ -1447,6 +1579,10 @@
     position: relative;
     line-height: 1.8em;
     cursor: pointer;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    flex-grow: 1;
   }
 
   .rtable-select:checked {
@@ -1489,8 +1625,8 @@
     content: "";
     display: block;
     position: absolute;
-    top: 0px;
-    left: 0px;
+    top: -4px;
+    left: 4px;
     width: 10px;
     height: 5px;
     border: solid 2px transparent;
@@ -1539,22 +1675,22 @@
     padding: 0.25em 0.5em;
   }
 
-  .rtable-valign-top .grid > .rtable-row-wrap > .rtable-row > .rtable-column > div,
-  .rtable .grid > .rtable-row-wrap > .rtable-row > .rtable-column.rtable-valign-col-top > div {
+  .rtable-valign-top .rtable-row:not(.rtable-header) .rtable-column > div,
+  .rtable .rtable-row:not(.rtable-header) > .rtable-column.rtable-valign-col-top > div {
     display: flex;
     height: 100%;
     align-items: flex-start;
     box-sizing: border-box;
   }
-  .rtable-valign-bottom .grid > .rtable-row-wrap > .rtable-row > .rtable-column > div,
-  .rtable .grid > .rtable-row-wrap > .rtable-row > .rtable-column.rtable-valign-col-bottom > div {
+  .rtable-valign-bottom .rtable-row:not(.rtable-header) .rtable-column > div,
+  .rtable .rtable-row:not(.rtable-header) > .rtable-column.rtable-valign-col-bottom > div {
     display: flex;
     height: 100%;
     align-items: flex-end;
     box-sizing: border-box;
   }
-  .rtable-valign-center .grid > .rtable-row-wrap > .rtable-row > .rtable-column > div,
-  .rtable .grid > .rtable-row-wrap > .rtable-row > .rtable-column.rtable-valign-col-center > div {
+  .rtable-valign-center .rtable-row:not(.rtable-header) .rtable-column > div,
+  .rtable .rtable-row:not(.rtable-header) > .rtable-column.rtable-valign-col-center > div {
     display: flex;
     height: 100%;
     align-items: center;
