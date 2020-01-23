@@ -359,6 +359,16 @@
     };
   }
 
+  Table.settings = {
+    valign: 'center',
+    border: false,
+    'fixed-header': true,
+    'allow-select': true,
+    'allow-select-all': true,
+    'auto-titles': false,
+    paginate: 'virtual'
+  };
+
   Ractive.extendWith(Table, {
     template: $TEMPLATE,
     css: $CSS,
@@ -581,25 +591,22 @@
       }
     },
     data() {
-      return {
+      return Object.assign({
         page: 0,
         selections: [],
-        'allow-select': true,
-        'allow-select-all': true,
-        'fixed-header': true,
-        paginate: 'virtual',
         showGroups: true,
         allowGroupSelect: true,
         expanded: null,
         minPerPage: 10,
         virtual: { offset: 0 },
         shuffle: true
-      }
+      }, Table.settings);
     },
     computed: {
       allowSelect() { return this.get('allow-select'); },
       allowSelectAll() { return this.get('allow-select-all'); },
       fixedHeader() { return this.get('fixed-header'); },
+      autoTitles() { return this.get('auto-titles'); },
       noHeader() { return this.get('no-header'); },
       noWrap() { return this.get('no-wrap'); },
       rows: {
@@ -1141,8 +1148,8 @@
       }
       const attrs = c.attrs;
       if (c.fixed) {
-        c.attrs.push({ t: 13, n: 'class-rtable-fixed-column', f: [{ t: 2, r: `~/columns.${cidx}.fixed` }] });
-        c.attrs.push({ t: 4, n: 50, x: { r: [`~/noWrap`, `~/columns.${cidx}.fixed`], s: `_0&&typeof _1==='string'` }, f: [{ t: 13, n: 'style-left', f: [{ t: 2, r: `~/columns.${cidx}.fixed`}] }] });
+        attrs.push({ t: 13, n: 'class-rtable-fixed-column', f: [{ t: 2, r: `~/columns.${cidx}.fixed` }] });
+        attrs.push({ t: 4, n: 50, x: { r: [`~/noWrap`, `~/columns.${cidx}.fixed`], s: `_0&&typeof _1==='string'` }, f: [{ t: 13, n: 'style-left', f: [{ t: 2, r: `~/columns.${cidx}.fixed`}] }] });
       }
       if (c.editable && c.filter) {
         // TODO: moar types - pick, date, maybe custom via edit tag
@@ -1174,7 +1181,14 @@
       const div = { t: 7, e: 'div', f: content, m: attrs };
       if (c.type) attrs.unshift({ t: 13, n: `class-rtable-${c.type}-column` });
       attrs.push({ t: 13, n: 'class-rtable-column' });
-      if (!div.m.find(a => a.n === 'title')) attrs.unshift({ t: 13, n: 'title', f: c.content.find(e => e.e) ? c.label : c.content });
+
+      const title = c.attrsP && c.attrsP.find(a => a.n === 'title');
+      if (!title) attrs.unshift({ t: 4, n: 50, r: '~/autoTitles', f: [{ t: 13, n: 'title', f: c.content.find(e => e.e) ? c.label : c.content }] });
+      else if (!title.f) {
+        attrs.unshift({ t: 13, n: 'title', f: c.content.find(e => e.e) ? c.label : c.content });
+        c.attrsP.splice(attrs.indexOf(title), 1);
+      }
+
       if (c.noPad === 0) attrs.push({ t: 13, n: 'class-rtable-no-pad' });
       else if (c.noPad) attrs.push({ t: 13, n: 'class-rtable-no-pad', f: c.noPad });
       let res = div;
@@ -1363,7 +1377,7 @@
   .rtable-row-wrap.rtable-odd {
     background-color: ${table.odd || primary.bg || '#fff'};
   }
-  .rtable-row-wrap:hover, .rtable-row-wrap.rtable-selected:hover {
+  .rtable-row-wrap:hover, .rtable-row-wrap.rtable-selected:hover, .rtable-row-wrap.rtable-odd.rtable-selected:hover {
     background-color: ${table.over || active.bg || '#e6f0fa'};
     position: relative;
     box-shadow: inset 1px 0 0 #dadce0,inset -1px 0 0 #dadce0, 0 1px 2px 0 rgba(60, 64, 67, 0.3), 0 1px 3px 1px rgba(60, 64, 67, 0.15);
@@ -1595,7 +1609,7 @@
 
   .rtable-select:focus {
     opacity: 0.12;
-    transform: translate(-0.1em, 0) scale(1);
+    transform: translate(0.2em, -0.3em) scale(1);
   }
 
   .rtable-select-header:hover .rtable-select:focus, .rtable-select-row:hover .rtable.select:focus {
@@ -1604,7 +1618,7 @@
 
   .rtable-select:active {
     opacity: 0.4;
-    transform: translate(-0.1em, 0) scale(0);
+    transform: translate(0.2em, -0.3em) scale(0);
     transition: transform 0s, opacity 0s;
   }
 
@@ -1625,7 +1639,7 @@
     content: "";
     display: block;
     position: absolute;
-    top: -4px;
+    top: -5px;
     left: 4px;
     width: 10px;
     height: 5px;
