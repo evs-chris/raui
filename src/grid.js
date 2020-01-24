@@ -33,17 +33,17 @@ const defaults = {
     value: 30
   },
   large: {
-    units: [ 2, 3, 4, 5, 6, 8, 10, 12, 20, 24 ],
+    units: [ 2, 3, 4, 5, 6, 8, 10, 12, 16, 20 ],
     max: '64em',
     value: 40
   },
   xlarge: {
-    units: [ 2, 3, 4, 5, 6, 8, 10, 12, 20, 24, 32 ],
+    units: [ 2, 3, 4, 5, 6, 8, 10, 12, 16, 20 ],
     max: '100em',
     value: 50
   },
   ginormous: {
-    units: [ 2, 3, 4, 5, 6, 8, 10, 12, 20, 24, 32, 64 ],
+    units: [ 2, 3, 4, 5, 6, 8, 10, 12, 16, 20 ],
     max: '150em',
     value: 60
   }
@@ -61,26 +61,29 @@ export function grid(node, options) {
   function resize(size) {
     if (typeof opts.offset === 'number') size -= opts.offset;
     if (!opts.type || opts.type === 'class') {
-      let match, max = -1;
+      let cls = node.className;
+      let max = -1;
+      let match;
       for (const k in points) {
+        regexps[k].lastIndex = -1;
         if (points[k] <= size) {
-          regexps[k].lastIndex = -1;
+          if (!regexps[k].test(cls)) cls += ` ${k}`;
           if (points[k] > max) {
-            match = k;
             max = points[k];
+            match = k;
           }
+        } else {
+          cls = cls.replace(regexps[k], '').trim();
         }
-        node.className = node.className.replace(regexps[k], '').trim();
       }
+
+      node.className = cls.replace(spaces, ' ');
 
       if (!match) return;
 
-      if (!regexps[match].test(node.className)) node.className += ` ${match}`;
-
-      if (opts.value) ctx.set(opts.value, breaks[match].value);
+      if (opts.value) ctx.set(opts.value, max);
       if (opts.name) ctx.set(opts.name, match);
-
-      node.className = node.className.replace(spaces, ' ');
+      if (opts.size) ctx.set(opts.size, size);
     }
   }
 
@@ -131,44 +134,32 @@ export function style(data, optDefaults) {
 .grid .row.row-pad > * { padding: ${data('raui.grid.padding') || '0.5em'}; }
 .grid .row > .pad { display: flex; flex-direction: column; padding: ${data('raui.grid.padding') || '0.5em'}; box-sizing: border-box; }`;
 
-  let str;
-
   const points = Object.keys(defs).map(k => (defs[k].key = k) && defs[k]);
   points.sort((l, r) => l.value > r.value ? 1 : l.value < r.value ? -1 : 0);
-  const greater = {};
 
-
-  points.reverse().reduce((a, c) => {
-    a.push(c.key);
-    greater[c.key] = a.slice();
-    return a;
-  }, []);
-
-  let rows = '', cols = '';
-  points.reverse().forEach(size => {
+  points.forEach(size => {
     const name = size.prefix || size.key[0];
+    const map = {};
 
     size.units.forEach(u => {
-      cols += `
-${greater[size.key].map(s => wrappers.map(w => `.${s} > ${w}.${name}1, .${s} > ${w}.row > .${name}1, .${s} .${name}-n1, .${s} .row-${name}-n1 > *`).join(', ')).join(', ')} { display: ${data('raui.grid.display') || 'inline-block'}; width: 100%; flex-grow: 0; flex-shrink: 0; }
-${greater[size.key].map(s => wrappers.map(w => `.${s} > ${w}.${name}0, .${s} > ${w}.row > .${name}0, .${s} .${name}-n0, .${s} .row-${name}-n0 > *`).join(', ')).join(', ')} { display: none; flex-grow: 0; flex-shrink: 0; }`;
-      rows += `
-${greater[size.key].map(s => `.${s} .row-${name}-n1 > *`).join(', ')} { display: ${data('raui.grid.display') || 'inline-block'}; width: 100%; }
-${greater[size.key].map(s => `.${s} .row-${name}-n0 > *`).join(', ')} { display: none; }`;
-
       for (let i = 1; i < u; i++) {
-        str = '' + ((i / u) * 100);
-        str = str.substr(0, str.indexOf('.') + 3);
-        rows += `\n${greater[size.key].map(s => wrappers.map(w => `.${s} > ${w}.row-${name}${i}-${u} > *, .${s} .row-${name}-n${i}-${u} > *, .${s} .row > .${name}-n${i}-${u}`).join(', ')).join(', ')} { display: ${data('raui.grid.display') || 'inline-block'}; width: ${str}%; }`;
-        cols += `\n${greater[size.key].map(s => wrappers.map(w => `.${s} > ${w}.${name}${i}-${u}, .${s} > ${w}.row > .${name}${i}-${u}, .${s} .${name}-n${i}-${u}, .${s} .row-${name}-n${i}-${u} > *`).join(', ')).join(', ')} { display: ${data('raui.grid.display') || 'inline-block'}; width: ${str}%; flex-grow: 0; flex-shrink: 0; }`;
+        let pc = '' + ((i / u) * 100);
+        pc = pc.substr(0, pc.indexOf('.') + 3);
+        if (!map[pc]) map[pc] = [];
+        map[pc].push(`${i}-${u}`);
       }
     });
 
-    greater[size.key].forEach(s => cols += `${wrappers.map(w => `.${s} > ${w}.row > .${name}-fill`).join(', ')}, .${s} .${name}-nfill { width: auto; flex-grow: 2; flex-shink: 2; }\n${wrappers.map(w => `.${s} > ${w}.row > .${name}-auto`).join(', ')}, .${s} .${name}-nauto { width: auto; flex-shrink: 2; }`);
+    const s = size.key;
+
+    out += `
+${[wrappers.map(w => `.${s} > ${w}.${name}1, .${s} > ${w}.row > .${name}1`).join(', '), `.${s} .${name}-n1, .${s} .row-${name}-n1 > *`].filter(x => x).join(', ')} { display: ${data('raui.grid.display') || 'inline-block'}; width: 100%; flex-grow: 0; flex-shrink: 0; }
+${[wrappers.map(w => `.${s} > ${w}.${name}0, .${s} > ${w}.row > .${name}0`).join(', '), `.${s} .${name}-n0, .${s} .row-${name}-n0 > *`].filter(x => x).join(', ')} { display: none; flex-grow: 0; flex-shrink: 0: }
+${Object.keys(map).map(pc => `${map[pc].map(fraction => `${[wrappers.map(w =>
+  `.${s} > ${w}.row-${name}${fraction} > *, .${s} > ${w}.${name}${fraction}, .${s} > ${w}.row > .${name}${fraction}`).join(', '), `.${s} .row-${name}-n${fraction} > * .row > .${name}-n${fraction}, .${s} .${name}-n${fraction}, .${s} .row-${name}-n${fraction} > *`].filter(x => x).join(', ')}`).join(', ')} { display: ${data('raui.grid.display') || 'inline-block'}; width: ${pc}%; flex-grow: 0; flex-shrink: 0; }`
+).join('\n')}
+${[wrappers.map(w => `.${s} > ${w}.row > ${name}-fill, .${s} >${w}.row > .${name}-auto`).join(', '), `.${s} .${name}-nfill, .${s} .${name}-nauto`].filter(x => x).join(', ')} { display: ${data('raui.grid.display') || 'inline-block'}; width: auto; flex-grow: 1; flex-shrink: 1; }`;
   });
-
-  out += rows + cols;
-
   return out;
 }
 
