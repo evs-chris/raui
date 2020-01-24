@@ -9,16 +9,17 @@ if [ "$NODE_ENV" != "dev" ]; then
         mkdir es
     fi
 
-    ls src/*.ractive.html | while read cmp; do
+    cd src
+    ls *.ractive.html | while read cmp; do
         echo compiling $cmp ...
-        cat $cmp | ractive component | buble --no modules > es/`basename $cmp .ractive.html`.js
-        cat es/`basename $cmp .ractive.html`.js | terser > es/`basename $cmp .ractive.html`.min.js
+        cat $cmp | ractive component | buble --no modules > ../es/`basename $cmp .ractive.html`.js
+        cat ../es/`basename $cmp .ractive.html`.js | terser > ../es/`basename $cmp .ractive.html`.min.js
     done
 
-    ls src/*.js | while read hlp; do
+    ls *.js | while read hlp; do
         echo compiling $hlp ...
-        cat $hlp | buble --no modules > es/`basename $hlp`
-        cat es/`basename $hlp` | terser > es/`basename $hlp .js`.min.js
+        cat $hlp | buble --no modules > ../es/`basename $hlp`
+        cat ../es/`basename $hlp` | terser > ../es/`basename $hlp .js`.min.js
     done
 else
   rollup -c rollup.config.js &  
