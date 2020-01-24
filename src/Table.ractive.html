@@ -1710,5 +1710,5 @@
     align-items: center;
     box-sizing: border-box;
   }
-  ` + (data('table.includeGrid') !== false ? gridStyle(data) : '');
+  ` + (data('table.includeGrid') ? gridStyle(data) : '');
 </script>
