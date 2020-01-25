@@ -506,6 +506,7 @@ export function style(data) {
     position: absolute;
     font-size: 1.1em;
     top: 2.4em;
+    font-weight: normal;
   }
 
   /* inline fields (no labels) */
