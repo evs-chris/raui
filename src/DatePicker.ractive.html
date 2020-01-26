@@ -108,6 +108,7 @@
     month(date, offset = 0) {
       let dt = date || new Date();
       if (!(dt instanceof Date)) return {};
+      if (isNaN(dt)) dt = new Date();
 
       if (offset) dt = new Date(dt.getFullYear(), dt.getMonth() + offset, dt.getDate());
 
