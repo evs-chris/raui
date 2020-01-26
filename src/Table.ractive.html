@@ -4,7 +4,8 @@
   class-rtable-fixed="~/fixed"
   class-rtable-border="~/border"
   class-rtable-fixed-header="~/fixedHeader"
-  class-rtable-scrolled="!~(~/scroll || '').indexOf('top')"
+  class-rtable-scrolled-down="!~(~/scroll || '').indexOf('top')"
+  class-rtable-scrolled-up="!~(~/scroll || '').indexOf('bottom')"
   class-rtable-with-select="~/allowSelect"
   class-rtable-valign-top="~/valign === 'top'"
   class-rtable-valign-center="~/valign === 'center'"
@@ -12,10 +13,16 @@
   class-rtable-nowrap="~/noWrap"
   {{yield extra-attributes}}
 >
-  {{#if !~/noHeader && ~/fixedHeader}}<div as-grid="{ offset: ~/scrollOffset }" class-rtable-header-fixed>{{>grid-head}}</div>{{/if}}
-  <div class-rtable-top {{#if ~/paginate === 'virtual'}}on-scroll="scroll" as-sized="{ offsetHeight: '~/tableHeight', diffWidth: '~/scrollOffset' }"{{/if}} {{#if !~/noHeader && ~/fixedHeader}}as-scrolled=`~/scroll`{{/if}} {{#if ~/fixedHeader && ~/noWrap}}as-scrollheader{{/if}}>
+  {{#if (!~/noHeader || meta.top) && ~/fixedHeader}}<div as-grid="{ offset: ~/scrollOffset }" class-rtable-header-fixed>
+    {{#if meta.top}}<div class-rtable-header-extra class-rtable-noheader="~/noHeader" {{#if meta.topAttrs}}{{yield meta.topAttrs}}{{/if}}>{{yield meta.top with selections.length as selectedCount, rows.length as rowCount, @this as table, selected as selected, selections as selections}}</div>{{/if}}
+    {{#unless ~/noHeader}}{{>grid-head}}{{/unless}}
+  </div>{{/if}}
+  <div class-rtable-top {{#if ~/paginate === 'virtual'}}on-scroll="scroll" as-sized="{ offsetHeight: '~/tableHeight', diffWidth: '~/scrollOffset' }"{{/if}} {{#if (!~/noHeader && ~/fixedHeader) || ~/meta.bottom}}as-scrolled=`~/scroll`{{/if}} {{#if ~/fixedHeader && ~/noWrap}}as-scrollheader{{/if}}>
+    {{#if !~/fixedHeader && meta.top}}<div class-rtable-header-extra class-rtable-noheader="~/noHeader" {{#if meta.topAttrs}}{{yield meta.topAttrs}}{{/if}}>{{yield meta.top with selections.length as selectedCount, rows.length as rowCount, @this as table, selected as selected, selections as selections}}</div>{{/if}}
     <div as-grid="{ size: '~/tableWidth' }" {{#if ~/paginate === 'virtual'}}style-margin-top="{{~/virtual.above}}px" style-margin-bottom="{{~/virtual.below}}px"{{/if}}>
-      {{#if !~/noHeader && !~/fixedHeader}}{{>grid-head}}{{/if}}
+      {{#if !~/noHeader && !~/fixedHeader}}
+        {{>grid-head}}
+      {{/if}}
       {{#if ~/shuffle}}
         {{#each ~/visibleRows, ~/items as source, ~/shuffle as shuffle}}
           {{>grid-row}}
@@ -28,11 +35,16 @@
       {{#if !~/rows.length}}<div class-rtable-row class-row class-t1>{{yield empty with ~/empty as message}}</div>{{/if}}
     </div>
   </div>
-  {{#if ~/paginate !== 'virtual'}}{{>pagination}}{{/if}}
+  {{#if ~/paginate !== 'virtual' || ~/meta.bottom}}
+  <div class-rtable-bottom {{#if meta.bottomAttrs}}{{yield meta.bottomAttrs}}{{/if}}>
+    {{#if ~/meta.bottom}}{{yield meta.bottom with selections.length as selectedCount, rows.length as rowCount, @this as table, selcted as selected, selections as selections}}{{/if}}
+    {{#if ~/paginate !== 'virtual'}}{{>pagination}}{{/if}}
+  </div>
+  {{/if}}
 </div>
 
 <template id="pagination">
-  <div class-rtable-bottom>
+  <div class-rtable-pagination>
     <div class-rtable-info>
       {{#if pagination && rows.length}}{{~/page * ~/pagination.per + 1}} - {{~/page + 1 === ~/pagination.total ? ~/rows.length : (~/page + 1) * ~/pagination.per}} of {{~/rows.length}}{{#if ~/isFiltered}} ({{~/items.length}} total){{/if}}{{/if}}
       {{#if _paginate === 1}}&#x200b;{{/if}}
@@ -190,6 +202,13 @@
       if (selected) {
         this.fire('selected', {}, selected, this.get('rows').indexOf(selected), this.get('visibleRows').indexOf(selected));
       }
+    }
+
+    deselect() {
+      this.set({
+        selections: [],
+        selected: undefined
+      });
     }
 
     get selections() {
@@ -588,6 +607,16 @@
           }
         },
         defer: true
+      },
+      'scrollOffset tableHeight': {
+        handler() {
+          requestAnimationFrame(() => {
+            const top = this.find('.rtable-top');
+            const ctx = top && this.getContext(top);
+            if (ctx && ctx.decorators && ctx.decorators.scrolled) ctx.decorators.scrolled.refresh();
+          });
+        },
+        init: false
       }
     },
     data() {
@@ -599,7 +628,7 @@
         expanded: null,
         minPerPage: 10,
         virtual: { offset: 0 },
-        shuffle: true
+        shuffle: true,
       }, Table.settings);
     },
     computed: {
@@ -932,7 +961,7 @@
     const cmp = this.component;
     if ( !cmp ) return;
 
-    let expandEl, groupEl, wrapperEl, rowEl, mappings;
+    let expandEl, groupEl, wrapperEl, rowEl, topEl, bottomEl, mappings;
 
     const tpl = cmp.template.f || [];
     const attrs = cmp.template.m ? cmp.template.m.slice() : [];
@@ -1086,11 +1115,17 @@
     groupEl = tpl.find(e => e.e === 'group');
     wrapperEl = tpl.find(e => e.e === 'wrapper');
     rowEl = tpl.find(e => e.e === 'row');
+    topEl = tpl.find(e => e.e === 'top');
+    bottomEl = tpl.find(e => e.e === 'bottom');
     
     this._init = { sets: grabColumns(tpl), partials: {} };
     const columns = this._init.sets.columns;
     this._init.sets['meta.expand'] = expandEl && expandEl.f && expandEl.f.length && expandEl.f;
     this._init.sets['meta.extra'] = rowEl && rowEl.f && rowEl.f.length && rowEl.f;
+    this._init.sets['meta.top'] = topEl && topEl.f && topEl.f.length && topEl.f;
+    this._init.sets['meta.topAttrs'] = topEl && topEl.m;
+    this._init.sets['meta.bottom'] = bottomEl && bottomEl.f && bottomEl.f.length && bottomEl.f;
+    this._init.sets['meta.bottomAttrs'] = bottomEl && bottomEl.m;
 
     const sortKey = '[_0._setSort(_1,_2)]';
 
@@ -1290,7 +1325,7 @@
 
   export function plugin(opts = {}) {
     return function({ Ractive, instance }) {
-      if ('includeGrid' in opts) Ractive.styleSet('table.inclideGrid', opts.includeGrid);
+      if ('includeGrid' in opts) Ractive.styleSet('table.includeGrid', opts.includeGrid);
       instance.components[opts.name || 'data-table'] = Table;
     }
   }
@@ -1303,7 +1338,7 @@
 <script rel="css">
   const primary = Object.assign({}, data(`raui.primary`), data(`raui.table.primary`));
   const active = Object.assign({}, primary, data('raui.primary.active'), data('raui.table.primary.active'));
-  const table = Object.assign({ selected: {} }, data('raui.table'));
+  const table = Object.assign({ selected: {}, header: {}, footer: {} }, data('raui.table'));
   return `
   .rtable {
     display: flex;
@@ -1444,30 +1479,40 @@
 
   .rtable-header.rtable-row-wrap, .rtable-header.rtable-row-wrap:hover {
     font-weight: bold;
-    background-color: ${table.header || '#dedede'};
+    background-color: ${table.header.bg || '#dedede'};
   }
   .rtable-header-fixed {
     line-height: 1em;
   }
 
-  .rtable-header.rtable-row-wrap {
+  .rtable-header.rtable-row-wrap, .rtable-header-extra.rtable-noheader {
     border-bottom: 2px solid ${table.divider || primary.bc || '#ccc'};
+  }
+
+  .rtable-header-extra {
+    background-color: ${table.header.bg || '#dedede'};
+    padding: ${table.padding || '0.5em'};
+    line-height: 1em;
+    z-index: 3;
+  }
+
+  .rtable-nowrap .rtable-header-extra {
+    position: sticky;
+    left: 0;
   }
 
   .rtable-top {
     flex-grow: 5;
     flex-shrink: 1;
     overflow-y: auto;
-    margin: 0.5em 0;
     position: relative;
   }
   .rtable-fixed-header .rtable-header {
-    margin-top: 0.5em;
     position: relative;
-    z-index: 2;
+    z-index: 3;
   }
-  .rtable-fixed-header.rtable-scrolled .rtable-header-fixed {
-    box-shadow: 0 1px 2px 0 rgba(60, 64, 67, 0.3), 0 1px 3px 1px rgba(60, 64, 67, 0.15);
+  .rtable-fixed-header.rtable-scrolled-down .rtable-header-fixed {
+    box-shadow: 0 1px 2px 0 rgba(60, 64, 67, 0.3), 0 1px 3px 1px rgba(60, 64, 67, 0.15), 0 0.25em 0.5em rgba(0,0,0,0.25);
     z-index: 3;
   }
   .rtable-fixed-header .rtable-top {
@@ -1475,9 +1520,6 @@
   }
   .rtable-nowrap.rtable-fixed-header .rtable-top {
     margin-top: -3px;
-  }
-  .rtable-with-select.rtable-nowrap.rtable-fixed-header .rtable-top {
-    margin-top: 0px;
   }
   .rtable-nowrap.rtable-fixed-header .rtable-header-fixed {
     flex-shrink: 0;
@@ -1530,20 +1572,21 @@
     border-right-width: 1px;
   }
 
+  .rtable-scrolled-up .rtable-bottom {
+    box-shadow: 0 -1px 2px 0 rgba(60, 64, 67, 0.3), 0 -1px 3px 1px rgba(60, 64, 67, 0.15), 0 -0.25em 0.5em rgba(0,0,0,0.25);
+    z-index: 3;
+  }
   .rtable-bottom {
+    padding: ${table.padding || '0.5em'};
+    background-color: ${table.footer.bg || table.header.bg ||  '#dedede'};
+    border-top: 2px solid ${table.divider || primary.bc || '#ccc'};
+  }
+
+  .rtable-pagination {
     display: flex;
     flex-wrap: wrap;
     flex-shrink: 0;
-    padding: 0 0.5em 0.5em 0.5em;
     justify-content: space-between;
-    user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
-    -webkit-user-select: none;
-  }
-
-  .rtable-bottom > * {
-    padding: 0.5em;
   }
 
   .rtable-pages span {
