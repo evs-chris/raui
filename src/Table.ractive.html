@@ -470,6 +470,11 @@
               const size = `${top.clientHeight},${top.clientWidth}`;
               if (fn.last === size && sized) return;
 
+              {
+                const ctx = this.getContext(top);
+                if (ctx.decorators && ctx.decorators.scrolled) ctx.decorators.scrolled.refresh();
+              }
+
               const header = this.find('.rtable-header') || {};
 
               let rows = Array.apply(null, this.findAll('.rtable-live')).map(r => r.offsetHeight);
