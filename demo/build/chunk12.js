@@ -20,12 +20,12 @@ System.register([], function (exports, module) {
           if (node.scrollWidth > node.clientWidth) { str += (str ? ' ' : '') + 'hscroll'; }
 
           if (node.scrollTop <= allow) { str += ' top'; }
-          else if (node.scrollTop >= node.scrollHeight - node.clientHeight - allow) { str += ' bottom'; }
-          else { str += ' vmiddle'; }
+          if (node.scrollTop >= node.scrollHeight - node.clientHeight - allow) { str += ' bottom'; }
+          if (!~str.indexOf('top') && !~str.indexOf('bottom')) { str += ' vmiddle'; }
 
           if (node.scrollLeft <= allow) { str += ' left'; }
-          else if (node.scrollLeft >= node.scrollWidth - node.clientWidth - allow) { str += ' right'; }
-          else { str += ' hmiddle'; }
+          if (node.scrollLeft >= node.scrollWidth - node.clientWidth - allow) { str += ' right'; }
+          else if (!~str.indexOf('left') && !~str.indexOf('right')) { str += ' hmiddle'; }
 
           ctx.set(bind, str);
         }
