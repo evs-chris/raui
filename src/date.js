@@ -143,8 +143,11 @@ export default function plugin(options = {}) {
           case 'Enter':
           case 'Tab': {
             const g = groupForPos(groups, node.selectionStart);
-            if (updateValues(groups, g, node.selectionStart, true)) updateDisplay(groups, node);
             const idx = groups.indexOf(g);
+            if (updateValues(groups, g, node.selectionStart, true)) {
+              updateDisplay(groups, node);
+              applyValues(groups, sendValue, ev.shiftKey && idx > 0 || !ev.shiftKey && idx + 1 < groups.length);
+            }
             if (ev.shiftKey && idx > 0) {
               node.setSelectionRange(groups[idx - 1].start, groups[idx - 1].end);
               ev.preventDefault();
