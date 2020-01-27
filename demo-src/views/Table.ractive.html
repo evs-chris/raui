@@ -20,15 +20,21 @@
 
     All attributes are optional.
 
-    * `items: Object[] = []` - The list of items to display in the table
-    * `filter: string` - The filter used to compare to each item to determine whether or not it should be displayed
-    * `paginate: falsey | number | 'auto' = null` -
+    * `items: Object[] = []` - The list of items to display in the table.
+    * `filter: string|object|object[]` - The filter used to compare to each item to determine whether or not it should be displayed.
+    * `sort: string|string[]` - The sorting to use on the displayed items
+    * `paginate: falsey | number | 'auto' | 'virtual' = 'virtual'` -
       * `falsey` - no pagination is applied
-      * `number` - the page size is set to the given number
+      * `number` - the page size is set to the given number.
       * `'auto'` - the table will calculate the number of rows that it can display without causing its container to require a scroll bar (or at the very least have minimal scrolling) when no rows are expanded
-    * `display: 'grid' | 'table' = 'grid'` - Whether to render as a grid or an HTML table
-    * `allowSelect: boolean = true` - Whether to show the select checkbox on individual rows.
-    * `allowSelectAll: boolean = true` - Whether to show the select all checkbox in the header to allow selecting all displayed - and all total - rows.
+    * `allow-select: boolean = true` - Whether to show the select checkbox on individual rows.
+    * `allow-select-all: boolean = true` - Whether to show the select all checkbox in the header to allow selecting all displayed - and all total - rows.
+    * `no-header: boolean = false` - Whether to show the header row.
+    * `fixed-header: boolean = true` - Whether the header should be fixed at the top of the table or move with the rows.
+    * `border: boolean = false` - Whether to show a border between columns.
+    * `no-wrap: boolean = false` - Whether columns should not be allowed to wrap to the next line. In this mode, columns should have fixed widths, as percentages will result in mangled rows. This mode also allows for fixed columns.
+    * `shuffle: boolean = true` - Whether the list of rows should shuffle.
+    * `valign: 'top' | 'center' | 'bottom' = 'center'` - Set the default vertical alignment of column values.
     
     ### Children
 
@@ -37,8 +43,15 @@
       * `filter: keypath` - A dotted keypath to the property used to filter the column. Filterable fields are automatically sortable.
       * `sort: keypath = filter` - A dotted keypath to the property used to sort the column. Sortable fields will automatically have their header control sorting by the column.
       * `hidden: boolean = false` - Whether to actually display the column in the table. This is useful for having a column participate in filtering without having to be displayed.
+      * `fixed: boolean|string = false` - Whether the column should be fixed in `no-wrap` mode. If the value is a string, it is used to set the left fix point of the column.
+      * `valign: 'top' | 'center' | 'bottom'` - Set the vertical alignment of this column.
 
-    * `row` - In grid tables, the content of the `row` child is used for expandable content for each row in the table
+    * `row` - The content of the `row` child is fixed below the column content for each row. The attributes of the row are applied to each row in the grid.
+    * `wrapper` - The attributes of the wrapper are applied to each rows wrapper.
+    * `expand` - The content of the `expand` element will be shown for each row if the row is selected to be expanded. This is similar to `row`, but will only show for a single row at a time.
+    * `top` - Additional content to be added to the header above the header columns. In both `top` and `bottom`, `selectedCount`, `rowCount`, `table`, `selected`, and `selections` are injected into the context to allow access to the number of selected rows, the total number of rows, the table component, the currently selected item, and the list of all selected items respectively.
+    * `bottom` - Additional content to be added to the footer of the table above the pagination, if any.
+    * `field` - Like column, but without content. These elements along with their `id` attribute are used to make filterable fields that are not displayed.
   </marked></tab>
   <tab title="Example" no-pad>
     <split>
@@ -46,16 +59,14 @@
         <div style-padding="1em">
         <div>
           <label as-field>Filter<input value="{{filter}}" lazy=300 ></label>
-          <label as-field>Mode<select value="{{mode}}">
-            <option value="grid">Grid</option>
-            <option value="table">Table</option>
-          </select></label>
           <label as-field><input type="checkbox" checked="{{border}}" />Border</label>
           <label as-field><input type="checkbox" checked="{{fixedHeader}}" />Fixed Header</label>
+          <label as-field><input type="checkbox" checked="{{noHeader}}" />No Header</label>
           <label as-field><input type="checkbox" checked="{{select}}" />Select</label>
           <label as-field><input type="checkbox" checked="{{selectAll}}" />Select All</label>
           <label as-field><input type="checkbox" checked="{{groups}}" />Show Groups</label>
           <label as-field><input type="checkbox" checked="{{groupSelect}}" />Group Select</label>
+          <label as-field>valign<select value="{{valign}}"><option>center</option><option>top</option><option>bottom</option></select></label>
           <label as-field>Pagination<select value="{{paginate}}"><option>auto</option><option>virtual</option><option>fixed</option><option value="{{null}}">none</option></select></label>
           {{#if paginate === 'fixed'}}<label as-field>Items per page<input type="number" value="{{pages}}" /></label>{{/if}}
           <label as-field><input type="checkbox" checked="{{editable}}" /> Editable Bar</label>
@@ -65,11 +76,11 @@
 
           ### Template:
           ```handlebars
-          <data-table bind-display=mode bind-items bind-filter="[{ op: '||', value: [{ id: 'Foo', op: 'like', value: filter }, { id: 'Bar', op: 'like', value: filter }] }]" bind-border bind-fixedHeader bind-paginate="paginate === 'fixed' ? pages : paginate" bind-allowSelect="select" bind-allowSelectAll="selectAll" paginate=auto on-selected="console.log($1)">
-            <row>
+          <data-table bind-items bind-filter="[{ op: '||', value: [{ id: 'Foo', op: 'like', value: filter }, { id: 'Bar', op: 'like', value: filter }] }]" bind-border bind-fixed-header=fixedHeader bind-paginate="paginate === 'fixed' ? pages : paginate" bind-allow-select=select bind-allow-select-all=selectAll bind-valign bind-no-header=noHeader on-selected="console.log($1)">
+            <expand>
               <h3>Extra stuff goes here</h3>
               <p>I have a {{.foo}} that is {{.bar}}.</p>
-            </row>
+            </expand>
             <column t1 s1-2 m1-3 label="Foo" filter=foo>{{.foo}}</column>
             <column t0 s1-2 m1-3 label="Bar" filter=bar bind-editable>{{.bar}}</column>
             <column t0 m1-3 label="???">{{.bat ? 'Yep' : 'Nope'}}</column>
@@ -82,11 +93,11 @@
         </marked>
         </div>
       </pane><pane style-display=flex style-flex-direction=column>
-        <data-table bind-display=mode bind-items bind-filter="[{ op: '||', value: [{ id: 'Foo', op: 'like', value: filter }, { id: 'Bar', op: 'like', value: filter }] }]" bind-border bind-fixedHeader bind-paginate="paginate === 'fixed' ? pages : paginate" bind-allowSelect="select" bind-allowSelectAll="selectAll" paginate=auto on-selected="console.log($1)">
-          <row>
+        <data-table bind-items bind-filter="[{ op: '||', value: [{ id: 'Foo', op: 'like', value: filter }, { id: 'Bar', op: 'like', value: filter }] }]" bind-border bind-fixed-header=fixedHeader bind-paginate="paginate === 'fixed' ? pages : paginate" bind-allow-select=select bind-allow-select-all=selectAll bind-valign bind-no-header=noHeader on-selected="console.log($1)">
+          <expand>
             <h3>Extra stuff goes here</h3>
             <p>I have a {{.foo}} that is {{.bar}}.</p>
-          </row>
+          </expand>
           <column t1 s1-2 m1-3 label="Foo" filter=foo>{{.foo}}</column>
           <column t0 s1-2 m1-3 label="Bar" filter=bar bind-editable>{{.bar}}</column>
           <column t0 m1-3 label="???">{{.bat ? 'Yep' : 'Nope'}}</column>
