@@ -15,13 +15,13 @@
 >
   {{#if (!~/noHeader || meta.top) && ~/fixedHeader}}<div as-grid="{ offset: ~/scrollOffset }" class-rtable-header-fixed>
     {{#if meta.top}}<div class-rtable-header-extra class-rtable-noheader="~/noHeader" {{#if meta.topAttrs}}{{yield meta.topAttrs}}{{/if}}>{{yield meta.top with selections.length as selectedCount, rows.length as rowCount, @this as table, selected as selected, selections as selections}}</div>{{/if}}
-    {{#unless ~/noHeader}}<div class-rtable-header-wrapper>{{>grid-head}}</div>{{/unless}}
+    {{#unless ~/noHeader}}<div class-rtable-header-wrapper class-row-wrap>{{>grid-head}}</div>{{/unless}}
   </div>{{/if}}
   <div class-rtable-top {{#if ~/paginate === 'virtual'}}on-scroll="scroll" as-sized="{ offsetHeight: '~/tableHeight', diffWidth: '~/scrollOffset' }"{{/if}} {{#if (!~/noHeader && ~/fixedHeader) || ~/meta.bottom}}as-scrolled=`~/scroll`{{/if}} {{#if ~/fixedHeader && ~/noWrap}}as-scrollheader{{/if}}>
     {{#if !~/fixedHeader && meta.top}}<div class-rtable-header-extra class-rtable-noheader="~/noHeader" {{#if meta.topAttrs}}{{yield meta.topAttrs}}{{/if}}>{{yield meta.top with selections.length as selectedCount, rows.length as rowCount, @this as table, selected as selected, selections as selections}}</div>{{/if}}
     <div as-grid="{ size: '~/tableWidth' }" {{#if ~/paginate === 'virtual'}}style-margin-top="{{~/virtual.above}}px" style-margin-bottom="{{~/virtual.below}}px"{{/if}}>
       {{#if !~/noHeader && !~/fixedHeader}}
-        <div class-rtable-header-wrapper>{{>grid-head}}</div>
+        <div class-rtable-header-wrapper class-row-wrap>{{>grid-head}}</div>
       {{/if}}
       {{#if ~/shuffle}}
         {{#each ~/visibleRows, ~/items as source, ~/shuffle as shuffle}}
@@ -1400,7 +1400,7 @@
     flex-grow: 1;
   }
 
-  .rtable-nowrap .grid .row {
+  .rtable-nowrap .rtable-row, .rtable-nowrap .rtable-header > .row {
     flex-wrap: nowrap;
   }
   .rtable-nowrap .rtable-row-wrap, .rtable-inner-row-wrap {
