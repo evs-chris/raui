@@ -126,19 +126,19 @@
 
           if (tailTarget !== target) {
             if (vert) {
-              if (pos.tailLeft) pos.tailLeft += tailTarget.left - target.left;
-              if (pos.tailRight) pos.tailRight += target.right - tailTarget.right;
+              if (pos.tailLeft != null) pos.tailLeft += tailTarget.left - target.left;
+              if (pos.tailRight != null) pos.tailRight += target.right - tailTarget.right;
             } else {
-              if (pos.tailTop) pos.tailTop += tailTarget.top - target.top;
-              if (pos.tailBottom) pos.tailBottom += target.bottom - tailTarget.bottom;
+              if (pos.tailTop != null) pos.tailTop += tailTarget.top - target.top;
+              if (pos.tailBottom != null) pos.tailBottom += target.bottom - tailTarget.bottom;
             }
           } else if (align === 'middle') {
             if (vert) {
-              if (pos.tailLeft) pos.tailLeft += tailTarget.left - (pos.popLeft + offset.left);
-              if (pos.tailRight) pos.tailRight += (pos.popLeft + offset.left + local.width) - tailTarget.right;
+              if (pos.tailLeft != null) pos.tailLeft += tailTarget.left - (pos.popLeft + offset.left);
+              if (pos.tailRight != null) pos.tailRight += (pos.popLeft + offset.left + local.width) - tailTarget.right;
             } else {
-              if (pos.tailTop) pos.tailTop += tailTarget.top - (pos.popTop + offset.top);
-              if (pos.tailBottom) pos.tailBottom += (pos.popTop + offset.top + local.height) - tailTarget.bottom;
+              if (pos.tailTop != null) pos.tailTop += tailTarget.top - (pos.popTop + offset.top);
+              if (pos.tailBottom != null) pos.tailBottom += (pos.popTop + offset.top + local.height) - tailTarget.bottom;
             }
           }
         }
