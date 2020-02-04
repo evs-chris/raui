@@ -14,11 +14,11 @@
   {{yield extra-attributes}}
 >
   {{#if (!~/noHeader || meta.top) && ~/fixedHeader}}<div as-grid="{ offset: ~/scrollOffset }" class-rtable-header-fixed>
-    {{#if meta.top}}<div class-rtable-header-extra class-rtable-noheader="~/noHeader" {{#if meta.topAttrs}}{{yield meta.topAttrs}}{{/if}}>{{yield meta.top with selections.length as selectedCount, rows.length as rowCount, @this as table, selected as selected, selections as selections}}</div>{{/if}}
+    {{#if meta.top}}<div class-rtable-header-extra {{#if ~/noWrap}}style-width="{{~/tableWidth}}px"{{/if}} class-rtable-noheader="~/noHeader" {{#if meta.topAttrs}}{{yield meta.topAttrs}}{{/if}}>{{yield meta.top with selections.length as selectedCount, rows.length as rowCount, @this as table, selected as selected, selections as selections}}</div>{{/if}}
     {{#unless ~/noHeader}}<div class-rtable-header-wrapper class-row-wrap>{{>grid-head}}</div>{{/unless}}
   </div>{{/if}}
   <div class-rtable-top {{#if ~/paginate === 'virtual'}}on-scroll="scroll" as-sized="{ offsetHeight: '~/tableHeight', diffWidth: '~/scrollOffset' }"{{/if}} {{#if (!~/noHeader && ~/fixedHeader) || ~/meta.bottom}}as-scrolled=`~/scroll`{{/if}} {{#if ~/fixedHeader && ~/noWrap}}as-scrollheader{{/if}}>
-    {{#if !~/fixedHeader && meta.top}}<div class-rtable-header-extra class-rtable-noheader="~/noHeader" {{#if meta.topAttrs}}{{yield meta.topAttrs}}{{/if}}>{{yield meta.top with selections.length as selectedCount, rows.length as rowCount, @this as table, selected as selected, selections as selections}}</div>{{/if}}
+    {{#if !~/fixedHeader && meta.top}}<div class-rtable-header-extra {{#if ~/noWrap}}style-width="{{~/tableWidth}}px"{{/if}} class-rtable-noheader="~/noHeader" {{#if meta.topAttrs}}{{yield meta.topAttrs}}{{/if}}>{{yield meta.top with selections.length as selectedCount, rows.length as rowCount, @this as table, selected as selected, selections as selections}}</div>{{/if}}
     <div as-grid="{ size: '~/tableWidth' }" {{#if ~/paginate === 'virtual'}}style-margin-top="{{~/virtual.above}}px" style-margin-bottom="{{~/virtual.below}}px"{{/if}}>
       {{#if !~/noHeader && !~/fixedHeader}}
         <div class-rtable-header-wrapper class-row-wrap>{{>grid-head}}</div>
@@ -124,7 +124,7 @@
     }
 
     _setSort(index, ev) {
-      const [localh, classh] = [this.get('sort-handler'), this.get('@style.sort-handler')];
+      const [localh, classh] = [this.get('sort-handler'), this.get('@style.raui.table.sort-handler')];
       const fn = localh || classh;
       if (fn) {
         fn(this, this.get(`columns.${index}`), index, ev);
@@ -582,7 +582,7 @@
         const src = (this.get('items') || []).slice();
         const filter = this.get('filter');
         const sort = this.get('sort');
-        const [localh, classh] = [this.get('data-handler'), this.get('@style.data-handler')];
+        const [localh, classh] = [this.get('data-handler'), this.get('@style.raui.table.data-handler')];
         const handler = localh || classh || defaultFilter;
         if (!filter && !sort) {
           this.set('isFiltered', false);
@@ -670,6 +670,8 @@
       }
     }
   });
+
+  Ractive.styleSet('raui.table.selectWidth', '2em');
 
   const notNumbers = /^[^\d]*/;
   export function numberify(v) {
@@ -1066,13 +1068,13 @@
 
     // extra fixed content
     if (rowEl && rowEl.f && rowEl.f.length) {
-      row[0].f[0].f.push({ t: 7, e: 'div', m: [{ t: 13, n: 'class-rtable-row-extra' }, { t: 4, n: 50, r: '~/noWrap', f: [{ t: 13, n: 'style-width', f: [{ t: 2, x: { r: ['~/tableWidth', '~/allowSelect'], s: `_1?'calc('+(_0-3)+'px - 2em)':(_0-3)+'px'` } }] }] }], f: [{ t: 16, r: '~/meta.extra', c: { r: '.' } }] });
+      row[0].f[0].f.push({ t: 7, e: 'div', m: [{ t: 13, n: 'class-rtable-row-extra' }, { t: 4, n: 50, r: '~/noWrap', f: [{ t: 13, n: 'style-width', f: [{ t: 2, x: { r: ['~/tableWidth', '~/allowSelect', '@style.raui.table.selectWidth'], s: `_1?'calc('+_0+'px - '+_2+')':_0+'px'` } }] }] }], f: [{ t: 16, r: '~/meta.extra', c: { r: '.' } }] });
     }
 
     // expando rows
     if (expandEl && expandEl.f && expandEl.f.length) {
       row[0].f[0].f.push({ t: 4, n: 50, x: { r: ['.', '~/expanded'], s: '_0===_1' }, f: [
-        { t: 7, e: 'div', f: [{ t: 7, e: 'div', f: [{ t: 16, r: `~/meta.expand`, c: { r: '.' } }] }], m: [{ t: 13, n: 'class-rtable-row-expand' }, { t: 4, n: 50, r: '~/noWrap', f: [{ t: 13, n: 'style-width', f: [{ t: 2, x: { r: ['~/tableWidth', '~/allowSelect'], s: `_1?'calc('+(_0-3)+'px - 2em)':(_0-3)+'px'` } }] }] }] }
+        { t: 7, e: 'div', f: [{ t: 7, e: 'div', f: [{ t: 16, r: `~/meta.expand`, c: { r: '.' } }] }], m: [{ t: 13, n: 'class-rtable-row-expand' }, { t: 4, n: 50, r: '~/noWrap', f: [{ t: 13, n: 'style-width', f: [{ t: 2, x: { r: ['~/tableWidth', '~/allowSelect', '@style.raui.table.selectWidth'], s: `_1?'calc('+_0+'px - '+_2+')':_0+'px'` } }] }] }] }
       ] });
       row[0].f[0].f[0].m.push({ t: 70, n: ['clickd'], f: { r: ['@this', '@index'], s: '[_0._expand(_1)]' } });
       row[0].f[0].m.push({ t: 70, n: ['clickd'], f: { r: ['@this', '@index'], s: '[_0._expand(_1)]' } });
@@ -1162,6 +1164,10 @@
     max-height: 100%;
     box-sizing: border-box;
     flex-grow: 2;
+  }
+
+  .rtable.rtable-border {
+    border: 1px solid ${table.divider || primary.bc || '#ccc'};
   }
 
   .rtable-group > div > div,
@@ -1272,17 +1278,28 @@
   .rtable-border .rtable-header .rtable-column {
     margin-left: -1px;
   }
+  .rtable-border .rtable-row .rtable-column:nth-child(1),
+  .rtable-border .rtable-group .rtable-column:nth-child(1) {
+    border-left-width: 0;
+  }
+  .rtable-border.rtable-with-select .rtable-row .rtable-column:nth-child(1),
+  .rtable-border.rtable-with-select .rtable-group .rtable-column:nth-child(1) {
+    border-left-width: 1px;
+  }
 
   .rtable-border .rtable-row-wrap {
-    border-width: 0 1px 1px 1px;
+    border-bottom-width: 1px;
   }
 
   .rtable-border .rtable-row-expand, .rtable-border .rtable-row-extra {
     border-color: ${table.divider || primary.bc || '#ccc'};
     border-style: solid;
-    border-width: 1px 0 0 1px;
+    border-width: 1px 0 0 0;
     margin-left: -1px;
     width: 100%;
+  }
+  .rtable-border.rtable-with-select .rtable-row-expand, .rtable-border.rtable-with-select .rtable-row-extra {
+    border-left-width: 1px;
   }
 
   .rtable-row-expand, .rtable-row-extra {
@@ -1311,11 +1328,7 @@
     padding: ${table.padding || '0.5em'};
     line-height: 1em;
     z-index: 4;
-  }
-
-  .rtable-nowrap .rtable-header-extra {
-    position: sticky;
-    left: 0;
+    box-sizing: border-box;
   }
 
   .rtable-top {
@@ -1347,6 +1360,7 @@
   }
 
   .rtable-nowrap .rtable-fixed-column, .rtable-nowrap .rtable-row-extra, .rtable-nowrap .rtable-row-expand {
+    position: -webkit-sticky;
     position: sticky;
     left: 0;
   }
@@ -1354,10 +1368,10 @@
     left: 1px;
    }
   .rtable-nowrap.rtable-with-select .rtable-fixed-column, .rtable-nowrap.rtable-with-select .rtable-row-extra, .rtable-nowrap.rtable-with-select .rtable-row-expand {
-    left: 2.1em;
+    left: ${table.selectWidth || '2em'};
   }
   .rtabe-border.rtable-nowrap.rtable-with-select .rtable-fixed-column, .rtabe-border.rtable-nowrap.rtable-with-select .rtable-row-extra, .rtabe-border.rtable-nowrap.rtable-with-select .rtable-row-expand {
-    left: calc(2.1em + 1px);
+    left: ${table.selectWidth || '2em'};
   }
 
   .rtable-nowrap .rtable-inner-row-wrap {
@@ -1375,7 +1389,8 @@
   .rtable-nowrap .rtable-select-row,
   .rtable-nowrap .rtable-select-header {
     position: sticky;
-    left: 0.1em;
+    position: -webkit-sticky;
+    left: 0;
     z-index: 1;
   }
   .rtable-nowrap .rtable-select-header {
@@ -1434,10 +1449,9 @@
     box-shadow: none;
     outline: none;
     opacity: 0;
-    top: 0;
-    left: 0;
+    top: -4px;
+    left: -1.5px;
     border-radius: 2em;
-    transform: translate(-0.1em, 0) scale(1);
     transition: transform 0.2s, opacity 0.2s;
     background-color: ${primary.bc || '#ccc'};
     cursor: pointer;
@@ -1453,7 +1467,7 @@
     display: flex;
     justify-content: space-around;
     align-items: center;
-    flex-grow: 1;
+    flex-grow: 0;
   }
 
   .rtable-select:checked {
@@ -1466,7 +1480,7 @@
 
   .rtable-select:focus {
     opacity: 0.12;
-    transform: translate(0.2em, -0.3em) scale(1);
+    transform: scale(1);
   }
 
   .rtable-select-header:hover .rtable-select:focus, .rtable-select-row:hover .rtable.select:focus {
@@ -1475,7 +1489,7 @@
 
   .rtable-select:active {
     opacity: 0.4;
-    transform: translate(0.2em, -0.3em) scale(0);
+    transform: scale(0);
     transition: transform 0s, opacity 0s;
   }
 
@@ -1497,7 +1511,7 @@
     display: block;
     position: absolute;
     top: -5px;
-    left: 4px;
+    left: 0px;
     width: 10px;
     height: 5px;
     border: solid 2px transparent;
@@ -1524,7 +1538,7 @@
     display: flex;
     align-items: center;
     justify-content: space-around;
-    width: 2em;
+    width: ${table.selectWidth || '2em'};
   }
 
   .rtable-column button, .rtable-column .btn {
