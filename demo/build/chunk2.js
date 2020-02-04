@@ -399,7 +399,7 @@ System.register(['ractive'], function (exports, module) {
         }
       });
 
-      var id = 0;
+      var id$1 = 0;
       var Host = (function (Base) {
         function Host(opts) { Base.call(this, opts); this.defaults = {}; }
 
@@ -442,7 +442,7 @@ System.register(['ractive'], function (exports, module) {
             throw new Error('Windows must be instances of Window');
           }
 
-          if (!window.id) { window.set('@.id', options.id || ("window" + (id++))); }
+          if (!window.id) { window.set('@.id', options.id || ("window" + (id$1++))); }
           if (!this.get(("windows." + (escape(window.id))))) {
             this.set(("windows." + (escape(window.id))), Object.assign({ show: options.show !== false, autosize: true, id: window.id, blockers: [], close: true, minimize: true, maximize: true }, options, { id: window.id }));
           }

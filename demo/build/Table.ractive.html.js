@@ -21,12 +21,9 @@ System.register(['ractive', './chunk7.js', './chunk8.js', './chunk2.js', './chun
     }],
     execute: function () {
 
-      var sortRE = /^([-+])?([^\s]+)$/;
-
       function isString(v) { return typeof v === 'string'; }
       function isNumber(v) { return typeof v === 'number'; }
       function isObject(v) { return typeof v === 'object'; }
-      function isRegex(v) { return typeof v === 'object' && Object.prototype.toString.call(v) === 'RegExp' }
 
       var Table = (function (Ractive) {
         function Table(opts) { Ractive.call(this, opts); }
@@ -35,7 +32,7 @@ System.register(['ractive', './chunk7.js', './chunk8.js', './chunk2.js', './chun
         Table.prototype = Object.create( Ractive && Ractive.prototype );
         Table.prototype.constructor = Table;
 
-        var prototypeAccessors = { selections: { configurable: true } };
+        var prototypeAccessors = { selections: { configurable: true },selected: { configurable: true } };
 
         Table.prototype._allSelected = function _allSelected () {
           var sel = this.get('selections');
@@ -46,6 +43,26 @@ System.register(['ractive', './chunk7.js', './chunk8.js', './chunk2.js', './chun
           }
 
           return visible.length && true;
+        };
+
+        Table.prototype._setSort = function _setSort (index, ev) {
+          var ref = [this.get('sort-handler'), this.get('@style.sort-handler')];
+          var localh = ref[0];
+          var classh = ref[1];
+          var fn = localh || classh;
+          if (fn) {
+            fn(this, this.get(("columns." + index)), index, ev);
+          } else {
+            var sort = this.get('sort') || '';
+            var col = this.get(("columns." + index));
+            var id = col.id;
+            if (sort === id || sort.substr(1) === id) {
+              if (sort[0] === '-') { this.set('sort', id); }
+              else { this.set('sort', ("-" + id)); }
+            } else {
+              this.set('sort', id);
+            }
+          }
         };
 
         Table.prototype.nodeSet = function nodeSet (node, prop, value) { node[prop] = value; };
@@ -69,35 +86,6 @@ System.register(['ractive', './chunk7.js', './chunk8.js', './chunk2.js', './chun
             else {
               this.set('expanded', which);
               this.transition('expand', this.find('.rtable-row-expand'), { intro: true });
-            }
-          }
-        };
-
-        Table.prototype._setSort = function _setSort (idx, ev) {
-          var col = this.get(("columns." + idx));
-          if (!col || !(col.sort || col.filter)) { return; }
-          var cs = col.sort || col.filter;
-          var sort = cs;
-          if (isString(sort) && sort[0] === '~') { sort = this.get(sort); }
-
-          var multi = ev.ctrlKey;
-          var sorts = this.get('sort');
-
-          if (!Array.isArray(sort)) { sort = [sort]; }
-          if (!sorts) { sorts = []; }
-          else if (!Array.isArray(sorts)) { sorts = [sorts]; }
-
-          if (!sorts.length) { this.set('sort', sort.map(function (s) { return ("" + (s === cs ? (col.dir || '+') : '+') + s); })); }
-          else {
-            var cur = sorts.map(function (s) { return sortRE.exec(s).slice(1); });
-            var overlap = sort.reduce(function (a, c) { return a && !!cur.find(function (s) { return s[1] === c; }); }, true);
-            if (overlap && sorts.length !== sort.length && !multi) { this.set('sort', sort.map(function (s) { return ("+" + sort); })); }
-            else if (!multi) {
-              if (overlap) { this.set('sort', cur.map(function (s) { return ("" + (s[0] === '+' ? '-' : '+') + (s[1])); })); }
-              else { this.set('sort', sort.map(function (s) { return ("" + (s === cs ? (col.dir || '+') : '+') + s); })); }
-            } else {
-              if (overlap) { this.set('sort', cur.map(function (s) { return ~sort.indexOf(s[1]) ? ("" + (s[0] === '+' ? '-' : '+') + (s[1])) : s[0] + s[1]; })); }
-              else { this.set('sort', sorts.concat(sort.map(function (s) { return ("" + (s === cs ? (col.dir || '+') : '+') + s); }))); }
             }
           }
         };
@@ -138,15 +126,15 @@ System.register(['ractive', './chunk7.js', './chunk8.js', './chunk2.js', './chun
           });
         };
 
-        prototypeAccessors.selections.get = function () {
-          return this.get('selections') || [];
-        };
-
+        prototypeAccessors.selections.get = function () { return this.get('selections') || []; };
         prototypeAccessors.selections.set = function (v) {
           var rows = this.get('rows');
           var sels = Array.isArray(v) ? v.filter(function (i) { return ~rows.indexOf(i); }) : [];
           this.set('selections', sels);
         };
+
+        prototypeAccessors.selected.get = function () { return this.get('selected'); };
+        prototypeAccessors.selected.set = function (v) { this.set({ selected: v, selections: [v] }); };
 
         Table.prototype.selectionOffset = function selectionOffset (offset) {
           var selected = this.get('selected');
@@ -247,60 +235,6 @@ System.register(['ractive', './chunk7.js', './chunk8.js', './chunk2.js', './chun
         return Table;
       }(Ractive$1));
 
-      function columnGetter(table, col) {
-        if (!table || !col) { return; }
-        if (typeof col.get === 'function') { return col.get; }
-        var getters = table._getters || (table._getters = {});
-        var v = col.filter;
-        if (isString(v) && v.indexOf('~/') === 0) { v = table.get(v); }
-        var k = Array.isArray(v) ? v.join('.') : isString(v) ? v : false;
-        if (!k) { return; }
-
-        if (!getters[k]) {
-          if (isString(v) && ~v.indexOf('*')) {
-            var parts = Ractive$1.splitKeypath(v);
-            getters[k] = function (obj) {
-              var res = applyPathReduce(obj, parts);
-              return res.v || res.l;
-            };
-          } else {
-            if (isString(v)) { v = Ractive$1.splitKeypath(v); }
-            getters[k] = function (obj) { return applyPath(obj, v); };
-          }
-        }
-
-        return getters[k];
-      }
-
-      function fieldGetter(table, field) {
-        if (!table || !field) { return; }
-        if (typeof field.get === 'function') { return field.get; }
-        var getters = table._getters || (table._getters = {});
-        var v = field.path;
-        if (isString(v) && v.indexOf('~/') === 0) { v = table.get(v); }
-        var k = Array.isArray(v) ? v.join('.') : isString(v) ? v : false;
-
-        if (k) {
-          if (!getters[k]) {
-            if (isString(v) && ~v.indexOf('*')) {
-              var parts = Ractive$1.splitKeypath(v);
-              getters[k] = function (obj) {
-                var res = applyPathReduce(obj, parts);
-                return res.v || res.l;
-              };
-            } else {
-              if (isString(v)) { v = Ractive$1.splitKeypath(v); }
-              getters[k] = function (obj) { return applyPath(obj, v); };
-            }
-          }
-          return getters[k];
-        } else {
-          v = field.value;
-          if (isString(v) && v.indexOf('~/') === 0) { v = table.get(v); }
-          if (typeof v === 'function') { return v; }
-        }
-      }
-
       function scrollheader(node) {
         var this$1 = this;
 
@@ -324,16 +258,16 @@ System.register(['ractive', './chunk7.js', './chunk8.js', './chunk2.js', './chun
       };
 
       Ractive$1.extendWith(Table, {
-        template: {v:4,t:[{t:7,e:"div",m:[{t:13,n:"class",f:"rtable",g:1},{n:"class-rtable-virtual",t:13,f:[{t:2,x:{r:["~/paginate"],s:"_0===\"virtual\""}}]},{n:"class-rtable-auto",t:13,f:[{t:2,x:{r:["~/paginate"],s:"_0===\"auto\""}}]},{n:"class-rtable-fixed",t:13,f:[{t:2,r:"~/fixed"}]},{n:"class-rtable-border",t:13,f:[{t:2,r:"~/border"}]},{n:"class-rtable-fixed-header",t:13,f:[{t:2,r:"~/fixedHeader"}]},{n:"class-rtable-scrolled-down",t:13,f:[{t:2,x:{r:["~/scroll"],s:"!~(_0||\"\").indexOf(\"top\")"}}]},{n:"class-rtable-scrolled-up",t:13,f:[{t:2,x:{r:["~/scroll"],s:"!~(_0||\"\").indexOf(\"bottom\")"}}]},{n:"class-rtable-with-select",t:13,f:[{t:2,r:"~/allowSelect"}]},{n:"class-rtable-valign-top",t:13,f:[{t:2,x:{r:["~/valign"],s:"_0===\"top\""}}]},{n:"class-rtable-valign-center",t:13,f:[{t:2,x:{r:["~/valign"],s:"_0===\"center\""}}]},{n:"class-rtable-valign-bottom",t:13,f:[{t:2,x:{r:["~/valign"],s:"_0===\"bottom\""}}]},{n:"class-rtable-nowrap",t:13,f:[{t:2,r:"~/noWrap"}]},{t:16,r:"extra-attributes"}],f:[{t:4,f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rtable-header-fixed",g:1},{n:"grid",t:71,f:{r:["~/scrollOffset"],s:"[{offset:_0}]"}}],f:[{t:4,f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rtable-header-extra",g:1},{n:"class-rtable-noheader",t:13,f:[{t:2,r:"~/noHeader"}]},{t:4,f:[{t:16,r:"meta.topAttrs"}],n:50,r:"meta.topAttrs"}],f:[{t:16,r:"meta.top",z:[{n:"selectedCount",x:{r:"selections.length"}},{n:"rowCount",x:{r:"rows.length"}},{n:"table",x:{r:"@this"}},{n:"selected",x:{r:"selected"}},{n:"selections",x:{r:"selections"}}]}]}],n:50,r:"meta.top"}," ",{t:4,f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rtable-header-wrapper row-wrap",g:1}],f:[{t:8,r:"grid-head"}]}],n:51,r:"~/noHeader"}]}],n:50,x:{r:["~/noHeader","meta.top","~/fixedHeader"],s:"(!_0||_1)&&_2"}}," ",{t:7,e:"div",m:[{t:13,n:"class",f:"rtable-top",g:1},{t:4,f:[{n:["scroll"],t:70,f:"scroll"},{n:"sized",t:71,f:{r:[],s:"[{offsetHeight:\"~/tableHeight\",diffWidth:\"~/scrollOffset\"}]"}}],n:50,x:{r:["~/paginate"],s:"_0===\"virtual\""}},{t:4,f:[{n:"scrolled",t:71,f:{r:[],s:"[\"~/scroll\"]"}}],n:50,x:{r:["~/noHeader","~/fixedHeader","~/meta.bottom"],s:"(!_0&&_1)||_2"}},{t:4,f:[{n:"scrollheader",t:71}],n:50,x:{r:["~/fixedHeader","~/noWrap"],s:"_0&&_1"}}],f:[{t:4,f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rtable-header-extra",g:1},{n:"class-rtable-noheader",t:13,f:[{t:2,r:"~/noHeader"}]},{t:4,f:[{t:16,r:"meta.topAttrs"}],n:50,r:"meta.topAttrs"}],f:[{t:16,r:"meta.top",z:[{n:"selectedCount",x:{r:"selections.length"}},{n:"rowCount",x:{r:"rows.length"}},{n:"table",x:{r:"@this"}},{n:"selected",x:{r:"selected"}},{n:"selections",x:{r:"selections"}}]}]}],n:50,x:{r:["~/fixedHeader","meta.top"],s:"!_0&&_1"}}," ",{t:7,e:"div",m:[{n:"grid",t:71,f:{r:[],s:"[{size:\"~/tableWidth\"}]"}},{t:4,f:[{n:"style-margin-top",f:[{t:2,r:"~/virtual.above"},"px"],t:13},{n:"style-margin-bottom",f:[{t:2,r:"~/virtual.below"},"px"],t:13}],n:50,x:{r:["~/paginate"],s:"_0===\"virtual\""}}],f:[{t:4,f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rtable-header-wrapper row-wrap",g:1}],f:[{t:8,r:"grid-head"}]}],n:50,x:{r:["~/noHeader","~/fixedHeader"],s:"!_0&&!_1"}}," ",{t:4,f:[{t:4,f:[{t:8,r:"grid-row"}],n:52,z:[{n:"source",x:{r:"~/items"}},{n:"shuffle",x:{r:"~/shuffle"}}],r:"~/visibleRows"}],n:50,r:"~/shuffle"},{t:4,f:[{t:4,f:[{t:8,r:"grid-row"}],n:52,r:"~/visibleRows"}],n:51,l:1}," ",{t:4,f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rtable-row row t1",g:1}],f:[{t:16,r:"empty",z:[{n:"message",x:{r:"~/empty"}}]}]}],n:50,x:{r:["~/rows.length"],s:"!_0"}}]}]}," ",{t:4,f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rtable-bottom",g:1},{t:4,f:[{t:16,r:"meta.bottomAttrs"}],n:50,r:"meta.bottomAttrs"}],f:[{t:4,f:[{t:16,r:"meta.bottom",z:[{n:"selectedCount",x:{r:"selections.length"}},{n:"rowCount",x:{r:"rows.length"}},{n:"table",x:{r:"@this"}},{n:"selected",x:{r:"selcted"}},{n:"selections",x:{r:"selections"}}]}],n:50,r:"~/meta.bottom"}," ",{t:4,f:[{t:8,r:"pagination"}],n:50,x:{r:["~/paginate"],s:"_0!==\"virtual\""}}]}],n:50,x:{r:["~/paginate","~/meta.bottom"],s:"_0!==\"virtual\"||_1"}}]}],e:{"_0===\"virtual\"":function (_0){return(_0==="virtual");},"_0===\"auto\"":function (_0){return(_0==="auto");},"!~(_0||\"\").indexOf(\"top\")":function (_0){return(!~(_0||"").indexOf("top"));},"!~(_0||\"\").indexOf(\"bottom\")":function (_0){return(!~(_0||"").indexOf("bottom"));},"_0===\"top\"":function (_0){return(_0==="top");},"_0===\"center\"":function (_0){return(_0==="center");},"_0===\"bottom\"":function (_0){return(_0==="bottom");},"[{offset:_0}]":function (_0){return([{offset:_0}]);},"(!_0||_1)&&_2":function (_0,_1,_2){return((!_0||_1)&&_2);},"[{offsetHeight:\"~/tableHeight\",diffWidth:\"~/scrollOffset\"}]":function (){return([{offsetHeight:"~/tableHeight",diffWidth:"~/scrollOffset"}]);},"[\"~/scroll\"]":function (){return(["~/scroll"]);},"(!_0&&_1)||_2":function (_0,_1,_2){return((!_0&&_1)||_2);},"_0&&_1":function (_0,_1){return(_0&&_1);},"!_0&&_1":function (_0,_1){return(!_0&&_1);},"[{size:\"~/tableWidth\"}]":function (){return([{size:"~/tableWidth"}]);},"!_0&&!_1":function (_0,_1){return(!_0&&!_1);},"!_0":function (_0){return(!_0);},"_0!==\"virtual\"":function (_0){return(_0!=="virtual");},"_0!==\"virtual\"||_1":function (_0,_1){return(_0!=="virtual"||_1);},"(_0+_1)%2===1":function (_0,_1){return((_0+_1)%2===1);},"[_0._setSort(_1,_2)]":function (_0,_1,_2){return([_0._setSort(_1,_2)]);},"[_0._select(_1,_2),false]":function (_0,_1,_2){return([_0._select(_1,_2),false]);},"[[\"select\",_2,_0.indexOf(_2),_1.indexOf(_2)]]":function (_0,_1,_2){return([["select",_2,_0.indexOf(_2),_1.indexOf(_2)]]);},"[_0._expand(_1)]":function (_0,_1){return([_0._expand(_1)]);},"[_0.stopPropagation()]":function (_0){return([_0.stopPropagation()]);},"_0.indexOf(_1)":function (_0,_1){return(_0.indexOf(_1));},"_0===_1":function (_0,_1){return(_0===_1);},"_0>0":function (_0){return(_0>0);},"!_0&&_1>0":function (_0,_1){return(!_0&&_1>0);},"_0===\"boolean\"":function (_0){return(_0==="boolean");},"_0._allSelected()":function (_0){return(_0._allSelected());},"_0||\"No data.\"":function (_0){return(_0||"No data.");},"_0*_1+1":function (_0,_1){return(_0*_1+1);},"_2+1===_0?_1:(_2+1)*_3":function (_0,_1,_2,_3){return(_2+1===_0?_1:(_2+1)*_3);},"_0===1":function (_0){return(_0===1);},"_0._allSelected()&&_1<_2":function (_0,_1,_2){return(_0._allSelected()&&_1<_2);},"[_0.set(\"page\",_1-1)]":function (_0,_1){return([_0.set("page",_1-1)]);},"[(/^\\d+$/.test(_1)&&+_1>0&&+_1<=_0&&_2.set(\"page\",+_1-1))||_2.nodeSet(_3,\"value\",_4+1)]":function (_0,_1,_2,_3,_4){return([(/^\d+$/.test(_1)&&+_1>0&&+_1<=_0&&_2.set("page",+_1-1))||_2.nodeSet(_3,"value",_4+1)]);},"_0==_1+1":function (_0,_1){return(_0==_1+1);},"[_0.set(\"page\",_2[_1-1])]":function (_0,_1,_2){return([_0.set("page",_2[_1-1])]);},"_0===\"...\"":function (_0){return(_0==="...");},"[_0.set(\"page\",_1+1)]":function (_0,_1){return([_0.set("page",_1+1)]);},"_0<_1-1":function (_0,_1){return(_0<_1-1);}},p:{"csp-dummy":[{t:7,e:"div",m:[{n:"class-rtable-odd",t:13,f:[{t:2,x:{r:["@index","~/virtual.offset"],s:"(_0+_1)%2===1"}}]},{n:"class-top",t:13,f:[{t:2,x:{r:[".valign"],s:"_0===\"top\""}}]},{n:"class-bottom",t:13,f:[{t:2,x:{r:[".valign"],s:"_0===\"bottom\""}}]},{n:"class-center",t:13,f:[{t:2,x:{r:[".valign"],s:"_0===\"center\""}}]},{n:["click"],t:70,f:{r:["@this",".index","@event"],s:"[_0._setSort(_1,_2)]"}},{n:["click"],t:70,f:{r:["@this",".","@event"],s:"[_0._select(_1,_2),false]"}},{n:["click"],t:70,f:{r:["~/rows","~/visibleRows","."],s:"[[\"select\",_2,_0.indexOf(_2),_1.indexOf(_2)]]"}},{n:["click"],t:70,f:{r:["@this","@index"],s:"[_0._expand(_1)]"}},{n:["click"],t:70,f:{r:["@event"],s:"[_0.stopPropagation()]"}}]}," ",{t:4,f:["..."],n:50,x:{r:["~/selections","."],s:"_0.indexOf(_1)"}}," ",{t:4,f:["..."],n:50,x:{r:[".","~/expanded"],s:"_0===_1"}}," ",{t:4,f:["..."],n:50,x:{r:["~/virtual.offset"],s:"_0>0"}}," ",{t:4,f:["..."],n:50,x:{r:["~/fixedHeader","~/virtual.offset"],s:"!_0&&_1>0"}}," ",{t:4,f:["..."],n:50,x:{r:["~/columns.0.type"],s:"_0===\"boolean\""}}," ",{t:4,f:["..."],n:50,x:{r:["@this"],s:"_0._allSelected()"}}],empty:[{t:7,e:"div",f:[{t:7,e:"div",f:[{t:2,x:{r:["message"],s:"_0||\"No data.\""}}]}]}],pagination:[{t:7,e:"div",m:[{t:13,n:"class",f:"rtable-pagination",g:1}],f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rtable-info",g:1}],f:[{t:4,f:[{t:2,x:{r:["~/page","~/pagination.per"],s:"_0*_1+1"}}," - ",{t:2,x:{r:["~/pagination.total","~/rows.length","~/page","~/pagination.per"],s:"_2+1===_0?_1:(_2+1)*_3"}}," of ",{t:2,r:"~/rows.length"},{t:4,f:[" (",{t:2,r:"~/items.length"}," total)"],n:50,r:"~/isFiltered"}],n:50,x:{r:["pagination","rows.length"],s:"_0&&_1"}}," ",{t:4,f:["​"],n:50,x:{r:["_paginate"],s:"_0===1"}}]}," ",{t:7,e:"div",m:[{t:13,n:"class",f:"rtable-select-all-all",g:1}],f:[{t:4,f:[{t:7,e:"strong",f:[{t:2,r:"selections.length"}]}," of ",{t:7,e:"strong",f:[{t:2,r:"rows.length"}]}," selected",{t:4,f:[" - ",{t:7,e:"a",m:[{n:"href",f:"#",t:13,g:1},{n:["click"],t:70,f:"selectAllAll"}],f:["Select All"]}],n:50,x:{r:["@this","selections.length","rows.length"],s:"_0._allSelected()&&_1<_2"}}],n:50,x:{r:["selections.length"],s:"_0>0"}}]}," ",{t:7,e:"div",m:[{t:13,n:"class",f:"rtable-pages",g:1}],f:[{t:4,f:[{t:7,e:"span",m:[{n:["click"],t:70,f:{r:["@this","~/page"],s:"[_0.set(\"page\",_1-1)]"}}],f:["Previous"]}],n:50,x:{r:["~/page"],s:"_0>0"}}," ",{t:4,f:[{t:4,f:[{t:7,e:"input",m:[{n:["change"],t:70,f:{r:["~/pagination.total","@node.value","@this","@node","~/page"],s:"[(/^\\d+$/.test(_1)&&+_1>0&&+_1<=_0&&_2.set(\"page\",+_1-1))||_2.nodeSet(_3,\"value\",_4+1)]"}},{n:"value",f:[{t:2,r:"."}],t:13},{t:73,v:"t",f:"false"}]}],n:50,x:{r:[".","~/page"],s:"_0==_1+1"}},{t:4,f:[{t:7,e:"span",m:[{n:["click"],t:70,f:{r:["@this","@index","../"],s:"[_0.set(\"page\",_2[_1-1])]"}}],f:["..."]}," "],n:50,x:{r:["."],s:"_0===\"...\""},l:1},{t:4,f:[" ",{t:7,e:"span",m:[{n:["click"],t:70,f:{r:["@this","."],s:"[_0.set(\"page\",_1-1)]"}}],f:[{t:2,r:"."}]}],n:51,l:1}],n:52,r:"~/pagination.array"}," ",{t:4,f:[{t:7,e:"span",m:[{n:["click"],t:70,f:{r:["@this","~/page"],s:"[_0.set(\"page\",_1+1)]"}}],f:["Next"]}],n:50,x:{r:["~/page","~/pagination.total"],s:"_0<_1-1"}}]}]}]}},
+        template: {v:4,t:[{t:7,e:"div",m:[{t:13,n:"class",f:"rtable",g:1},{n:"class-rtable-virtual",t:13,f:[{t:2,x:{r:["~/paginate"],s:"_0===\"virtual\""}}]},{n:"class-rtable-auto",t:13,f:[{t:2,x:{r:["~/paginate"],s:"_0===\"auto\""}}]},{n:"class-rtable-fixed",t:13,f:[{t:2,r:"~/fixed"}]},{n:"class-rtable-border",t:13,f:[{t:2,r:"~/border"}]},{n:"class-rtable-fixed-header",t:13,f:[{t:2,r:"~/fixedHeader"}]},{n:"class-rtable-scrolled-down",t:13,f:[{t:2,x:{r:["~/scroll"],s:"!~(_0||\"\").indexOf(\"top\")"}}]},{n:"class-rtable-scrolled-up",t:13,f:[{t:2,x:{r:["~/scroll"],s:"!~(_0||\"\").indexOf(\"bottom\")"}}]},{n:"class-rtable-with-select",t:13,f:[{t:2,r:"~/allowSelect"}]},{n:"class-rtable-valign-top",t:13,f:[{t:2,x:{r:["~/valign"],s:"_0===\"top\""}}]},{n:"class-rtable-valign-center",t:13,f:[{t:2,x:{r:["~/valign"],s:"_0===\"center\""}}]},{n:"class-rtable-valign-bottom",t:13,f:[{t:2,x:{r:["~/valign"],s:"_0===\"bottom\""}}]},{n:"class-rtable-nowrap",t:13,f:[{t:2,r:"~/noWrap"}]},{t:16,r:"extra-attributes"}],f:[{t:4,f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rtable-header-fixed",g:1},{n:"grid",t:71,f:{r:["~/scrollOffset"],s:"[{offset:_0}]"}}],f:[{t:4,f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rtable-header-extra",g:1},{n:"class-rtable-noheader",t:13,f:[{t:2,r:"~/noHeader"}]},{t:4,f:[{t:16,r:"meta.topAttrs"}],n:50,r:"meta.topAttrs"}],f:[{t:16,r:"meta.top",z:[{n:"selectedCount",x:{r:"selections.length"}},{n:"rowCount",x:{r:"rows.length"}},{n:"table",x:{r:"@this"}},{n:"selected",x:{r:"selected"}},{n:"selections",x:{r:"selections"}}]}]}],n:50,r:"meta.top"}," ",{t:4,f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rtable-header-wrapper row-wrap",g:1}],f:[{t:8,r:"grid-head"}]}],n:51,r:"~/noHeader"}]}],n:50,x:{r:["~/noHeader","meta.top","~/fixedHeader"],s:"(!_0||_1)&&_2"}}," ",{t:7,e:"div",m:[{t:13,n:"class",f:"rtable-top",g:1},{t:4,f:[{n:["scroll"],t:70,f:"scroll"},{n:"sized",t:71,f:{r:[],s:"[{offsetHeight:\"~/tableHeight\",diffWidth:\"~/scrollOffset\"}]"}}],n:50,x:{r:["~/paginate"],s:"_0===\"virtual\""}},{t:4,f:[{n:"scrolled",t:71,f:{r:[],s:"[\"~/scroll\"]"}}],n:50,x:{r:["~/noHeader","~/fixedHeader","~/meta.bottom"],s:"(!_0&&_1)||_2"}},{t:4,f:[{n:"scrollheader",t:71}],n:50,x:{r:["~/fixedHeader","~/noWrap"],s:"_0&&_1"}}],f:[{t:4,f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rtable-header-extra",g:1},{n:"class-rtable-noheader",t:13,f:[{t:2,r:"~/noHeader"}]},{t:4,f:[{t:16,r:"meta.topAttrs"}],n:50,r:"meta.topAttrs"}],f:[{t:16,r:"meta.top",z:[{n:"selectedCount",x:{r:"selections.length"}},{n:"rowCount",x:{r:"rows.length"}},{n:"table",x:{r:"@this"}},{n:"selected",x:{r:"selected"}},{n:"selections",x:{r:"selections"}}]}]}],n:50,x:{r:["~/fixedHeader","meta.top"],s:"!_0&&_1"}}," ",{t:7,e:"div",m:[{n:"grid",t:71,f:{r:[],s:"[{size:\"~/tableWidth\"}]"}},{t:4,f:[{n:"style-margin-top",f:[{t:2,r:"~/virtual.above"},"px"],t:13},{n:"style-margin-bottom",f:[{t:2,r:"~/virtual.below"},"px"],t:13}],n:50,x:{r:["~/paginate"],s:"_0===\"virtual\""}}],f:[{t:4,f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rtable-header-wrapper row-wrap",g:1}],f:[{t:8,r:"grid-head"}]}],n:50,x:{r:["~/noHeader","~/fixedHeader"],s:"!_0&&!_1"}}," ",{t:4,f:[{t:4,f:[{t:8,r:"grid-row"}],n:52,z:[{n:"source",x:{r:"~/items"}},{n:"shuffle",x:{x:{r:[],s:"true"}}}],r:"~/visibleRows"}],n:50,r:"~/shuffle"},{t:4,f:[{t:4,f:[{t:8,r:"grid-row"}],n:52,r:"~/visibleRows"}],n:51,l:1}," ",{t:4,f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rtable-row row t1",g:1}],f:[{t:16,r:"empty",z:[{n:"message",x:{r:"~/empty"}}]}]}],n:50,x:{r:["~/rows.length"],s:"!_0"}}]}]}," ",{t:4,f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rtable-bottom",g:1},{t:4,f:[{t:16,r:"meta.bottomAttrs"}],n:50,r:"meta.bottomAttrs"}],f:[{t:4,f:[{t:16,r:"meta.bottom",z:[{n:"selectedCount",x:{r:"selections.length"}},{n:"rowCount",x:{r:"rows.length"}},{n:"table",x:{r:"@this"}},{n:"selected",x:{r:"selcted"}},{n:"selections",x:{r:"selections"}}]}],n:50,r:"~/meta.bottom"}," ",{t:4,f:[{t:8,r:"pagination"}],n:50,x:{r:["~/paginate"],s:"_0!==\"virtual\""}}]}],n:50,x:{r:["~/paginate","~/meta.bottom"],s:"_0!==\"virtual\"||_1"}}]}],e:{"_0===\"virtual\"":function (_0){return(_0==="virtual");},"_0===\"auto\"":function (_0){return(_0==="auto");},"!~(_0||\"\").indexOf(\"top\")":function (_0){return(!~(_0||"").indexOf("top"));},"!~(_0||\"\").indexOf(\"bottom\")":function (_0){return(!~(_0||"").indexOf("bottom"));},"_0===\"top\"":function (_0){return(_0==="top");},"_0===\"center\"":function (_0){return(_0==="center");},"_0===\"bottom\"":function (_0){return(_0==="bottom");},"[{offset:_0}]":function (_0){return([{offset:_0}]);},"(!_0||_1)&&_2":function (_0,_1,_2){return((!_0||_1)&&_2);},"[{offsetHeight:\"~/tableHeight\",diffWidth:\"~/scrollOffset\"}]":function (){return([{offsetHeight:"~/tableHeight",diffWidth:"~/scrollOffset"}]);},"[\"~/scroll\"]":function (){return(["~/scroll"]);},"(!_0&&_1)||_2":function (_0,_1,_2){return((!_0&&_1)||_2);},"_0&&_1":function (_0,_1){return(_0&&_1);},"!_0&&_1":function (_0,_1){return(!_0&&_1);},"[{size:\"~/tableWidth\"}]":function (){return([{size:"~/tableWidth"}]);},"!_0&&!_1":function (_0,_1){return(!_0&&!_1);},"true":function (){return(true);},"!_0":function (_0){return(!_0);},"_0!==\"virtual\"":function (_0){return(_0!=="virtual");},"_0!==\"virtual\"||_1":function (_0,_1){return(_0!=="virtual"||_1);},"(_0+_1)%2===1":function (_0,_1){return((_0+_1)%2===1);},"[_0._setSort(_1,_2)]":function (_0,_1,_2){return([_0._setSort(_1,_2)]);},"[_0._select(_1,_2),false]":function (_0,_1,_2){return([_0._select(_1,_2),false]);},"[[\"select\",_2,_0.indexOf(_2),_1.indexOf(_2)]]":function (_0,_1,_2){return([["select",_2,_0.indexOf(_2),_1.indexOf(_2)]]);},"[_0._expand(_1)]":function (_0,_1){return([_0._expand(_1)]);},"[_0.stopPropagation()]":function (_0){return([_0.stopPropagation()]);},"_0.indexOf(_1)":function (_0,_1){return(_0.indexOf(_1));},"_0===_1":function (_0,_1){return(_0===_1);},"_0>0":function (_0){return(_0>0);},"!_0&&_1>0":function (_0,_1){return(!_0&&_1>0);},"_0===\"boolean\"":function (_0){return(_0==="boolean");},"_0._allSelected()":function (_0){return(_0._allSelected());},"_0||\"No data.\"":function (_0){return(_0||"No data.");},"_0*_1+1":function (_0,_1){return(_0*_1+1);},"_2+1===_0?_1:(_2+1)*_3":function (_0,_1,_2,_3){return(_2+1===_0?_1:(_2+1)*_3);},"_0===1":function (_0){return(_0===1);},"_0._allSelected()&&_1<_2":function (_0,_1,_2){return(_0._allSelected()&&_1<_2);},"[_0.set(\"page\",_1-1)]":function (_0,_1){return([_0.set("page",_1-1)]);},"[(/^\\d+$/.test(_1)&&+_1>0&&+_1<=_0&&_2.set(\"page\",+_1-1))||_2.nodeSet(_3,\"value\",_4+1)]":function (_0,_1,_2,_3,_4){return([(/^\d+$/.test(_1)&&+_1>0&&+_1<=_0&&_2.set("page",+_1-1))||_2.nodeSet(_3,"value",_4+1)]);},"_0==_1+1":function (_0,_1){return(_0==_1+1);},"[_0.set(\"page\",_2[_1-1])]":function (_0,_1,_2){return([_0.set("page",_2[_1-1])]);},"_0===\"...\"":function (_0){return(_0==="...");},"[_0.set(\"page\",_1+1)]":function (_0,_1){return([_0.set("page",_1+1)]);},"_0<_1-1":function (_0,_1){return(_0<_1-1);}},p:{"csp-dummy":[{t:7,e:"div",m:[{n:"class-rtable-odd",t:13,f:[{t:2,x:{r:["@index","~/virtual.offset"],s:"(_0+_1)%2===1"}}]},{n:"class-top",t:13,f:[{t:2,x:{r:[".valign"],s:"_0===\"top\""}}]},{n:"class-bottom",t:13,f:[{t:2,x:{r:[".valign"],s:"_0===\"bottom\""}}]},{n:"class-center",t:13,f:[{t:2,x:{r:[".valign"],s:"_0===\"center\""}}]},{n:["click"],t:70,f:{r:["@this",".index","@event"],s:"[_0._setSort(_1,_2)]"}},{n:["click"],t:70,f:{r:["@this",".","@event"],s:"[_0._select(_1,_2),false]"}},{n:["click"],t:70,f:{r:["~/rows","~/visibleRows","."],s:"[[\"select\",_2,_0.indexOf(_2),_1.indexOf(_2)]]"}},{n:["click"],t:70,f:{r:["@this","@index"],s:"[_0._expand(_1)]"}},{n:["click"],t:70,f:{r:["@event"],s:"[_0.stopPropagation()]"}}]}," ",{t:4,f:["..."],n:50,x:{r:["~/selections","."],s:"_0.indexOf(_1)"}}," ",{t:4,f:["..."],n:50,x:{r:[".","~/expanded"],s:"_0===_1"}}," ",{t:4,f:["..."],n:50,x:{r:["~/virtual.offset"],s:"_0>0"}}," ",{t:4,f:["..."],n:50,x:{r:["~/fixedHeader","~/virtual.offset"],s:"!_0&&_1>0"}}," ",{t:4,f:["..."],n:50,x:{r:["~/columns.0.type"],s:"_0===\"boolean\""}}," ",{t:4,f:["..."],n:50,x:{r:["@this"],s:"_0._allSelected()"}}],empty:[{t:7,e:"div",f:[{t:7,e:"div",f:[{t:2,x:{r:["message"],s:"_0||\"No data.\""}}]}]}],pagination:[{t:7,e:"div",m:[{t:13,n:"class",f:"rtable-pagination",g:1}],f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rtable-info",g:1}],f:[{t:4,f:[{t:2,x:{r:["~/page","~/pagination.per"],s:"_0*_1+1"}}," - ",{t:2,x:{r:["~/pagination.total","~/rows.length","~/page","~/pagination.per"],s:"_2+1===_0?_1:(_2+1)*_3"}}," of ",{t:2,r:"~/rows.length"},{t:4,f:[" (",{t:2,r:"~/items.length"}," total)"],n:50,r:"~/isFiltered"}],n:50,x:{r:["pagination","rows.length"],s:"_0&&_1"}}," ",{t:4,f:["​"],n:50,x:{r:["_paginate"],s:"_0===1"}}]}," ",{t:7,e:"div",m:[{t:13,n:"class",f:"rtable-select-all-all",g:1}],f:[{t:4,f:[{t:7,e:"strong",f:[{t:2,r:"selections.length"}]}," of ",{t:7,e:"strong",f:[{t:2,r:"rows.length"}]}," selected",{t:4,f:[" - ",{t:7,e:"a",m:[{n:"href",f:"#",t:13,g:1},{n:["click"],t:70,f:"selectAllAll"}],f:["Select All"]}],n:50,x:{r:["@this","selections.length","rows.length"],s:"_0._allSelected()&&_1<_2"}}],n:50,x:{r:["selections.length"],s:"_0>0"}}]}," ",{t:7,e:"div",m:[{t:13,n:"class",f:"rtable-pages",g:1}],f:[{t:4,f:[{t:7,e:"span",m:[{n:["click"],t:70,f:{r:["@this","~/page"],s:"[_0.set(\"page\",_1-1)]"}}],f:["Previous"]}],n:50,x:{r:["~/page"],s:"_0>0"}}," ",{t:4,f:[{t:4,f:[{t:7,e:"input",m:[{n:["change"],t:70,f:{r:["~/pagination.total","@node.value","@this","@node","~/page"],s:"[(/^\\d+$/.test(_1)&&+_1>0&&+_1<=_0&&_2.set(\"page\",+_1-1))||_2.nodeSet(_3,\"value\",_4+1)]"}},{n:"value",f:[{t:2,r:"."}],t:13},{t:73,v:"t",f:"false"}]}],n:50,x:{r:[".","~/page"],s:"_0==_1+1"}},{t:4,f:[{t:7,e:"span",m:[{n:["click"],t:70,f:{r:["@this","@index","../"],s:"[_0.set(\"page\",_2[_1-1])]"}}],f:["..."]}," "],n:50,x:{r:["."],s:"_0===\"...\""},l:1},{t:4,f:[" ",{t:7,e:"span",m:[{n:["click"],t:70,f:{r:["@this","."],s:"[_0.set(\"page\",_1-1)]"}}],f:[{t:2,r:"."}]}],n:51,l:1}],n:52,r:"~/pagination.array"}," ",{t:4,f:[{t:7,e:"span",m:[{n:["click"],t:70,f:{r:["@this","~/page"],s:"[_0.set(\"page\",_1+1)]"}}],f:["Next"]}],n:50,x:{r:["~/page","~/pagination.total"],s:"_0<_1-1"}}]}]}]}},
         css: function(data) { return [(function(data) {
          var primary = Object.assign({}, data("raui.primary"), data("raui.table.primary"));
          var active = Object.assign({}, primary, data('raui.primary.active'), data('raui.table.primary.active'));
          var table = Object.assign({ selected: {}, header: {}, footer: {} }, data('raui.table'));
-         return "\n   .rtable {\n     display: flex;\n     flex-direction: column;\n     overflow: auto;\n     max-width: 100%;\n     max-height: 100%;\n     box-sizing: border-box;\n     flex-grow: 2;\n   }\n \n   .rtable-group > div > div,\n   .rtable-header > div > div,\n   .rtable-row > div > div {\n     padding: " + (table.padding || '0.5em') + ";\n     overflow: inherit;\n     text-overflow: inherit;\n     line-height: 1em;\n   }\n   .rtable-row > .rtable-no-pad > div {\n     padding: 0;\n   }\n \n   .rtable-auto .row > *,\n   .rtable-fixed .row > *\n   {\n     text-overflow: ellipsis;\n     overflow: hidden;\n     white-space: nowrap;\n   }\n \n   .rtable-header > div > div, .rtable-column {\n     overflow: hidden;\n   }\n \n   .rtable-number-column {\n     text-align: right;\n   }\n   .rtable-date-column {\n     text-align: right;\n   }\n \n   .rtable-sortable {\n     cursor: pointer;\n     user-select: none;\n     -moz-user-select: none;\n     -ms-user-select: none;\n     -webkit-user-select: none;\n   }\n \n   .grid .row.rtable-row, .grid .rtable-header > .row {\n     width: auto;\n     min-width: min-content;\n     flex-grow: 1;\n   }\n \n   .rtable-nowrap .rtable-row, .rtable-nowrap .rtable-header > .row {\n     flex-wrap: nowrap;\n   }\n   .rtable-nowrap .rtable-row-wrap, .rtable-inner-row-wrap {\n     flex-grow: 1;\n   } \n \n   .rtable-row-wrap {\n     color: " + (primary.fg || '#222') + ";\n     border-style: solid;\n     border-color: " + (table.divider || primary.bc || '#ccc') + ";\n     border-width: 0 0 1px 0;\n     background-color: " + (table.even || primary.bga || '#f4f4f4') + ";\n   }\n   .rtable-row-wrap.rtable-odd {\n     background-color: " + (table.odd || primary.bg || '#fff') + ";\n   }\n   .rtable-row-wrap:hover, .rtable-row-wrap.rtable-selected:hover, .rtable-row-wrap.rtable-odd.rtable-selected:hover {\n     background-color: " + (table.over || active.bg || '#e6f0fa') + ";\n     position: relative;\n     box-shadow: inset 1px 0 0 #dadce0,inset -1px 0 0 #dadce0, 0 1px 2px 0 rgba(60, 64, 67, 0.3), 0 1px 3px 1px rgba(60, 64, 67, 0.15);\n     z-index: 2;\n   }\n   .rtable-header.rtable-row-wrap:hover {\n     box-shadow: none;\n   }\n \n   .rtable-row-wrap.rtable-selected {\n     background-color: " + (table.selected.bg || '#cee5fd') + ";\n     color: " + (table.selected.fg || primary.fg || '#222') + ";\n   }\n   .rtable-row-wrap.rtable-selected.rtable-odd {\n     background-color: " + (table.selected.odd || '#c5dffb') + ";\n   }\n \n   .rtable-row-wrap {\n     display: flex;\n     flex-grow: 1;\n     align-items: center;\n     z-index: 2;\n     align-items: stretch;\n   }\n \n   .rtable-nowrap .rtable-row-wrap {\n     display: inline-flex;\n     min-width: 100%;\n     box-sizing: border-box;\n   }\n \n   .rtable-nowrap > .rtable-top > .grid {\n     line-height: 1em;\n   }\n \n   .rtable-border .rtable-row .rtable-column,\n   .rtable-border .rtable-group .rtable-column {\n     border-color: " + (table.divider || primary.bc || '#ccc') + ";\n     border-style: solid;\n     border-width: 0 0 1px 1px;\n     margin: 0 0 -1px -1px;\n   }\n   .rtable-border .rtable-header .rtable-column {\n     margin-left: -1px;\n   }\n \n   .rtable-border .rtable-row-wrap {\n     border-width: 0 1px 1px 1px;\n   }\n \n   .rtable-border .rtable-row-expand, .rtable-border .rtable-row-extra {\n     border-color: " + (table.divider || primary.bc || '#ccc') + ";\n     border-style: solid;\n     border-width: 1px 0 0 1px;\n     margin-left: -1px;\n     width: 100%;\n   }\n \n   .rtable-row-expand, .rtable-row-extra {\n     box-sizing: border-box;\n     padding: " + (table.padding || '0.5em') + ";\n   }\n \n   .rtable-group {\n     border-bottom: 2px solid " + (table.divider || primary.bc || '#ccc') + ";\n   }\n \n   .rtable-header.rtable-row-wrap, .rtable-header.rtable-row-wrap:hover {\n     font-weight: bold;\n     background-color: " + (table.header.bg || '#dedede') + ";\n   }\n   .rtable-header-fixed {\n     line-height: 1em;\n   }\n \n   .rtable-header.rtable-row-wrap, .rtable-header-extra.rtable-noheader {\n     border-bottom: 2px solid " + (table.divider || primary.bc || '#ccc') + ";\n   }\n \n   .rtable-header-extra {\n     background-color: " + (table.header.bg || '#dedede') + ";\n     padding: " + (table.padding || '0.5em') + ";\n     line-height: 1em;\n     z-index: 4;\n   }\n \n   .rtable-nowrap .rtable-header-extra {\n     position: sticky;\n     left: 0;\n   }\n \n   .rtable-top {\n     flex-grow: 5;\n     flex-shrink: 1;\n     overflow-y: auto;\n     position: relative;\n   }\n   .rtable-fixed-header .rtable-header {\n     position: relative;\n     z-index: 3;\n   }\n   .rtable-fixed-header.rtable-scrolled-down .rtable-header-fixed {\n     box-shadow: 0 1px 2px 0 rgba(60, 64, 67, 0.3), 0 1px 3px 1px rgba(60, 64, 67, 0.15), 0 0.25em 0.5em rgba(0,0,0,0.25);\n     z-index: 3;\n   }\n   .rtable-fixed-header .rtable-top {\n     margin-top: 0;\n   }\n   .rtable-nowrap.rtable-fixed-header .rtable-top {\n     margin-top: -3px;\n   }\n   .rtable-nowrap.rtable-fixed-header .rtable-header-wrapper {\n     flex-shrink: 0;\n     width: 100%;\n     overflow-x: auto;\n     scrollbar-width: none;\n   }\n   .rtable-fixed-header .rtable-header-fixed::-webkit-scrollbar {\n     width: 0;\n     height: 0;\n   }\n \n   .rtable-nowrap .rtable-fixed-column, .rtable-nowrap .rtable-row-extra, .rtable-nowrap .rtable-row-expand {\n     position: sticky;\n     left: 0;\n   }\n   .rtable-border..rtable-nowrap .rtable-fixed-column, .rtable-border.rtable-nowrap .rtable-row-extra, .rtable-border.rtable-nowrap .rtable-row-expand {\n     left: 1px;\n    }\n   .rtable-nowrap.rtable-with-select .rtable-fixed-column, .rtable-nowrap.rtable-with-select .rtable-row-extra, .rtable-nowrap.rtable-with-select .rtable-row-expand {\n     left: 2.1em;\n   }\n   .rtabe-border.rtable-nowrap.rtable-with-select .rtable-fixed-column, .rtabe-border.rtable-nowrap.rtable-with-select .rtable-row-extra, .rtabe-border.rtable-nowrap.rtable-with-select .rtable-row-expand {\n     left: calc(2.1em + 1px);\n   }\n \n   .rtable-nowrap .rtable-inner-row-wrap {\n     background-color: inherit;\n   }\n \n   .rtable-nowrap .row,\n   .rtable-nowrap .rtable-fixed-column,\n   .rtable-nowrap .rtable-select-row,\n   .rtable-nowrap .rtable-select-header {\n     background-color: inherit;\n     z-index: 1;\n   }\n \n   .rtable-nowrap .rtable-select-row,\n   .rtable-nowrap .rtable-select-header {\n     position: sticky;\n     left: 0.1em;\n     z-index: 1;\n   }\n   .rtable-nowrap .rtable-select-header {\n     z-index: 2;\n   }\n \n   .rtable-nowrap.rtable-border .rtable-fixed-column {\n     border-right-width: 1px;\n   }\n \n   .rtable-scrolled-up .rtable-bottom {\n     box-shadow: 0 -1px 2px 0 rgba(60, 64, 67, 0.3), 0 -1px 3px 1px rgba(60, 64, 67, 0.15), 0 -0.25em 0.5em rgba(0,0,0,0.25);\n     z-index: 3;\n   }\n   .rtable-bottom {\n     padding: " + (table.padding || '0.5em') + ";\n     background-color: " + (table.footer.bg || table.header.bg ||  '#dedede') + ";\n     border-top: 2px solid " + (table.divider || primary.bc || '#ccc') + ";\n   }\n \n   .rtable-pagination {\n     display: flex;\n     flex-wrap: wrap;\n     flex-shrink: 0;\n     justify-content: space-between;\n   }\n \n   .rtable-pages span {\n     margin: 0.3em;\n     cursor: pointer;\n   }\n   .rtable-pages span:first-of-type {\n     margin-left: 0;\n   }\n   .rtable-pages input {\n     text-align: center;\n     width: 2.5em;\n     font-size: 1em;\n     background-color: transparent;\n     border: none;\n     padding: 0;\n     font-weight: bold;\n     text-decoration: underline;\n   }\n \n   /* checkboxes */\n   .rtable-select {\n     appearance: none;\n     -moz-appearance: none;\n     -webkit-appearance: none;\n     position: absolute;\n     display: block;\n     margin: 0;\n     width: 2em;\n     height: 2em;\n     box-shadow: none;\n     outline: none;\n     opacity: 0;\n     top: 0;\n     left: 0;\n     border-radius: 2em;\n     transform: translate(-0.1em, 0) scale(1);\n     transition: transform 0.2s, opacity 0.2s;\n     background-color: " + (primary.bc || '#ccc') + ";\n     cursor: pointer;\n   }\n \n   .rtable-select-header > div, .rtable-select-row > div, .rtable-header > div.rtable-select-header > div {\n     padding: 0;\n     overflow: visible;\n     width: 1.5em;\n     position: relative;\n     line-height: 1.8em;\n     cursor: pointer;\n     display: flex;\n     justify-content: space-around;\n     align-items: center;\n     flex-grow: 1;\n   }\n \n   .rtable-select:checked {\n     background-color: " + (primary.fga || '#07e') + ";\n   }\n \n   .rtable-select-header:hover .rtable-select, .rtable-select-row:hover .rtable-select {\n     opacity: 0.04;\n   }\n \n   .rtable-select:focus {\n     opacity: 0.12;\n     transform: translate(0.2em, -0.3em) scale(1);\n   }\n \n   .rtable-select-header:hover .rtable-select:focus, .rtable-select-row:hover .rtable.select:focus {\n     opacity: 0.16;\n   }\n \n   .rtable-select:active {\n     opacity: 0.4;\n     transform: translate(0.2em, -0.3em) scale(0);\n     transition: transform 0s, opacity 0s;\n   }\n \n   .rtable-select-row > div:before, .rtable-select-header > div:before {\n     content: \"\";\n     display: inline-block;\n     box-sizing: border-box;\n     border: solid 2px; /* Safari */\n     border-color: " + (primary.fg || '#222') + ";\n     border-radius: 2px;\n     width: 18px;\n     height: 18px;\n     vertical-align: middle;\n     transition: border-color 0.2s, background-color 0.2s;\n   }\n \n   .rtable-select-row > div:after, .rtable-select-header > div:after {\n     content: \"\";\n     display: block;\n     position: absolute;\n     top: -5px;\n     left: 4px;\n     width: 10px;\n     height: 5px;\n     border: solid 2px transparent;\n     border-right: none;\n     border-top: none;\n     transform: translate(0.35em, 0.55em) rotate(-45deg);\n     opacity: 0;\n   }\n \n   .rtable-selected .rtable-select-row > div:before, .rtable-all-selected > div:before {\n     border-color: " + (primary.fga || '#07e') + ";\n     background-color: " + (primary.fga || '#07e') + ";\n   }\n \n   .rtable-selected .rtable-select-row > div:after, .rtable-all-selected > div:after {\n     border-color: " + (primary.bg || '#fff') + ";\n     opacity: 1;\n   }\n \n   .rtable-row-wrap > .rtable-select-header,\n   .rtable-row-wrap > .rtable-select-row {\n     text-align: center;\n     flex-shrink: 0;\n     display: flex;\n     align-items: center;\n     justify-content: space-around;\n     width: 2em;\n   }\n \n   .rtable-column button, .rtable-column .btn {\n     padding: 0 0.5em;\n     margin: 0.2em 0.5em;\n     min-height: 0;\n   }\n \n   .rtable-column.rtable-editing {\n     padding: 0;\n   }\n   .rtable-column.rtable-editing input {\n     width: 100%;\n     box-sizing: border-box;\n     height: 100%;\n     margin: 0;\n     border: none;\n     background-color: transparent;\n     padding: 0.25em 0.5em;\n   }\n \n   .rtable-valign-top .rtable-row:not(.rtable-header) .rtable-column > div,\n   .rtable .rtable-row:not(.rtable-header) > .rtable-column.rtable-valign-col-top > div {\n     display: flex;\n     height: 100%;\n     align-items: flex-start;\n     box-sizing: border-box;\n   }\n   .rtable-valign-bottom .rtable-row:not(.rtable-header) .rtable-column > div,\n   .rtable .rtable-row:not(.rtable-header) > .rtable-column.rtable-valign-col-bottom > div {\n     display: flex;\n     height: 100%;\n     align-items: flex-end;\n     box-sizing: border-box;\n   }\n   .rtable-valign-center .rtable-row:not(.rtable-header) .rtable-column > div,\n   .rtable .rtable-row:not(.rtable-header) > .rtable-column.rtable-valign-col-center > div {\n     display: flex;\n     height: 100%;\n     align-items: center;\n     box-sizing: border-box;\n   }\n   " + (data('table.includeGrid') ? style(data) : '');
+         return "\n   .rtable {\n     display: flex;\n     flex-direction: column;\n     overflow: auto;\n     max-width: 100%;\n     max-height: 100%;\n     box-sizing: border-box;\n     flex-grow: 2;\n   }\n \n   .rtable-group > div > div,\n   .rtable-header > div > div,\n   .rtable-row > div > div {\n     padding: " + (table.padding || '0.5em') + ";\n     overflow: inherit;\n     text-overflow: inherit;\n     line-height: 1em;\n   }\n   .rtable-row > .rtable-no-pad > div {\n     padding: 0;\n   }\n \n   .rtable-auto .row > *,\n   .rtable-fixed .row > *\n   {\n     text-overflow: ellipsis;\n     overflow: hidden;\n     white-space: nowrap;\n   }\n \n   .rtable-header > div > div, .rtable-column {\n     overflow: hidden;\n   }\n \n   .rtable-number-column {\n     text-align: right;\n   }\n   .rtable-date-column {\n     text-align: right;\n   }\n \n   .rtable-sortable {\n     cursor: pointer;\n     user-select: none;\n     -moz-user-select: none;\n     -ms-user-select: none;\n     -webkit-user-select: none;\n   }\n \n   .grid .row.rtable-row, .grid .rtable-header > .row {\n     width: auto;\n     min-width: min-content;\n     flex-grow: 1;\n   }\n \n   .rtable-nowrap .grid .rtable-row, .rtable-nowrap .grid .rtable-header > .row {\n     flex-wrap: nowrap;\n   }\n   .rtable-nowrap .rtable-row-wrap, .rtable-inner-row-wrap {\n     flex-grow: 1;\n   } \n \n   .rtable-row-wrap {\n     color: " + (primary.fg || '#222') + ";\n     border-style: solid;\n     border-color: " + (table.divider || primary.bc || '#ccc') + ";\n     border-width: 0 0 1px 0;\n     background-color: " + (table.even || primary.bga || '#f4f4f4') + ";\n   }\n   .rtable-row-wrap.rtable-odd {\n     background-color: " + (table.odd || primary.bg || '#fff') + ";\n   }\n   .rtable-row-wrap:hover, .rtable-row-wrap.rtable-selected:hover, .rtable-row-wrap.rtable-odd.rtable-selected:hover {\n     background-color: " + (table.over || active.bg || '#e6f0fa') + ";\n     position: relative;\n     box-shadow: inset 1px 0 0 #dadce0,inset -1px 0 0 #dadce0, 0 1px 2px 0 rgba(60, 64, 67, 0.3), 0 1px 3px 1px rgba(60, 64, 67, 0.15);\n     z-index: 2;\n   }\n   .rtable-header.rtable-row-wrap:hover {\n     box-shadow: none;\n   }\n \n   .rtable-row-wrap.rtable-selected {\n     background-color: " + (table.selected.bg || '#cee5fd') + ";\n     color: " + (table.selected.fg || primary.fg || '#222') + ";\n   }\n   .rtable-row-wrap.rtable-selected.rtable-odd {\n     background-color: " + (table.selected.odd || '#c5dffb') + ";\n   }\n \n   .rtable-row-wrap {\n     display: flex;\n     flex-grow: 1;\n     align-items: center;\n     z-index: 2;\n     align-items: stretch;\n   }\n \n   .rtable-nowrap .rtable-row-wrap {\n     display: inline-flex;\n     min-width: 100%;\n     box-sizing: border-box;\n   }\n \n   .rtable-nowrap > .rtable-top > .grid {\n     line-height: 1em;\n   }\n \n   .rtable-border .rtable-row .rtable-column,\n   .rtable-border .rtable-group .rtable-column {\n     border-color: " + (table.divider || primary.bc || '#ccc') + ";\n     border-style: solid;\n     border-width: 0 0 1px 1px;\n     margin: 0 0 -1px -1px;\n   }\n   .rtable-border .rtable-header .rtable-column {\n     margin-left: -1px;\n   }\n \n   .rtable-border .rtable-row-wrap {\n     border-width: 0 1px 1px 1px;\n   }\n \n   .rtable-border .rtable-row-expand, .rtable-border .rtable-row-extra {\n     border-color: " + (table.divider || primary.bc || '#ccc') + ";\n     border-style: solid;\n     border-width: 1px 0 0 1px;\n     margin-left: -1px;\n     width: 100%;\n   }\n \n   .rtable-row-expand, .rtable-row-extra {\n     box-sizing: border-box;\n     padding: " + (table.padding || '0.5em') + ";\n   }\n \n   .rtable-group {\n     border-bottom: 2px solid " + (table.divider || primary.bc || '#ccc') + ";\n   }\n \n   .rtable-header.rtable-row-wrap, .rtable-header.rtable-row-wrap:hover {\n     font-weight: bold;\n     background-color: " + (table.header.bg || '#dedede') + ";\n   }\n   .rtable-header-fixed {\n     line-height: 1em;\n   }\n \n   .rtable-header.rtable-row-wrap, .rtable-header-extra.rtable-noheader {\n     border-bottom: 2px solid " + (table.divider || primary.bc || '#ccc') + ";\n   }\n \n   .rtable-header-extra {\n     background-color: " + (table.header.bg || '#dedede') + ";\n     padding: " + (table.padding || '0.5em') + ";\n     line-height: 1em;\n     z-index: 4;\n   }\n \n   .rtable-nowrap .rtable-header-extra {\n     position: sticky;\n     left: 0;\n   }\n \n   .rtable-top {\n     flex-grow: 5;\n     flex-shrink: 1;\n     overflow-y: auto;\n     position: relative;\n   }\n   .rtable-fixed-header .rtable-header {\n     position: relative;\n     z-index: 3;\n   }\n   .rtable-fixed-header.rtable-scrolled-down .rtable-header-fixed {\n     box-shadow: 0 1px 2px 0 rgba(60, 64, 67, 0.3), 0 1px 3px 1px rgba(60, 64, 67, 0.15), 0 0.25em 0.5em rgba(0,0,0,0.25);\n     z-index: 3;\n   }\n   .rtable-fixed-header .rtable-top {\n     margin-top: 0;\n   }\n   .rtable-nowrap.rtable-fixed-header .rtable-header-wrapper {\n     flex-shrink: 0;\n     width: 100%;\n     overflow-x: auto;\n     scrollbar-width: none;\n   }\n   .rtable-fixed-header .rtable-header-fixed::-webkit-scrollbar {\n     width: 0;\n     height: 0;\n   }\n \n   .rtable-nowrap .rtable-fixed-column, .rtable-nowrap .rtable-row-extra, .rtable-nowrap .rtable-row-expand {\n     position: sticky;\n     left: 0;\n   }\n   .rtable-border..rtable-nowrap .rtable-fixed-column, .rtable-border.rtable-nowrap .rtable-row-extra, .rtable-border.rtable-nowrap .rtable-row-expand {\n     left: 1px;\n    }\n   .rtable-nowrap.rtable-with-select .rtable-fixed-column, .rtable-nowrap.rtable-with-select .rtable-row-extra, .rtable-nowrap.rtable-with-select .rtable-row-expand {\n     left: 2.1em;\n   }\n   .rtabe-border.rtable-nowrap.rtable-with-select .rtable-fixed-column, .rtabe-border.rtable-nowrap.rtable-with-select .rtable-row-extra, .rtabe-border.rtable-nowrap.rtable-with-select .rtable-row-expand {\n     left: calc(2.1em + 1px);\n   }\n \n   .rtable-nowrap .rtable-inner-row-wrap {\n     background-color: inherit;\n   }\n \n   .rtable-nowrap .row,\n   .rtable-nowrap .rtable-fixed-column,\n   .rtable-nowrap .rtable-select-row,\n   .rtable-nowrap .rtable-select-header {\n     background-color: inherit;\n     z-index: 1;\n   }\n \n   .rtable-nowrap .rtable-select-row,\n   .rtable-nowrap .rtable-select-header {\n     position: sticky;\n     left: 0.1em;\n     z-index: 1;\n   }\n   .rtable-nowrap .rtable-select-header {\n     z-index: 2;\n   }\n \n   .rtable-nowrap.rtable-border .rtable-fixed-column {\n     border-right-width: 1px;\n   }\n \n   .rtable-scrolled-up .rtable-bottom {\n     box-shadow: 0 -1px 2px 0 rgba(60, 64, 67, 0.3), 0 -1px 3px 1px rgba(60, 64, 67, 0.15), 0 -0.25em 0.5em rgba(0,0,0,0.25);\n     z-index: 3;\n   }\n   .rtable-bottom {\n     padding: " + (table.padding || '0.5em') + ";\n     background-color: " + (table.footer.bg || table.header.bg ||  '#dedede') + ";\n     border-top: 2px solid " + (table.divider || primary.bc || '#ccc') + ";\n   }\n \n   .rtable-pagination {\n     display: flex;\n     flex-wrap: wrap;\n     flex-shrink: 0;\n     justify-content: space-between;\n   }\n \n   .rtable-pages span {\n     margin: 0.3em;\n     cursor: pointer;\n   }\n   .rtable-pages span:first-of-type {\n     margin-left: 0;\n   }\n   .rtable-pages input {\n     text-align: center;\n     width: 2.5em;\n     font-size: 1em;\n     background-color: transparent;\n     border: none;\n     padding: 0;\n     font-weight: bold;\n     text-decoration: underline;\n   }\n \n   /* checkboxes */\n   .rtable-select {\n     appearance: none;\n     -moz-appearance: none;\n     -webkit-appearance: none;\n     position: absolute;\n     display: block;\n     margin: 0;\n     width: 2em;\n     height: 2em;\n     box-shadow: none;\n     outline: none;\n     opacity: 0;\n     top: 0;\n     left: 0;\n     border-radius: 2em;\n     transform: translate(-0.1em, 0) scale(1);\n     transition: transform 0.2s, opacity 0.2s;\n     background-color: " + (primary.bc || '#ccc') + ";\n     cursor: pointer;\n   }\n \n   .rtable-select-header > div, .rtable-select-row > div, .rtable-header > div.rtable-select-header > div {\n     padding: 0;\n     overflow: visible;\n     width: 1.5em;\n     position: relative;\n     line-height: 1.8em;\n     cursor: pointer;\n     display: flex;\n     justify-content: space-around;\n     align-items: center;\n     flex-grow: 1;\n   }\n \n   .rtable-select:checked {\n     background-color: " + (primary.fga || '#07e') + ";\n   }\n \n   .rtable-select-header:hover .rtable-select, .rtable-select-row:hover .rtable-select {\n     opacity: 0.04;\n   }\n \n   .rtable-select:focus {\n     opacity: 0.12;\n     transform: translate(0.2em, -0.3em) scale(1);\n   }\n \n   .rtable-select-header:hover .rtable-select:focus, .rtable-select-row:hover .rtable.select:focus {\n     opacity: 0.16;\n   }\n \n   .rtable-select:active {\n     opacity: 0.4;\n     transform: translate(0.2em, -0.3em) scale(0);\n     transition: transform 0s, opacity 0s;\n   }\n \n   .rtable-select-row > div:before, .rtable-select-header > div:before {\n     content: \"\";\n     display: inline-block;\n     box-sizing: border-box;\n     border: solid 2px; /* Safari */\n     border-color: " + (primary.fg || '#222') + ";\n     border-radius: 2px;\n     width: 18px;\n     height: 18px;\n     vertical-align: middle;\n     transition: border-color 0.2s, background-color 0.2s;\n   }\n \n   .rtable-select-row > div:after, .rtable-select-header > div:after {\n     content: \"\";\n     display: block;\n     position: absolute;\n     top: -5px;\n     left: 4px;\n     width: 10px;\n     height: 5px;\n     border: solid 2px transparent;\n     border-right: none;\n     border-top: none;\n     transform: translate(0.35em, 0.55em) rotate(-45deg);\n     opacity: 0;\n   }\n \n   .rtable-selected .rtable-select-row > div:before, .rtable-all-selected > div:before {\n     border-color: " + (primary.fga || '#07e') + ";\n     background-color: " + (primary.fga || '#07e') + ";\n   }\n \n   .rtable-selected .rtable-select-row > div:after, .rtable-all-selected > div:after {\n     border-color: " + (primary.bg || '#fff') + ";\n     opacity: 1;\n   }\n \n   .rtable-row-wrap > .rtable-select-header,\n   .rtable-row-wrap > .rtable-select-row {\n     text-align: center;\n     flex-shrink: 0;\n     display: flex;\n     align-items: center;\n     justify-content: space-around;\n     width: 2em;\n   }\n \n   .rtable-column button, .rtable-column .btn {\n     padding: 0 0.5em;\n     margin: 0.2em 0.5em;\n     min-height: 0;\n   }\n \n   .rtable-column.rtable-editing {\n     padding: 0;\n   }\n   .rtable-column.rtable-editing input {\n     width: 100%;\n     box-sizing: border-box;\n     height: 100%;\n     margin: 0;\n     border: none;\n     background-color: transparent;\n     padding: 0.25em 0.5em;\n   }\n \n   .rtable-valign-top .rtable-row:not(.rtable-header) .rtable-column > div,\n   .rtable .rtable-row:not(.rtable-header) > .rtable-column.rtable-valign-col-top > div {\n     display: flex;\n     height: 100%;\n     align-items: flex-start;\n     box-sizing: border-box;\n   }\n   .rtable-valign-bottom .rtable-row:not(.rtable-header) .rtable-column > div,\n   .rtable .rtable-row:not(.rtable-header) > .rtable-column.rtable-valign-col-bottom > div {\n     display: flex;\n     height: 100%;\n     align-items: flex-end;\n     box-sizing: border-box;\n   }\n   .rtable-valign-center .rtable-row:not(.rtable-header) .rtable-column > div,\n   .rtable .rtable-row:not(.rtable-header) > .rtable-column.rtable-valign-col-center > div {\n     display: flex;\n     height: 100%;\n     align-items: center;\n     box-sizing: border-box;\n   }\n   " + (data('table.includeGrid') ? style(data) : '');
       }).call(this, data)].join(' '); },
         cssId: 'rtable',
         noCssTransform: true,
-        attributes: ['paginate', 'items', 'filter', 'sort', 'helpers', 'fixed', 'allow-select', 'allow-select-all', 'border', 'fixed-header', 'valign', 'no-header', 'empty', 'shuffle', 'no-wrap'],
+        attributes: ['paginate', 'items', 'filter', 'data-handler', 'sort-handler', 'sort', 'helpers', 'fixed', 'allow-select', 'allow-select-all', 'border', 'fixed-header', 'valign', 'no-header', 'empty', 'shuffle', 'no-wrap', 'parameters'],
         components: {
           table: false,
           Table: false
@@ -531,12 +465,12 @@ System.register(['ractive', './chunk7.js', './chunk8.js', './chunk2.js', './chun
                       requestAnimationFrame(fn$1);
                     }
                   });
-                  this._scrollListener.fn = fn$1;
+                  scroll.fn = fn$1;
 
                   scroll.observer = this.observe('rows.length', function () {
                     this$1.set('virtual.offset', null);
                     fn$1();
-                  }, { init: false, strict: true });
+                  }, { init: false, strict: true, defer: true });
 
                   var cancel = scroll.cancel;
                   scroll.cancel = function () {
@@ -579,7 +513,7 @@ System.register(['ractive', './chunk7.js', './chunk8.js', './chunk2.js', './chun
             expanded: null,
             minPerPage: 10,
             virtual: { offset: 0 },
-            shuffle: true,
+            shuffle: false,
           }, Table.settings);
         },
         computed: {
@@ -589,319 +523,104 @@ System.register(['ractive', './chunk7.js', './chunk8.js', './chunk2.js', './chun
           autoTitles: function autoTitles() { return this.get('auto-titles'); },
           noHeader: function noHeader() { return this.get('no-header'); },
           noWrap: function noWrap() { return this.get('no-wrap'); },
-          rows: {
-            get: function get() {
-              var this$1 = this;
+          rows: function rows() {
+            var src = (this.get('items') || []).slice();
+            var filter = this.get('filter');
+            var sort = this.get('sort');
+            var ref = [this.get('data-handler'), this.get('@style.data-handler')];
+            var localh = ref[0];
+            var classh = ref[1];
+            var handler = localh || classh || defaultFilter;
+            if (!filter && !sort) {
+              this.set('isFiltered', false);
+              return src;
+            }
+            var res = handler(this, src, filter, sort, this.get('parameters'));
+            this.set('isFiltered', res.length !== src.length);
+            return res;
+          },
+          visibleRows: function visibleRows() {
+            var this$1 = this;
 
-              var columns = this.viewmodel.value.columns;
-              var fields = this.viewmodel.value.fields;
+            var rows = this.get('rows');
+            var paginate = this.get('paginate');
+            var per = paginate;
+            var intPer = this.get('_paginate');
+            var offset = this.get('page') || 0;
+            var virtual = this.get('virtual');
 
-              var cols = columns.filter(function (c) { return c.filter; }).map(function (c) { return columnGetter(this$1, c); }).filter(function (c) { return c; });
+            if (!per) { return rows; }
 
-              var list = this.get('items') || [];
-              var src = list;
+            if (typeof per !== 'number' && isNaN(+per)) {
+              if (per === 'auto' || per === 'virtual' || per instanceof Ractive$1) { per = intPer || 1; }
+              else { per = 30; } // TODO: virtual table/auto size
+            }
 
-              var filter = this.get('filter');
-              var sort = this.get('sort');
+            if (per < this.get('minPerPage')) { per = this.get('minPerPage'); }
 
-              if (isObject(filter) && !Array.isArray(filter)) { filter = [filter]; }
-
-              if ((filter instanceof RegExp || isString(filter)) && filter) {
-                var nocase = filter === '' + filter.toLowerCase() || filter === '' + filter.toUpperCase();
-                try {
-                  var re = isString(filter) ? new RegExp(filter, nocase ? 'i' : '') : filter;
-                  list = list.filter(function (l) {
-                    var i = cols.length;
-                    while (i--) {
-                      var v = l && cols[i](l);
-                      if (v && isString(v) && re.test(v)) { return true; }
-                    }
-                  });
-                } catch (e) {}
-              } else if (Array.isArray(filter)) {
-                var flts = buildFilter(this, filter, columns, fields);
-                var recache = {};
-                try {
-                  list = list.filter(function (l) {
-                    return flts.reduce(function (ok, flt) {
-                      return ok && applyFilter.call(this$1, flt, l, recache);
-                    }, true);
-                  });
-                } catch (e) {}
-              }
-
-              if (isString(sort) || (isObject(sort) && !Array.isArray(sort))) { sort = [sort]; }
-
-              if (Array.isArray(sort)) {
-                sort = sort.map(function (f) {
-                  if (isString(f)) {
-                    var id = f[0] === '-' || f[0] === '+' ? f.substr(1) : f;
-                    var col = columns.find(function (c) { return c.id === id; });
-                    var fl = fields.find(function (c) { return c.id === id; });
-                    var res = {
-                      dir: f[0] === '-' ? -1 : 1,
-                      get: (col && columnGetter(this$1, col)) || (fl && fieldGetter(this$1, fl)) || columnGetter(this$1, { filter: id })
-                    };
-                    if ((col && col.type === 'number') || (fl && fl.type === 'number')) {
-                      var get = res.get;
-                      res.get = function(v) {
-                        return numberify(get.call(this, v));
-                      };
-                    }
-                    return res;
-                  } else if (f && typeof f === 'object') {
-                    var col$1 = columns.find(function (c) { return c.id === f.id; });
-                    var fl$1 = fields.find(function (c) { return c.id === f.id; });
-                    var res$1 = {
-                      dir: isNumber(f.dir) ? f.dir : f.dir === 'desc' ? -1 : 1,
-                      get: (typeof f.get === 'function' && f.get) || (col$1 && columnGetter(this$1, col$1)) || (fl$1 && fieldGetter(this$1, fl$1)) || 
-                           (f.path && (fieldGetter(this$1, { filter: f.path, value: f.value })))
-                    };
-                    if (f.type === 'number' || (col$1 && col$1.type === 'number') || (fl$1 && fl$1.type === 'number')) {
-                      var get$1 = res$1.get;
-                      res$1.get = function(v) {
-                        return numberify(get$1.call(this, v));
-                      };
-                    }
-                    return res$1;
-                  }
-                }).filter(function (s) { return s && s.get; });
-
-                list.sort(function (a, b) {
-                  var aa, bb, p;
-                  for (var i = 0; i < sort.length; i++) {
-                    aa = sort[i].get.call(this$1, a);
-                    bb = sort[i].get.call(this$1, b);
-                    p = sort[i].dir * compare(aa, bb);
-
-                    if (p !== 0) { return p; }
-                  }
-
-                  return p;
-                });
-              }
-
-              this.set('isFiltered', src.length !== list.length);
-
-              return list;
+            if (paginate === 'virtual') {
+              offset = (virtual && virtual.offset) || 0;
+              return rows.slice(offset, offset + per);
+            } else {
+              if (offset * per > rows.length) { setTimeout(function () { return this$1.set('page', 0); }, 0); }
+              return rows.slice(per * offset, per * offset + per);
             }
           },
-          visibleRows: {
-            get: function get() {
-              var this$1 = this;
+          pagination: function pagination() {
+            var items = this.get('items') || empty;
+            var rows = this.get('rows');
+            var paginate = this.get('paginate');
+            var per = paginate;
+            var offset = this.get('page') || 0;
 
-              var rows = this.get('rows');
-              var paginate = this.get('paginate');
-              var per = paginate;
-              var intPer = this.get('_paginate');
-              var offset = this.get('page') || 0;
-              var virtual = this.get('virtual');
-
-              if (!per) { return rows; }
-
-              if (typeof per !== 'number' && isNaN(+per)) {
-                if (per === 'auto' || per === 'virtual' || per instanceof Ractive$1) { per = intPer || 1; }
-                else { per = 30; } // TODO: virtual table/auto size
-              }
-
-              if (per < this.get('minPerPage')) { per = this.get('minPerPage'); }
-
-              if (paginate === 'virtual') {
-                offset = (virtual && virtual.offset) || 0;
-                return rows.slice(offset, offset + per);
-              } else {
-                if (offset * per > rows.length) { setTimeout(function () { return this$1.set('page', 0); }, 0); }
-                return rows.slice(per * offset, per * offset + per);
-              }
+            if (typeof per !== 'number' && isNaN(per)) {
+              per = this.get('_paginate');
             }
+            if (per < this.get('minPerPage')) { per = this.get('minPerPage'); }
+
+            if (!per) { return; }
+
+            var total = Math.ceil(rows.length / per);
+            var info = {
+              max: Math.ceil(items.length / per),
+              total: total,
+              per: per
+            };
+
+            if (paginate === 'virtual') {
+              info.height = this._avg * rows.length;
+            }
+
+            if (info.total > 14) {
+              var arr = info.array = [];
+
+              if (offset > 5) { arr.push(1, 2, 3, '...'); }
+              else { arr.push(1, 2, 3, 4, 5, 6, 7, 8); }
+
+              if (offset > 5 && offset + 6 < total) { arr.push(offset - 1, offset, offset + 1, offset + 2, offset + 3, '...', total - 2, total - 1, total); }
+              else if (offset + 6 < total) { arr.push('...', total - 2, total - 1, total); }
+              else { arr.push(total - 7, total - 6, total - 5, total - 4, total - 3, total - 2, total - 1, total); }
+            } else {
+              info.array = Array.apply(null, { length: info.total }).map(function (v, i) { return i + 1; });
+            }
+
+            return info;
           },
-          pagination: {
-            get: function get() {
-              var items = this.get('items') || empty;
-              var rows = this.get('rows');
-              var paginate = this.get('paginate');
-              var per = paginate;
-              var offset = this.get('page') || 0;
+          groups: function groups() {
+            var this$1 = this;
 
-              if (typeof per !== 'number' && isNaN(per)) {
-                per = this.get('_paginate');
-              }
-              if (per < this.get('minPerPage')) { per = this.get('minPerPage'); }
-
-              if (!per) { return; }
-
-              var total = Math.ceil(rows.length / per);
-              var info = {
-                max: Math.ceil(items.length / per),
-                total: total,
-                per: per
-              };
-
-              if (paginate === 'virtual') {
-                info.height = this._avg * rows.length;
-              }
-
-              if (info.total > 14) {
-                var arr = info.array = [];
-
-                if (offset > 5) { arr.push(1, 2, 3, '...'); }
-                else { arr.push(1, 2, 3, 4, 5, 6, 7, 8); }
-
-                if (offset > 5 && offset + 6 < total) { arr.push(offset - 1, offset, offset + 1, offset + 2, offset + 3, '...', total - 2, total - 1, total); }
-                else if (offset + 6 < total) { arr.push('...', total - 2, total - 1, total); }
-                else { arr.push(total - 7, total - 6, total - 5, total - 4, total - 3, total - 2, total - 1, total); }
-              } else {
-                info.array = Array.apply(null, { length: info.total }).map(function (v, i) { return i + 1; });
-              }
-
-              return info;
+            var rows = this.get('rows');
+            var last, cur;
+            var res = {};
+            for (var i = 0; i < rows.length; i++) {
+              cur = rows[i][this$1._init.by];
+              if (cur != last) { res[i] = 1; }
+              last = cur;
             }
-          },
-          groups: {
-            get: function get() {
-              var this$1 = this;
-
-              var rows = this.get('rows');
-              var last, cur;
-              var res = {};
-              for (var i = 0; i < rows.length; i++) {
-                cur = rows[i][this$1._init.by];
-                if (cur != last) { res[i] = 1; }
-                last = cur;
-              }
-              return res;
-            }
+            return res;
           }
         }
       });
-
-      function applyPath(src, path) {
-        if (path.length && !src && typeof src !== 'object') { return; }
-        var res = src;
-        for (var i = 0; i < path.length; i++) {
-          res = res[path[i]];
-          if (typeof res !== 'object' || !res) { return i + 1 < path.length ? undefined : res; }
-        }
-        return res;
-      }
-
-      function applyPathReduce(src, path) {
-        if (!path.length) { return { v: src }; }
-        if (path.length && typeof src !== 'object') { return { n: 1 }; }
-        var key = path[0];
-        if (key === '*' && Array.isArray(src)) {
-          var next = path.slice(1);
-          return { l: src.reduce(function (a, c) {
-            var v = applyPathReduce(c, next);
-            if (isObject(v)) {
-              if (v.v) { a.push(v.v); }
-              else if (v.l) { a.push.apply(a, v.l); }
-              else if (!v.n) { a.push(v); }
-            } else { a.push(v); }
-            return a;
-          }, []) };
-        } else {
-          return applyPathReduce(src[key], path.slice(1));
-        }
-      }
-
-
-      function compare(a, b) {
-        return a < b ? -1 :
-          a > b ? 1 :
-          a == b ? 0 :
-          !a && b ? -1 :
-          a && !b ? 1 :
-          0;
-      }
-
-      function buildFilter(grid, filter, columns, fields) {
-        return filter.map(function (f) {
-          var flt = { op: f.op || '=', value: f.value || '' };
-          if (f.id) {
-            var field = columns.find(function (c) { return c.id === f.id || c.filter === f.id; });
-            if (field) {
-              flt.get = columnGetter(grid, field);
-              if (flt.get) {
-                flt.type = field.type || 'string';
-              } else { field = 0; }
-            }
-            
-            if (!field) {
-              field = fields.find(function (c) { return c.id === f.id; });
-              if (field) {
-                flt.get = fieldGetter(grid, field);
-                flt.type = field.type || 'string';
-              }
-            }
-          } else {
-            // auto-skip filters with no id
-            flt.op = 'skip';
-          }
-          if (f.op === 'and' || f.op === 'or' || f.op === '&&' || f.op === '||') {
-            flt.op = f.op; // watch for skip on missing id
-            if (Array.isArray(f.value)) { flt.value = buildFilter(grid, f.value, columns, fields); }
-          }
-          return flt;
-        }).filter(function (f) { return f.op !== 'skip'; });
-      }
-
-      function applyFilter(flt, item, recache) {
-        var this$1 = this;
-
-        if (!item || (!flt.get && flt.op !== 'and' && flt.op !== 'or' && flt.op !== '&&' && flt.op !== '||')) { return false; }
-        var v = flt.get && flt.get.call(this, item);
-        if (typeof flt.op === 'function') { return flt.op.call(undefined, item); }
-        var val = flt.value;
-        if (flt.op === '=' || flt.op === '==' || flt.op === 'is' || flt.op === 'eq') {
-          if (flt.type === 'number' || flt.type === 'date') { return +v == +val; }
-          return v == val;
-        } else if (flt.op === '!=' || flt.op === '<>' || flt.op === 'ne' || flt.op === 'is not') {
-          if (flt.type === 'number' || flt.type === 'date') { return +v != +val; }
-          return v != val;
-        } else if (flt.op === 'not') {
-          return !v;
-        } else if (flt.op === '>' || flt.op === 'gt') {
-          return numberify(v) > numberify(val);
-        } else if (flt.op === '>=' || flt.op === 'gte') {
-          return numberify(v) >= numberify(val);
-        } else if (flt.op === '<' || flt.op === 'lt') {
-          return numberify(v) < numberify(val);
-        } else if (flt.op === '<=' || flt.op === 'lte') {
-          return numberify(v) <= numberify(val);
-        } else if (flt.op === 'like' || flt.op === 'notlike' || flt.op === '~' || flt.op === '!~') {
-          var res = (flt.op === 'like' || flt.op === '~') ? true : false;
-          if (isString(val)) {
-            // special case - no pattern always matches
-            if (!val) { return true; }
-            var re = recache[val] || (recache[val] = new RegExp((".*" + (val.replace(/%/g, '.*')) + ".*"), 'gi'));
-            res = re.test(v);
-          } else if (isRegex(val)) {
-            res = val.test(v);
-          }
-          return (flt.op === 'like' || flt.op === '~') ? res : !res;
-        } else if (flt.op === 'contains' || flt.op === '@') {
-          if (Array.isArray(v)) { return !!~v.indexOf(val); }
-        } else if (flt.op === 'containslike' || flt.op === '@~' || flt.op === 'containsnotlike' || flt.op === '@!~') {
-          if (Array.isArray(v)) {
-            var re$1 = isRegex(val) ? val : isString(val) ? recache[val] || (recache[val] = new RegExp((".*" + (val.replace(/%/g, '.*')) + ".*"), 'gi')) : null;
-            if (!re$1) { return false; }
-            var match = v.findIndex(function (x) { return re$1.test((x || '').toString()); });
-            return (flt.op === 'containslike' || flt.op === '@~') ? match >= 0 : match < 0;
-          }
-        } else if ((flt.op === 'not in' || flt.op === 'in') && Array.isArray(val)) {
-          return flt.op === 'not in' ? !~val.indexOf(v) : !!~val.indexOf(v); 
-        } else if ((flt.op === 'or' || flt.op === '||') && Array.isArray(val)) {
-          return val.reduce(function (a, c) {
-            return a || applyFilter.call(this$1, c, item, recache);
-          }, false);
-        } else if ((flt.op === 'and' || flt.op === '&&') && Array.isArray(val)) {
-          return val.reduce(function (a, c) {
-            return a && applyFilter.call(this$1, c, item, recache);
-          }, true);
-        }
-        return true;
-      }
 
       var notNumbers = /^[^\d]*/;
       function numberify(v) {
@@ -910,6 +629,92 @@ System.register(['ractive', './chunk7.js', './chunk8.js', './chunk2.js', './chun
         v = ("" + v).replace(notNumbers, '');
         if (!v) { return +Infinity; }
         return parseFloat(v);
+      }
+
+      function columnGetter(table, col, sort) {
+        if (typeof col.get === 'function') { return col.get; }
+        var path = (sort ? col.sort : 0) || col.path || col.filter || col.id;
+        if (typeof path === 'string') {
+          var arr = Ractive$1.splitKeypath(path);
+          return function (row) {
+            var v = row;
+            for (var i = 0; i < arr.length; i++) {
+              v = v && v[arr[i]];
+            }
+            return v;
+          };
+        }
+      }
+
+      function defaultFilter(table, rows, filter, sort) {
+        var all = [].concat(table.viewmodel.value.columns, table.viewmodel.value.fields);
+        var map = all.reduce(function (a, c) { return ((a[c.id] = columnGetter(table, c)) || true) && a; }, {});
+        var cols = Object.values(map);
+
+        var list = rows || [];
+
+        if ((filter instanceof RegExp || isString(filter)) && filter) {
+          var nocase = filter === '' + filter.toLowerCase() || filter === '' + filter.toUpperCase();
+          try {
+            var re = isString(filter) ? new RegExp(filter, nocase ? 'i' : '') : filter;
+            list = list.filter(function (l) {
+              var i = cols.length;
+              while (i--) {
+                var v = l && cols[i](l);
+                if (v && re.test(v)) { return true; }
+              }
+            });
+          } catch (e) {}
+        }
+
+        if (isString(sort) || (isObject(sort) && !Array.isArray(sort))) { sort = [sort]; }
+
+        if (Array.isArray(sort)) {
+          sort = sort.map(function (f) {
+            if (isString(f)) {
+              var id$1 = f[0] === '-' || f[0] === '+' ? f.substr(1) : f;
+              var col = all.find(function (c) { return c.id === id$1; });
+              if (!col) { return; }
+              var res = { get: columnGetter(table, col, true), dir: f[0] === '-' ? -1 : 1 };
+              if (col && col.type === 'number') {
+                var get = res.get;
+                res.get = function(v) {
+                  return numberify(get.call(table, v));
+                };
+              }
+              return res;
+            } else if (f && typeof f === 'object') {
+              var col$1 = all.find(function (c) { return c.id === id; });
+              if (!col$1) { return; }
+              var res$1 = {
+                dir: isNumber(f.dir) ? f.dir : f.dir === 'desc' ? -1 : 1,
+                get: columnGetter(table, col$1, true)
+              };
+              if (f.type === 'number' || col$1 && col$1.type === 'number') {
+                var get$1 = res$1.get;
+                res$1.get = function(v) {
+                  return numberify(get$1.call(table, v));
+                };
+              }
+              return res$1;
+            }
+          }).filter(function (s) { return s && s.get; });
+
+          list.sort(function (a, b) {
+            var aa, bb, p;
+            for (var i = 0; i < sort.length; i++) {
+              aa = sort[i].get.call(table, a);
+              bb = sort[i].get.call(table, b);
+              p = sort[i].dir * (aa < bb ? -1 : aa > bb ? 1 : 0);
+
+              if (p !== 0) { return p; }
+            }
+
+            return p;
+          });
+        }
+
+        return list;
       }
 
       var colAttrs = ['label', 'type', 'filter', 'hidden', 'sort', 'no-pad', 'id', 'editable', 'fixed'];
