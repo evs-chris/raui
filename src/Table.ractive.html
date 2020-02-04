@@ -123,6 +123,24 @@
       return visible.length && true;
     }
 
+    _setSort(index, ev) {
+      const [localh, classh] = [this.get('sort-handler'), this.get('@style.sort-handler')];
+      const fn = localh || classh;
+      if (fn) {
+        fn(this, this.get(`columns.${index}`), index, ev);
+      } else {
+        const sort = this.get('sort') || '';
+        const col = this.get(`columns.${index}`);
+        const id = col.id;
+        if (sort === id || sort.substr(1) === id) {
+          if (sort[0] === '-') this.set('sort', id);
+          else this.set('sort', `-${id}`);
+        } else {
+          this.set('sort', id);
+        }
+      }
+    }
+
     nodeSet(node, prop, value) { node[prop] = value; }
 
     _expand(idx) {
@@ -142,35 +160,6 @@
         else {
           this.set('expanded', which);
           this.transition('expand', this.find('.rtable-row-expand'), { intro: true });
-        }
-      }
-    }
-
-    _setSort(idx, ev) {
-      const col = this.get(`columns.${idx}`);
-      if (!col || !(col.sort || col.filter)) return;
-      const cs = col.sort || col.filter;
-      let sort = cs;
-      if (isString(sort) && sort[0] === '~') sort = this.get(sort);
-
-      const multi = ev.ctrlKey;
-      let sorts = this.get('sort');
-
-      if (!Array.isArray(sort)) sort = [sort];
-      if (!sorts) sorts = [];
-      else if (!Array.isArray(sorts)) sorts = [sorts];
-
-      if (!sorts.length) this.set('sort', sort.map(s => `${s === cs ? (col.dir || '+') : '+'}${s}`));
-      else {
-        const cur = sorts.map(s => sortRE.exec(s).slice(1));
-        const overlap = sort.reduce((a, c) => a && !!cur.find(s => s[1] === c), true);
-        if (overlap && sorts.length !== sort.length && !multi) this.set('sort', sort.map(s => `+${sort}`));
-        else if (!multi) {
-          if (overlap) this.set('sort', cur.map(s => `${s[0] === '+' ? '-' : '+'}${s[1]}`));
-          else this.set('sort', sort.map(s => `${s === cs ? (col.dir || '+') : '+'}${s}`));
-        } else {
-          if (overlap) this.set('sort', cur.map(s => ~sort.indexOf(s[1]) ? `${s[0] === '+' ? '-' : '+'}${s[1]}` : s[0] + s[1]));
-          else this.set('sort', sorts.concat(sort.map(s => `${s === cs ? (col.dir || '+') : '+'}${s}`)));
         }
       }
     }
@@ -211,15 +200,15 @@
       });
     }
 
-    get selections() {
-      return this.get('selections') || [];
-    }
-
+    get selections() { return this.get('selections') || []; }
     set selections(v) {
       const rows = this.get('rows');
       const sels = Array.isArray(v) ? v.filter(i => ~rows.indexOf(i)) : [];
       this.set('selections', sels);
     }
+
+    get selected() { return this.get('selected'); }
+    set selected(v) { this.set({ selected: v, selections: [v] }); }
 
     selectionOffset(offset) {
       const selected = this.get('selected');
@@ -314,60 +303,6 @@
     }
   }
 
-  function columnGetter(table, col) {
-    if (!table || !col) return;
-    if (typeof col.get === 'function') return col.get;
-    const getters = table._getters || (table._getters = {});
-    let v = col.filter;
-    if (isString(v) && v.indexOf('~/') === 0) v = table.get(v);
-    let k = Array.isArray(v) ? v.join('.') : isString(v) ? v : false;
-    if (!k) return;
-
-    if (!getters[k]) {
-      if (isString(v) && ~v.indexOf('*')) {
-        const parts = Ractive.splitKeypath(v);
-        getters[k] = (obj) => {
-          const res = applyPathReduce(obj, parts);
-          return res.v || res.l;
-        };
-      } else {
-        if (isString(v)) v = Ractive.splitKeypath(v);
-        getters[k] = (obj) => applyPath(obj, v);
-      }
-    }
-
-    return getters[k];
-  }
-
-  function fieldGetter(table, field) {
-    if (!table || !field) return;
-    if (typeof field.get === 'function') return field.get;
-    const getters = table._getters || (table._getters = {});
-    let v = field.path;
-    if (isString(v) && v.indexOf('~/') === 0) v = table.get(v);
-    let k = Array.isArray(v) ? v.join('.') : isString(v) ? v : false;
-
-    if (k) {
-      if (!getters[k]) {
-        if (isString(v) && ~v.indexOf('*')) {
-          const parts = Ractive.splitKeypath(v);
-          getters[k] = (obj) => {
-            const res = applyPathReduce(obj, parts);
-            return res.v || res.l;
-          };
-        } else {
-          if (isString(v)) v = Ractive.splitKeypath(v);
-          getters[k] = (obj) => applyPath(obj, v);
-        }
-      }
-      return getters[k];
-    } else {
-      v = field.value;
-      if (isString(v) && v.indexOf('~/') === 0) v = table.get(v);
-      if (typeof v === 'function') return v;
-    }
-  }
-
   function scrollheader(node) {
     const scroll = ev => {
       requestAnimationFrame(() => this.find('.rtable-header-wrapper').scrollLeft = ev.target.scrollLeft);
@@ -393,7 +328,7 @@
     css: $CSS,
     cssId: 'rtable',
     noCssTransform: true,
-    attributes: ['paginate', 'items', 'filter', 'sort', 'helpers', 'fixed', 'allow-select', 'allow-select-all', 'border', 'fixed-header', 'valign', 'no-header', 'empty', 'shuffle', 'no-wrap'],
+    attributes: ['paginate', 'items', 'filter', 'data-handler', 'sort-handler', 'sort', 'helpers', 'fixed', 'allow-select', 'allow-select-all', 'border', 'fixed-header', 'valign', 'no-header', 'empty', 'shuffle', 'no-wrap', 'parameters'],
     components: {
       table: false,
       Table: false
@@ -587,12 +522,12 @@
                   requestAnimationFrame(fn);
                 }
               });
-              this._scrollListener.fn = fn;
+              scroll.fn = fn;
 
               scroll.observer = this.observe('rows.length', () => {
                 this.set('virtual.offset', null);
                 fn();
-              }, { init: false, strict: true });
+              }, { init: false, strict: true, defer: true });
 
               const cancel = scroll.cancel;
               scroll.cancel = () => {
@@ -643,311 +578,98 @@
       autoTitles() { return this.get('auto-titles'); },
       noHeader() { return this.get('no-header'); },
       noWrap() { return this.get('no-wrap'); },
-      rows: {
-        get() {
-          const columns = this.viewmodel.value.columns;
-          const fields = this.viewmodel.value.fields;
+      rows() {
+        const src = (this.get('items') || []).slice();
+        const filter = this.get('filter');
+        const sort = this.get('sort');
+        const [localh, classh] = [this.get('data-handler'), this.get('@style.data-handler')];
+        const handler = localh || classh || defaultFilter;
+        if (!filter && !sort) {
+          this.set('isFiltered', false);
+          return src;
+        }
+        const res = handler(this, src, filter, sort, this.get('parameters'));
+        this.set('isFiltered', res.length !== src.length);
+        return res;
+      },
+      visibleRows() {
+        const rows = this.get('rows');
+        const paginate = this.get('paginate');
+        let per = paginate;
+        const intPer = this.get('_paginate');
+        let offset = this.get('page') || 0;
+        const virtual = this.get('virtual');
 
-          const cols = columns.filter(c => c.filter).map(c => columnGetter(this, c)).filter(c => c);
+        if (!per) return rows;
 
-          let list = this.get('items') || [];
-          const src = list;
+        if (typeof per !== 'number' && isNaN(+per)) {
+          if (per === 'auto' || per === 'virtual' || per instanceof Ractive) per = intPer || 1;
+          else per = 30; // TODO: virtual table/auto size
+        }
 
-          let filter = this.get('filter');
-          let sort = this.get('sort');
+        if (per < this.get('minPerPage')) per = this.get('minPerPage');
 
-          if (isObject(filter) && !Array.isArray(filter)) filter = [filter];
-
-          if ((filter instanceof RegExp || isString(filter)) && filter) {
-            const nocase = filter === '' + filter.toLowerCase() || filter === '' + filter.toUpperCase();
-            try {
-              const re = isString(filter) ? new RegExp(filter, nocase ? 'i' : '') : filter;
-              list = list.filter(l => {
-                let i = cols.length;
-                while (i--) {
-                  const v = l && cols[i](l);
-                  if (v && isString(v) && re.test(v)) return true;
-                }
-              });
-            } catch (e) {}
-          } else if (Array.isArray(filter)) {
-            const flts = buildFilter(this, filter, columns, fields);
-            const recache = {};
-            try {
-              list = list.filter(l => {
-                return flts.reduce((ok, flt) => {
-                  return ok && applyFilter.call(this, flt, l, recache);
-                }, true);
-              });
-            } catch (e) {}
-          }
-
-          if (isString(sort) || (isObject(sort) && !Array.isArray(sort))) sort = [sort];
-
-          if (Array.isArray(sort)) {
-            sort = sort.map(f => {
-              if (isString(f)) {
-                const id = f[0] === '-' || f[0] === '+' ? f.substr(1) : f;
-                const col = columns.find(c => c.id === id);
-                const fl = fields.find(c => c.id === id);
-                const res = {
-                  dir: f[0] === '-' ? -1 : 1,
-                  get: (col && columnGetter(this, col)) || (fl && fieldGetter(this, fl)) || columnGetter(this, { filter: id })
-                };
-                if ((col && col.type === 'number') || (fl && fl.type === 'number')) {
-                  const get = res.get;
-                  res.get = function(v) {
-                    return numberify(get.call(this, v));
-                  }
-                }
-                return res;
-              } else if (f && typeof f === 'object') {
-                const col = columns.find(c => c.id === f.id);
-                const fl = fields.find(c => c.id === f.id);
-                const res = {
-                  dir: isNumber(f.dir) ? f.dir : f.dir === 'desc' ? -1 : 1,
-                  get: (typeof f.get === 'function' && f.get) || (col && columnGetter(this, col)) || (fl && fieldGetter(this, fl)) || 
-                       (f.path && (fieldGetter(this, { filter: f.path, value: f.value })))
-                };
-                if (f.type === 'number' || (col && col.type === 'number') || (fl && fl.type === 'number')) {
-                  const get = res.get;
-                  res.get = function(v) {
-                    return numberify(get.call(this, v));
-                  }
-                }
-                return res;
-              }
-            }).filter(s => s && s.get);
-
-            list.sort((a, b) => {
-              let aa, bb, p;
-              for (let i = 0; i < sort.length; i++) {
-                aa = sort[i].get.call(this, a);
-                bb = sort[i].get.call(this, b);
-                p = sort[i].dir * compare(aa, bb);
-
-                if (p !== 0) return p;
-              }
-
-              return p;
-            });
-          }
-
-          this.set('isFiltered', src.length !== list.length);
-
-          return list;
+        if (paginate === 'virtual') {
+          offset = (virtual && virtual.offset) || 0;
+          return rows.slice(offset, offset + per);
+        } else {
+          if (offset * per > rows.length) setTimeout(() => this.set('page', 0), 0);
+          return rows.slice(per * offset, per * offset + per);
         }
       },
-      visibleRows: {
-        get() {
-          const rows = this.get('rows');
-          const paginate = this.get('paginate');
-          let per = paginate;
-          const intPer = this.get('_paginate');
-          let offset = this.get('page') || 0;
-          const virtual = this.get('virtual');
+      pagination() {
+        const items = this.get('items') || empty;
+        const rows = this.get('rows');
+        const paginate = this.get('paginate');
+        let per = paginate;
+        const offset = this.get('page') || 0;
 
-          if (!per) return rows;
-
-          if (typeof per !== 'number' && isNaN(+per)) {
-            if (per === 'auto' || per === 'virtual' || per instanceof Ractive) per = intPer || 1;
-            else per = 30; // TODO: virtual table/auto size
-          }
-
-          if (per < this.get('minPerPage')) per = this.get('minPerPage');
-
-          if (paginate === 'virtual') {
-            offset = (virtual && virtual.offset) || 0;
-            return rows.slice(offset, offset + per);
-          } else {
-            if (offset * per > rows.length) setTimeout(() => this.set('page', 0), 0);
-            return rows.slice(per * offset, per * offset + per);
-          }
+        if (typeof per !== 'number' && isNaN(per)) {
+          per = this.get('_paginate');
         }
+        if (per < this.get('minPerPage')) per = this.get('minPerPage');
+
+        if (!per) return;
+
+        const total = Math.ceil(rows.length / per);
+        const info = {
+          max: Math.ceil(items.length / per),
+          total,
+          per
+        };
+
+        if (paginate === 'virtual') {
+          info.height = this._avg * rows.length;
+        }
+
+        if (info.total > 14) {
+          const arr = info.array = [];
+
+          if (offset > 5) arr.push(1, 2, 3, '...');
+          else arr.push(1, 2, 3, 4, 5, 6, 7, 8);
+
+          if (offset > 5 && offset + 6 < total) arr.push(offset - 1, offset, offset + 1, offset + 2, offset + 3, '...', total - 2, total - 1, total);
+          else if (offset + 6 < total) arr.push('...', total - 2, total - 1, total);
+          else arr.push(total - 7, total - 6, total - 5, total - 4, total - 3, total - 2, total - 1, total);
+        } else {
+          info.array = Array.apply(null, { length: info.total }).map((v, i) => i + 1);
+        }
+
+        return info;
       },
-      pagination: {
-        get() {
-          const items = this.get('items') || empty;
-          const rows = this.get('rows');
-          const paginate = this.get('paginate');
-          let per = paginate;
-          const offset = this.get('page') || 0;
-
-          if (typeof per !== 'number' && isNaN(per)) {
-            per = this.get('_paginate');
-          }
-          if (per < this.get('minPerPage')) per = this.get('minPerPage');
-
-          if (!per) return;
-
-          const total = Math.ceil(rows.length / per);
-          const info = {
-            max: Math.ceil(items.length / per),
-            total,
-            per
-          };
-
-          if (paginate === 'virtual') {
-            info.height = this._avg * rows.length;
-          }
-
-          if (info.total > 14) {
-            const arr = info.array = [];
-
-            if (offset > 5) arr.push(1, 2, 3, '...');
-            else arr.push(1, 2, 3, 4, 5, 6, 7, 8);
-
-            if (offset > 5 && offset + 6 < total) arr.push(offset - 1, offset, offset + 1, offset + 2, offset + 3, '...', total - 2, total - 1, total);
-            else if (offset + 6 < total) arr.push('...', total - 2, total - 1, total);
-            else arr.push(total - 7, total - 6, total - 5, total - 4, total - 3, total - 2, total - 1, total);
-          } else {
-            info.array = Array.apply(null, { length: info.total }).map((v, i) => i + 1);
-          }
-
-          return info;
+      groups() {
+        const rows = this.get('rows');
+        let last, cur;
+        const res = {};
+        for (let i = 0; i < rows.length; i++) {
+          cur = rows[i][this._init.by];
+          if (cur != last) res[i] = 1;
+          last = cur;
         }
-      },
-      groups: {
-        get() {
-          const rows = this.get('rows');
-          let last, cur;
-          const res = {};
-          for (let i = 0; i < rows.length; i++) {
-            cur = rows[i][this._init.by];
-            if (cur != last) res[i] = 1;
-            last = cur;
-          }
-          return res;
-        }
+        return res;
       }
     }
   });
-
-  function applyPath(src, path) {
-    if (path.length && !src && typeof src !== 'object') return;
-    let res = src;
-    for (let i = 0; i < path.length; i++) {
-      res = res[path[i]];
-      if (typeof res !== 'object' || !res) return i + 1 < path.length ? undefined : res;
-    }
-    return res;
-  }
-
-  function applyPathReduce(src, path) {
-    if (!path.length) return { v: src };
-    if (path.length && typeof src !== 'object') return { n: 1 };
-    const key = path[0];
-    if (key === '*' && Array.isArray(src)) {
-      const next = path.slice(1);
-      return { l: src.reduce((a, c) => {
-        const v = applyPathReduce(c, next);
-        if (isObject(v)) {
-          if (v.v) a.push(v.v);
-          else if (v.l) a.push.apply(a, v.l);
-          else if (!v.n) a.push(v);
-        } else a.push(v);
-        return a;
-      }, []) };
-    } else {
-      return applyPathReduce(src[key], path.slice(1));
-    }
-  }
-
-
-  function compare(a, b) {
-    return a < b ? -1 :
-      a > b ? 1 :
-      a == b ? 0 :
-      !a && b ? -1 :
-      a && !b ? 1 :
-      0;
-  }
-
-  function buildFilter(grid, filter, columns, fields) {
-    return filter.map(f => {
-      const flt = { op: f.op || '=', value: f.value || '' };
-      if (f.id) {
-        let field = columns.find(c => c.id === f.id || c.filter === f.id);
-        if (field) {
-          flt.get = columnGetter(grid, field);
-          if (flt.get) {
-            flt.type = field.type || 'string';
-          } else field = 0;
-        }
-        
-        if (!field) {
-          field = fields.find(c => c.id === f.id);
-          if (field) {
-            flt.get = fieldGetter(grid, field);
-            flt.type = field.type || 'string';
-          }
-        }
-      } else {
-        // auto-skip filters with no id
-        flt.op = 'skip';
-      }
-      if (f.op === 'and' || f.op === 'or' || f.op === '&&' || f.op === '||') {
-        flt.op = f.op; // watch for skip on missing id
-        if (Array.isArray(f.value)) flt.value = buildFilter(grid, f.value, columns, fields);
-      }
-      return flt;
-    }).filter(f => f.op !== 'skip');
-  }
-
-  function applyFilter(flt, item, recache) {
-    if (!item || (!flt.get && flt.op !== 'and' && flt.op !== 'or' && flt.op !== '&&' && flt.op !== '||')) return false;
-    const v = flt.get && flt.get.call(this, item);
-    if (typeof flt.op === 'function') return flt.op.call(undefined, item);
-    const val = flt.value;
-    if (flt.op === '=' || flt.op === '==' || flt.op === 'is' || flt.op === 'eq') {
-      if (flt.type === 'number' || flt.type === 'date') return +v == +val;
-      return v == val;
-    } else if (flt.op === '!=' || flt.op === '<>' || flt.op === 'ne' || flt.op === 'is not') {
-      if (flt.type === 'number' || flt.type === 'date') return +v != +val;
-      return v != val;
-    } else if (flt.op === 'not') {
-      return !v;
-    } else if (flt.op === '>' || flt.op === 'gt') {
-      return numberify(v) > numberify(val);
-    } else if (flt.op === '>=' || flt.op === 'gte') {
-      return numberify(v) >= numberify(val);
-    } else if (flt.op === '<' || flt.op === 'lt') {
-      return numberify(v) < numberify(val);
-    } else if (flt.op === '<=' || flt.op === 'lte') {
-      return numberify(v) <= numberify(val);
-    } else if (flt.op === 'like' || flt.op === 'notlike' || flt.op === '~' || flt.op === '!~') {
-      let res = (flt.op === 'like' || flt.op === '~') ? true : false;
-      if (isString(val)) {
-        // special case - no pattern always matches
-        if (!val) return true;
-        const re = recache[val] || (recache[val] = new RegExp(`.*${val.replace(/%/g, '.*')}.*`, 'gi'));
-        res = re.test(v);
-      } else if (isRegex(val)) {
-        res = val.test(v);
-      }
-      return (flt.op === 'like' || flt.op === '~') ? res : !res;
-    } else if (flt.op === 'contains' || flt.op === '@') {
-      if (Array.isArray(v)) return !!~v.indexOf(val);
-    } else if (flt.op === 'containslike' || flt.op === '@~' || flt.op === 'containsnotlike' || flt.op === '@!~') {
-      if (Array.isArray(v)) {
-        const re = isRegex(val) ? val : isString(val) ? recache[val] || (recache[val] = new RegExp(`.*${val.replace(/%/g, '.*')}.*`, 'gi')) : null;
-        if (!re) return false;
-        const match = v.findIndex(x => re.test((x || '').toString()));
-        return (flt.op === 'containslike' || flt.op === '@~') ? match >= 0 : match < 0;
-      }
-    } else if ((flt.op === 'not in' || flt.op === 'in') && Array.isArray(val)) {
-      return flt.op === 'not in' ? !~val.indexOf(v) : !!~val.indexOf(v); 
-    } else if ((flt.op === 'or' || flt.op === '||') && Array.isArray(val)) {
-      return val.reduce((a, c) => {
-        return a || applyFilter.call(this, c, item, recache);
-      }, false);
-    } else if ((flt.op === 'and' || flt.op === '&&') && Array.isArray(val)) {
-      return val.reduce((a, c) => {
-        return a && applyFilter.call(this, c, item, recache);
-      }, true);
-    }
-    return true;
-  }
 
   const notNumbers = /^[^\d]*/;
   export function numberify(v) {
@@ -956,6 +678,93 @@
     v = `${v}`.replace(notNumbers, '');
     if (!v) return +Infinity;
     return parseFloat(v);
+  }
+
+  function columnGetter(table, col, sort) {
+    if (typeof col.get === 'function') return col.get;
+    const path = (sort ? col.sort : 0) || col.path || col.filter || col.id;
+    if (typeof path === 'string') {
+      const arr = Ractive.splitKeypath(path);
+      return row => {
+        let v = row;
+        for (let i = 0; i < arr.length; i++) {
+          v = v && v[arr[i]];
+        }
+        return v;
+      };
+    }
+  }
+
+  function defaultFilter(table, rows, filter, sort) {
+    const all = [].concat(table.viewmodel.value.columns, table.viewmodel.value.fields);
+    const map = all.reduce((a, c) => ((a[c.id] = columnGetter(table, c)) || true) && a, {});
+    const cols = Object.values(map);
+
+    let list = rows || [];
+    const src = list;
+
+    if ((filter instanceof RegExp || isString(filter)) && filter) {
+      const nocase = filter === '' + filter.toLowerCase() || filter === '' + filter.toUpperCase();
+      try {
+        const re = isString(filter) ? new RegExp(filter, nocase ? 'i' : '') : filter;
+        list = list.filter(l => {
+          let i = cols.length;
+          while (i--) {
+            const v = l && cols[i](l);
+            if (v && re.test(v)) return true;
+          }
+        });
+      } catch (e) {}
+    }
+
+    if (isString(sort) || (isObject(sort) && !Array.isArray(sort))) sort = [sort];
+
+    if (Array.isArray(sort)) {
+      sort = sort.map(f => {
+        if (isString(f)) {
+          const id = f[0] === '-' || f[0] === '+' ? f.substr(1) : f;
+          const col = all.find(c => c.id === id);
+          if (!col) return;
+          const res = { get: columnGetter(table, col, true), dir: f[0] === '-' ? -1 : 1 };
+          if (col && col.type === 'number') {
+            const get = res.get;
+            res.get = function(v) {
+              return numberify(get.call(table, v));
+            }
+          }
+          return res;
+        } else if (f && typeof f === 'object') {
+          const col = all.find(c => c.id === id);
+          if (!col) return;
+          const res = {
+            dir: isNumber(f.dir) ? f.dir : f.dir === 'desc' ? -1 : 1,
+            get: columnGetter(table, col, true)
+          };
+          if (f.type === 'number' || col && col.type === 'number') {
+            const get = res.get;
+            res.get = function(v) {
+              return numberify(get.call(table, v));
+            }
+          }
+          return res;
+        }
+      }).filter(s => s && s.get);
+
+      list.sort((a, b) => {
+        let aa, bb, p;
+        for (let i = 0; i < sort.length; i++) {
+          aa = sort[i].get.call(table, a);
+          bb = sort[i].get.call(table, b);
+          p = sort[i].dir * (aa < bb ? -1 : aa > bb ? 1 : 0);
+
+          if (p !== 0) return p;
+        }
+
+        return p;
+      });
+    }
+
+    return list;
   }
 
   const colAttrs = ['label', 'type', 'filter', 'hidden', 'sort', 'no-pad', 'id', 'editable', 'fixed'];
@@ -1400,7 +1209,7 @@
     flex-grow: 1;
   }
 
-  .rtable-nowrap .rtable-row, .rtable-nowrap .rtable-header > .row {
+  .rtable-nowrap .grid .rtable-row, .rtable-nowrap .grid .rtable-header > .row {
     flex-wrap: nowrap;
   }
   .rtable-nowrap .rtable-row-wrap, .rtable-inner-row-wrap {
@@ -1525,9 +1334,6 @@
   }
   .rtable-fixed-header .rtable-top {
     margin-top: 0;
-  }
-  .rtable-nowrap.rtable-fixed-header .rtable-top {
-    margin-top: -3px;
   }
   .rtable-nowrap.rtable-fixed-header .rtable-header-wrapper {
     flex-shrink: 0;
