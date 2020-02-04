@@ -5,14 +5,16 @@
     <div class-rshell-middle class-rshell-has-left="._left && !._leftOver && !.leftOver" class-rshell-has-right="._right && !._rightOver && !.rightOver" class-rshell-left-hidden=".leftHidden" class-rshell-right-hidden=".rightHidden">
       <div class-rshell-modal class-rshell-blocked=".blocked || (.blockableLeft && .leftPull) || (.blockableRight && .rightPull)"
         on-click="@.set({ leftHidden: .leftOver || ._leftOver ? true : .leftHidden, rightHidden: .rightOver || ._rightOver ? true : .rightHidden })"
-        on-swipeleft({bind:'.leftPush'})="@.set('leftHidden', true)"
-        on-swiperight({bind:'.rightPush'})="@.set('rightHidden', true)"
+        {{#if ~/['side-swipe']}}
+          on-swipeleft({bind:'.leftPush'})="@.set('leftHidden', true)"
+          on-swiperight({bind:'.rightPush'})="@.set('rightHidden', true)"
+        {{/if}}
         {{#if .leftPull || .rightPull}}style-transition=none style-opacity="{{Math.min(.leftPull || .rightPull, 100) / 200}}"{{/if}}
        />
       {{#if ._left}}
         <div class-rshell-left as-tracked=`left`
           {{#if ._leftA}}{{yield ._leftA}}{{/if}}
-          on-swipeleft({bind:'.leftPush'})="@.set('leftHidden', true)"
+          {{#if ~/['side-swipe']}}on-swipeleft({bind:'.leftPush'})="@.set('leftHidden', true)"{{/if}}
           {{#if .leftPull}}style-transition=none style-transform="translate(-{{100 - (.leftPull > 100 ? 100 : .leftPull)}}%)"{{/if}}
           {{#if .leftPush}}style-transition=none style-transform="translate(-{{.leftPush > 100 ? 100 : .leftPush}}%)"{{/if}}
           class-rshell-overflow="~/leftOverflow"
@@ -21,15 +23,17 @@
       {{#if ._center}}
         <div class-rshell-center as-tracked=`center`
           {{#if ._centerA}}{{yield ._centerA}}{{/if}}
-          {{#if ._left && .leftHidden}}on-swiperight({maxX:80,bind:'.leftPull'})="@.set('leftHidden', false)"{{/if}}
-          {{#if ._right && .rightHidden}}on-swipeleft({minX:-80,bind:'.rightPull'})="@.set('rightHidden', false)"{{/if}}
+          {{#if ~/['side-swipe']}}
+            {{#if ._left && .leftHidden}}on-swiperight({maxX:80,bind:'.leftPull'})="@.set('leftHidden', false)"{{/if}}
+            {{#if ._right && .rightHidden}}on-swipeleft({minX:-80,bind:'.rightPull'})="@.set('rightHidden', false)"{{/if}}
+          {{/if}}
           class-rshell-overflow="~/centerOverflow"
         >{{yield ._center}}</div>
       {{/if}}
       {{#if ._right}}
         <div class-rshell-right as-tracked=`right`
           {{#if ._rightA}}{{yield ._rightA}}{{/if}}
-          on-swiperight({bind:'.rightPush'})="@.set('rightHidden', true)"
+          {{#if ~/['side-swipe']}}on-swiperight({bind:'.rightPush'})="@.set('rightHidden', true)"{{/if}}
           {{#if .rightPull}}style-transition=none style-transform="translate({{ 100 - (.rightPull > 100 ? 100 : .rightPull)}}%)"{{/if}}
           {{#if .rightPush}}style-transition=none style-transform="translate({{.rightPush > 100 ? 100 : .rightPush}}%)"{{/if}}
           class-rshell-overflow="~/rightOverflow"
@@ -75,7 +79,7 @@
 
   Ractive.extendWith(Shell, {
     template: $TEMPLATE, css: $CSS,
-    attributes: ['adaptive'],
+    attributes: ['adaptive', 'side-swipe'],
     use: [ swipeleft, swiperight ],
     decorators: {
       tracked(node, name) {
