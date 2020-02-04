@@ -24,7 +24,7 @@
         <div class-rtable-header-wrapper class-row-wrap>{{>grid-head}}</div>
       {{/if}}
       {{#if ~/shuffle}}
-        {{#each ~/visibleRows, ~/items as source, ~/shuffle as shuffle}}
+        {{#each ~/visibleRows, ~/items as source, true as shuffle}}
           {{>grid-row}}
         {{/each}}
       {{else}}
@@ -633,7 +633,7 @@
         expanded: null,
         minPerPage: 10,
         virtual: { offset: 0 },
-        shuffle: true,
+        shuffle: false,
       }, Table.settings);
     },
     computed: {
