@@ -301,6 +301,21 @@
 
       return true;
     }
+
+    _rows() {
+      const src = (this.get('items') || []).slice();
+      const filter = this.get('filter');
+      const sort = this.get('sort');
+      const [localh, classh] = [this.get('data-handler'), this.get('@style.raui.table.data-handler')];
+      const handler = localh || classh || defaultFilter;
+      if (!filter && !sort) {
+        this.set('isFiltered', false);
+        return this.set('rows', src);
+      }
+      const res = handler(this, src, filter, sort, this.get('parameters'));
+      this.set('isFiltered', res.length !== src.length);
+      this.set('rows', res);
+    }
   }
 
   function scrollheader(node) {
@@ -379,6 +394,10 @@
       }
     },
     observe: {
+      _rows() {
+        if (this._rowbounce) clearTimeout(this._rowbounce);
+        setTimeout(() => this._rows(), this.get('@style.raui.table.debounce') || 160);
+      },
       paginate: {
         handler(v) {
           if (v === 'auto' || v === 'virtual' || v instanceof Ractive) {
@@ -569,6 +588,7 @@
         minPerPage: 10,
         virtual: { offset: 0 },
         shuffle: false,
+        rows: [],
       }, Table.settings);
     },
     computed: {
@@ -578,17 +598,21 @@
       autoTitles() { return this.get('auto-titles'); },
       noHeader() { return this.get('no-header'); },
       noWrap() { return this.get('no-wrap'); },
-      rows() {
+      _rows() {
         const src = (this.get('items') || []).slice();
         const filter = this.get('filter');
         const sort = this.get('sort');
+        const params = this.get('parameters');
         const [localh, classh] = [this.get('data-handler'), this.get('@style.raui.table.data-handler')];
+        const [localp, classp] = [this.get('data-pre-handler'), this.get('@style.raui.table.data-pre-handler')];
+        if (localp || classp) (localp || classp)(this, src, filter, sort, params);
+        return {};
         const handler = localh || classh || defaultFilter;
         if (!filter && !sort) {
           this.set('isFiltered', false);
           return src;
         }
-        const res = handler(this, src, filter, sort, this.get('parameters'));
+        const res = handler(this, src, filter, sort, params);
         this.set('isFiltered', res.length !== src.length);
         return res;
       },
