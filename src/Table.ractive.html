@@ -1317,6 +1317,7 @@
   }
   .rtable-header-fixed {
     line-height: 1em;
+    background-color: ${table.header.bg || '#dedede'};
   }
 
   .rtable-header.rtable-row-wrap, .rtable-header-extra.rtable-noheader {
@@ -1329,6 +1330,7 @@
     line-height: 1em;
     z-index: 4;
     box-sizing: border-box;
+    min-width: 100%;
   }
 
   .rtable-top {
@@ -1353,6 +1355,9 @@
     width: 100%;
     overflow-x: auto;
     scrollbar-width: none;
+  }
+  .rtable-nowrap.rtable-fixed-header .rtable-header-wrapper::-webkit-scrollbar {
+    height: 0;
   }
   .rtable-fixed-header .rtable-header-fixed::-webkit-scrollbar {
     width: 0;
