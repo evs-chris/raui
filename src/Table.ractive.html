@@ -312,7 +312,7 @@
         this.set('isFiltered', false);
         return this.set('rows', src);
       }
-      const res = handler(this, src, filter, sort, this.get('parameters'));
+      const res = handler(this, src, filter, sort, this.get('parameters', { virtual: true }));
       this.set('isFiltered', res.length !== src.length);
       this.set('rows', res);
     }
