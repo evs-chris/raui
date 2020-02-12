@@ -21,7 +21,7 @@
           <button class-rtoast-button>Close</button>
         {{/each}}
         {{#if .more}}
-          <div class="rtoast-more" title="Toggle more" on-click="@.toggle('_toast.showMore'), false"></div> 
+          <div class="rtoast-more" title="Toggle more" on-click=".expand(), @context.toggle('.showMore'), false"></div> 
         {{/if}}
       </div>
       {{/if}}
@@ -72,6 +72,20 @@
       proto.toast = function toast(message, options) {
         const opts = Object.assign({ message, instance: this }, defaults, this.toastDefaults, options);
         opts.close = () => closeToast(opts);
+        opts.expand = () => {
+          if (holder.active !== opts) return;
+          if (holder.tm) {
+            clearTimeout(holder.tm);
+            holder.tm = null;
+          }
+
+          if (opts.showMore) {
+            if (opts.timeout) holder.tm = setTimeout(() => {
+              opts.close();
+              holder.tm = null;
+            }, opts.timeout);
+          }
+        };
         toasts.push(opts);
         if (!active) showToast();
         return new Handle(holder, opts);
@@ -99,8 +113,10 @@
         holder.active = active = toasts.shift();
         active.instance.set('_toast', active).then(() => {
           if (active.timeout) {
+            if (holder.tm) clearTimeout(holder.tm);
             holder.tm = setTimeout(() => {
               active.close();
+              holder.tm = null;
             }, active.timeout);
           }
         });
@@ -181,16 +197,18 @@
     }
 
     close(timeout) {
+      this.data.timeout = timeout;
       if (this.data === this.holder.active) {
-        clearTimeout(this.holder.tm);
+        if (this.holder.tm) clearTimeout(this.holder.tm);
         if (timeout) {
           this.holder.tm = setTimeout(() => {
             this.data.close();
+            this.holder.tm = null;
           }, timeout);
         } else this.data.close();
       } else {
         if (timeout) {
-          this.data.timeout = time;
+          this.data.timeout = timeout;
         } else this.data.close();
       }
 
@@ -200,6 +218,7 @@
     cancelClose() {
       if (this.data === this.holder.active) {
         clearTimeout(this.holder.tm);
+        this.holder.tm = null;
       } else {
         this.data.timeout = 0;
       }
