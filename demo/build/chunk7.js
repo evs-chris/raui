@@ -136,9 +136,10 @@ System.register(['./chunk2.js'], function (exports, module) {
 
             if (!match) { return; }
 
-            if (opts.value) { ctx.set(opts.value, max); }
+            if (opts.value) { ctx.set(opts.value, breaks[match].value); }
             if (opts.name) { ctx.set(opts.name, match); }
             if (opts.size) { ctx.set(opts.size, size); }
+            if (opts.max) { ctx.set(opts.max, max); }
           }
         }
 
