@@ -37,7 +37,7 @@
   </div>
   {{#if ~/paginate !== 'virtual' || ~/meta.bottom}}
   <div class-rtable-bottom {{#if meta.bottomAttrs}}{{yield meta.bottomAttrs}}{{/if}}>
-    {{#if ~/meta.bottom}}{{yield meta.bottom with selections.length as selectedCount, rows.length as rowCount, @this as table, selcted as selected, selections as selections}}{{/if}}
+    {{#if ~/meta.bottom}}{{yield meta.bottom with selections.length as selectedCount, rows.length as rowCount, @this as table, selected as selected, selections as selections}}{{/if}}
     {{#if ~/paginate !== 'virtual'}}{{>pagination}}{{/if}}
   </div>
   {{/if}}
