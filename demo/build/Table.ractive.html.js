@@ -642,8 +642,6 @@ System.register(['ractive', './chunk7.js', './chunk8.js', './chunk2.js', './chun
         }
       });
 
-      Ractive$1.styleSet('raui.table.selectWidth', '2em');
-
       var notNumbers = /^[^\d]*/;
       function numberify(v) {
         if (isNumber(v)) { return v; }
@@ -1046,13 +1044,13 @@ System.register(['ractive', './chunk7.js', './chunk8.js', './chunk2.js', './chun
 
         // extra fixed content
         if (rowEl && rowEl.f && rowEl.f.length) {
-          row[0].f[0].f.push({ t: 7, e: 'div', m: [{ t: 13, n: 'class-rtable-row-extra' }, { t: 4, n: 50, r: '~/noWrap', f: [{ t: 13, n: 'style-width', f: [{ t: 2, x: { r: ['~/tableWidth', '~/allowSelect', '@style.raui.table.selectWidth'], s: "_1?'calc('+_0+'px - '+_2+')':_0+'px'" } }] }] }], f: [{ t: 16, r: '~/meta.extra', c: { r: '.' }, z: z }] });
+          row[0].f[0].f.push({ t: 7, e: 'div', m: [{ t: 13, n: 'class-rtable-row-extra' }, { t: 4, n: 50, r: '~/noWrap', f: [{ t: 13, n: 'style-width', f: [{ t: 2, x: { r: ['~/tableWidth', '~/allowSelect', '@style.raui.table.selectWidth'], s: "_1?'calc('+_0+'px - '+(_2||'2em')+')':_0+'px'" } }] }] }], f: [{ t: 16, r: '~/meta.extra', c: { r: '.' }, z: z }] });
         }
 
         // expando rows
         if (expandEl && expandEl.f && expandEl.f.length) {
           row[0].f[0].f.push({ t: 4, n: 50, x: { r: ['.', '~/expanded'], s: '_0===_1' }, f: [
-            { t: 7, e: 'div', f: [{ t: 7, e: 'div', f: [{ t: 16, r: "~/meta.expand", c: { r: '.' }, z: z }] }], m: [{ t: 13, n: 'class-rtable-row-expand' }, { t: 4, n: 50, r: '~/noWrap', f: [{ t: 13, n: 'style-width', f: [{ t: 2, x: { r: ['~/tableWidth', '~/allowSelect', '@style.raui.table.selectWidth'], s: "_1?'calc('+_0+'px - '+_2+')':_0+'px'" } }] }] }] }
+            { t: 7, e: 'div', f: [{ t: 7, e: 'div', f: [{ t: 16, r: "~/meta.expand", c: { r: '.' }, z: z }] }], m: [{ t: 13, n: 'class-rtable-row-expand' }, { t: 4, n: 50, r: '~/noWrap', f: [{ t: 13, n: 'style-width', f: [{ t: 2, x: { r: ['~/tableWidth', '~/allowSelect', '@style.raui.table.selectWidth'], s: "_1?'calc('+_0+'px - '+(_2||'2em')+')':_0+'px'" } }] }] }] }
           ] });
           row[0].f[0].f[0].m.push({ t: 70, n: ['clickd'], f: { r: ['@this', '@index'], s: '[_0._expand(_1)]' } });
           row[0].f[0].m.push({ t: 70, n: ['clickd'], f: { r: ['@this', '@index'], s: '[_0._expand(_1)]' } });
