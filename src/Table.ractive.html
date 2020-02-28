@@ -875,7 +875,7 @@
           else if (col.valign && typeof col.valign.f === 'string') col.valign = col.valign.f;
 
           col.fixed = attrs.find(a => a.n === 'fixed');
-          if (col.fixed && isObject(col.fixed.f)) col.fixed = map(col.fixed);
+          if (col.fixed && isObject(col.fixed.f)) col.fixed = { path: map(col.fixed, false, true) };
           else if (col.fixed && typeof col.fixed.f === 'string') col.fixed = col.fixed.f;
 
           attr = attrs.find(a => a.n === 'get');
@@ -982,8 +982,9 @@
       if (c.filter || c.sort) div.m.push({ t: 13, n: 'class-rtable-sortable' });
       div.m.push({ t: 13, n: 'class-rtable-column' });
       if (c.fixed) {
-        div.m.push({ t: 13, n: 'class-rtable-fixed-column', f: [{ t: 2, r: `~/columns.${cidx}.fixed` }] });
-        div.m.push({ t: 4, n: 50, x: { r: [`~/noWrap`, `~/columns.${cidx}.fixed`], s: `_0&&typeof _1==='string'` }, f: [{ t: 13, n: 'style-left', f: [{ t: 2, r: `~/columns.${cidx}.fixed`}] }] });
+        const path = c.fixed.path || `~/columns.${cidx}.fixed`;
+        div.m.push({ t: 13, n: 'class-rtable-fixed-column', f: [{ t: 2, r: path }] });
+        div.m.push({ t: 4, n: 50, x: { r: [`~/noWrap`, path], s: `_0&&typeof _1==='string'` }, f: [{ t: 13, n: 'style-left', f: [{ t: 2, r: path }] }] });
       }
       let res = div;
 
@@ -1022,8 +1023,9 @@
       }
       const attrs = c.attrs;
       if (c.fixed) {
-        attrs.push({ t: 13, n: 'class-rtable-fixed-column', f: [{ t: 2, r: `~/columns.${cidx}.fixed` }] });
-        attrs.push({ t: 4, n: 50, x: { r: [`~/noWrap`, `~/columns.${cidx}.fixed`], s: `_0&&typeof _1==='string'` }, f: [{ t: 13, n: 'style-left', f: [{ t: 2, r: `~/columns.${cidx}.fixed`}] }] });
+        const path = c.fixed.path || `~/columns.${cidx}.fixed`;
+        attrs.push({ t: 13, n: 'class-rtable-fixed-column', f: [{ t: 2, r: path }] });
+        attrs.push({ t: 4, n: 50, x: { r: [`~/noWrap`, path], s: `_0&&typeof _1==='string'` }, f: [{ t: 13, n: 'style-left', f: [{ t: 2, r: path }] }] });
       }
       if (c.editable && c.filter) {
         // TODO: moar types - pick, date, maybe custom via edit tag
@@ -1354,6 +1356,10 @@
     z-index: 4;
     box-sizing: border-box;
     min-width: 100%;
+  }
+  .rtable-nowrap .rtable-header-extra {
+    position: sticky;
+    left: 0;
   }
 
   .rtable-top {
