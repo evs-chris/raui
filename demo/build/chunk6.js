@@ -25,7 +25,7 @@ System.register(['ractive', './chunk2.js', './chunk5.js'], function (exports, mo
         }
       }
 
-      var Menu = (function (Ractive) {
+      var Menu = /*@__PURE__*/(function (Ractive) {
         function Menu(opt) {
           Ractive.call(this, opts);
           this.refs = {};
@@ -91,13 +91,11 @@ System.register(['ractive', './chunk2.js', './chunk5.js'], function (exports, mo
         };
 
         Menu.prototype.popAllIn = function popAllIn (path) {
-          var this$1 = this;
-
           if (!path) { path = ''; }
           var item = this.get(path);
           if (item && item.items) {
             for (var i = 0; i < item.items.length; i++) {
-              this$1.popAllIn(((path ? (path + ".") : '') + "items." + i));
+              this.popAllIn(((path ? (path + ".") : '') + "items." + i));
             }
           }
           if (item.open && item.popout) { this.set(((path ? (path + ".") : '') + "open"), false); }
@@ -130,12 +128,10 @@ System.register(['ractive', './chunk2.js', './chunk5.js'], function (exports, mo
 
         // TODO: handle active fn with context param
         Menu.prototype.childActive = function childActive (path) {
-          var this$1 = this;
-
           var item = this.get(path);
           if (item && item.items) {
             for (var i = 0; i < item.items.length; i++) {
-              if (this$1.get((path + ".items." + i + ".active")) === true || (typeof item.items[i].active === 'function' && item.items[i].active()) || (this$1.get((path + ".items." + i + ".activeRef")) && this$1.get(item.items[i].activeRef)) || this$1.childActive((path + ".items." + i))) { return true; }
+              if (this.get((path + ".items." + i + ".active")) === true || (typeof item.items[i].active === 'function' && item.items[i].active()) || (this.get((path + ".items." + i + ".activeRef")) && this.get(item.items[i].activeRef)) || this.childActive((path + ".items." + i))) { return true; }
             }
           }
         };

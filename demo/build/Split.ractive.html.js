@@ -11,7 +11,7 @@ System.register(['./chunk14.js', './chunk2.js', './chunk6.js'], function (export
     }],
     execute: function () {
 
-      var SplitDemo = (function (Window) {
+      var SplitDemo = /*@__PURE__*/(function (Window) {
         function SplitDemo(opts) { Window.call(this, opts); }
 
         if ( Window ) SplitDemo.__proto__ = Window;

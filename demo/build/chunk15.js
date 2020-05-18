@@ -42,7 +42,7 @@ System.register(['ractive', './chunk2.js'], function (exports, module) {
         }
       })();
 
-      var JSONEditor = (function (Ractive) {
+      var JSONEditor = /*@__PURE__*/(function (Ractive) {
         function JSONEditor(opts) { Ractive.call(this, opts); }
 
         if ( Ractive ) JSONEditor.__proto__ = Ractive;

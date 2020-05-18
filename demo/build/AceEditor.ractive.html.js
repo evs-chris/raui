@@ -112,7 +112,7 @@ System.register(['./chunk2.js', './chunk14.js'], function (exports, module) {
         return plugin;
       }
 
-      var AceEditor = (function (Window) {
+      var AceEditor = /*@__PURE__*/(function (Window) {
         function AceEditor(opts) { Window.call(this, opts); }
 
         if ( Window ) AceEditor.__proto__ = Window;

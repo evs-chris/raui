@@ -143,7 +143,7 @@ System.register(['./chunk2.js', './chunk14.js', './chunk15.js'], function (expor
         return plugin;
       }
 
-      var CodeMirrorEditor = (function (Window) {
+      var CodeMirrorEditor = /*@__PURE__*/(function (Window) {
         function CodeMirrorEditor(opts) { Window.call(this, opts); }
 
         if ( Window ) CodeMirrorEditor.__proto__ = Window;

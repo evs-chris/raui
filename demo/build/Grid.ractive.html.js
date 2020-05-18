@@ -11,7 +11,7 @@ System.register(['./chunk2.js', './chunk7.js', './chunk14.js'], function (export
     }],
     execute: function () {
 
-      var Grid = (function (Window) {
+      var Grid = /*@__PURE__*/(function (Window) {
         function Grid(opts) { Window.call(this, opts); }
 
         if ( Window ) Grid.__proto__ = Window;

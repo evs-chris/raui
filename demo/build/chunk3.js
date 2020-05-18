@@ -12,7 +12,7 @@ System.register(['ractive', './chunk1.js', './chunk2.js'], function (exports, mo
     }],
     execute: function () {
 
-      var Shell = (function (Ractive) {
+      var Shell = /*@__PURE__*/(function (Ractive) {
         function Shell(opts) { Ractive.call(this, opts); }
 
         if ( Ractive ) Shell.__proto__ = Ractive;

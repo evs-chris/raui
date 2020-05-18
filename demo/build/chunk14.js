@@ -9,7 +9,7 @@ System.register(['ractive', './chunk2.js'], function (exports, module) {
     }],
     execute: function () {
 
-      var Split = (function (Ractive) {
+      var Split = /*@__PURE__*/(function (Ractive) {
         function Split(opts) { Ractive.call(this, opts); }
 
         if ( Ractive ) Split.__proto__ = Ractive;

@@ -9,7 +9,7 @@ System.register(['ractive', './chunk2.js'], function (exports, module) {
     }],
     execute: function () {
 
-      var AppBar = (function (Ractive) {
+      var AppBar = /*@__PURE__*/(function (Ractive) {
         function AppBar(opts) { Ractive.call(this, opts); }
 
         if ( Ractive ) AppBar.__proto__ = Ractive;

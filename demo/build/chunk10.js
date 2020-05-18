@@ -61,7 +61,7 @@ System.register(['./chunk2.js', 'ractive', './chunk5.js', './chunk11.js'], funct
       function noop() {}
       var source, tailSource, mobilePopped, mobilePop;
 
-      var Popover = (function (Ractive) {
+      var Popover = /*@__PURE__*/(function (Ractive) {
         function Popover(opts) { Ractive.call(this, opts); }
 
         if ( Ractive ) Popover.__proto__ = Ractive;
@@ -407,7 +407,7 @@ System.register(['./chunk2.js', 'ractive', './chunk5.js', './chunk11.js'], funct
         };
       }
 
-      var MobilePop = (function (Ractive) {
+      var MobilePop = /*@__PURE__*/(function (Ractive) {
         function MobilePop(opts) { Ractive.call(this, opts); }
 
         if ( Ractive ) MobilePop.__proto__ = Ractive;

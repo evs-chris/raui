@@ -9,7 +9,7 @@ System.register(['./chunk2.js', './chunk7.js'], function (exports, module) {
     }],
     execute: function () {
 
-      var Form = (function (Window) {
+      var Form = /*@__PURE__*/(function (Window) {
         function Form(opts) { Window.call(this, opts); }
 
         if ( Window ) Form.__proto__ = Window;
