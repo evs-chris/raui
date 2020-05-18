@@ -9,13 +9,26 @@ export interface CheckHandle {
   cancel(): void;
 }
 
+export interface CheckOptions {
+  group?: string|string[];
+  init?: boolean;
+}
+
+export interface ManyCheckOptions {
+  init?: boolean;
+}
+
+export interface GroupKey {
+  group: string|string[];
+}
+
 export type Hook = () => void;
 
 export interface CheckHelper {
-  check(keys: string|string[], deps: string|string[], fn: ValidatorFn): void;
-  check(keys: string|string[], fn: ValidatorFn): void;
-  checkList(path: string, fn: (key: string, check: CheckHelper, index: number) => void): void;
-  checkWild(path: string, fn: (key: string, check: CheckHelper, key: string) => void): void;
+  check(keys: string|string[], deps: string|string[], fn: ValidatorFn, opts?: CheckOptions): void;
+  check(keys: string|string[], fn: ValidatorFn, opts?: CheckOptions): void;
+  checkList(path: string, fn: (key: string, check: CheckHelper, index: number) => void, opts?: ManyCheckOptions): void;
+  checkDefer(path: string, fn: (key: string, check: CheckHelper, key: string) => void, opts?: ManyCheckOptions): void;
 }
 
 export interface DecoratorOpts {
@@ -23,22 +36,29 @@ export interface DecoratorOpts {
   tab?: boolen;
   regex?: boolean;
   levels?: [string, string, string, string];
+  group?: boolean;
 }
 
 export class Validator {
   constructor(ractive: Ractive, debounce = 500); 
 
-  check(keys: string|string[], deps: string|string[], fn: ValidatorFn): CheckHandle;
-  check(keys: string|string[], fn: ValidatorFn): CheckHandle;
-  checkList(path: string, fn: (key: string, check: CheckHelper, index: number) => void): CheckHandle;
-  checkWild(path: string, fn: (key: string, check: CheckHelper, key: string) => void): CheckHandle;
+  check(keys: string|string[], deps: string|string[], fn: ValidatorFn, opts?: CheckOptions): CheckHandle;
+  check(keys: string|string[], fn: ValidatorFn, opts?: CheckOptions): CheckHandle;
+  /**
+   * Allows setup of validations for each entry in a list.
+   */
+  checkList(path: string, fn: (key: string, check: CheckHelper, index: number) => void, opts?: ManyCheckOptions): CheckHandle;
+  /**
+   * Waits until the given path(s) is defined and allows further validiation setup.
+   */
+  checkDefer(path: string, fn: (key: string, check: CheckHelper, key: string) => void, opts?: ManyCheckOptions): CheckHandle;
   refresh(path: string|string[]|RegExp, recurse = true): void;
   notify(key: string|RegExp, up?: boolean, recurse?: boolean): void;
   clear(key: string|RegExp, recurse?: boolean): void;
-  level(key: string|string[]|RegExp, recurse = true): Level;
-  messages(key: string|string[]|RegExp, recurse?: boolean): ValidatorResult;
-  hook(key: string|RegExp, fn: Hook): void;
-  unhook(key: string|RegExp, fn: Hook): void;
+  level(key: string|string[]|RegExp|GroupKey, recurse = true): Level;
+  messages(key: string|string[]|RegExp|GroupKey, recurse?: boolean): ValidatorResult;
+  hook(key: string|string[]|RegExp|RegExp[]|GroupKey, fn: Hook): void;
+  unhook(key: string|string[]|RegExp|RegExp[]|GroupKey, fn: Hook): void;
   decorator(opts: DecoratorOpts = {}): Decorator
 }
 

@@ -9,22 +9,25 @@ export class Validator {
     this.state = {};
     this.hooks = {};
     this.patternHooks = [];
+    this.groupHooks = {};
     this.checks = [];
     this.fns = [];
+    this.many = [];
   }
 
-  check(keys, deps, fn) {
+  check(keys, deps, fn, opts) {
     const ks = Array.isArray(keys) ? keys.slice() : [keys];
     const all = ks.concat(Array.isArray(deps) ? deps : typeof deps === 'string' ? [deps] : []);
     if (typeof deps === 'function') {
+      opts = fn;
       fn = deps;
       deps = [];
     }
-    const set = [ks, deps, fn];
+    const set = [ks, deps, fn, opts && opts.group && (Array.isArray(opts.group) ? opts.group : [opts.group])];
     this.fns.push(set);
     const handle = this.ractive.observe(all.join(' '), debounce(this.debounce, function() {
       checker.call(this, fn, ks, all.map(k => this.ractive.get(k)));
-    }, this), { init: false });
+    }, this), { init: opts && opts.init === false ? false : true });
     return {
       cancel() {
         this.fns.splice(this.fns.indexOf(set), 1);
@@ -33,10 +36,10 @@ export class Validator {
     };
   }
 
-  checkList(path, fn) {
+  checkList(path, fn, opts) {
     const checks = {};
     let len = 0;
-    const handle = this.ractive.observe(path, debounce(this.debounce, (v, o, k) => {
+    const callback = (v, o, k) => {
       if (!Array.isArray(v)) return;
       if (v.length !== len) {
         if (len > v.length) {
@@ -59,23 +62,25 @@ export class Validator {
             const k = `${path}.${i}`;
             const chks = [];
             const o = {
-              check: (keys, deps, fn) => {
+              check: (keys, deps, fn, opts) => {
                 const ks = (Array.isArray(keys) ? keys.slice() : [keys]).map(s => s[0] === '.' ? k + s : s);
                 const all = ks.concat((Array.isArray(deps) ? deps : typeof deps === 'string' ? [deps] : []).map(s => s[0] === '.' ? k + s : s));
                 if (typeof deps === 'function') {
+                  opts = fn;
                   fn = deps;
                   deps = [];
                 }
                 chks.push([ks, this.ractive.observe(all.join(' '), debounce(this.debounce, function() {
                   checker.call(this, fn, ks, all.map(k => this.ractive.get(k)), k);
-                }, this), { init: false })]);
-                this.fns.push([ks, deps, fn]);
+                }, this), { init: opts && opts.init === false ? false : true })]);
+                this.fns.push([ks, deps, fn, opts && opts.group && (Array.isArray(opts.group) ? opts.group : [opts.group])]);
+                ks.prefix = k;
               },
-              checkList: (path, fn) => {
-                chks.push([[], this.checkList(path[0] === '.' ? k + path : path, fn)]);
+              checkList: (path, fn, opts) => {
+                chks.push([[], this.checkList(path[0] === '.' ? k + path : path, fn, opts)]);
               },
-              checkWild: (path, fn) => {
-                chks.push([[], this.checkWild(path[0] === '.' ? k + path : path, fn)]);
+              checkDefer: (path, fn, opts) => {
+                chks.push([[], this.checkDefer(path[0] === '.' ? k + path : path, fn, opts)]);
               }
             };
             fn(k, o, i);
@@ -84,7 +89,17 @@ export class Validator {
         }
         len = v.length;
       }
-    }));
+    };
+    const observer = this.ractive.observe(path, debounce(this.debounce, callback), { init: opts && opts.init === false ? false : true });
+    const paths = path.split(/\s+/);
+    const handle = [paths, () => {
+      paths.forEach(path => {
+        const arr = this.ractive.get(path);
+        if (!Array.isArray(arr)) return;
+        for (let i = 0; i < arr.length; i++) callback(arr[i], undefined, `${path}.${i}`);
+      });
+    }];
+    this.many.push(handle);
     return {
       cancel() {
         const cks = Object.keys(checks);
@@ -95,14 +110,16 @@ export class Validator {
             this.fns.splice(idx, 1);
           });
         });
-        handle.cancel();
+        let i = this.many.length;
+        while (i--) if (this.many[i][1] === callback) this.many.splice(i, 1);
+        observer.cancel();
       }
     };
   }
 
-  checkWild(path, fn) {
+  checkDefer(path, fn, opts) {
     const checks = {};
-    const handle = this.ractive.observe(path, debounce(this.debounce, (v, o, k, p) => {
+    const callback = (v, o, k, p) => {
       if (v == null && checks[k]) {
         checks[k].forEach(([ks, handle]) => {
           handle.cancel();
@@ -117,28 +134,40 @@ export class Validator {
       } else if (v != null && !checks[k]) {
         const chks = [];
         const o = {
-          check: (keys, deps, fn) => {
+          check: (keys, deps, fn, opts) => {
             const ks = (Array.isArray(keys) ? keys.slice() : [keys]).map(s => s[0] === '.' ? k + s : s);
             const all = ks.concat((Array.isArray(deps) ? deps : typeof deps === 'string' ? [deps] : []).map(s => s[0] === '.' ? k + s : s));
             if (typeof deps === 'function') {
+              opts = fn;
               fn = deps;
               deps = [];
             }
             chks.push([ks, this.ractive.observe(all.join(' '), debounce(this.debounce, function() {
               checker.call(this, fn, ks, all.map(k => this.ractive.get(k)), k);
-            }, this), { init: false })]);
+            }, this), { init: opts && opts.init === false ? false : true })]);
+            this.fns.push([ks, deps, fn, opts && opts.group && (Array.isArray(opts.group) ? opts.group : [opts.group])]);
+            ks.prefix = k;
           },
-          checkList: (path, fn) => {
-            chks.push([[], this.checkList(path[0] === '.' ? k + path : path, fn)]);
+          checkList: (path, fn, opts) => {
+            chks.push([[], this.checkList(path[0] === '.' ? k + path : path, fn, opts)]);
           },
-          checkWild: (path, fn) => {
-            chks.push([[], this.checkWild(path[0] === '.' ? k + path : path, fn)]);
+          checkDefer: (path, fn, opts) => {
+            chks.push([[], this.checkDefer(path[0] === '.' ? k + path : path, fn, opts)]);
           }
         };
         fn(k, o, p);
         checks[k] = chks;
       }
-    }));
+    };
+    const observer = this.ractive.observe(path, debounce(this.debounce, callback), { init: opts && opts.init === false ? false : true });
+    const parent = path.split(/\s+/);
+    const handle = [parent, () => {
+      parent.forEach(path => {
+        const obj = this.ractive.get(path);
+        if (obj) callback(obj, undefined, path);
+      });
+    }];
+    this.many.push(handle);
     return {
       cancel() {
         const cks = Object.keys(checks);
@@ -149,19 +178,33 @@ export class Validator {
             this.fns.splice(idx, 1);
           });
         });
-        handle.cancel();
+        let i = this.many.length;
+        while (i--) if (this.many[i][1] === callback) this.many.splice(i, 1);
+        observer.cancel();
       }
     };
   }
 
   refresh(path, recurse = true) {
     const paths = Array.isArray(path) ? path : [path];
-    const checks = [];
 
     paths.forEach(path => {
-      this.fns.forEach(([ks, deps, fn]) => {
-        if (ks.includes(path)) checker.call(this, fn, ks, ks.concat(deps).map(k => this.ractive.get(k)));
-      });
+      if (path.test) {
+        for (let i = 0; i < this.many.length; i++) {
+          const [kk, refresh] = this.many[i];
+          kk.find(k => path.test(k)) && refresh();
+        }
+      } else {
+        for (let i = 0; i < this.many.length; i++) {
+          const [ks, refresh] = this.many[i];
+          ks.includes(path) && refresh();
+        }
+      }
+    });
+
+    paths.forEach(path => {
+      if (path.test) this.fns.forEach(([ks, deps, fn]) => ks.find(k => path.test(k)) && checker.call(this, fn, ks, ks.concat(deps).map(k => this.ractive.get(k)), ks.prefix));
+      else this.fns.forEach(([ks, deps, fn]) => ks.includes(path) && checker.call(this, fn, ks, ks.concat(deps).map(k => this.ractive.get(k)), ks.prefix));
     });
   }
 
@@ -193,6 +236,18 @@ export class Validator {
     for (let i = 0; i < pats.length; i++) {
       if (pats[i][0].test(key)) pats[i][1]();
     }
+
+    const groups = [];
+    for (let i = 0; i < this.fns.length; i++) {
+      const [ks,,,gs] = this.fns[i];
+      if (gs && Array.isArray(ks) && ks.includes(key)) {
+        gs.forEach(g => !groups.includes(g) && groups.push(g));
+      }
+    }
+    for (let i = 0; i < groups.length; i++) {
+      const hooks = this.groupHooks[groups[i]] || [];
+      hooks.forEach(h => h());
+    }
   }
 
   clear(key, recurse) {
@@ -207,6 +262,7 @@ export class Validator {
   }
 
   level(key, recurse = true) {
+    if (key.group) key = keysForGroup(this, key.group);
     const keys = Array.isArray(key) ? key : [key];
     let level = 'none';
 
@@ -247,6 +303,7 @@ export class Validator {
   }
 
   messages(key, recurse) {
+    if (key.group) key = keysForGroup(this, key.group);
     const keys = Array.isArray(key) ? key : [key];
     const res = [];
     keys.forEach(key => {
@@ -269,19 +326,39 @@ export class Validator {
     return res;
   }
 
-  hook(key, fn) {
-    if (typeof key === 'string') (this.hooks[key] || (this.hooks[key] = [])).push(fn);
-    else if (key.test) this.patternHooks.push([key, fn]);
+  hook(keys, fn) {
+    if (keys.group) {
+      const gs = Array.isArray(keys.group) ? keys.group : [keys.group];
+      gs.forEach(g => (this.groupHooks[g] || (this.groupHooks[g] = [])).push(fn));
+    } else {
+      const ks = Array.isArray(keys) ? keys : [keys];
+      ks.forEach(key => {
+        if (typeof key === 'string') (this.hooks[key] || (this.hooks[key] = [])).push(fn);
+        else if (key.test) this.patternHooks.push([key, fn]);
+      });
+    }
   }
 
-  unhook(key, fn) {
-    if (typeof key === 'string') {
-      const arr = this.hooks[key] || [];
-      const idx = arr.indexOf(fn);
-      arr.splice(idx, 1);
-    } else if (key.test) {
-      const idx = this.patternHooks.findIndex(h => h[0] === key && h[1] === fn);
-      this.patternHooks.splice(idx, 1);
+  unhook(keys, fn) {
+    if (keys.group) {
+      const gs = Array.isArray(keys.group) ? keys.group : [keys.group];
+      gs.forEach(key => {
+        const arr = this.groupHooks[key] || [];
+        const idx = arr.indexOf(fn);
+        arr.splice(idx, 1);
+      });
+    } else {
+      const ks = Array.isArray(keys) ? keys : [keys];
+      ks.forEach(key => {
+        if (typeof key === 'string') {
+          const arr = this.hooks[key] || [];
+          const idx = arr.indexOf(fn);
+          arr.splice(idx, 1);
+        } else if (key.test) {
+          const idx = this.patternHooks.findIndex(h => h[0] === key && h[1] === fn);
+          this.patternHooks.splice(idx, 1);
+        }
+      });
     }
   }
 
@@ -290,7 +367,12 @@ export class Validator {
     return function(node, ...keys) {
       const ctx = this.getLocalContext();
       let root = ctx.resolve();
-      let ks = opts.regex ? keys.map(k => typeof k === 'string' ? new RegExp(k) : k) : keys.map(k => ctx.resolve(k));
+
+      let ks;
+      if (opts.regex) ks = keys.map(k => typeof k === 'string' ? new RegExp(k) : k)
+      else if (opts.group) ks = { group: keys };
+      else ks = keys.map(k => ctx.resolve(k));
+
       const levels = opts.levels || Validator.defaults.levels;
       const position = node.style.position;
       let indicator;
@@ -325,11 +407,13 @@ export class Validator {
         }
       }
 
-      ks.forEach(k => v.hook(k, hook));
+      v.hook(ks, hook);
+
+      if (!opts.tab && !opts.regex) setTimeout(hook, v.debounce || 500);
 
       const res = {
         teardown() {
-          ks.forEach(k => v.unhook(k, hook));
+          v.unhook(ks, hook);
           syncClass(node, levels);
           node.style.position = position;
           if (indicator) indicator.remove();
@@ -340,19 +424,19 @@ export class Validator {
       if (opts.regex) {
         res.update = function update(...keys) {
           const next = ctx.resolve();
-          ks.forEach(k => v.unhook(k, hook));
+          v.unhook(ks, hook);
           ks = opts.regex ? keys.map(k => typeof k === 'string' ? new RegExp(k) : k) : keys.map(k => ctx.resolve(k));
-          ks.forEach(k => v.hook(k, hook));
+          v.hook(ks, hook);
           root = next;
           hook();
         }
-      } else {
+      } else if (!opts.group) {
         res.shuffled = function shuffled() {
           const next = ctx.resolve();
           if (next !== root) {
-            ks.forEach(k => v.unhook(k, hook));
+            v.unhook(ks, hook);
             ks = opts.regex ? keys.map(k => typeof k === 'string' ? new RegExp(k) : k) : keys.map(k => ctx.resolve(k));
-            ks.forEach(k => v.hook(k, hook));
+            v.hook(ks, hook);
             root = next;
             hook();
           }
@@ -471,6 +555,23 @@ function syncClass(node, list, cls) {
 function keysStr(keys) {
   if (typeof keys === 'string') return keys;
   if (Array.isArray(keys)) return keys.join(',');
+}
+
+function keysForGroup(validator, group) {
+  const grps = Array.isArray(group) ? group : [group];
+  const res = [];
+  for (let i = 0; i < grps.length; i++) {
+    const fns = validator.fns;
+    for (let j = 0; j < fns.length; j++) {
+      const ks = fns[j][0];
+      if (Array.isArray(ks) && fns[j][3] && fns[j][3].includes(grps[i])) {
+        for (let c = 0; c < ks.length; c++) {
+          if (!res.includes(ks[c])) res.push(ks[c]);
+        }
+      }
+    }
+  }
+  return res;
 }
 
 let registered = false;
