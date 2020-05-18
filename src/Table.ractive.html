@@ -822,6 +822,8 @@
           columns.push(col);
 
           col.content = (e.f || []).filter(e => e.e !== 'edit');
+          col.editP = (e.f || []).find(e => e.e === 'edit');
+          if (col.editP) col.editP = col.editP.f;
 
           attr = attrs.find(a => a.n === 'id');
           if (attr && isString(attr.f)) col.id = attr.f;
@@ -1027,11 +1029,12 @@
         attrs.push({ t: 13, n: 'class-rtable-fixed-column', f: [{ t: 2, r: path }] });
         attrs.push({ t: 4, n: 50, x: { r: [`~/noWrap`, path], s: `_0&&typeof _1==='string'` }, f: [{ t: 13, n: 'style-left', f: [{ t: 2, r: path }] }] });
       }
-      if (c.editable && c.filter) {
+      if (c.editable && (c.filter || c.editP)) {
         // TODO: moar types - pick, date, maybe custom via edit tag
         const noclicky = { t: 70, n: ['click', 'mousedown', 'pointerdown', 'MSPointerDown', 'touchstart'], f: { r: ['@event'], s: '[_0.stopPropagation()]' } };
         const editor = [
-          { t: 4, n: 50, x: { r: [`~/columns.${cidx}.type`], s: "_0==='boolean'" }, f: [{ t: 7, e: 'input', m: [{ t: 13, n: 'type', f: 'checkbox' }, { t: 13, n: 'checked', f: [{ t: 2, r: c.filter }] }, noclicky] }] },
+          { t: 4, n: 50, x: { r: [`~/columns.${cidx}.editP`], s: `Array.isArray(_0)` }, f: [{ t: 7, e: 'div', m: [{ t: 13, n: 'class-rtable-edit' }, noclicky], f: [{ t: 16, r: `~/columns.${cidx}.editP` }] }] },
+          { t: 4, n: 50, l:1, x: { r: [`~/columns.${cidx}.type`], s: "_0==='boolean'" }, f: [{ t: 7, e: 'input', m: [{ t: 13, n: 'type', f: 'checkbox' }, { t: 13, n: 'checked', f: [{ t: 2, r: c.filter }] }, noclicky] }] },
           { t: 4, n: 51, l: 1, f: [{ t: 7, e: 'input', m: [{ t: 13, n: 'value', f: [{ t: 2, r: c.filter }] }, noclicky] }] }
         ];
         if (typeof c.editable === 'object') {
@@ -1581,7 +1584,7 @@
     min-height: 0;
   }
 
-  .rtable-column.rtable-editing {
+  .rtable-column.rtable-editing, .rtable-column.rtable-editing > .rtable-edit  {
     padding: 0;
   }
   .rtable-column.rtable-editing input {
