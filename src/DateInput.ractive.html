@@ -28,8 +28,12 @@
   import date from './date';
 
   function setup(ctx) {
+    if (ctx.strObserver) ctx.strObserver.cancel();
+
     if (ctx.attributes.value) ctx.link(ctx.attributes.value, 'rdi.val');
     else ctx.unlink('rdi.val');
+
+    if (ctx.attributes.string) ctx.strObserver = ctx.observe('rdi.val', v => ctx.set(ctx.attributes.string, v ? v.toString() : ''));
 
     const opts = { value: 'rdi.val' };
     ['null', 'lazy', 'mask'].forEach(k => {
@@ -51,7 +55,7 @@
     css: $CSS,
     cssId: 'rdi',
     noCssTransform: true,
-    attributes: ['value', 'null', 'lazy', 'mask']
+    attributes: ['value', 'null', 'lazy', 'mask', 'string']
   });
 
   export default function plugin(opts = {}) {
