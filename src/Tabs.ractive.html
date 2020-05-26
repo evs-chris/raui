@@ -30,7 +30,7 @@
   <div
     class-rtabs-tab
     class-rtabs-selected="~/selected === @index && !.button"
-    {{#if typeof .disabled === 'string' ? ~/[.disabled] : .disabled}}class-rtabs-disabled
+    {{#if typeof .disabled === 'string' ? @.get(.disabled) : .disabled}}class-rtabs-disabled
     {{elseif !.button}}on-click=['select', @index]
     {{elseif typeof .button === 'function'}}on-click=".button()"{{/if}}
     as-registered="@index"
