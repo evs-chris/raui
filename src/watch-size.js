@@ -10,6 +10,7 @@ export function sized(node, attrs) {
 
   const obj = document.createElement('object');
   obj.setAttribute('style', 'display: block; position: absolute; top: 0; left: 0; height: 100%; width: 100%; overflow: hidden; pointer-events: none; z-index: -1;');
+  obj.setAttribute('tabindex', '-1');
   obj.type = 'text/html';
 
   const refresh = () => {
