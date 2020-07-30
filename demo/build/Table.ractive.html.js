@@ -1054,7 +1054,7 @@ System.register(['ractive', './chunk7.js', './chunk8.js', './chunk2.js', './chun
             { t: 7, e: 'div', f: [{ t: 7, e: 'div', f: [{ t: 16, r: "~/meta.expand", c: { r: '.' }, z: z }] }], m: [{ t: 13, n: 'class-rtable-row-expand' }, { t: 4, n: 50, r: '~/noWrap', f: [{ t: 13, n: 'style-width', f: [{ t: 2, x: { r: ['~/tableWidth', '~/allowSelect', '@style.raui.table.selectWidth'], s: "_1?'calc('+_0+'px - '+(_2||'2em')+')':_0+'px'" } }] }] }] }
           ] });
           row[0].f[0].f[0].m.push({ t: 70, n: ['clickd'], f: { r: ['@this', '@index'], s: '[_0._expand(_1)]' } });
-          row[0].f[0].m.push({ t: 70, n: ['clickd'], f: { r: ['@this', '@index'], s: '[_0._expand(_1)]' } });
+          row[0].f[0].f[1].f[0].m.push({ t: 70, n: ['click'], f: { r: ['@this', '@index'], s: '[_0._expand(_1)]' } });
         }
 
         // select
