@@ -81,7 +81,7 @@
     class-center=".valign === 'center'"
     on-click="@this._setSort(.index, @event)"
     on-click="@this._select(., @event), false"
-    on-click="['select', ., ~/rows.indexOf(.), ~/visibleRows.indexOf(.)]"
+    on-click="@this._open(., ~/rows.indexOf(.), ~/visibleRows.indexOf(.))"
     on-click="@this._expand(@index)"
     on-click="@event.stopPropagation()"
   />
@@ -183,6 +183,14 @@
       setTimeout(() => ev.target.checked = !~i);
 
       return false;
+    }
+
+    _open(row, idx, vidx) {
+      if (this._opentm) return;
+      this.fire('selected', {}, row, idx, vidx);
+      this._opentm = setTimeout(() => {
+        this._opentm = null;
+      }, 500);
     }
 
     select() {
@@ -315,6 +323,9 @@
       const res = handler(this, src, filter, sort, this.get('parameters', { virtual: true }));
       this.set('isFiltered', res.length !== src.length);
       this.set('rows', res);
+      const sels = this.get('selections');
+      this.set('selections', sels.filter(s => ~src.indexOf(s)));
+      if (!~src.indexOf(this.get('selection'))) this.set('selected', undefined);
     }
   }
 
@@ -1079,7 +1090,7 @@
       return res;
     }), m: [
       { t: 13, n: 'class-row' }, { t: 13, n: 'class-rtable-row' },
-      { t: 70, n: (expandEl && expandEl.f ? ['dblclickd'] : ['click', 'dblclick']), f: { r: ['~/rows', '~/visibleRows', '.'], s: `[['selected',_2,_0.indexOf(_2),_1.indexOf(_2)]]` } }
+      { t: 70, n: (expandEl && expandEl.f ? ['dblclickd'] : ['click', 'dblclick']), f: { r: ['@this', '~/rows', '~/visibleRows', '.'], s: `[_0._open(_3,_1.indexOf(_3),_2.indexOf(_3))]` } }
     ] }] }] }];
 
     // extra row attrs
@@ -1196,6 +1207,10 @@
 
   .rtable.rtable-border {
     border: 1px solid ${table.divider || primary.bc || '#ccc'};
+  }
+
+  .rtable-header {
+    min-height: 2em;
   }
 
   .rtable-group > div > div,
