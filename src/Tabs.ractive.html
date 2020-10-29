@@ -128,6 +128,7 @@
     }
 
     select(idx) {
+      if (idx < 0 || idx >= (this.get('tabs.length') || 0)) return;
       this.fire('select', {}, idx);
     }
 
@@ -294,9 +295,16 @@
   }
 
   function select(ctx, idx) {
+    if (idx < -1 || idx >= this.get('tabs.length')) return;
     const current = this.get('selected');
     const prs = [];
     const trans = this.get('transition');
+
+    if (this._fadetm) {
+      this.set('opacity', 1);
+      clearTimeout(this._fadetm);
+      this._fadetm = 0;
+    }
 
     if (current !== idx) {
       const cur = this.getContext(this.find('.rtabs-selected'));
@@ -311,7 +319,8 @@
         this.updateIndicator();
         const ctx = this.getContext(this.find('.rtabs-selected'));
 
-        setTimeout(() => {
+        this._fadetm = setTimeout(() => {
+          this._fadetm = 0;
           this.set({
             selectedContent: idx,
             [`tabs.${idx}.load`]: true,
