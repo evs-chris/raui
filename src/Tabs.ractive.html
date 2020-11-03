@@ -133,9 +133,12 @@
     }
 
     _hidden(idx) {
-      const hidden = this.get(`tabs.${idx}.hidden`);
-      if (typeof hidden === 'string') return this.get(hidden);
-      else return hidden;
+      let hidden = this.get(`tabs.${idx}.hidden`);
+      if (typeof hidden === 'string') hidden = this.get(hidden);
+      setTimeout(() => {
+        if (hidden && this.get('selected') === idx) this.select(0);
+      });
+      return hidden;
     }
 
     stopHorizontalScroll(node) {
@@ -151,6 +154,20 @@
       const scroll = this.get('scrollStatus') || '';
       if (/hscroll.*(hmiddle|right)/.test(scroll) && !/left/.test(scroll)) return true;
     }
+
+    get visibleSelection() {
+      let idx = 0;
+      const tabs = this.get('tabs');
+      const active = this.get('selected');
+      for (let i = 0; i < tabs.length; i++) {
+        const tab = tabs[i];
+        if (active === i) return idx;
+        let hidden = tab.hidden;
+        if (typeof hidden === 'string') hidden = this.get(hidden);
+        if (!hidden) idx++;
+      }
+      return idx;
+    }
   }
 
   const tabAttrs = ['closable', 'disabled', 'title', 'right', 'button', 'no-pad', 'hidden', 'id', 'load'];
@@ -161,7 +178,7 @@
     cssId: 'rtab',
     noCssTransform: true,
     css: $CSS,
-    attributes: ['transition', 'flat', 'pad', 'center', 'height', 'fill', 'defer'],
+    attributes: ['transition', 'flat', 'pad', 'center', 'height', 'fill', 'defer', 'selected'],
     data() {
       return {
         tabs: [],
@@ -175,7 +192,8 @@
     on: {
       construct,
       config() {
-        if ( this._tabs ) this.set('tabs', (this.get('tabs') || []).concat(this._tabs), { shuffle: true });
+        if (this._ctabs) this.set('tabs', (this.get('tabs') || []).concat(this._ctabs), { shuffle: true });
+        this._ctabs = 0;
         const tabs = this.get('tabs');
         const xs = this.indicatorObservers = [];
         tabs.forEach(t => {
@@ -184,7 +202,9 @@
         xs.push(this.observe('tabs.*.hidden', () => setTimeout(() => this.updateIndicator()), { init: false, defer: true }));
 
         this.once('render', () => {
-          if (this.get('selected') === -1) this.select(0);
+          const sel = this.get('selected');
+          if (sel === -1) this.select(0);
+          else this.set('selectedContent', sel);
         })
       },
       select,
@@ -291,7 +311,7 @@
       return tab;
     });
 
-    this._tabs = tabs;
+    this._ctabs = tabs;
   }
 
   function select(ctx, idx) {
@@ -307,49 +327,56 @@
     }
 
     if (current !== idx) {
-      const cur = this.getContext(this.find('.rtabs-selected'));
-      const window = this.find('.rtabs-content-window');
-      if (~current) this.set(`scroll.${cur.get('@index')}`, window.scrollTop);
-      if (cur.hasListener('leave')) cur.raise('leave');
-      if (trans === 'fade') {
-        this.set({
-          opacity: 0,
-          selected: idx
-        });
-        this.updateIndicator();
-        const ctx = this.getContext(this.find('.rtabs-selected'));
-
-        this._fadetm = setTimeout(() => {
-          this._fadetm = 0;
+      if (this.rendered) {
+        const cur = this.getContext(this.find('.rtabs-selected'));
+        const window = this.find('.rtabs-content-window');
+        if (~current) this.set(`scroll.${cur.get('@index')}`, window.scrollTop);
+        if (cur.hasListener('leave')) cur.raise('leave');
+        if (trans === 'fade') {
           this.set({
-            selectedContent: idx,
-            [`tabs.${idx}.load`]: true,
-            opacity: 1
+            opacity: 0,
+            selected: idx
           });
+          this.updateIndicator();
+          const ctx = this.getContext(this.find('.rtabs-selected'));
+
+          this._fadetm = setTimeout(() => {
+            this._fadetm = 0;
+            this.set({
+              selectedContent: idx,
+              [`tabs.${idx}.load`]: true,
+              opacity: 1
+            });
+            if (ctx.hasListener('enter')) ctx.raise('enter');
+            if (window && ~current) window.scrollTop = this.get(`scroll.${idx}`) || 0;
+          }, 150);
+        } else if (trans === 'slide') {
+          this.set('selected', idx);
+          this.set(`tabs.${idx}.load`, true);
+          this.set('selectedContent', idx);
+          this.updateIndicator();
+          const ctx = this.getContext(this.find('.rtabs-selected'));
           if (ctx.hasListener('enter')) ctx.raise('enter');
           if (window && ~current) window.scrollTop = this.get(`scroll.${idx}`) || 0;
-        }, 150);
-      } else if (trans === 'slide') {
-        this.set('selected', idx);
-        this.set(`tabs.${idx}.load`, true);
-        this.set('selectedContent', idx);
-        this.updateIndicator();
-        const ctx = this.getContext(this.find('.rtabs-selected'));
-        if (ctx.hasListener('enter')) ctx.raise('enter');
-        if (window && ~current) window.scrollTop = this.get(`scroll.${idx}`) || 0;
+        } else {
+          this.set({
+            selected: idx,
+            [`tabs.${idx}.load`]: true,
+            selectedContent: idx
+          });
+          this.updateIndicator();
+          const ctx = this.getContext(this.find('.rtabs-selected'));
+          if (ctx.hasListener('enter')) ctx.raise('enter');
+          if (window) window.scrollTop = this.get(`scroll.${idx}`) || 0;
+        }
+
+        if (~current && window && window.scrollLeft) window.scrollLeft = 0;
       } else {
         this.set({
           selected: idx,
-          [`tabs.${idx}.load`]: true,
           selectedContent: idx
         });
-        this.updateIndicator();
-        const ctx = this.getContext(this.find('.rtabs-selected'));
-        if (ctx.hasListener('enter')) ctx.raise('enter');
-        if (window) window.scrollTop = this.get(`scroll.${idx}`) || 0;
       }
-
-      if (~current && window && window.scrollLeft) window.scrollLeft = 0;
     }
   }
 
@@ -706,7 +733,6 @@
   }
 
   .rtabs-tab-content {
-    display: inline-block;
     position: relative;
     width: 100%;
     overflow: auto;
@@ -715,7 +741,7 @@
     transition: opacity 0.1s ease-in-out;
     flex-shrink: 0;
     white-space: initial;
-    display: inline-block;
+    display: flex;
     flex-direction: column;
     flex-grow: 1;
   }
