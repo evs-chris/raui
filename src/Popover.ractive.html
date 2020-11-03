@@ -218,7 +218,7 @@
         }
         setTimeout(() => {
           if (this.get('popped') === v) this.set('_popped', v);
-        }, 100);
+        }, 1);
       },
       _popped: {
         handler(v) {
@@ -227,12 +227,10 @@
             if (mobile && window.matchMedia(`(max-width: ${mobile})`).matches) {
               if (!mobilePop) {
                 mobilePop = new MobilePop({ target: document.body, append: true });
-                mobilePop.observe('contents', v => {
-                  mobilePopped = (v || []).length > 0;
-                });
               }
               const context = this.getContext().getParent(true);
               context.isContext = 1;
+              this.set('__popped', false);
               mobilePop.unshift('contents', { content: this.partials.content, context, attrs: this.partials['extra-attributes'] || [], clickClose: this.get('clickClose'), noClickout: this.get('noClickout'), done: () => { this.set('popped', false); } });
             } else {
               this.set('__popped', true);
@@ -378,7 +376,9 @@
   }
 
   class MobilePop extends Ractive {
-    constructor(opts) { super(opts); }
+    constructor(opts) {
+      super(opts);
+    }
   }
 
   Ractive.extendWith(MobilePop, {
@@ -386,12 +386,24 @@
     data() {
       return { contents: [] };
     },
-    use: [pop(), fade()]
-  })
+    use: [pop(), fade()],
+    observe: {
+      contents(v) {
+        mobilePopped = (v || []).length > 0;
+      }
+    },
+    on: {
+      init() {
+        if (mobilePop) console.warn(`More than one PopOver mobile host created.`);
+        else mobilePop = this;
+      }
+    }
+  });
 
   export default function plugin(options = {}) {
     return function({ instance }) {
       instance.components[options.name || 'pop'] = Popover;
+      instance.components[options.mobileName || 'mobile-pop'] = MobilePop;
       const opts = Object.assign({}, options);
       opts.name = opts.trigger || opts.name;
       trigger(opts)({ instance });

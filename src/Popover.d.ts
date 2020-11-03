@@ -42,6 +42,11 @@ export interface PluginOpts extends TriggerOpts {
    * Override for trigger decorator trigger name.
    */
   trigger?: string;
+
+  /**
+   * Name for the mobile popover host component. If you don't create your own mobile host, one will be added to the document body for you.
+   */
+  mobileName?: string;
 }
 
 export function trigger(opts?: TriggerOpts): Plugin;
