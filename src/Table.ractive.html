@@ -587,6 +587,10 @@
           });
         },
         init: false
+      },
+      scroll(v, o) {
+        if (~(v || '').indexOf('top') && !~(o || '').indexOf('top')) this.fire('scrolltop', {});
+        if (~(v || '').indexOf('bottom') && !~(o || '').indexOf('bottom')) this.fire('scrollbottom', {});
       }
     },
     data() {
