@@ -11,9 +11,9 @@
   <div class-rcal-wrapper class-rcal-pad="~/pad">
     <div class-rcal-block-outer>
       <div class-rcal-block-header>
-        <div>{{#if left}}<div class-rcal-left on-click="@.prev(), false" />{{/if}}</div>
-        <div class-rcal-click on-click="@.set('mode', 'months'), false">{{@.monthName(.month)}}{{#if .currentYear !== .year}}, {{.year}}{{/if}}</div>
-        <div>{{#if right}}<div class-rcal-right on-click="@.next(), false" />{{/if}}</div>
+        <div class-rcal-click class-rcal-arrow>{{#if left}}<div class-rcal-left on-click="@.prev(), false" />{{/if}}</div>
+        <div class-rcal-click class-rcal-title on-click="@.set('mode', 'months'), false">{{@.monthName(.month)}}{{#if .currentYear !== .year}}, {{.year}}{{/if}}</div>
+        <div class-rcal-click class-rcal-arrow>{{#if right}}<div class-rcal-right on-click="@.next(), false" />{{/if}}</div>
       </div>
       <div class-rcal-month>
         {{#with . as month}}
@@ -37,9 +37,9 @@
   <div class-rcal-wrapper>
     <div class-rcal-block-outer>
       <div class-rcal-block-header>
-        <div>{{#if left}}<div class-rcal-left on-click="@.prev(), false" />{{/if}}</div>
-        <div class-rcal-click on-click="@.set('mode', 'year'), false">{{.year}}</div>
-        <div>{{#if right}}<div class-rcal-right on-click="@.next(), false" />{{/if}}</div>
+        <div class-rcal-click class-rcal-arrow>{{#if left}}<div class-rcal-left on-click="@.prev(), false" />{{/if}}</div>
+        <div class-rcal-click class-rcal-title on-click="@.set('mode', 'year'), false">{{.year}}</div>
+        <div class-rcal-click class-rcal-arrow>{{#if right}}<div class-rcal-right on-click="@.next(), false" />{{/if}}</div>
       </div>
       <div class-rcal-year>
         {{#each .months}}
@@ -60,9 +60,9 @@
   <div class-rcal-wrapper>
     <div class-rcal-block-outer>
       <div class-rcal-block-header>
-        <div>{{#if left}}<div class-rcal-left on-click="@.prev(), false" />{{/if}}</div>
-        <div class-rcal-click on-click="@.set('mode', 'month'), false">{{.start}} - {{.end}}</div>
-        <div>{{#if right}}<div class-rcal-right on-click="@.next(), false" />{{/if}}</div>
+        <div class-rcal-click class-rcal-arrow>{{#if left}}<div class-rcal-left on-click="@.prev(), false" />{{/if}}</div>
+        <div class-rcal-click class-rcal-title on-click="@.set('mode', 'month'), false">{{.start}} - {{.end}}</div>
+        <div class-rcal-click class-rcal-arrow>{{#if right}}<div class-rcal-right on-click="@.next(), false" />{{/if}}</div>
       </div>
       {{#with . as year}}
       <div class-rcal-decade>
@@ -294,7 +294,10 @@
 
 <script rel="css">
   return `.rcal-wrapper {
-    display: inline-block;
+    display: flex;
+    flex-direction: column;
+    width: 15em;
+    height: 17em;
   }
 
   .rcal-pad {
@@ -303,6 +306,9 @@
 
   .rcal-block-outer {
     border: 1px solid ${data('raui.datePicker.primary.bga') || data('raui.primary.bga') || '#f4f4f4'};
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
   }
 
   .rcal-block-header {
@@ -312,10 +318,16 @@
     cursor: default;
     display: flex;
     justify-content: space-between;
-    padding: 0 0.5em;
-    line-height: 1em;
-    height: 1.5em;
+    line-height: 2em;
+    height: 2em;
     align-items: center;
+  }
+
+  .rcal-arrow {
+    width: 2em;
+  }
+  .rcal-title {
+    flex-grow: 1;
   }
 
   .rcal-click {
@@ -340,26 +352,23 @@
     display: flex;
     flex-direction: column;
     background-color: ${data('raui.datePicker.primary.bga') || data('raui.primary.bga') || '#f4f4f4'};
-    width: calc(10.5em + 6px);
-    height: calc(10.5em + 6px);
     justify-content: space-between;
+    flex-grow: 1;
   }
   .rcal-year, .rcal-decade {
     justify-content: space-around;
   }
 
   .rcal-week {
-    height: 1.5em;
+    height: 2em;
     display: flex;
     justify-content: space-between;
-    width: calc(10.5em + 6px);
   }
 
   .rcal-inner-row {
     height: 2em;
     display: flex;
     justify-content: space-around;
-    width: calc(10.5em + 6px);
   }
 
   .rcal-inner-pick {
@@ -377,10 +386,10 @@
 
   .rcal-day {
     background-color: ${data('raui.datePicker.primary.bg') || data('raui.primary.bg') || '#fff'};
-    width: 1.5em;
-    height: 1.5em;
+    width: 2em;
+    height: 2em;
     text-align: center;
-    line-height: 1.5em;
+    line-height: 2em;
     cursor: pointer;
   }
 
