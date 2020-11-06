@@ -1116,10 +1116,14 @@
 
     // expando rows
     if (expandEl && expandEl.f && expandEl.f.length) {
+      const listener = { t: 70, n: ['clickd'], f: { r: ['@this', '@index'], s: '[_0._expand(_1)]' } };
+      let ev = expandEl.m && expandEl.m.find(a => a.n === 'skip');
+      if (ev && ev.f && ev.f[0] && ev.f[0].t === 2) ev = Object.assign({}, ev.f[0], { t: 4, n: 51, f: [listener] }); // unless {{skip}} listener
+      else ev = listener;
       row[0].f[0].f.push({ t: 4, n: 50, x: { r: ['.', '~/expanded'], s: '_0===_1' }, f: [
         { t: 7, e: 'div', f: [{ t: 7, e: 'div', f: [{ t: 16, r: `~/meta.expand`, c: { r: '.' }, z }] }], m: [{ t: 13, n: 'class-rtable-row-expand' }, { t: 4, n: 50, r: '~/noWrap', f: [{ t: 13, n: 'style-width', f: [{ t: 2, x: { r: ['~/tableWidth', '~/allowSelect', '@style.raui.table.selectWidth'], s: `_1?'calc('+_0+'px - '+(_2||'2em')+')':_0+'px'` } }] }] }] }
       ] });
-      row[0].f[0].f[0].m.push({ t: 70, n: ['clickd'], f: { r: ['@this', '@index'], s: '[_0._expand(_1)]' } });
+      row[0].f[0].f[0].m.push(ev);
       row[0].f[0].f[1].f[0].m.push({ t: 70, n: ['click'], f: { r: ['@this', '@index'], s: '[_0._expand(_1)]' } });
     }
 
