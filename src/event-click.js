@@ -52,20 +52,20 @@ class Handler {
   bind() {
     // listen for mouse/pointer events...
     if (window.PointerEvent || window.navigator.pointerEnabled) {
-      this.context.listen('pointerdown', handleMousedown);
+      this.node.addEventListener('pointerdown', handleMousedown);
     } else if (window.navigator.msPointerEnabled) {
-      this.context.listen('MSPointerDown', handleMousedown);
+      this.node.addEventListener('MSPointerDown', handleMousedown);
     } else {
-      this.context.listen('mousedown', handleMousedown);
+      this.node.addEventListener('mousedown', handleMousedown);
 
       // ...and touch events
-      this.context.listen('touchstart', handleTouchstart);
+      this.node.addEventListener('touchstart', handleTouchstart);
     }
 
     // native buttons, anchors, checkboxes, radios, and button/submit input elements, should fire a tap event
     // when the space key is pressed
     if (this.node.tagName === 'A' || this.node.tagName === 'BUTTON' || this.node.type === 'button' || this.node.type === 'submit' || this.node.type === 'checkbox' || this.node.type === 'radio') {
-      this.context.listen('focus', handleFocus);
+      this.node.addEventListener('focus', handleFocus);
     }
   }
 
@@ -223,13 +223,11 @@ class Handler {
   }
 
   teardown() {
-    const ctx = this.context;
-
-    ctx.unlisten('pointerdown', handleMousedown);
-    ctx.unlisten('MSPointerDown', handleMousedown);
-    ctx.unlisten('mousedown', handleMousedown);
-    ctx.unlisten('touchstart', handleTouchstart);
-    ctx.unlisten('focus', handleFocus);
+    this.node.removeEventListener('pointerdown', handleMousedown);
+    this.node.removeEventListener('MSPointerDown', handleMousedown);
+    this.node.removeEventListener('mousedown', handleMousedown);
+    this.node.removeEventListener('touchstart', handleTouchstart);
+    this.node.removeEventListener('focus', handleFocus);
 
     delete this.node.__r_clicks__;
   }
