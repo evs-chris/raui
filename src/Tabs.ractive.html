@@ -91,7 +91,7 @@
     }
 
     updateIndicator() {
-      if (!this.rendered) return;
+      if (!this.rendered || !this._tabs) return;
       const ctx = this.getContext(this.find('.rtabs-tab-window'));
       if (ctx.decorators.scrolled) ctx.decorators.scrolled.refresh();
       if (this.get('@style.raui.tabs.boxy')) return;
