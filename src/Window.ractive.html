@@ -329,16 +329,23 @@
         });
       }
 
+      function liftBlocked(control, pos) {
+        if (!control) return;
+        control.index = pos--;
+        if (control.blocking) liftBlocked(wnds.find(w => w.id === control.blocking), pos);
+      }
+
       if (wnd) {
         if (opts.parent !== false && wnd.get('control.blocking')) {
           const blocking = wnd.get(`control.blocking`);
-          top = this.get(`windows.${blocking}.index`) || 0 + (this.get(`windows.${blocking}.blockers.length`) || 0);
+          top += this.get(`windows.${blocking}.index`) || 0 + (this.get(`windows.${blocking}.blockers.length`) || 0);
           wnds.forEach(w => {
             if (w.index > top) w.index++;
           });
-          top++;
+          liftBlocked(wnds.find(w => w.id === blocking), top - 1);
         }
-        wnd.set('control.index', opts.show === false ? -1 : top++);
+        top += 2;
+        wnd.set('control.index', opts.show === false ? -1 : top);
         if (opts.show !== false && !wnd.visible) wnd.show();
 
         blocks(wnd.id);
@@ -878,7 +885,7 @@
       if (event.type === 'mousedown' && event.button !== 0) return;
       if (!this.get('control.topmost')) this.raise();
       if (~event.type.indexOf('mouse')) {
-        if (!event.ctrlKey && event.target !== this.content && event.target !== this.top && !this.top.contains(event.target)) return;
+        if (!this.top || (!event.ctrlKey && event.target !== this.content && event.target !== this.top && !this.top.contains(event.target))) return;
       } else {
         if (event.targetTouches && event.targetTouches.length === 1 && event.target !== this.content && event.target !== this.top && !this.top.contains(event.target)) return;
       }
