@@ -18,10 +18,12 @@
 <template id="window">
   {{#if ~/control.show}}
   <div class-rwindow-wrapper as-tracked=`wrapper`
-    {{#if (~/root.max || ~/root.userMax || ~/control.max) && !~/control.dialog}}
+    {{#if (~/root.max || ~/root.userMax || ~/control.max) && !~/control.dialog && !~/control.slide}}
       {{#if ~/root.transition !== false}}window-out{{/if}}
       {{#unless ~/control.autosize || ~/control.dialog}}style-top="0" style-left="0" style-width="100%" style-height="100%"{{/unless}}
       class-rwindow-max
+    {{elseif ~/control.slide}}
+      class="rwindow-slide rwindow-slide-{{~/control.slide}}" slide-in-out="{ from: ~/control.slide }"
     {{else}}
       {{#if ~/root.transition !== false}}modal-in-out{{/if}}
       {{#if ~/control.resizable}}
@@ -37,14 +39,14 @@
     class-rwindow-topmost="~/control.topmost"
   >
     <div class-rwindow
-      {{#if !(~/control.movable === false || ~/root.max || ~/root.userMax || ~/control.max) && !~/control.dialog}}
+      {{#if !(~/control.movable === false || ((~/root.max || ~/root.userMax) && !~/control.dialog) || ~/control.max) && (!~/control.dialog || ~/control.movable === true) && !~/control.slide}}
         on-mousedown-touchstart="@._startMove(@event)"
       {{elseif !~/control.topmost}}
         on-mousedown-touchstart="@.raise()"
       {{/if}}
     >
       <div class-rwindow-modal class-rwindow-blocked="~/control.blockers.length || ~/control.blocked"></div>
-      <div class-rwindow-pane as-tracked=`pane` {{#if ~/control.autosize}}class-rwindow-autosizing{{/if}}>
+      <div class-rwindow-pane as-tracked=`pane` {{#if ~/control.autosize && !~/control.slide}}class-rwindow-autosizing{{/if}}>
         {{>pane}}
       </div>
     </div>
@@ -53,7 +55,7 @@
 </template>
 
 <template id="pane">
-  {{#unless (~/control.max || ~/root.userMax || ~/root.max) && ~/root.hideTitleMax && !~/control.dialog}}
+  {{#if !((~/control.max || ~/root.userMax || ~/root.max) && ~/root.hideTitleMax && !~/control.dialog) && !~/control.hideTitle && !~/control.slide}}
   <div class-rwindow-pane-top as-tracked=`top`>
     {{>title}}
     <div class-rwindow-controls>
@@ -62,7 +64,7 @@
       {{#if ~/control.close}}<div class-rwindow-close on-click="@.close()"></div>{{/if}}
     </div>
   </div>
-  {{/unless}}
+  {{/if}}
   <div class-rwindow-content as-tracked=`content` class-rwindow-pad="~/control.pad" class-rwindow-flex="~/control.flex" {{#if ~/control.autosize}}style-overflow=visible{{/if}}>{{>contents}}</div>
   {{#if ~/buttons}}
     <div class-rwindow-buttons class-no-buttons="!~/visibleButtons">
@@ -78,8 +80,8 @@
 
 <template id="windowControls">
   <div class-rwindow-controls>
-    {{#if window.minimize}}<div class-rwindow-minimize on-click="host.getWindow(window.id).hide()"></div>{{/if}}
-    {{#if !~/window.dialog && window.maximize && host.data.userMax}}<div class-rwindow-maximize on-click="host.getWindow(window.id).maximize()"></div>{{/if}}
+    {{#if !window.dialog && window.minimize}}<div class-rwindow-minimize on-click="host.getWindow(window.id).hide()"></div>{{/if}}
+    {{#if !window.dialog && window.maximize && host.data.userMax}}<div class-rwindow-maximize on-click="host.getWindow(window.id).maximize()"></div>{{/if}}
     {{#if window.close}}<div class-rwindow-close on-click="host.getWindow(window.id).close()"></div>{{/if}}
   </div>
 </template>
@@ -156,7 +158,46 @@
             windowTrans = false;
             t.complete();
             if (parent.style) parent.style.overflow = overflow;
-          });;
+          });
+        }
+      },
+      slide(t, params) {
+        const p = t.processParams(params, { duration: 400, easing: 'easeInOut' });
+        const parent = t.node.parentNode;
+        const overflow = parent.style ? parent.style.overflow : '';
+        const done = () => {
+          t.complete();
+          if (parent.style) setTimeout(() => parent.style.overflow = overflow);
+        }
+        if (parent.style) parent.style.overflow = 'hidden';
+        if (t.isIntro || p.intro) {
+          if (p.from === 'top') {
+            t.setStyle({ transform: 'translateY(-100%)' });
+            t.animateStyle({ transform: 'translateY(0)' }, p).then(done);
+          } else if (p.from === 'bottom') {
+            t.setStyle({ transform: 'translateY(100%)' });
+            t.animateStyle({ transform: 'translateY(0)' }, p).then(done);
+          } else if (p.from === 'left') {
+            t.setStyle({ transform: 'translateX(-100%)' });
+            t.animateStyle({ transform: 'translateX(0)' }, p).then(done);
+          } else if (p.from === 'right') {
+            t.setStyle({ transform: 'translateX(100%)' });
+            t.animateStyle({ transform: 'translateX(0)' }, p).then(done);
+          }
+        } else {
+          if (p.from === 'top') {
+            t.setStyle({ transform: 'translateY(0)' });
+            t.animateStyle({ transform: 'translateY(-100%)' }, p).then(done);
+          } else if (p.from === 'bottom') {
+            t.setStyle({ transform: 'translateY(0)' });
+            t.animateStyle({ transform: 'translateY(100%)' }, p).then(done);
+          } else if (p.from === 'left') {
+            t.setStyle({ transform: 'translateX(0)' });
+            t.animateStyle({ transform: 'translateX(-100%)' }, p).then(done);
+          } else if (p.from === 'right') {
+            t.setStyle({ transform: 'translateX(0)' });
+            t.animateStyle({ transform: 'translateX(100%)' }, p).then(done);
+          }
         }
       }
     }
@@ -212,7 +253,8 @@
         } else parent = false;
       }
 
-      if (options.size === 'fill' && (parent || options.block)) {
+      if (options.slide) {
+      } else if (options.size === 'fill' && (parent || options.block)) {
         let wnd;
 
         if (options.block === true) wnd = this.find('.rwhost-pane');
@@ -230,7 +272,8 @@
         window.size('auto');
       }
 
-      if (options.top && options.left) {
+      if (options.slide) {
+      } else if (options.top && options.left) {
         window.move(options.top, options.left);
       } else {
         this.place(window);
@@ -336,7 +379,7 @@
         const leaving = this.get(`windows.${escape(last)}`);
         wnd = this.getWindow(top);
         const transition = this.get('transition');
-        if (transition !== false && (!leaving || !leaving.dialog || (leaving.blocking && leaving.blocking !== top))) wnd.transition(transition || 'window', wnd.find('div'), { intro: true });
+        if (transition !== false && !wnd.get('control.slide') && (!leaving || (!leaving.dialog && !leaving.slide) && (!leaving.blocking || (leaving.blocking && leaving.blocking !== top)))) wnd.transition(transition || 'window', wnd.find('div'), { intro: true });
       }
     }
 
@@ -1224,6 +1267,23 @@
 
   .rwindow-wrapper.rwindow-resizable {
     padding: ${primary.handleSize || 7}px;
+  }
+
+  .rwindow-slide-left {
+    height: 100%;
+    left: 0;
+  }
+  .rwindow-slide-right {
+    height: 100%;
+    right: 0;
+  }
+  .rwindow-slide-top {
+    width: 100%;
+    top: 0;
+  }
+  .rwindow-slide-bottom {
+    width: 100%;
+    bottom: 0;
   }
 
   .rwindow-topmost > .rwindow {
