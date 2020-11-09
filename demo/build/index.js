@@ -170,6 +170,8 @@ System.register(['./chunk3.js', './chunk4.js', './chunk6.js', './chunk2.js', './
         Tabs.prototype = Object.create( Ractive && Ractive.prototype );
         Tabs.prototype.constructor = Tabs;
 
+        var prototypeAccessors = { visibleSelection: { configurable: true } };
+
         Tabs.prototype.addTab = function addTab (tab, idx) {
           if (!tab.template) { tab.template = []; }
 
@@ -194,7 +196,7 @@ System.register(['./chunk3.js', './chunk4.js', './chunk6.js', './chunk2.js', './
         };
 
         Tabs.prototype.updateIndicator = function updateIndicator () {
-          if (!this.rendered) { return; }
+          if (!this.rendered || !this._tabs) { return; }
           var ctx = this.getContext(this.find('.rtabs-tab-window'));
           if (ctx.decorators.scrolled) { ctx.decorators.scrolled.refresh(); }
           if (this.get('@style.raui.tabs.boxy')) { return; }
@@ -231,13 +233,19 @@ System.register(['./chunk3.js', './chunk4.js', './chunk6.js', './chunk2.js', './
         };
 
         Tabs.prototype.select = function select (idx) {
+          if (idx < 0 || idx >= (this.get('tabs.length') || 0)) { return; }
           this.fire('select', {}, idx);
         };
 
         Tabs.prototype._hidden = function _hidden (idx) {
+          var this$1 = this;
+
           var hidden = this.get(("tabs." + idx + ".hidden"));
-          if (typeof hidden === 'string') { return this.get(hidden); }
-          else { return hidden; }
+          if (typeof hidden === 'string') { hidden = this.get(hidden); }
+          setTimeout(function () {
+            if (hidden && this$1.get('selected') === idx) { this$1.select(0); }
+          });
+          return hidden;
         };
 
         Tabs.prototype.stopHorizontalScroll = function stopHorizontalScroll (node) {
@@ -253,6 +261,22 @@ System.register(['./chunk3.js', './chunk4.js', './chunk6.js', './chunk2.js', './
           var scroll = this.get('scrollStatus') || '';
           if (/hscroll.*(hmiddle|right)/.test(scroll) && !/left/.test(scroll)) { return true; }
         };
+
+        prototypeAccessors.visibleSelection.get = function () {
+          var idx = 0;
+          var tabs = this.get('tabs');
+          var active = this.get('selected');
+          for (var i = 0; i < tabs.length; i++) {
+            var tab = tabs[i];
+            if (active === i) { return idx; }
+            var hidden = tab.hidden;
+            if (typeof hidden === 'string') { hidden = this.get(hidden); }
+            if (!hidden) { idx++; }
+          }
+          return idx;
+        };
+
+        Object.defineProperties( Tabs.prototype, prototypeAccessors );
 
         return Tabs;
       }(Ractive$1));
@@ -275,7 +299,7 @@ System.register(['./chunk3.js', './chunk4.js', './chunk6.js', './chunk2.js', './
          var boxy = data('raui.tabs.boxy') || data('raui.tabs.primary.boxy');
        
          return "\n   .rtabs {\n     position: relative;\n     display: flex;\n     flex-direction: column;\n     width: 100%;\n   }\n \n   .rtabs-tab-window {\n     overflow-y: hidden;\n     overflow-x: auto;\n     " + (!boxy ? ("box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.14),\n       0 1px 5px 0 rgba(0, 0, 0, 0.12),\n       0 3px 1px -2px rgba(0, 0, 0, 0.2);\n     color: " + (primary.fg || '#222') + ";\n     background-color: " + (primary.bg || '#fff') + ";") :
-           ("border-color: " + (primary.bc || '#ccc') + ";\n     border-style: solid;\n     border-width: 1px 1px 0 1px;\n     color: " + (primary.fg || '#222') + ";\n     background-color: " + (primary.bga || '#f4f4f4') + ";\n     ")) + "\n     position: relative;\n     flex-shrink: 0;\n   }\n   .alt > div > .rtabs-tab-window {\n     color: " + (primary.bg || '#fff') + ";\n     background-color: " + (primary.fga || '#07e') + ";\n   }" + (boxy ? ("\n   .alt > div > .rtabs-tab-window .rtabs-tab {\n     color: " + (primary.bg || '#fff') + ";\n     background-color: " + (primary.fga || '#07e') + ";\n   }") : '') + "\n \n   .rtabs-tab-window-wrapper {\n     position: relative;\n     z-index: 10;\n   }\n   .rtabs-tab-window-wrapper:before {\n     content: '';\n     position: absolute;\n     top: 0;\n     left: 0;\n     height: 100%;\n     width: 10px;\n     opacity: 0;\n     transition: opacity 0.3s ease-in-out;\n     background: linear-gradient(to right, " + (primary.indicator.color || primary.fga || '#07e') + ", transparent);\n     z-index: 999;\n     pointer-events: none;\n   }\n   .rtabs-tab-window-wrapper.rtabs-scroll-left:before {\n     opacity: 1;\n   }\n \n   .rtabs-tab-window-wrapper:after {\n     content: '';\n     position: absolute;\n     top: 0;\n     right: 0;\n     height: 100%;\n     width: 10px;\n     opacity: 0;\n     background: linear-gradient(to left, " + (primary.indicator.color || primary.fga || '#07e') + ", transparent);\n     transition: opacity 0.3s ease-in-out;\n     pointer-events: none;\n   }\n   .rtabs-tab-window-wrapper.rtabs-scroll-right:after {\n     opacity: 1;\n   }\n \n   .rtabs-flat > div > .rtabs-tab-window {\n     box-shadow: none;\n     border-width: 0;\n   }\n   " + (!boxy ? (".rtabs-flat > div > .rtabs-tab-window:after {\n     content: '';\n     height: 0.15em;\n     position: absolute;\n     bottom: 0px;\n     width: 100%;\n     display: block;\n     background-color: " + (primary.bga || '#f4f4f4') + ";\n   }\n   .rtabs-flat.alt > div > .rtabs-tab-window:after {\n     background-color: " + (primary.fga || '#07e') + ";\n   }") : ("\n   .rtabs-flat > div > .rtabs-tab-window {\n     background-color: " + (primary.bg || '#fff') + ";\n   }\n   .alt.rtabs-flat > div > .rtabs-tab-window {\n     background-color: " + (primary.fga || '#07e') + ";\n   }\n   .rtabs-flat > div > .rtabs-tab-window .rtabs-tab {\n     border-top-width: 1px;\n   }")) + "\n \n   .rtabs-center.rtabs-left {\n     text-align: center;\n   }" + (boxy ? "\n   .rtabs-center > .rtabs-tab:first-child {\n     border-left-width: 1px;\n   }" : '') + "\n \n   .rtabs-pad {\n     padding: 1em;\n   }\n \n   .rtabs-fill {\n     flex-grow: 1;\n     height: 100%;\n   }\n \n   .rtabs-tabs {\n     display: table;\n     position: relative;\n     min-width: 100%;\n     white-space: nowrap;" + (boxy ? ("\n     border-style: solid;\n     border-width: 0 0 1px 0;\n     border-color: " + (primary.bc || '#ccc') + ";\n     line-height: 1.5em;") : '') + "\n   }\n \n   .rtabs-tab {\n     display: inline-block;\n     box-sizing: border-box;\n     padding: 0.5em 1em;\n     height: 2.5em;\n     transition: opacity 0.2s ease-in-out;\n     user-select: none;\n     cursor: pointer;" + (!boxy ? "\n     opacity: 0.9;" : ("\n     border-color: " + (primary.bc || '#ccc') + ";\n     border-style: solid;\n     border-width: 0 1px 1px 0;\n     margin-bottom: -1px;\n     color: " + (primary.fg || '#222') + ";\n     background-color: " + (primary.bga || '#f4f4f4') + ";\n     ")) + "\n   }\n   .rtabs-tab:hover {\n     opacity: 1;\n   }\n \n   .rtabs-selected" + (boxy ? ",\n   .alt > div > .rtabs-tab-window .rtabs-selected" : '') + " {\n     opacity: 1;" + (boxy ? ("\n     font-weight: bold;\n     border-bottom-color: " + (primary.bg || '#fff') + ";\n     background-color: " + (primary.selected.bg || primary.bg || '#fff') + ";\n     color: " + (primary.selected.fg || primary.fg || '#222') + ";") : '') + "\n   }\n \n   .rtabs-disabled {\n     opacity: 0.4;\n   }\n \n   .rtabs-right {\n     text-align: right;\n     display: table-cell;\n   }\n \n   .rtabs-left {\n     text-align: left;\n     display: table-cell;\n   }\n \n   .rtabs-close {\n     display: inline-block;\n     margin-right: -0.5em;\n     font-weight: 700;\n     opacity: 0.3;\n     transition: opacity: 0.2s ease-in-out;\n   }\n \n   .rtabs-close:hover {\n     opacity: 1;\n   }\n \n   .rtabs-indicator {\n     position: absolute;\n     bottom: 0;\n     height: 0.15em;\n     background-color: " + (primary.indicator.color || primary.fga || '#07e') + ";\n     z-index: 2;\n   }\n \n   .alt > div > .rtabs-tab-window .rtabs-indicator {\n     background-color: " + (primary.bg || '#fff') + ";\n   }\n \n   .rtabs-going-left .rtabs-indicator {\n     transition: left 0.2s ease-in-out, right 0.2s ease-in-out 0.1s;\n   }\n   .rtabs-going-right .rtabs-indicator {\n     transition: left 0.2s ease-in-out 0.1s, right 0.2s ease-in-out;\n   }\n \n   .rtabs-content-wrapper {\n     width: 100%;\n     box-sizing: border-box;\n     display: flex;\n     flex-direction: column;\n     flex-grow: 2;\n     overflow: hidden;\n   }\n \n   .rtabs-content-window {\n     width: 100%;\n     display: flex;\n     flex-grow: 1;\n     overflow-y: auto;\n     overflow-x: hidden\n   }\n \n   .rtabs {\n     color: " + (primary.fg || '#222') + ";\n     background-color: " + (primary.bg || '#fff') + ";\n   }\n   \n   .rtabs-contents {\n     list-style: none;\n     padding: 0;\n     margin: 0;\n     position: relative;\n     left: 0;\n     display: block;\n     flex-wrap: nowrap;\n     white-space: nowrap;\n     width: 100%;\n   }\n   .rtabs-trans-slide > .rtabs-contents {\n     transition: left 0.2s ease-in-out;\n   }\n   .rtabs-trans-fade > .rtabs-contents {\n     transition: opacity 0.15s ease;\n     opacity: 1;\n     white-space: nowrap;\n   }\n \n   .rtabs-fill > div > div > .rtabs-contents {\n     display: flex;\n   }\n \n   .rtabs-tab-content {\n     display: inline-block;\n     position: relative;\n     width: 100%;\n     overflow: auto;\n     vertical-align: top;\n     white-space: initial;\n     transition: opacity 0.1s ease-in-out;\n     flex-shrink: 0;\n     white-space: initial;\n     display: inline-block;\n     flex-direction: column;\n     flex-grow: 1;\n   }\n \n   .rtabs-placeholder {\n     display: inline-block;\n     width: 100%;\n     height: 1px;\n     flex-shrink: 0;\n   }\n   .rtabs-dyna.rtabs-not-selected {\n     height: 1px;\n     opacity: 0;\n     overflow: hidden;\n   }\n   .rtabs-pad > .rtabs-tab-content {\n     padding: 1em;\n     box-sizing: border-box;\n   }\n   .rtabs-pad > .rtabs-tab-content.rtabs-no-pad {\n     padding: 0;\n   }\n   .rtabs > .rtabs-tab-content.rtabs-pad {\n     padding: 1em;\n     box-sizing: border-box;\n   }\n   " + themes.map(function (t) {
+           ("border-color: " + (primary.bc || '#ccc') + ";\n     border-style: solid;\n     border-width: 1px 1px 0 1px;\n     color: " + (primary.fg || '#222') + ";\n     background-color: " + (primary.bga || '#f4f4f4') + ";\n     ")) + "\n     position: relative;\n     flex-shrink: 0;\n   }\n   .alt > div > .rtabs-tab-window {\n     color: " + (primary.bg || '#fff') + ";\n     background-color: " + (primary.fga || '#07e') + ";\n   }" + (boxy ? ("\n   .alt > div > .rtabs-tab-window .rtabs-tab {\n     color: " + (primary.bg || '#fff') + ";\n     background-color: " + (primary.fga || '#07e') + ";\n   }") : '') + "\n \n   .rtabs-tab-window-wrapper {\n     position: relative;\n     z-index: 10;\n   }\n   .rtabs-tab-window-wrapper:before {\n     content: '';\n     position: absolute;\n     top: 0;\n     left: 0;\n     height: 100%;\n     width: 10px;\n     opacity: 0;\n     transition: opacity 0.3s ease-in-out;\n     background: linear-gradient(to right, " + (primary.indicator.color || primary.fga || '#07e') + ", transparent);\n     z-index: 999;\n     pointer-events: none;\n   }\n   .rtabs-tab-window-wrapper.rtabs-scroll-left:before {\n     opacity: 1;\n   }\n \n   .rtabs-tab-window-wrapper:after {\n     content: '';\n     position: absolute;\n     top: 0;\n     right: 0;\n     height: 100%;\n     width: 10px;\n     opacity: 0;\n     background: linear-gradient(to left, " + (primary.indicator.color || primary.fga || '#07e') + ", transparent);\n     transition: opacity 0.3s ease-in-out;\n     pointer-events: none;\n   }\n   .rtabs-tab-window-wrapper.rtabs-scroll-right:after {\n     opacity: 1;\n   }\n \n   .rtabs-flat > div > .rtabs-tab-window {\n     box-shadow: none;\n     border-width: 0;\n   }\n   " + (!boxy ? (".rtabs-flat > div > .rtabs-tab-window:after {\n     content: '';\n     height: 0.15em;\n     position: absolute;\n     bottom: 0px;\n     width: 100%;\n     display: block;\n     background-color: " + (primary.bga || '#f4f4f4') + ";\n   }\n   .rtabs-flat.alt > div > .rtabs-tab-window:after {\n     background-color: " + (primary.fga || '#07e') + ";\n   }") : ("\n   .rtabs-flat > div > .rtabs-tab-window {\n     background-color: " + (primary.bg || '#fff') + ";\n   }\n   .alt.rtabs-flat > div > .rtabs-tab-window {\n     background-color: " + (primary.fga || '#07e') + ";\n   }\n   .rtabs-flat > div > .rtabs-tab-window .rtabs-tab {\n     border-top-width: 1px;\n   }")) + "\n \n   .rtabs-center.rtabs-left {\n     text-align: center;\n   }" + (boxy ? "\n   .rtabs-center > .rtabs-tab:first-child {\n     border-left-width: 1px;\n   }" : '') + "\n \n   .rtabs-pad {\n     padding: 1em;\n   }\n \n   .rtabs-fill {\n     flex-grow: 1;\n     height: 100%;\n   }\n \n   .rtabs-tabs {\n     display: table;\n     position: relative;\n     min-width: 100%;\n     white-space: nowrap;" + (boxy ? ("\n     border-style: solid;\n     border-width: 0 0 1px 0;\n     border-color: " + (primary.bc || '#ccc') + ";\n     line-height: 1.5em;") : '') + "\n   }\n \n   .rtabs-tab {\n     display: inline-block;\n     box-sizing: border-box;\n     padding: 0.5em 1em;\n     height: 2.5em;\n     transition: opacity 0.2s ease-in-out;\n     user-select: none;\n     cursor: pointer;" + (!boxy ? "\n     opacity: 0.9;" : ("\n     border-color: " + (primary.bc || '#ccc') + ";\n     border-style: solid;\n     border-width: 0 1px 1px 0;\n     margin-bottom: -1px;\n     color: " + (primary.fg || '#222') + ";\n     background-color: " + (primary.bga || '#f4f4f4') + ";\n     ")) + "\n   }\n   .rtabs-tab:hover {\n     opacity: 1;\n   }\n \n   .rtabs-selected" + (boxy ? ",\n   .alt > div > .rtabs-tab-window .rtabs-selected" : '') + " {\n     opacity: 1;" + (boxy ? ("\n     font-weight: bold;\n     border-bottom-color: " + (primary.bg || '#fff') + ";\n     background-color: " + (primary.selected.bg || primary.bg || '#fff') + ";\n     color: " + (primary.selected.fg || primary.fg || '#222') + ";") : '') + "\n   }\n \n   .rtabs-disabled {\n     opacity: 0.4;\n   }\n \n   .rtabs-right {\n     text-align: right;\n     display: table-cell;\n   }\n \n   .rtabs-left {\n     text-align: left;\n     display: table-cell;\n   }\n \n   .rtabs-close {\n     display: inline-block;\n     margin-right: -0.5em;\n     font-weight: 700;\n     opacity: 0.3;\n     transition: opacity: 0.2s ease-in-out;\n   }\n \n   .rtabs-close:hover {\n     opacity: 1;\n   }\n \n   .rtabs-indicator {\n     position: absolute;\n     bottom: 0;\n     height: 0.15em;\n     background-color: " + (primary.indicator.color || primary.fga || '#07e') + ";\n     z-index: 2;\n   }\n \n   .alt > div > .rtabs-tab-window .rtabs-indicator {\n     background-color: " + (primary.bg || '#fff') + ";\n   }\n \n   .rtabs-going-left .rtabs-indicator {\n     transition: left 0.2s ease-in-out, right 0.2s ease-in-out 0.1s;\n   }\n   .rtabs-going-right .rtabs-indicator {\n     transition: left 0.2s ease-in-out 0.1s, right 0.2s ease-in-out;\n   }\n \n   .rtabs-content-wrapper {\n     width: 100%;\n     box-sizing: border-box;\n     display: flex;\n     flex-direction: column;\n     flex-grow: 2;\n     overflow: hidden;\n   }\n \n   .rtabs-content-window {\n     width: 100%;\n     display: flex;\n     flex-grow: 1;\n     overflow-y: auto;\n     overflow-x: hidden\n   }\n \n   .rtabs {\n     color: " + (primary.fg || '#222') + ";\n     background-color: " + (primary.bg || '#fff') + ";\n   }\n   \n   .rtabs-contents {\n     list-style: none;\n     padding: 0;\n     margin: 0;\n     position: relative;\n     left: 0;\n     display: block;\n     flex-wrap: nowrap;\n     white-space: nowrap;\n     width: 100%;\n   }\n   .rtabs-trans-slide > .rtabs-contents {\n     transition: left 0.2s ease-in-out;\n   }\n   .rtabs-trans-fade > .rtabs-contents {\n     transition: opacity 0.15s ease;\n     opacity: 1;\n     white-space: nowrap;\n   }\n \n   .rtabs-fill > div > div > .rtabs-contents {\n     display: flex;\n   }\n \n   .rtabs-tab-content {\n     position: relative;\n     width: 100%;\n     overflow: auto;\n     vertical-align: top;\n     white-space: initial;\n     transition: opacity 0.1s ease-in-out;\n     flex-shrink: 0;\n     white-space: initial;\n     display: flex;\n     flex-direction: column;\n     flex-grow: 1;\n   }\n \n   .rtabs-placeholder {\n     display: inline-block;\n     width: 100%;\n     height: 1px;\n     flex-shrink: 0;\n   }\n   .rtabs-dyna.rtabs-not-selected {\n     height: 1px;\n     opacity: 0;\n     overflow: hidden;\n   }\n   .rtabs-pad > .rtabs-tab-content {\n     padding: 1em;\n     box-sizing: border-box;\n   }\n   .rtabs-pad > .rtabs-tab-content.rtabs-no-pad {\n     padding: 0;\n   }\n   .rtabs > .rtabs-tab-content.rtabs-pad {\n     padding: 1em;\n     box-sizing: border-box;\n   }\n   " + themes.map(function (t) {
            var theme = Object.assign({}, data('raui.primary'), data('raui.tabs.primary'), data(("raui." + t)), data(("raui.tabs." + t)));
            theme.selected = Object.assign({}, data('raui.tabs.selected'), data('raui.tabs.primary.selected'), data(("raui.tabs." + t + ".selected")));
            theme.indicator = Object.assign({}, data('raui.tabs.indicator'), data('raui.tabs.primary.indicator'), data(("raui.tabs." + t + ".indicator")));
@@ -285,7 +309,7 @@ System.register(['./chunk3.js', './chunk4.js', './chunk6.js', './chunk2.js', './
            ("border-color: " + (theme.bc || '#ccc') + ";\n     color: " + (theme.fg || '#222') + ";\n     background-color: " + (theme.bga || '#f4f4f4') + ";\n     ")) + "\n   }\n   .rtabs." + t + " > .rtabs-tab-window-wrapper:before {\n     background: linear-gradient(to right, " + (theme.indicator.color || theme.fga || '#07e') + ", transparent);\n   }\n   .rtabs." + t + " > .rtabs-tab-window-wrapper:after {\n     background: linear-gradient(to left, " + (theme.indicator.color || theme.fga || '#07e') + ", transparent);\n   }\n   .rtabs." + t + ".alt > div > .rtabs-tab-window {\n     color: " + (theme.bg || '#fff') + ";\n     background-color: " + (theme.fga || '#07e') + ";\n   }" + (boxy ? ("\n   .rtabs." + t + ".alt > div > .rtabs-tab-window .rtabs-tab {\n     color: " + (theme.bg || '#fff') + ";\n     background-color: " + (theme.fga || '#07e') + ";\n   }") : '') + "\n \n   " + (!boxy ? (".rtabs-flat." + t + " > div > .rtabs-tab-window:after {\n     background-color: " + (theme.bga || '#f4f4f4') + ";\n   }\n   .rtabs-flat.alt." + t + " > div > .rtabs-tab-window:after {\n     background-color: " + (theme.fga || '#07e') + ";\n   }") : ("\n   .rtabs-flat." + t + " > div > .rtabs-tab-window {\n     background-color: " + (theme.bg || '#fff') + ";\n   }\n   .alt.rtabs-flat." + t + " > div > .rtabs-tab-window {\n     background-color: " + (theme.fga || '#07e') + ";\n   }")) + "\n \n   " + (boxy ? (".rtabs." + t + " > div > .rtabs-tab-window .rtabs-tabs {\n     border-color: " + (theme.bc || '#ccc') + ";\n   }") : '') + "\n \n   .rtabs." + t + " > div > .rtabs-tab-window > .rtabs-tab {\n     cursor: pointer;" + (!boxy ? '' : ("\n     border-color: " + (theme.bc || '#ccc') + ";\n     color: " + (theme.fg || '#222') + ";\n     background-color: " + (theme.bga || '#f4f4f4') + ";\n     ")) + "\n   }\n \n   .rtabs." + t + " > div > .rtabs-tab-window .rtabs-selected" + (boxy ? (",\n   .rtabs." + t + ".alt > div > .rtabs-tab-window .rtabs-selected") : '') + " {" + (boxy ? ("\n     border-bottom-color: " + (them.bg || '#fff') + ";\n     background-color: " + (theme.selected.bg || theme.bg || '#fff') + ";" + (theme.indicator ? ("\n     background-image: linear-gradient(to bottom, " + (theme.indicator.color || theme.fga || '#07e') + ", " + (theme.bg || '#fff') + " 3px);") : '') + "\n     color: " + (theme.selected.fg || theme.fg || '#222') + ";") : '') + "\n   }\n \n   .rtabs." + t + " > div > .rtabs-tab-window .rtabs-indicator {\n     background-color: " + (theme.indicator.color || theme.fga || '#07e') + ";\n   }\n \n   .rtabs." + t + ".alt > div > .rtabs-tab-window .rtabs-indicator {\n     background-color: " + (theme.bg || '#fff') + ";\n   }\n \n   .rtabs." + t + " {\n     color: " + (theme.fg || '#222') + ";\n     background-color: " + (theme.bg || '#fff') + ";\n   }\n   ");
          }).join('\n');
       }).call(this, data)].join(' '); },
-        attributes: ['transition', 'flat', 'pad', 'center', 'height', 'fill', 'defer'],
+        attributes: ['transition', 'flat', 'pad', 'center', 'height', 'fill', 'defer', 'selected'],
         data: function data() {
           return {
             tabs: [],
@@ -301,7 +325,8 @@ System.register(['./chunk3.js', './chunk4.js', './chunk6.js', './chunk2.js', './
           config: function config() {
             var this$1 = this;
 
-            if ( this._tabs ) { this.set('tabs', (this.get('tabs') || []).concat(this._tabs), { shuffle: true }); }
+            if (this._ctabs) { this.set('tabs', (this.get('tabs') || []).concat(this._ctabs), { shuffle: true }); }
+            this._ctabs = 0;
             var tabs = this.get('tabs');
             var xs = this.indicatorObservers = [];
             tabs.forEach(function (t) {
@@ -310,7 +335,9 @@ System.register(['./chunk3.js', './chunk4.js', './chunk6.js', './chunk2.js', './
             xs.push(this.observe('tabs.*.hidden', function () { return setTimeout(function () { return this$1.updateIndicator(); }); }, { init: false, defer: true }));
 
             this.once('render', function () {
-              if (this$1.get('selected') === -1) { this$1.select(0); }
+              var sel = this$1.get('selected');
+              if (sel === -1) { this$1.select(0); }
+              else { this$1.set('selectedContent', sel); }
             });
           },
           select: select,
@@ -419,57 +446,72 @@ System.register(['./chunk3.js', './chunk4.js', './chunk6.js', './chunk2.js', './
           return tab;
         });
 
-        this._tabs = tabs;
+        this._ctabs = tabs;
       }
 
       function select(ctx, idx) {
         var this$1 = this;
         var obj;
 
+        if (idx < -1 || idx >= this.get('tabs.length')) { return; }
         var current = this.get('selected');
         var trans = this.get('transition');
 
+        if (this._fadetm) {
+          this.set('opacity', 1);
+          clearTimeout(this._fadetm);
+          this._fadetm = 0;
+        }
+
         if (current !== idx) {
-          var cur = this.getContext(this.find('.rtabs-selected'));
-          var window = this.find('.rtabs-content-window');
-          if (~current) { this.set(("scroll." + (cur.get('@index'))), window.scrollTop); }
-          if (cur.hasListener('leave')) { cur.raise('leave'); }
-          if (trans === 'fade') {
-            this.set({
-              opacity: 0,
-              selected: idx
-            });
-            this.updateIndicator();
-            var ctx$1 = this.getContext(this.find('.rtabs-selected'));
+          if (this.rendered) {
+            var cur = this.getContext(this.find('.rtabs-selected'));
+            var window = this.find('.rtabs-content-window');
+            if (~current) { this.set(("scroll." + (cur.get('@index'))), window.scrollTop); }
+            if (cur.hasListener('leave')) { cur.raise('leave'); }
+            if (trans === 'fade') {
+              this.set({
+                opacity: 0,
+                selected: idx
+              });
+              this.updateIndicator();
+              var ctx$1 = this.getContext(this.find('.rtabs-selected'));
 
-            setTimeout(function () {
-              var obj;
+              this._fadetm = setTimeout(function () {
+                var obj;
 
-              this$1.set(( obj = {
-                selectedContent: idx
-              }, obj[("tabs." + idx + ".load")] = true, obj.opacity = 1, obj));
-              if (ctx$1.hasListener('enter')) { ctx$1.raise('enter'); }
-              if (window && ~current) { window.scrollTop = this$1.get(("scroll." + idx)) || 0; }
-            }, 150);
-          } else if (trans === 'slide') {
-            this.set('selected', idx);
-            this.set(("tabs." + idx + ".load"), true);
-            this.set('selectedContent', idx);
-            this.updateIndicator();
-            var ctx$2 = this.getContext(this.find('.rtabs-selected'));
-            if (ctx$2.hasListener('enter')) { ctx$2.raise('enter'); }
-            if (window && ~current) { window.scrollTop = this.get(("scroll." + idx)) || 0; }
+                this$1._fadetm = 0;
+                this$1.set(( obj = {
+                  selectedContent: idx
+                }, obj[("tabs." + idx + ".load")] = true, obj.opacity = 1, obj));
+                if (ctx$1.hasListener('enter')) { ctx$1.raise('enter'); }
+                if (window && ~current) { window.scrollTop = this$1.get(("scroll." + idx)) || 0; }
+              }, 150);
+            } else if (trans === 'slide') {
+              this.set('selected', idx);
+              this.set(("tabs." + idx + ".load"), true);
+              this.set('selectedContent', idx);
+              this.updateIndicator();
+              var ctx$2 = this.getContext(this.find('.rtabs-selected'));
+              if (ctx$2.hasListener('enter')) { ctx$2.raise('enter'); }
+              if (window && ~current) { window.scrollTop = this.get(("scroll." + idx)) || 0; }
+            } else {
+              this.set(( obj = {
+                selected: idx
+              }, obj[("tabs." + idx + ".load")] = true, obj.selectedContent = idx, obj));
+              this.updateIndicator();
+              var ctx$3 = this.getContext(this.find('.rtabs-selected'));
+              if (ctx$3.hasListener('enter')) { ctx$3.raise('enter'); }
+              if (window) { window.scrollTop = this.get(("scroll." + idx)) || 0; }
+            }
+
+            if (~current && window && window.scrollLeft) { window.scrollLeft = 0; }
           } else {
-            this.set(( obj = {
-              selected: idx
-            }, obj[("tabs." + idx + ".load")] = true, obj.selectedContent = idx, obj));
-            this.updateIndicator();
-            var ctx$3 = this.getContext(this.find('.rtabs-selected'));
-            if (ctx$3.hasListener('enter')) { ctx$3.raise('enter'); }
-            if (window) { window.scrollTop = this.get(("scroll." + idx)) || 0; }
+            this.set({
+              selected: idx,
+              selectedContent: idx
+            });
           }
-
-          if (~current && window && window.scrollLeft) { window.scrollLeft = 0; }
         }
       }
 
@@ -495,43 +537,43 @@ System.register(['./chunk3.js', './chunk4.js', './chunk6.js', './chunk2.js', './
         this.item = item;
       };
 
-      var prototypeAccessors = { keypath: { configurable: true },id: { configurable: true },index: { configurable: true },title: { configurable: true },template: { configurable: true },hidden: { configurable: true },right: { configurable: true },pad: { configurable: true },disabled: { configurable: true },button: { configurable: true },closable: { configurable: true },load: { configurable: true } };
+      var prototypeAccessors$1 = { keypath: { configurable: true },id: { configurable: true },index: { configurable: true },title: { configurable: true },template: { configurable: true },hidden: { configurable: true },right: { configurable: true },pad: { configurable: true },disabled: { configurable: true },button: { configurable: true },closable: { configurable: true },load: { configurable: true } };
 
-      prototypeAccessors.keypath.get = function () {
+      prototypeAccessors$1.keypath.get = function () {
         if (this.removed) { return; }
         return ("tabs." + (this.index));
       };
 
-      prototypeAccessors.id.get = function () { return this.get('id'); };
-      prototypeAccessors.id.set = function (v) { this.set('id', v); };
-      prototypeAccessors.index.get = function () { return this.tabs.get('tabs').indexOf(this.item); };
+      prototypeAccessors$1.id.get = function () { return this.get('id'); };
+      prototypeAccessors$1.id.set = function (v) { this.set('id', v); };
+      prototypeAccessors$1.index.get = function () { return this.tabs.get('tabs').indexOf(this.item); };
 
-      prototypeAccessors.title.get = function () { return this.get('title'); };
-      prototypeAccessors.title.set = function (v) { this.set('title', v); };
+      prototypeAccessors$1.title.get = function () { return this.get('title'); };
+      prototypeAccessors$1.title.set = function (v) { this.set('title', v); };
 
-      prototypeAccessors.template.get = function () { return this.get('template'); };
-      prototypeAccessors.template.set = function (v) { return this.set('template', v); };
+      prototypeAccessors$1.template.get = function () { return this.get('template'); };
+      prototypeAccessors$1.template.set = function (v) { return this.set('template', v); };
 
-      prototypeAccessors.hidden.get = function () { return this.get('hidden'); };
-      prototypeAccessors.hidden.set = function (v) { return this.set('hidden', v); };
+      prototypeAccessors$1.hidden.get = function () { return this.get('hidden'); };
+      prototypeAccessors$1.hidden.set = function (v) { return this.set('hidden', v); };
 
-      prototypeAccessors.right.get = function () { return this.get('right'); };
-      prototypeAccessors.right.set = function (v) { return this.set('right', v); };
+      prototypeAccessors$1.right.get = function () { return this.get('right'); };
+      prototypeAccessors$1.right.set = function (v) { return this.set('right', v); };
 
-      prototypeAccessors.pad.get = function () { return this.get('pad'); };
-      prototypeAccessors.pad.set = function (v) { return this.set('pad', v); };
+      prototypeAccessors$1.pad.get = function () { return this.get('pad'); };
+      prototypeAccessors$1.pad.set = function (v) { return this.set('pad', v); };
 
-      prototypeAccessors.disabled.get = function () { return this.get('disabled'); };
-      prototypeAccessors.disabled.set = function (v) { return this.set('disabled', v); };
+      prototypeAccessors$1.disabled.get = function () { return this.get('disabled'); };
+      prototypeAccessors$1.disabled.set = function (v) { return this.set('disabled', v); };
 
-      prototypeAccessors.button.get = function () { return this.get('button'); };
-      prototypeAccessors.button.set = function (v) { return this.set('button', v); };
+      prototypeAccessors$1.button.get = function () { return this.get('button'); };
+      prototypeAccessors$1.button.set = function (v) { return this.set('button', v); };
 
-      prototypeAccessors.closable.get = function () { return this.get('closable'); };
-      prototypeAccessors.closable.set = function (v) { return this.set('closable', v); };
+      prototypeAccessors$1.closable.get = function () { return this.get('closable'); };
+      prototypeAccessors$1.closable.set = function (v) { return this.set('closable', v); };
 
-      prototypeAccessors.load.get = function () { return this.get('load'); };
-      prototypeAccessors.load.set = function (v) { return this.set('load', v); };
+      prototypeAccessors$1.load.get = function () { return this.get('load'); };
+      prototypeAccessors$1.load.set = function (v) { return this.set('load', v); };
 
       Handle.prototype.select = function select () {
         if (this.removed) { return; }
@@ -558,7 +600,7 @@ System.register(['./chunk3.js', './chunk4.js', './chunk6.js', './chunk2.js', './
         return this.tabs.set(((this.keypath) + "." + key), value);
       };
 
-      Object.defineProperties( Handle.prototype, prototypeAccessors );
+      Object.defineProperties( Handle.prototype, prototypeAccessors$1 );
 
       function plugin$1(opts) {
         if ( opts === void 0 ) opts = {};
@@ -874,6 +916,23 @@ System.register(['./chunk3.js', './chunk4.js', './chunk6.js', './chunk2.js', './
       );
 
       var app = window.app = new App({ target: '#target' });
+
+      var el;
+      document.addEventListener('click', function (ev) { return el = ev.target; });
+      document.addEventListener('focus', function (ev) { return el = ev.target; });
+
+      Object.defineProperty(window, 'C', {
+        get: function get() {
+          return app.getContext(el);
+        }
+      });
+
+      Object.defineProperty(window, 'R', {
+        get: function get() {
+          var res = window.C;
+          if (res) { return res.ractive; }
+        }
+      });
 
     }
   };

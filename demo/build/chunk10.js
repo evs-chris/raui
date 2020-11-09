@@ -240,7 +240,7 @@ System.register(['./chunk2.js', 'ractive', './chunk5.js', './chunk11.js'], funct
             }
             setTimeout(function () {
               if (this$1.get('popped') === v) { this$1.set('_popped', v); }
-            }, 100);
+            }, 1);
           },
           _popped: {
             handler: function handler(v) {
@@ -251,12 +251,10 @@ System.register(['./chunk2.js', 'ractive', './chunk5.js', './chunk11.js'], funct
                 if (mobile && window.matchMedia(("(max-width: " + mobile + ")")).matches) {
                   if (!mobilePop) {
                     mobilePop = new MobilePop({ target: document.body, append: true });
-                    mobilePop.observe('contents', function (v) {
-                      mobilePopped = (v || []).length > 0;
-                    });
                   }
                   var context = this.getContext().getParent(true);
                   context.isContext = 1;
+                  this.set('__popped', false);
                   mobilePop.unshift('contents', { content: this.partials.content, context: context, attrs: this.partials['extra-attributes'] || [], clickClose: this.get('clickClose'), noClickout: this.get('noClickout'), done: function () { this$1.set('popped', false); } });
                 } else {
                   this.set('__popped', true);
@@ -408,7 +406,9 @@ System.register(['./chunk2.js', 'ractive', './chunk5.js', './chunk11.js'], funct
       }
 
       var MobilePop = /*@__PURE__*/(function (Ractive) {
-        function MobilePop(opts) { Ractive.call(this, opts); }
+        function MobilePop(opts) {
+          Ractive.call(this, opts);
+        }
 
         if ( Ractive ) MobilePop.__proto__ = Ractive;
         MobilePop.prototype = Object.create( Ractive && Ractive.prototype );
@@ -422,7 +422,18 @@ System.register(['./chunk2.js', 'ractive', './chunk5.js', './chunk11.js'], funct
         data: function data() {
           return { contents: [] };
         },
-        use: [plugin(), fade()]
+        use: [plugin(), fade()],
+        observe: {
+          contents: function contents(v) {
+            mobilePopped = (v || []).length > 0;
+          }
+        },
+        on: {
+          init: function init() {
+            if (mobilePop) { console.warn("More than one PopOver mobile host created."); }
+            else { mobilePop = this; }
+          }
+        }
       });
 
       function plugin$1(options) {
@@ -432,6 +443,7 @@ System.register(['./chunk2.js', 'ractive', './chunk5.js', './chunk11.js'], funct
           var instance = ref.instance;
 
           instance.components[options.name || 'pop'] = Popover;
+          instance.components[options.mobileName || 'mobile-pop'] = MobilePop;
           var opts = Object.assign({}, options);
           opts.name = opts.trigger || opts.name;
           trigger(opts)({ instance: instance });

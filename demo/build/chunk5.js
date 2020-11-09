@@ -19,8 +19,8 @@ System.register([], function (exports, module) {
         setTimeout(function () {
           registered = true;
           if (!torndown) {
-            document.body.addEventListener('click', handler);
-            document.body.addEventListener('touchstop', handler);
+            document.body.addEventListener('click', handler, { capture: true });
+            document.body.addEventListener('touchstop', handler, { capture: true });
           }
         });
         
@@ -29,8 +29,8 @@ System.register([], function (exports, module) {
           teardown: function teardown() {
             torndown = true;
             if (registered) {
-              document.body.removeEventListener('click', handler);
-              document.body.removeEventListener('touchstop', handler);
+              document.body.removeEventListener('click', handler, { capture: true });
+              document.body.removeEventListener('touchstop', handler, { capture: true });
             }
           }
         }
