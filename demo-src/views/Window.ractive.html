@@ -86,6 +86,27 @@
 
       This one of those things that's mostly API, so it's hard to make an example. Luckily, the docs you're looking at right now are all in windows embedded in a host, so you've already experienced the example to some extent. If you'd like to see the code, check out the github repo in the `demo-src` directory.
     </marked>
+
+    <div>
+      <label as-field>Block<select value="{{opts.block}}"><option value="{{true}}">All</option><option>Parent</option><option value="{{false}}">No</option></select></label>
+      <label as-field><input type=checkbox checked="{{opts.close}}" />Close?</label>
+      <label as-field><input type=checkbox checked="{{opts.pad}}" />Pad?</label>
+      <label as-field><input type=checkbox checked="{{opts.flex}}" />Flex?</label>
+      <label as-field><input type=checkbox checked="{{opts.movable}}" />Movable?</label>
+      <label as-field><input type=checkbox checked="{{opts.resizable}}" />Resizable?</label>
+      {{#if !opts.slide}}<label as-field><input type=checkbox checked="{{opts.dialog}}" /> Dialog?</label>{{/if}}
+      <label as-field><input type=checkbox checked="{{opts.hideTitle}}" /> Hide title?</label>
+      {{#if opts.block && !opts.slide}}<label as-field><input type=checkbox checked="{{opts.fill}}" /> Fill parent?</label>{{/if}}
+      {{#if !opts.dialog}}<label as-field>Slide<select value="{{opts.slide}}">
+        <option value="{{undefined}}">(none)</option>
+        <option>left</option>
+        <option>right</option>
+        <option>top</option>
+        <option>bottom</option>
+      </select></label>{{/if}}
+      <label as-field>Content<textarea>{{content}}</textarea></label>
+      <label as-field><button on-click="@.openDialog(opts)">Open Window</button></label>
+    </div>
   </tab>
 </tabs>
 
@@ -98,7 +119,29 @@
       title: 'Component :: Window',
       resizable: true, flex: true,
       width: '48em', height: '30em'
+    },
+    data() {
+      return {
+        opts: { close: true, flex: true, pad: true, resizable: true, movable: true, dialog: true, block: true },
+        content: '<div style="min-width: 20em; min-height: 10em;"><strong>HTML</strong> content</div>'
+      };
+    },
+    openDialog(opts) {
+      opts = Object.assign({}, opts);
+      if (opts.block === 'Parent') opts.block = this;
+      if (opts.fill) opts.size = 'fill';
+      const wnd = new Dialog({
+        data: { content: this.get('content') }
+      });
+      this.host.addWindow(wnd, opts);
     }
+  });
+
+  const Dialog = Window.extend({
+    options: {
+      title: 'Window :: Dialog',
+    },
+    template: '{{{content}}}<buttons><button on-click="@.close()">Close</button></buttons>'
   });
 </script>
   
