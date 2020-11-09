@@ -313,47 +313,45 @@
 
     raise(window, opts = {}) {
       let wnd = window instanceof Window ? window : this.children.byName.window.filter(a => a.instance.id === window).map(a => a.instance)[0];
-      const object = this.get('windows');
+      const object = this.get('windows', { virtual: false });
       const host = this;
       const wnds = Object.keys(object).map(k => object[k]);
-      let top = wnds.length + 1;
+      let top = (wnds.length + 1) * 2;
       const last = this.get('topLevel');
       const wasBlocked = this.get('blocked');
+      const id = wnd ? wnd.get('control.id') : wnds.reduce((a, c) => !a ? c : c.index > a.index ? c : a, null);
 
-      function blocks(id) {
-        const bs = host.get(`windows.${escape(id)}.blockers`);
-        if (!bs) return;
-        bs.forEach(b => {
-          host.add(`windows.${escape(b)}.index`, top++);
-          blocks(b);
-        });
+      if (!wnd && id) wnd = this.children.byName.window.find(a => a.instance.id === id);
+
+      function blocks(ctrl) {
+        if (ctrl.blockers) {
+          ctrl.blockers.forEach((b, i) => {
+            const w = wnds.find(w => w.id === b);
+            if (!w) return;
+            w.index = ctrl.index + i + 1;
+            blocks(w);
+          });
+        }
       }
 
       function liftBlocked(control, pos) {
         if (!control) return;
         control.index = pos--;
         if (control.blocking) liftBlocked(wnds.find(w => w.id === control.blocking), pos);
+        blocks(control);
       }
 
       if (wnd) {
-        if (opts.parent !== false && wnd.get('control.blocking')) {
-          const blocking = wnd.get(`control.blocking`);
-          top += this.get(`windows.${blocking}.index`) || 0 + (this.get(`windows.${blocking}.blockers.length`) || 0);
-          wnds.forEach(w => {
-            if (w.index > top) w.index++;
-          });
-          liftBlocked(wnds.find(w => w.id === blocking), top - 1);
-        }
-        top += 2;
-        wnd.set('control.index', opts.show === false ? -1 : top);
-        if (opts.show !== false && !wnd.visible) wnd.show();
-
-        blocks(wnd.id);
+        const ctrl = wnd.get('control');
+        ctrl.index = opts.show === false ? -1 : top;
+        blocks(ctrl);
+        if (ctrl.blocking) liftBlocked(wnds.find(w => w.id === ctrl.blocking), top - 1);
+        if (opts.show !== false && !ctrl.show) wnd.show();
       }
 
       wnds.filter(w => w.show !== false && w.block === true).forEach(w => {
         this.set(`windows.${escape(w.id)}.index`, (w.index || 0) + top);
-        blocks(w.id);
+        blocks(w);
       });
 
       const ordered = wnds.sort((l, r) => !l.show ? -1 : !r.show ? 1 : l.index < r.index ? -1 : 1);
@@ -365,7 +363,7 @@
       ordered.forEach((w, i) => {
         const key = escape(w.id);
         if (w.block === true && modalIdx === null) modalIdx = i;
-        sets[`windows.${key}.index`] = modalIdx !== null ? i + 2 : i;
+        sets[`windows.${key}.index`] = w.index = modalIdx !== null ? i + 2 : i;
         sets[`windows.${key}.topmost`] = i === top;
         sets[`windows.${key}.stack`] = ordered.length - i;
       });
