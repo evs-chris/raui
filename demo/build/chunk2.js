@@ -577,47 +577,44 @@ System.register(['ractive'], function (exports, module) {
           if ( opts === void 0 ) opts = {};
 
           var wnd = window instanceof Window ? window : this.children.byName.window.filter(function (a) { return a.instance.id === window; }).map(function (a) { return a.instance; })[0];
-          var object = this.get('windows');
-          var host = this;
+          var object = this.get('windows', { virtual: false });
           var wnds = Object.keys(object).map(function (k) { return object[k]; });
-          var top = wnds.length + 1;
+          var top = (wnds.length + 1) * 2;
           var last = this.get('topLevel');
           var wasBlocked = this.get('blocked');
+          var id = wnd ? wnd.get('control.id') : wnds.reduce(function (a, c) { return !a ? c : c.index > a.index ? c : a; }, null);
 
-          function blocks(id) {
-            var bs = host.get(("windows." + (escape(id)) + ".blockers"));
-            if (!bs) { return; }
-            bs.forEach(function (b) {
-              host.add(("windows." + (escape(b)) + ".index"), top++);
-              blocks(b);
-            });
+          if (!wnd && id) { wnd = this.children.byName.window.find(function (a) { return a.instance.id === id; }); }
+
+          function blocks(ctrl) {
+            if (ctrl.blockers) {
+              ctrl.blockers.forEach(function (b, i) {
+                var w = wnds.find(function (w) { return w.id === b; });
+                if (!w) { return; }
+                w.index = ctrl.index + i + 1;
+                blocks(w);
+              });
+            }
           }
 
           function liftBlocked(control, pos) {
             if (!control) { return; }
             control.index = pos--;
             if (control.blocking) { liftBlocked(wnds.find(function (w) { return w.id === control.blocking; }), pos); }
+            blocks(control);
           }
 
           if (wnd) {
-            if (opts.parent !== false && wnd.get('control.blocking')) {
-              var blocking = wnd.get("control.blocking");
-              top += this.get(("windows." + blocking + ".index")) || 0 + (this.get(("windows." + blocking + ".blockers.length")) || 0);
-              wnds.forEach(function (w) {
-                if (w.index > top) { w.index++; }
-              });
-              liftBlocked(wnds.find(function (w) { return w.id === blocking; }), top - 1);
-            }
-            top += 2;
-            wnd.set('control.index', opts.show === false ? -1 : top);
-            if (opts.show !== false && !wnd.visible) { wnd.show(); }
-
-            blocks(wnd.id);
+            var ctrl = wnd.get('control');
+            ctrl.index = opts.show === false ? -1 : top;
+            blocks(ctrl);
+            if (ctrl.blocking) { liftBlocked(wnds.find(function (w) { return w.id === ctrl.blocking; }), top - 1); }
+            if (opts.show !== false && !ctrl.show) { wnd.show(); }
           }
 
           wnds.filter(function (w) { return w.show !== false && w.block === true; }).forEach(function (w) {
             this$1.set(("windows." + (escape(w.id)) + ".index"), (w.index || 0) + top);
-            blocks(w.id);
+            blocks(w);
           });
 
           var ordered = wnds.sort(function (l, r) { return !l.show ? -1 : !r.show ? 1 : l.index < r.index ? -1 : 1; });
@@ -629,7 +626,7 @@ System.register(['ractive'], function (exports, module) {
           ordered.forEach(function (w, i) {
             var key = escape(w.id);
             if (w.block === true && modalIdx === null) { modalIdx = i; }
-            sets[("windows." + key + ".index")] = modalIdx !== null ? i + 2 : i;
+            sets[("windows." + key + ".index")] = w.index = modalIdx !== null ? i + 2 : i;
             sets[("windows." + key + ".topmost")] = i === top;
             sets[("windows." + key + ".stack")] = ordered.length - i;
           });
