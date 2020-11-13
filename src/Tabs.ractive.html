@@ -49,7 +49,7 @@
       class-rtabs-not-selected="~/selectedContent !== @index"
       {{#if .extra}}{{yield .extra}}{{/if}}
       {{#if .pad === false}}class-rtabs-no-pad{{elseif .padRef}}class-rtabs-no-pad="~/[.padRef]"{{/if}}
-      on-focus="@.checkSelection(@context, @index)"
+      on-focusin="@.checkSelection(@context, @index)"
     >
       {{#if (~/defer === 'always' && ~/selectedContent === @index) || (~/defer && .load) || !~/defer}}
         {{yield .template}}
