@@ -55,6 +55,9 @@
       * `movable: boolean = true` - whether the window is movable
       * `pad: boolean = false` - whether the window body should have padding applied
       * `title: string` - the title of the window
+      * `dialog: boolean` - the window is a dialog that should not follow the global maximize setting
+      * `slide: 'left'| 'right' | 'top' | 'bottom'` - the window is a dialog that should slide in from outside of the window and fill its secondary axis (height for sides, width for top and bottom) while sticking to the source edge.
+      * `hideTitle: boolean` - when `true`, hides the window title bar
     * `getWindow(id: string): Window` - retrieve a window by its id
     * `windowGet(id: string, path: string): any` - retrieve a value from the data at the given path from the window with the given id
     * `windowSet(id: string, path: string, val: any)` - set a value in the data at the given path in the window with the given id
@@ -79,6 +82,11 @@
       * `string`s - size in CSS string
       * `'auto'` - allow content to determine the size of the window
     * `move(top: number | string, left: number | string)` - move the window to the given coordinates in either pixels or CSS size strings
+
+    #### Children
+
+    * `buttons` - each window has a dedicated button area at the bottom for actions. Any `button`s found within the `buttons` top-level element will be automatically added to the window's buttons array. `button` elements may be nested within conditional sections to be automatically shown and hidden with the condition.
+      * `left | right | center` - buttons may be positioned within the button area with the `left`, `right`, and `center` attributes.
   </marked></tab>
   <tab title=Example>
     <marked>
