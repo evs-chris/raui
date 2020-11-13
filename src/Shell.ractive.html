@@ -318,6 +318,7 @@
     flex-direction: column;
     overflow: hidden;
     z-index: 1;
+    background-color: ${primary.bg || 'inherit'};
   }
 
   .rshell-middle {
@@ -411,7 +412,6 @@
     left: 0;
     z-index: 1;
     box-sizing: border-box;
-    transition: left ${data('raui.shell.slide.ms') || 400}ms ease-in-out, width ${data('raui.shell.slide.ms') || 400}ms ease-in-out;
     height: 100%;
     width: 100%;
     flex-grow: 1;
