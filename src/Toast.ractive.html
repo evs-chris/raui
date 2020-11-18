@@ -71,7 +71,7 @@
 
       proto.toast = function toast(message, options) {
         const opts = Object.assign({ message, instance: this }, defaults, this.toastDefaults, options);
-        opts.close = () => closeToast(opts);
+        opts.close = () => closeToast(opts, this);
         opts.expand = () => {
           if (holder.active !== opts) return;
           if (holder.tm) {
@@ -91,7 +91,7 @@
         return new Handle(holder, opts);
       }
 
-      function closeToast(which) {
+      function closeToast(which, instance) {
         if (active !== which) {
           toasts.splice(toasts.indexOf(opts), 1);
           if (typeof which.onclose === 'function') which.onclose();
@@ -107,6 +107,8 @@
             if (toasts.length) showToast();
           });
         }
+
+        instance && instance.fire('toasted', null, which);
       };
 
       function showToast() {
