@@ -309,6 +309,7 @@
     z-index: 5;
     pointer-events: none;
     overflow: hidden;
+    max-height: 80%;
   }
   .rtoast-message {
     flex-grow: 2;
@@ -387,19 +388,30 @@
   }
   .rtoast-body {
     border-radius: 0.2em;
-    padding: 0.5em 1em;
+    padding: 1em;
     color: ${primary.bg || '#fff'};
     background-color: ${primary.fg || '#222'};
     box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.14), 0 1px 5px 0 rgba(0, 0, 0, 0.12), 0 3px 1px -2px rgba(0, 0, 0, 0.2);
     opacity: 0.95;
     pointer-events: all;
     transition: color 0.5s ease-in-out, background 0.5s ease-in-out;
+    flex-shrink: 1;
+    display: flex;
+    flex-direction: column;
   }
   .rtoast-upper {
     display: flex;
     flex-shrink: 2;
     flex-wrap: wrap;
     justify-content: space-between;
+  }
+
+  .rtoast-expand {
+    margin-top: 1em;
+    border-radius: 0.2em;
+    background-color: ${primary.bg || '#fff'};
+    color: ${primary.fg || '#222'};
+    overflow: auto;
   }
 
   .rtoast-success {
