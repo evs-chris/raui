@@ -36,7 +36,7 @@
     if (ctx.attributes.string) ctx.strObserver = ctx.observe('rdi.val', v => ctx.set(ctx.attributes.string, v ? v.toString() : ''));
 
     const opts = { value: 'rdi.val' };
-    ['null', 'lazy', 'mask'].forEach(k => {
+    ['null', 'lazy', 'mask', 'min', 'max', 'mask'].forEach(k => {
       if (k in ctx.attributes) opts[k] = ctx.attributes[k];
     });
 
@@ -55,7 +55,7 @@
     css: $CSS,
     cssId: 'rdi',
     noCssTransform: true,
-    attributes: ['value', 'null', 'lazy', 'mask', 'string']
+    attributes: ['value', 'null', 'lazy', 'mask', 'string', 'min', 'max']
   });
 
   export default function plugin(opts = {}) {
@@ -77,6 +77,11 @@
   return `.rdi-date {
     position: relative;
     display: inline-block;
+  }
+
+  .rdi-date input.rdi-date {
+    width: 100%;
+    box-sizing: border-box;
   }
 
   .rdi-x {

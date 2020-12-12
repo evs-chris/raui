@@ -78,6 +78,8 @@ export default function plugin(options = {}) {
         console.warn(`Attempted to add a date decorator missing interstitial between fields '${mask}'`);
         return noop;
       }
+
+      if (opts.min > opts.max) delete opts.min;
       
       if (typeof opts.value === 'string') {
         handles.observers.push(ctx.observe(opts.value, v => {
@@ -86,6 +88,10 @@ export default function plugin(options = {}) {
           receiveValue(groups, v);
           groups.last = v;
           updateDisplay(groups, node);
+          if (opts.min && v < opts.min || opts.max && v > opts.max) {
+            groups.last = null;
+            setTimeout(sendValue);
+          }
         }, { defer: true }));
       } else {
         if (opts.date || opts.null === false) groups.value = getDateValue(opts.date || defaultDate());
@@ -98,6 +104,14 @@ export default function plugin(options = {}) {
         if (focused && opts.lazy !== false) return;
 
         if (opts.null === false && groups.value === null) return receiveValue(groups, groups.last) && 1 || 1;
+
+        if (opts.min && groups.value < opts.min) {
+          receiveValue(groups, opts.min);
+          updateDisplay(groups, node);
+        } else if (opts.max && groups.value > opts.max) {
+          receiveValue(groups, opts.max);
+          updateDisplay(groups, node);
+        }
 
         groups.last = groups.value;
 
