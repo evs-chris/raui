@@ -402,7 +402,7 @@ export class Validator {
         const level = v.level(ks, true);
         syncClass(node, levels, levels[levelMap[level]]);
         if (opts.indicator) {
-          if (level !== 'none') indicator.setAttribute('title', v.messages(ks, true).map(m => m[1]).sort().join('\n'));
+          if (level !== 'none') indicator.setAttribute('title', messageGroupString(groupMessages(v.messages(ks, true))));
           else indicator.setAttribute('title', '');
         }
       }
@@ -572,6 +572,22 @@ function keysForGroup(validator, group) {
     }
   }
   return res;
+}
+
+function groupMessages(messages) {
+  const res = [];
+  let cur = messages.filter(m => m[0] === 'error');
+  if (cur.length) res.push(['Errors', cur.map(m => m[1])]);
+  cur = messages.filter(m => m[0] === 'warn');
+  if (cur.length) res.push(['Warnings', cur.map(m => m[1])]);
+  cur = messages.filter(m => m[0] === 'info' || m[0] === 'none');
+  if (cur.length) res.push(['Info', cur.map(m => m[1])]);
+  return res;
+}
+
+function messageGroupString(groups) {
+  if (groups.length === 1) return groups[0][1].join('\n');
+  return groups.map(g => `${g[0]}:\n${g[1].join('\n')}`).join('\n\n');
 }
 
 let registered = false;
