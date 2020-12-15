@@ -2,7 +2,7 @@ import Ractive, { Decorator } from 'ractive';
 
 export type MessageLevel = 'error'|'warn'|'info';
 export type Level = 'none'|MessageLevel;
-export type ValidatorResult = Array<[Message, string]|[Message, string, string|string[]]>;
+export type ValidatorResult = Array<[MessageLevel, string]|[MessageLevel, string, string|string[]]>;
 export type ValidatorFn = (this: Ractive, ...values: any[]) => ValidatorResult;
 
 export interface CheckHandle {
@@ -62,9 +62,9 @@ export class Validator {
   decorator(opts: DecoratorOpts = {}): Decorator
 }
 
-export function required(name: string): ValidatorFn;
-export function lt(name: string, num: number): ValidatorFn;
-export function lte(name: string, num: number): ValidatorFn;
-export function gt(name: string, num: number): ValidatorFn;
-export function gte(name: string, num: number): ValidatorFn;
-export function between(name: string, lower: number, upper: number): ValidatorFn;
+export function required(name: string, level: MessageLevel = 'error'): ValidatorFn;
+export function lt(name: string, num: number, level: MessageLevel = 'error'): ValidatorFn;
+export function lte(name: string, num: number, level: MessageLevel = 'error'): ValidatorFn;
+export function gt(name: string, num: number, level: MessageLevel = 'error'): ValidatorFn;
+export function gte(name: string, num: number, level: MessageLevel = 'error'): ValidatorFn;
+export function between(name: string, lower: number, upper: number, level: MessageLevel = 'error'): ValidatorFn;

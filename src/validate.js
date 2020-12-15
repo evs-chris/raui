@@ -618,10 +618,11 @@ function register() {
   }
 }
 
-export function required(name) { return v => { if (!v) return [['error', `${name} is required`]]; } }
-export function lt(name, num) { return v => { if (v >= num) return [['error', `${name} must be at most ${num - 1}`]]; }; }
-export function lte(name, num) { return v => { if (v > num) return [['error', `${name} must be at most ${num}`]]; }; }
-export function gt(name, num) { return v => { if (v <= num) return [['error', `${name} must be at least ${num + 1}`]]; }; }
-export function gte(name, num) { return v => { if (v <= num) return [['error', `${name} must be at least ${num}`]]; }; }
-export function between(name, lower, upper) { return v => { if (v < lower || v > upper) return [['error', `${name} must be between ${lower} and ${upper}`]]; }; }
+const probably = 'should probably';
+export function required(name, level = 'error') { return v => { if (!v) return [[level, `${name} ${level !== 'error' ? 'should probably be provided' : 'is required'}`]]; } }
+export function lt(name, num, level = 'error') { return v => { if (v >= num) return [[level, `${name} ${level !== 'error' ? probably : 'must'} be at most ${num - 1}`]]; }; }
+export function lte(name, num, level = 'error') { return v => { if (v > num) return [[level, `${name} ${level !== 'error' ? probably : 'must'} be at most ${num}`]]; }; }
+export function gt(name, num, level = 'error') { return v => { if (v <= num) return [[level, `${name} ${level !== 'error' ? probably : 'must'} be at least ${num + 1}`]]; }; }
+export function gte(name, num, level = 'error') { return v => { if (v <= num) return [[level, `${name} ${level !== 'error' ? probably : 'must'} be at least ${num}`]]; }; }
+export function between(name, lower, upper, level = 'error') { return v => { if (v < lower || v > upper) return [[level, `${name} ${level !== 'error' ? probably : 'must'} be between ${lower} and ${upper}`]]; }; }
 
