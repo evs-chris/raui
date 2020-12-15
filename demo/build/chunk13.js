@@ -3,78 +3,55 @@ System.register([], function (exports, module) {
   return {
     execute: function () {
 
-      exports('default', plugin);
+      exports('scrolled', scrolled);
+      function scrolled(node, opts) {
+        if ( opts === void 0 ) opts = {};
+
+        var bind = typeof opts === 'string' ? opts : opts.bind;
+        if (typeof bind !== 'string') { return { teardown: function teardown() {} }; }
+
+        var allow = opts.allow || 2;
+
+        var ctx = this.getContext(node);
+
+        function watch() {
+          var str = '';
+          if (node.scrollHeight > node.clientHeight) { str += 'vscroll'; }
+          if (node.scrollWidth > node.clientWidth) { str += (str ? ' ' : '') + 'hscroll'; }
+
+          if (node.scrollTop <= allow) { str += ' top'; }
+          if (node.scrollTop >= node.scrollHeight - node.clientHeight - allow) { str += ' bottom'; }
+          if (!~str.indexOf('top') && !~str.indexOf('bottom')) { str += ' vmiddle'; }
+
+          if (node.scrollLeft <= allow) { str += ' left'; }
+          if (node.scrollLeft >= node.scrollWidth - node.clientWidth - allow) { str += ' right'; }
+          else if (!~str.indexOf('left') && !~str.indexOf('right')) { str += ' hmiddle'; }
+
+          ctx.set(bind, str);
+        }
+
+        node.addEventListener('scroll', watch, { passive: true });
+
+        requestAnimationFrame(watch);
+
+        return {
+          refresh: watch,
+          teardown: function teardown() {
+            node.removeEventListener('scroll', watch);
+          }
+        }
+      }
+
       function plugin(options) {
         if ( options === void 0 ) options = {};
 
-        var lib = options.marked || window.marked;
-        var hl = options.highlight;
-        if (hl === true) { hl = window.hljs; }
-
-        if (!lib) { throw new Error("Marked must be either passed in or provided globally as 'marked'.") }
-
-        if (hl && hl.getLanguage) {
-          var renderer = new lib.Renderer();
-          renderer.code = function (code, lang) {
-            var highlighted = lang && hl.getLanguage(lang) ? hl.highlight(lang, code).value : code.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-            return ("<pre><code class=\"hljs " + lang + "\">" + highlighted + "</code></pre>");
-          };
-          lib.setOptions({ renderer: renderer });
-        }
-
-        function marked(node, opts) {
-          var div = document.createElement('div');
-          div.setAttribute('class', 'marked-container');
-          var display = node.style.display;
-          node.style.display = 'none';
-
-          var content = document.createElement('div');
-          content.setAttribute('class', 'marked-content');
-          div.appendChild(content);
-
-          var html = node.innerText;
-          var lines = html.split(/\r?\n/);
-          var indent = lines.find(function (l) { return /[^\s]/.test(l); });
-          if (indent) { html = html.replace(new RegExp(("^" + (indent.replace(/(\s*).*/, '$1'))), 'gm'), ''); }
-
-          lib(html, function (err, res) {
-            content.innerHTML = res;
-            node.parentNode.insertBefore(div, node.nextSibling);
-          });
-
-          return { teardown: function teardown() {
-            node.parentNode.removeChild(div);
-            node.style.display = display;
-          } };
-        }
-
-        return function plugin(ref) {
-          var Ractive = ref.Ractive;
+        return function(ref) {
           var instance = ref.instance;
 
-          instance.decorators[options.name || 'marked'] = marked;
-          instance.partials[options.name || 'marked'] = Ractive.macro(function (handle) {
-            var content = handle.partials.content || [];
-            if (content.length === 1 && typeof content[0] === 'string') {
-              handle.aliasLocal('_marked');
-              handle.setTemplate(['Marking down...']);
-              var tpl = content[0];
-              var indent = tpl.split(/\r?\n/).find(function (l) { return /^\s/.test(l); });
-              if (indent) { tpl = tpl.replace(new RegExp(("^" + (indent.replace(/(\s*).*/, '$1'))), 'gm'), ''); }
-              lib(tpl, function (err, res) {
-                if (!err) { handle.set('@local.content', res); }
-              });
-              handle.setTemplate([{ t: 7, e: 'div', m: [{ t: 13, n: 'class-marked-container' }], f: [{ t: 7, e: 'div', m: [{ t: 13, n: 'class-marked-content' }], f: [{ t: 3, r: '_marked.content' }] }] }]);
-            } else {
-              handle.setTemplate([{ t: 7, e: 'div', m: [{ t: 71, n: 'marked' }], f: handle.template.f }]);
-            }
-          }, {
-            css: function css(data) { return (".marked-content { max-width: " + (data('marked.max') || '70em') + "; width: 100%; box-sizing: border-box; margin: 0 auto; }") },
-            noCssTransform: true,
-            cssId: 'rmarked'
-          });
+          instance.decorators[options.name || 'scrolled'] = scrolled;
         }
       }
+      exports('default', plugin);
 
     }
   };

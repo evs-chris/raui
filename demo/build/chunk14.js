@@ -1,305 +1,458 @@
-System.register(['ractive', './chunk2.js'], function (exports, module) {
+System.register(['ractive', './chunk13.js', './chunk7.js', './chunk2.js'], function (exports, module) {
   'use strict';
-  var Ractive$1, globalRegister;
+  var Ractive$1, scrolled, sized, globalRegister;
   return {
     setters: [function (module) {
       Ractive$1 = module.default;
+    }, function (module) {
+      scrolled = module.scrolled;
+    }, function (module) {
+      sized = module.sized;
     }, function (module) {
       globalRegister = module.default;
     }],
     execute: function () {
 
-      var Split = /*@__PURE__*/(function (Ractive) {
-        function Split(opts) { Ractive.call(this, opts); }
+      var Tabs = /*@__PURE__*/(function (Ractive) {
+        function Tabs(opts) {
+          Ractive.call(this, opts);
+        }
 
-        if ( Ractive ) Split.__proto__ = Ractive;
-        Split.prototype = Object.create( Ractive && Ractive.prototype );
-        Split.prototype.constructor = Split;
+        if ( Ractive ) Tabs.__proto__ = Ractive;
+        Tabs.prototype = Object.create( Ractive && Ractive.prototype );
+        Tabs.prototype.constructor = Tabs;
 
-        Split.prototype._adjustSizes = function _adjustSizes () {
+        var prototypeAccessors = { visibleSelection: { configurable: true } };
+
+        Tabs.prototype.addTab = function addTab (tab, idx) {
+          if (!tab.template) { tab.template = []; }
+
+          if (typeof idx === 'number') {
+            this.splice('tabs', idx, 0, tab);
+          } else {
+            this.push('tabs', tab);
+          }
+
+          var res = new Handle(this, tab);
+
+          if (tab.select) { this.select(res.index); }
+
+          return res;
+        };
+
+        Tabs.prototype.getTab = function getTab (id) {
+          var tabs = this.get('tabs');
+          var tab = tabs.find(function (t) { return t.id === id; });
+          if (tab) { return new Handle(this, tab); }
+          else if (id in tabs && typeof tabs[id] === 'object') { return new Handle(this, tabs[id]); }
+        };
+
+        Tabs.prototype.updateIndicator = function updateIndicator () {
+          if (!this.rendered || !this._tabs) { return; }
+          var ctx = this.getContext(this.find('.rtabs-tab-window'));
+          if (ctx.decorators.scrolled) { ctx.decorators.scrolled.refresh(); }
+          if (this.get('@style.raui.tabs.boxy')) { return; }
+          var node = this._tabs[this.get('selected')];
+          if (!node || !node.offsetParent) { return; }
+
+          if (node) {
+            var start = this.get('selectedLeft');
+            if (start === undefined) {
+              this.set({
+                selectedLeft: node.offsetLeft,
+                selectedRight: node.offsetParent.clientWidth - (node.offsetLeft + node.offsetWidth)
+              });
+            } else {
+              var max = node.offsetParent.clientWidth;
+              var left = node.offsetLeft, width = node.clientWidth, right = max - left - width;
+
+              this.set({
+                direction: left < start ? 'left' : 'right',
+                selectedLeft: left,
+                selectedRight: right
+              });
+            }
+          } else {
+            this.set({
+              selectedLeft: 0,
+              selectedRight: this.find('.tabs').offsetWidth
+            });
+          }
+        };
+
+        Tabs.prototype.checkSelection = function checkSelection (ctx, idx) {
+          if (this.get('selected') !== idx) { select.call(this, ctx, idx); }
+        };
+
+        Tabs.prototype.select = function select (idx) {
+          if (idx < 0 || idx >= (this.get('tabs.length') || 0)) { return; }
+          this.fire('select', {}, idx);
+        };
+
+        Tabs.prototype._hidden = function _hidden (idx) {
           var this$1 = this;
 
-          this._sizing = true;
-          var splits = this.get('splits');
-          var count = 0;
-          var used = 0;
-
-          splits.forEach(function (s) {
-            var size = s.sizePath ? +this$1.get(s.sizePath) : s.size;
-            if (s.curSize === undefined) {
-              if (s.min) {
-                s.curSize = 0;
-                s.lastSize = Math.floor(100 / splits.length);
-              } else {
-                s.curSize = size;
-                used += size;
-                count++;
-              }
-            } else if (s.min && s.curSize) {
-              s.lastSize = s.curSize;
-              s.curSize = 0;
-            } else if (!s.min && !s.curSize && s.lastSize) {
-              used += s.lastSize;
-              s.curSize = s.lastSize;
-              s.lastSize = false;
-            } else if (size && !s.min && s.lastSet && s.lastSet !== size) {
-              s.curSize = size;
-              s.lastSize = false;
-              used += size;
-            } else if (s.curSize) {
-              used += s.curSize;
-              count++;
-            } else if (!s.curSize && !s.min) {
-              s.curSize = 0.1;
-              count++;
-            }
+          var hidden = this.get(("tabs." + idx + ".hidden"));
+          if (typeof hidden === 'string') { hidden = this.get(hidden); }
+          setTimeout(function () {
+            if (hidden && this$1.get('selected') === idx) { this$1.select(0); }
           });
-
-          var offset = (100 - used) / (count || 1);
-
-          var sets = {};
-          splits.forEach(function (s, i) {
-            setTimeout(function () {
-              var sizing = this$1._sizing;
-              this$1._sizing = true;
-              this$1.set(s.sizePath ? s.sizePath : ("splits." + i + ".size"), s.curSize);
-              this$1._sizing = sizing;
-            });
-            sets[("splits." + i + ".curSize")] = (s.lastSize === false || s.min) ? s.curSize : s.curSize + offset;
-            sets[("splits." + i + ".lastSet")] = sets[("splits." + i + ".curSize")];
-            if (!s.lastSize) { s.lastSize = null; }
-          });
-
-          this.set(sets);
-          setTimeout(function () { return this$1.fire('resize'); }, 320);
-          this._sizing = false;
+          return hidden;
         };
 
-        Split.prototype.maximize = function maximize (idx) {
-          if (this.get(("splits." + idx + ".min"))) { this.toggle(("splits." + idx + ".min")); }
-          else { this.toggle(("splits." + (idx + 1) + ".min")); }
-          this._adjustSizes();
+        Tabs.prototype.stopHorizontalScroll = function stopHorizontalScroll (node) {
+          if (node.scrollLeft) { node.scrollLeft = 0; }
         };
 
-        Split.prototype.minimize = function minimize (idx) {
-          if (this.get(("splits." + (idx + 1) + ".min"))) { this.toggle(("splits." + (idx + 1) + ".min")); }
-          else { this.toggle(("splits." + idx + ".min")); }
-          this._adjustSizes();
+        Tabs.prototype._scrollsRight = function _scrollsRight () {
+          var scroll = this.get('scrollStatus') || '';
+          if (/hscroll.*(hmiddle|left)/.test(scroll) && !/right/.test(scroll)) { return true; }
         };
 
-        return Split;
+        Tabs.prototype._scrollsLeft = function _scrollsLeft () {
+          var scroll = this.get('scrollStatus') || '';
+          if (/hscroll.*(hmiddle|right)/.test(scroll) && !/left/.test(scroll)) { return true; }
+        };
+
+        prototypeAccessors.visibleSelection.get = function () {
+          var idx = 0;
+          var tabs = this.get('tabs');
+          var active = this.get('selected');
+          for (var i = 0; i < tabs.length; i++) {
+            var tab = tabs[i];
+            if (active === i) { return idx; }
+            var hidden = tab.hidden;
+            if (typeof hidden === 'string') { hidden = this.get(hidden); }
+            if (!hidden) { idx++; }
+          }
+          return idx;
+        };
+
+        Object.defineProperties( Tabs.prototype, prototypeAccessors );
+
+        return Tabs;
       }(Ractive$1));
 
-      Ractive$1.extendWith(Split, {
-        template: {v:4,t:[{t:7,e:"div",m:[{t:13,n:"class",f:"rsplit",g:1},{n:"class-rsplit-vertical",t:13,f:[{t:2,r:"vertical"}]},{n:"class-rsplit-horizontal",t:13,f:[{t:2,x:{r:["vertical"],s:"!_0"}}]},{n:"class-rsplit-draggable",t:13,f:[{t:2,r:"draggable"}]},{t:16,r:"extra-attributes"}],f:[{t:4,f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rsplit-split",g:1},{t:4,f:[{n:"style-transition",f:"width 0.3s ease-in-out, height 0.3s ease-in-out",t:13}],n:51,r:"~/dragging"},{t:4,f:[{n:"style-width",f:["calc(",{t:2,r:".curSize"},"% - ",{t:2,x:{r:["@style.split.handle.width","@last"],s:"_1*(_0||14)/(_1+1)"}},"px)"],t:13}],n:50,r:"~/vertical"},{t:4,f:[{n:"style-height",f:["calc(",{t:2,r:".curSize"},"% - ",{t:2,x:{r:["@style.split.handle.width","@last"],s:"_1*(_0||14)/(_1+1)"}},"px)"],t:13}],n:51,l:1},{t:4,f:[{t:16,r:".attrs"}],n:50,r:".attrs"}],f:[{t:16,r:".content"},{t:4,f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rsplit-block",g:1}]}],n:50,x:{r:["~/draggable","~/dragging"],s:"_0&&_1"}}]}," ",{t:4,f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rsplit-sep",g:1},{t:4,f:[{n:"sizeHandle",t:71,f:{r:["~/vertical","@index"],s:"[_0,_1]"}}],n:50,x:{r:[".",".draggable","~/draggable"],s:"\"draggable\" in _0?_1:_2"}}],f:[{t:4,f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rsplit-sep-max",g:1},{n:["click"],t:70,f:{r:["@this","@index"],s:"[_0.maximize(_1)]"}}],f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rsplit-sep-max-btn",g:1}]}]}],n:50,x:{r:[".",".maximizable","~/maximizable",".min","@index","../"],s:"\"maximizable\" in _0?_1:_2&&(_3||!_5[_4+1].min)"}}," ",{t:4,f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rsplit-sep-min",g:1},{n:["click"],t:70,f:{r:["@this","@index"],s:"[_0.minimize(_1)]"}}],f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rsplit-sep-min-btn",g:1}]}]}],n:50,x:{r:[".",".minimizable","~/minimizable",".min"],s:"\"minimizable\" in _0?_1:_2&&!_3"}}]}],n:50,x:{r:["@index","@last"],s:"_0!==_1"}}],n:52,r:"splits"}]}],e:{"!_0":function (_0){return(!_0);},"_1*(_0||14)/(_1+1)":function (_0,_1){return(_1*(_0||14)/(_1+1));},"_0&&_1":function (_0,_1){return(_0&&_1);},"[_0,_1]":function (_0,_1){return([_0,_1]);},"\"draggable\" in _0?_1:_2":function (_0,_1,_2){return("draggable" in _0?_1:_2);},"[_0.maximize(_1)]":function (_0,_1){return([_0.maximize(_1)]);},"\"maximizable\" in _0?_1:_2&&(_3||!_5[_4+1].min)":function (_0,_1,_2,_3,_4,_5){return("maximizable" in _0?_1:_2&&(_3||!_5[_4+1].min));},"[_0.minimize(_1)]":function (_0,_1){return([_0.minimize(_1)]);},"\"minimizable\" in _0?_1:_2&&!_3":function (_0,_1,_2,_3){return("minimizable" in _0?_1:_2&&!_3);},"_0!==_1":function (_0,_1){return(_0!==_1);}}}, css: function(data) { return [" .rsplit { position: absolute; width: 100%; height: 100%; flex-grow: 1; display: flex; } .rsplit.rsplit-vertical { flex-direction: row; } .rsplit.rsplit-horizontal { flex-direction: column; } .rsplit > .rsplit-split { display: inline-block; overflow: auto; position: relative; } .rsplit.rsplit-vertical > .rsplit-split { height: 100%; } .rsplit.rsplit-horizontal > .rsplit-split { width: 100%; } .rsplit-block { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 999; } .rsplit.rsplit-draggable.rsplit-vertical > .rsplit-sep { cursor: ew-resize; } .rsplit.rsplit-draggable.rsplit-horizontal > .rsplit-sep { cursor: ns-resize; } .rsplit > .rsplit-sep { display: flex; justify-content: center; overflow: hidden; touch-action: none; flex-shrink: 0; } .rsplit.rsplit-vertical > .rsplit-sep { flex-direction: column; } .rsplit > .rsplit-sep .rsplit-sep-max, .rsplit > .rsplit-sep .rsplit-sep-min { text-align: center; display: inline-block; position: relative; cursor: pointer; } .rsplit.rsplit-horizontal > .rsplit-sep .rsplit-sep-max, .rsplit.rsplit-horizontal > .rsplit-sep .rsplit-sep-min { width: 3em; height: 100%; margin: 0 1em; } .rsplit.rsplit-vertical > .rsplit-sep .rsplit-sep-max, .rsplit.rsplit-vertical > .rsplit-sep .rsplit-sep-min { width: 100%; height: 1em; padding: 1em 0; margin: 0.5em 0; } .rsplit > .rsplit-sep .rsplit-sep-max-btn, .rsplit > .rsplit-sep .rsplit-sep-min-btn { display: inline-block; border-style: solid; position: relative; width: 0; height: 0; box-sizing: border-box; }", (function(data) {
-         var handle = Object.assign({
-           bg: 'rgba(0, 0, 0, 0.1)',
-           fg: 'rgba(0, 0, 0, 0.4)',
-           width: 14
-         }, data('raui.split.handle'));
-       
-         return ("\n   .rsplit > .rsplit-sep {\n     background-color: " + (handle.bg) + ";\n     color: " + (handle.fg) + ";\n   }\n \n   .rsplit.rsplit-vertical > .rsplit-sep {\n     width: " + (handle.width) + "px;\n     height: 100%;\n   }\n \n   .rsplit.rsplit-horizontal > .rsplit-sep {\n     height: " + (handle.width) + "px;\n     width: 100%;\n   }\n \n   .rsplit > .rsplit-sep {\n     font-size: " + (handle.width) + "px;\n   }\n \n   .rsplit > .rsplit-sep .rsplit-sep-max-btn,\n   .rsplit > .rsplit-sep .rsplit-sep-min-btn {\n     border-width: " + (handle.width / 2) + "px;\n   }\n \n   .rsplit.rsplit-horizontal > .rsplit-sep .rsplit-sep-max-btn {\n     top: " + (handle.width / 4) + "px;\n     border-right-color: transparent;\n     border-bottom-color: transparent;\n     border-left-color: transparent;\n   }\n \n   .rsplit.rsplit-horizontal > .rsplit-sep .rsplit-sep-min-btn {\n     bottom: " + (handle.width / 4) + "px;\n     border-top-color: transparent;\n     border-right-color: transparent;\n     border-left-color: transparent;\n   }\n \n   .rsplit.rsplit-vertical > .rsplit-sep .rsplit-sep-max-btn {\n     left: " + (handle.width / 4) + "px;\n     border-top-color: transparent;\n     border-right-color: transparent;\n     border-bottom-color: transparent;\n   }\n \n   .rsplit.rsplit-vertical > .rsplit-sep .rsplit-sep-min-btn {\n     right: " + (handle.width / 4) + "px;\n     border-top-color: transparent;\n     border-bottom-color: transparent;\n     border-left-color: transparent;\n   }\n   ");
-      }).call(this, data)].join(' '); },
-        cssId: 'split',
+      var tabAttrs = ['closable', 'disabled', 'title', 'right', 'button', 'no-pad', 'hidden', 'id', 'load'];
+
+      // TODO: api handles
+      Ractive$1.extendWith(Tabs, {
+        template: {v:4,t:[{t:7,e:"div",m:[{t:13,n:"class",f:"rtabs",g:1},{t:16,r:"extra-attributes"},{n:"class-rtabs-flat",t:13,f:[{t:2,r:"~/flat"}]},{n:"class-rtabs-margin",t:13,f:[{t:2,r:"~/margin"}]},{n:"class-rtabs-fill",t:13,f:[{t:2,r:"~/fill"}]},{n:"sized",t:71,f:{r:[],s:"[{clientWidth:\"~/clientWidth\"}]"}}],f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rtabs-tab-window-wrapper",g:1},{n:"class-rtabs-scroll-right",t:13,f:[{t:2,x:{r:["@this"],s:"_0._scrollsRight()"}}]},{n:"class-rtabs-scroll-left",t:13,f:[{t:2,x:{r:["@this"],s:"_0._scrollsLeft()"}}]}],f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rtabs-tab-window",g:1},{t:4,f:[{n:"class-rtabs-going-left",t:13}],n:50,x:{r:[".direction"],s:"_0===\"left\""}},{t:4,f:[{n:"class-rtabs-going-right",t:13}],n:51,l:1},{n:"scrolled",t:71,f:{r:[],s:"[\"~/scrollStatus\"]"}}],f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rtabs-tabs",g:1}],f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rtabs-left",g:1},{n:"class-rtabs-center",t:13,f:[{t:2,r:"~/center"}]}],f:[{t:4,f:[{t:4,f:[{t:8,r:"tab"}],n:50,x:{r:[".right","@this","@index"],s:"!_0&&!_1._hidden(_2)"}}],n:52,r:".tabs"}]}," ",{t:7,e:"div",m:[{t:13,n:"class",f:"rtabs-right",g:1}],f:[{t:4,f:[{t:4,f:[{t:8,r:"tab"}],n:50,x:{r:[".right","@this","@index"],s:"_0&&!_1._hidden(_2)"}}],n:52,r:".tabs"}]}," ",{t:4,f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rtabs-indicator",g:1},{n:"style-left",f:[{t:2,r:".selectedLeft"},"px"],t:13},{t:4,f:[{n:"style-right",f:[{t:2,r:".selectedRight"},"px"],t:13}],n:50,x:{r:[".selectedRight"],s:"_0!==undefined"}}]}],n:51,r:"@style.raui.tabs.boxy"}]}]}]}," ",{t:7,e:"div",m:[{t:13,n:"class",f:"rtabs-content-wrapper",g:1}],f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rtabs-content-window",g:1},{t:4,f:[{n:"class-rtabs-trans-fade",t:13}],n:50,x:{r:[".transition"],s:"_0===\"fade\""}},{t:4,f:[{n:"class-rtabs-trans-slide",t:13}],n:50,x:{r:[".transition"],s:"_0===\"slide\""},l:1},{n:["scroll"],t:70,f:{r:["@this","@node"],s:"[_0.stopHorizontalScroll(_1)]"}}],f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rtabs-contents",g:1},{n:"style-opacity",f:[{t:2,r:"~/opacity"}],t:13},{n:"style-left",f:[{t:2,x:{r:[".selectedContent"],s:"_0*-100"}},"%"],t:13},{n:"class-rtabs-pad",t:13,f:[{t:2,r:"~/pad"}]}],f:[{t:4,f:[{t:8,r:"tab-content"}],n:52,r:".tabs"}]}]}]}]}],e:{"[{clientWidth:\"~/clientWidth\"}]":function (){return([{clientWidth:"~/clientWidth"}]);},"_0._scrollsRight()":function (_0){return(_0._scrollsRight());},"_0._scrollsLeft()":function (_0){return(_0._scrollsLeft());},"_0===\"left\"":function (_0){return(_0==="left");},"[\"~/scrollStatus\"]":function (){return(["~/scrollStatus"]);},"!_0&&!_1._hidden(_2)":function (_0,_1,_2){return(!_0&&!_1._hidden(_2));},"_0&&!_1._hidden(_2)":function (_0,_1,_2){return(_0&&!_1._hidden(_2));},"_0!==undefined":function (_0){return(_0!==undefined);},"_0===\"fade\"":function (_0){return(_0==="fade");},"_0===\"slide\"":function (_0){return(_0==="slide");},"[_0.stopHorizontalScroll(_1)]":function (_0,_1){return([_0.stopHorizontalScroll(_1)]);},"_0*-100":function (_0){return(_0*-100);},"_0===_1":function (_0,_1){return(_0===_1);},"_0===\"dynamic\"":function (_0){return(_0==="dynamic");},"_0!==_1":function (_0,_1){return(_0!==_1);},"_0===false":function (_0){return(_0===false);},"[_0.checkSelection((_1),_2)]":function (_0,_1,_2){return([_0.checkSelection((_1),_2)]);},"(_3===\"always\"&&_0===_1)||(_3&&_2)||!_3":function (_0,_1,_2,_3){return((_3==="always"&&_0===_1)||(_3&&_2)||!_3);},"!_0":function (_0){return(!_0);},"_0===_1&&!_2":function (_0,_1,_2){return(_0===_1&&!_2);},"typeof _1===\"string\"?_0.get(_1):_1":function (_0,_1){return(typeof _1==="string"?_0.get(_1):_1);},"[[\"select\",_0]]":function (_0){return([["select",_0]]);},"[_0.button()]":function (_0){return([_0.button()]);},"typeof _0===\"function\"":function (_0){return(typeof _0==="function");},"[_0]":function (_0){return([_0]);},"typeof _0===\"string\"":function (_0){return(typeof _0==="string");},"[[\"close\",_0]]":function (_0){return([["close",_0]]);},"_0&&!_1":function (_0,_1){return(_0&&!_1);}},p:{"tab-content":[{t:4,f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rtabs-tab-content",g:1},{n:"class-rtabs-selected-content",t:13,f:[{t:2,x:{r:["~/selectedContent","@index"],s:"_0===_1"}}]},{n:"class-rtabs-dyna",t:13,f:[{t:2,x:{r:["~/height"],s:"_0===\"dynamic\""}}]},{n:"class-rtabs-not-selected",t:13,f:[{t:2,x:{r:["~/selectedContent","@index"],s:"_0!==_1"}}]},{t:4,f:[{t:16,r:".extra"}],n:50,r:".extra"},{t:4,f:[{n:"class-rtabs-no-pad",t:13}],n:50,x:{r:[".pad"],s:"_0===false"}},{t:4,f:[{n:"class-rtabs-no-pad",t:13,f:[{t:2,rx:{r:"~/",m:[{t:30,n:".padRef"}]}}]}],n:50,r:".padRef",l:1},{n:["focusin"],t:70,f:{r:["@this","@context","@index"],s:"[_0.checkSelection((_1),_2)]"}}],f:[{t:4,f:[{t:16,r:".template"}],n:50,x:{r:["~/selectedContent","@index",".load","~/defer"],s:"(_3===\"always\"&&_0===_1)||(_3&&_2)||!_3"}}]}],n:50,x:{r:[".button"],s:"!_0"}},{t:4,f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rtabs-placeholder",g:1}]}],n:51,l:1}],tab:[{t:7,e:"div",m:[{t:13,n:"class",f:"rtabs-tab",g:1},{n:"class-rtabs-selected",t:13,f:[{t:2,x:{r:["~/selected","@index",".button"],s:"_0===_1&&!_2"}}]},{t:4,f:[{n:"class-rtabs-disabled",t:13}],n:50,x:{r:["@this",".disabled"],s:"typeof _1===\"string\"?_0.get(_1):_1"}},{t:4,f:[{n:["click"],t:70,f:{r:["@index"],s:"[[\"select\",_0]]"}}],n:50,x:{r:[".button"],s:"!_0"},l:1},{t:4,f:[{n:["click"],t:70,f:{r:["."],s:"[_0.button()]"}}],n:50,x:{r:[".button"],s:"typeof _0===\"function\""},l:1},{n:"registered",t:71,f:{r:["@index"],s:"[_0]"}},{t:4,f:[{t:16,r:".extraTab"}],n:50,r:".extraTab"},{n:"data-tab-index",f:[{t:2,r:"@index"}],t:13}],f:[{t:4,f:[{t:2,r:"title"}],n:50,x:{r:[".title"],s:"typeof _0===\"string\""}},{t:4,f:[{t:16,r:".title"}],n:50,r:".title",l:1}," ",{t:4,f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rtabs-close",g:1},{n:["click"],t:70,f:{r:["@index"],s:"[[\"close\",_0]]"}}],f:["×"]}],n:50,x:{r:[".closable",".button"],s:"_0&&!_1"}}]}]}},
+        cssId: 'rtab',
         noCssTransform: true,
-        attributes: ['vertical', 'draggable', 'maximizable', 'minimizable'],
+        css: function(data) { return [(function(data) {
+         var primary = Object.assign({}, data('raui.primary'), data('raui.tabs.primary'));
+         primary.selected = Object.assign({}, data('raui.tabs.selected'), data('raui.tabs.primary.selected'));
+         primary.indicator = Object.assign({}, data('raui.tabs.indicator'), data('raui.tabs.primary.indicator'));
+         var themes = (data('raui.themes') || []).slice();
+         (data('raui.tabs.themes') || []).forEach(function (t) {
+           if (!~themes.indexOf(t)) { themes.push(t); }
+         });
+         var boxy = data('raui.tabs.boxy') || data('raui.tabs.primary.boxy');
+       
+         return "\n   .rtabs {\n     position: relative;\n     display: flex;\n     flex-direction: column;\n     width: 100%;\n   }\n \n   .rtabs-tab-window {\n     overflow-y: hidden;\n     overflow-x: auto;\n     " + (!boxy ? ("box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.14),\n       0 1px 5px 0 rgba(0, 0, 0, 0.12),\n       0 3px 1px -2px rgba(0, 0, 0, 0.2);\n     color: " + (primary.fg || '#222') + ";\n     background-color: " + (primary.bg || '#fff') + ";") :
+           ("border-color: " + (primary.bc || '#ccc') + ";\n     border-style: solid;\n     border-width: 1px 1px 0 1px;\n     color: " + (primary.fg || '#222') + ";\n     background-color: " + (primary.bga || '#f4f4f4') + ";\n     ")) + "\n     position: relative;\n     flex-shrink: 0;\n   }\n   .alt > div > .rtabs-tab-window {\n     color: " + (primary.bg || '#fff') + ";\n     background-color: " + (primary.fga || '#07e') + ";\n   }" + (boxy ? ("\n   .alt > div > .rtabs-tab-window .rtabs-tab {\n     color: " + (primary.bg || '#fff') + ";\n     background-color: " + (primary.fga || '#07e') + ";\n   }") : '') + "\n \n   .rtabs-tab-window-wrapper {\n     position: relative;\n     z-index: 10;\n   }\n   .rtabs-tab-window-wrapper:before {\n     content: '';\n     position: absolute;\n     top: 0;\n     left: 0;\n     height: 100%;\n     width: 10px;\n     opacity: 0;\n     transition: opacity 0.3s ease-in-out;\n     background: linear-gradient(to right, " + (primary.indicator.color || primary.fga || '#07e') + ", transparent);\n     z-index: 999;\n     pointer-events: none;\n   }\n   .rtabs-tab-window-wrapper.rtabs-scroll-left:before {\n     opacity: 1;\n   }\n \n   .rtabs-tab-window-wrapper:after {\n     content: '';\n     position: absolute;\n     top: 0;\n     right: 0;\n     height: 100%;\n     width: 10px;\n     opacity: 0;\n     background: linear-gradient(to left, " + (primary.indicator.color || primary.fga || '#07e') + ", transparent);\n     transition: opacity 0.3s ease-in-out;\n     pointer-events: none;\n   }\n   .rtabs-tab-window-wrapper.rtabs-scroll-right:after {\n     opacity: 1;\n   }\n \n   .rtabs-flat > div > .rtabs-tab-window {\n     box-shadow: none;\n     border-width: 0;\n   }\n   " + (!boxy ? (".rtabs-flat > div > .rtabs-tab-window:after {\n     content: '';\n     height: 0.15em;\n     position: absolute;\n     bottom: 0px;\n     width: 100%;\n     display: block;\n     background-color: " + (primary.bga || '#f4f4f4') + ";\n   }\n   .rtabs-flat.alt > div > .rtabs-tab-window:after {\n     background-color: " + (primary.fga || '#07e') + ";\n   }") : ("\n   .rtabs-flat > div > .rtabs-tab-window {\n     background-color: " + (primary.bg || '#fff') + ";\n   }\n   .alt.rtabs-flat > div > .rtabs-tab-window {\n     background-color: " + (primary.fga || '#07e') + ";\n   }\n   .rtabs-flat > div > .rtabs-tab-window .rtabs-tab {\n     border-top-width: 1px;\n   }")) + "\n \n   .rtabs-center.rtabs-left {\n     text-align: center;\n   }" + (boxy ? "\n   .rtabs-center > .rtabs-tab:first-child {\n     border-left-width: 1px;\n   }" : '') + "\n \n   .rtabs-pad {\n     padding: 1em;\n   }\n \n   .rtabs-fill {\n     flex-grow: 1;\n     height: 100%;\n   }\n \n   .rtabs-tabs {\n     display: table;\n     position: relative;\n     min-width: 100%;\n     white-space: nowrap;" + (boxy ? ("\n     border-style: solid;\n     border-width: 0 0 1px 0;\n     border-color: " + (primary.bc || '#ccc') + ";\n     line-height: 1.5em;") : '') + "\n   }\n \n   .rtabs-tab {\n     display: inline-block;\n     box-sizing: border-box;\n     padding: 0.5em 1em;\n     height: 2.5em;\n     transition: opacity 0.2s ease-in-out;\n     user-select: none;\n     cursor: pointer;" + (!boxy ? "\n     opacity: 0.9;" : ("\n     border-color: " + (primary.bc || '#ccc') + ";\n     border-style: solid;\n     border-width: 0 1px 1px 0;\n     margin-bottom: -1px;\n     color: " + (primary.fg || '#222') + ";\n     background-color: " + (primary.bga || '#f4f4f4') + ";\n     ")) + "\n   }\n   .rtabs-tab:hover {\n     opacity: 1;\n   }\n \n   .rtabs-selected" + (boxy ? ",\n   .alt > div > .rtabs-tab-window .rtabs-selected" : '') + " {\n     opacity: 1;" + (boxy ? ("\n     font-weight: bold;\n     border-bottom-color: " + (primary.bg || '#fff') + ";\n     background-color: " + (primary.selected.bg || primary.bg || '#fff') + ";\n     color: " + (primary.selected.fg || primary.fg || '#222') + ";") : '') + "\n   }\n \n   .rtabs-disabled {\n     opacity: 0.4;\n   }\n \n   .rtabs-right {\n     text-align: right;\n     display: table-cell;\n   }\n \n   .rtabs-left {\n     text-align: left;\n     display: table-cell;\n   }\n \n   .rtabs-close {\n     display: inline-block;\n     margin-right: -0.5em;\n     font-weight: 700;\n     opacity: 0.3;\n     transition: opacity: 0.2s ease-in-out;\n   }\n \n   .rtabs-close:hover {\n     opacity: 1;\n   }\n \n   .rtabs-indicator {\n     position: absolute;\n     bottom: 0;\n     height: 0.15em;\n     background-color: " + (primary.indicator.color || primary.fga || '#07e') + ";\n     z-index: 2;\n   }\n \n   .alt > div > .rtabs-tab-window .rtabs-indicator {\n     background-color: " + (primary.bg || '#fff') + ";\n   }\n \n   .rtabs-going-left .rtabs-indicator {\n     transition: left 0.2s ease-in-out, right 0.2s ease-in-out 0.1s;\n   }\n   .rtabs-going-right .rtabs-indicator {\n     transition: left 0.2s ease-in-out 0.1s, right 0.2s ease-in-out;\n   }\n \n   .rtabs-content-wrapper {\n     width: 100%;\n     box-sizing: border-box;\n     display: flex;\n     flex-direction: column;\n     flex-grow: 2;\n     overflow: hidden;\n   }\n \n   .rtabs-content-window {\n     width: 100%;\n     display: flex;\n     flex-grow: 1;\n     overflow-y: auto;\n     overflow-x: hidden\n   }\n \n   .rtabs {\n     color: " + (primary.fg || '#222') + ";\n     background-color: " + (primary.bg || '#fff') + ";\n   }\n   \n   .rtabs-contents {\n     list-style: none;\n     padding: 0;\n     margin: 0;\n     position: relative;\n     left: 0;\n     display: flex;\n     flex-wrap: nowrap;\n     white-space: nowrap;\n     width: 100%;\n   }\n   .rtabs-trans-slide > .rtabs-contents {\n     transition: left 0.2s ease-in-out;\n   }\n   .rtabs-trans-fade > .rtabs-contents {\n     transition: opacity 0.15s ease;\n     opacity: 1;\n     white-space: nowrap;\n   }\n \n   .rtabs-fill > div > div > .rtabs-contents {\n     display: flex;\n   }\n \n   .rtabs-tab-content {\n     position: relative;\n     width: 100%;\n     overflow: auto;\n     vertical-align: top;\n     white-space: initial;\n     transition: opacity 0.1s ease-in-out;\n     flex-shrink: 0;\n     white-space: initial;\n     display: flex;\n     flex-direction: column;\n     flex-grow: 1;\n   }\n \n   .rtabs-placeholder {\n     display: inline-block;\n     width: 100%;\n     height: 1px;\n     flex-shrink: 0;\n   }\n   .rtabs-dyna.rtabs-not-selected {\n     height: 1px;\n     opacity: 0;\n     overflow: hidden;\n   }\n   .rtabs-pad > .rtabs-tab-content {\n     padding: 1em;\n     box-sizing: border-box;\n   }\n   .rtabs-pad > .rtabs-tab-content.rtabs-no-pad {\n     padding: 0;\n   }\n   .rtabs > .rtabs-tab-content.rtabs-pad {\n     padding: 1em;\n     box-sizing: border-box;\n   }\n   " + themes.map(function (t) {
+           var theme = Object.assign({}, data('raui.primary'), data('raui.tabs.primary'), data(("raui." + t)), data(("raui.tabs." + t)));
+           theme.selected = Object.assign({}, data('raui.tabs.selected'), data('raui.tabs.primary.selected'), data(("raui.tabs." + t + ".selected")));
+           theme.indicator = Object.assign({}, data('raui.tabs.indicator'), data('raui.tabs.primary.indicator'), data(("raui.tabs." + t + ".indicator")));
+           var boxy = 'boxy' in theme ? theme.boxy : data('raui.tabs.boxy');
+       
+           return (".rtabs." + t + " > div > .rtabs-tab-window {\n     " + (!boxy ? ("box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.14),\n       0 1px 5px 0 rgba(0, 0, 0, 0.12),\n       0 3px 1px -2px rgba(0, 0, 0, 0.2);\n     color: " + (theme.fg || '#222') + ";\n     background-color: " + (theme.bg || '#fff') + ";") :
+           ("border-color: " + (theme.bc || '#ccc') + ";\n     color: " + (theme.fg || '#222') + ";\n     background-color: " + (theme.bga || '#f4f4f4') + ";\n     ")) + "\n   }\n   .rtabs." + t + " > .rtabs-tab-window-wrapper:before {\n     background: linear-gradient(to right, " + (theme.indicator.color || theme.fga || '#07e') + ", transparent);\n   }\n   .rtabs." + t + " > .rtabs-tab-window-wrapper:after {\n     background: linear-gradient(to left, " + (theme.indicator.color || theme.fga || '#07e') + ", transparent);\n   }\n   .rtabs." + t + ".alt > div > .rtabs-tab-window {\n     color: " + (theme.bg || '#fff') + ";\n     background-color: " + (theme.fga || '#07e') + ";\n   }" + (boxy ? ("\n   .rtabs." + t + ".alt > div > .rtabs-tab-window .rtabs-tab {\n     color: " + (theme.bg || '#fff') + ";\n     background-color: " + (theme.fga || '#07e') + ";\n   }") : '') + "\n \n   " + (!boxy ? (".rtabs-flat." + t + " > div > .rtabs-tab-window:after {\n     background-color: " + (theme.bga || '#f4f4f4') + ";\n   }\n   .rtabs-flat.alt." + t + " > div > .rtabs-tab-window:after {\n     background-color: " + (theme.fga || '#07e') + ";\n   }") : ("\n   .rtabs-flat." + t + " > div > .rtabs-tab-window {\n     background-color: " + (theme.bg || '#fff') + ";\n   }\n   .alt.rtabs-flat." + t + " > div > .rtabs-tab-window {\n     background-color: " + (theme.fga || '#07e') + ";\n   }")) + "\n \n   " + (boxy ? (".rtabs." + t + " > div > .rtabs-tab-window .rtabs-tabs {\n     border-color: " + (theme.bc || '#ccc') + ";\n   }") : '') + "\n \n   .rtabs." + t + " > div > .rtabs-tab-window > .rtabs-tab {\n     cursor: pointer;" + (!boxy ? '' : ("\n     border-color: " + (theme.bc || '#ccc') + ";\n     color: " + (theme.fg || '#222') + ";\n     background-color: " + (theme.bga || '#f4f4f4') + ";\n     ")) + "\n   }\n \n   .rtabs." + t + " > div > .rtabs-tab-window .rtabs-selected" + (boxy ? (",\n   .rtabs." + t + ".alt > div > .rtabs-tab-window .rtabs-selected") : '') + " {" + (boxy ? ("\n     border-bottom-color: " + (them.bg || '#fff') + ";\n     background-color: " + (theme.selected.bg || theme.bg || '#fff') + ";" + (theme.indicator ? ("\n     background-image: linear-gradient(to bottom, " + (theme.indicator.color || theme.fga || '#07e') + ", " + (theme.bg || '#fff') + " 3px);") : '') + "\n     color: " + (theme.selected.fg || theme.fg || '#222') + ";") : '') + "\n   }\n \n   .rtabs." + t + " > div > .rtabs-tab-window .rtabs-indicator {\n     background-color: " + (theme.indicator.color || theme.fga || '#07e') + ";\n   }\n \n   .rtabs." + t + ".alt > div > .rtabs-tab-window .rtabs-indicator {\n     background-color: " + (theme.bg || '#fff') + ";\n   }\n \n   .rtabs." + t + " {\n     color: " + (theme.fg || '#222') + ";\n     background-color: " + (theme.bg || '#fff') + ";\n   }\n   ");
+         }).join('\n');
+      }).call(this, data)].join(' '); },
+        attributes: ['transition', 'flat', 'pad', 'center', 'height', 'fill', 'defer', 'selected'],
         data: function data() {
           return {
-            draggable: true,
-            maximizable: true,
-            minimizable: true
+            tabs: [],
+            rightTabs: [],
+            selected: -1,
+            selectedContent: -1,
+            opacity: 1,
+            scrollStatus: ''
+          }
+        },
+        on: {
+          construct: construct,
+          config: function config() {
+            var this$1 = this;
+
+            if (this._ctabs) { this.set('tabs', (this.get('tabs') || []).concat(this._ctabs), { shuffle: true }); }
+            this._ctabs = 0;
+            var tabs = this.get('tabs');
+            var xs = this.indicatorObservers = [];
+            tabs.forEach(function (t) {
+              if (typeof t.hidden === 'string') { xs.push(this$1.observe(t.hidden, function () { return setTimeout(function () { return this$1.updateIndicator(); }); }, { init: false, defer: true })); }
+            });
+            xs.push(this.observe('tabs.*.hidden', function () { return setTimeout(function () { return this$1.updateIndicator(); }); }, { init: false, defer: true }));
+
+            this.once('render', function () {
+              var sel = this$1.get('selected');
+              if (sel === -1) { this$1.select(0); }
+              else { this$1.set('selectedContent', sel); }
+            });
+          },
+          select: select,
+          close: close,
+          teardown: function teardown() {
+            this.indicatorObservers.forEach(function (o) { return o.cancel(); });
+          }
+        },
+        observe: {
+          selected: {
+            handler: function handler(v) {
+              var this$1 = this;
+
+              var hidden = this._hidden(v);
+              var tabs = this.get('tabs');
+              if (hidden) { setTimeout(function () {
+                var trans = this$1.get('transition');
+                this$1.set('transition', '');
+                this$1.select(v + 1 >= tabs.length ? 0 : v + 1);
+                this$1.set('transition', trans);
+              }); }
+            },
+            init: false
+          },
+          clientWidth: function clientWidth() {
+            this.updateIndicator();
           }
         },
         decorators: {
-          sizeHandle: sizeHandle
-        },
-        on: {
-          construct: function construct() {
-            var this$1 = this;
+          registered: function registered(node, idx) {
+            var me = this;
 
-            var cmp = this.component;
-            if ( !cmp ) { return; }
+            if (!this._tabs) { this._tabs = []; }
 
-            var tpl = cmp.template.f || [];
-            var attrs = cmp.template.m ? cmp.template.m.slice() : [];
-            var t = cmp.template;
-            cmp.template = { e: t.e, f: t.f, t: t.t, m: attrs };
+            this._tabs[idx] = node;
+            this.updateIndicator();
 
-            var id = 0;
-            function map(attr, partial) {
-              if (attr && attr.f && attr.f.length === 1 && attr.f[0].t === 2) {
-                var n = "_a" + (id++);
-                attrs.push({ t: 13, n: n, f: attr.f });
-                return partial ? { t: [{ t: 2, r: ("~/" + n) }] } : { t: 2, r: ("~/" + n) };
+            return {
+              teardown: function teardown() {},
+              invalidate: function invalidate() {
+                me.updateIndicator();
+              },
+              update: function update(idx) {
+                me._tabs[idx] = node;
+                setTimeout(function () { return me.updateIndicator(); });
               }
-              return attr && attr.f;
-            }
-
-            var splits = tpl.filter(function (e) { return e.e; });
-
-            this._mappedSizes = [];
-            this._splits = splits.map(function (e, i) {
-              var attrs = (e.m || []).slice();
-              var el = { e: e.e, f: e.f, t: e.t, m: attrs.filter(function (a) { return a.n !== 'size' && a.n !== 'minimize'; }) };
-
-              var res = {
-                content: el.e === 'pane' ? el.f : [el]
-              };
-
-              if (el.e === 'pane') {
-                if (el.m) { res.attrs = el.m.slice(); }
-              }
-
-              var size = attrs.find(function (a) { return a.n === 'size'; });
-              if (size) {
-                if (size.f && typeof size.f === 'string') { res.size = +size.f; }
-                else {
-                  res.sizePath = map(size).r;
-                  this$1._mappedSizes.push(res.sizePath);
-                }
-              }
-
-              if (attrs.find(function (a) { return a.n === 'minimize'; })) { res.min = true; }
-
-              return res;
-            });
-
-            var remain = 100 - this._splits.reduce(function (a, c) { return a + (c.min ? 0 : (c.size || 0)); }, 0);
-            var unsized = this._splits.reduce(function (a, c) { return a + ('size' in c ? 0 : 1); }, 0);
-            this._splits.forEach(function (s) {
-              if (!('size' in s)) { s.size = remain / unsized; }
-              if (s.min) {
-                s.lastSize = s.size;
-                s.curSize = 0;
-              } else {
-                s.curSize = s.size;
-              }
-            });
+            };
           },
-          config: function config() {
-            if (this._splits) { this.set('splits', this._splits); }
-          },
-          init: function init() {
-            var this$1 = this;
-
-            this.observe(this._mappedSizes.concat('splits.*.size').join(' '), function () {
-              if (this$1._sizing || this$1._tm) { return; }
-              this$1._tm = setTimeout(function () {
-                this$1._adjustSizes();
-                this$1._tm = null;
-              });
-            });
-          }
+          scrolled: scrolled, sized: sized
         }
       });
 
-      function sizeHandle(node, vertical, startIdx) {
-        var ctx = this.getContext(node);
-        var startSplit = ctx.get(("../" + startIdx));
-        var endSplit = ctx.get(("../" + (startIdx + 1)));
-        var root = node.parentNode;
+      function construct() {
+        var cmp = this.component;
+        if ( !cmp ) { return; }
 
-        var pos, initStart, initEnd, available;
-        var vert = vertical;
-        var posKey = vert ? 'screenX' : 'screenY';
+        var tpl = cmp.template.f || [];
+        var attrs = cmp.template.m ? cmp.template.m.slice() : [];
+        var t = cmp.template;
+        cmp.template = { e: t.e, f: t.f, t: t.t, m: attrs };
 
-        var tm;
+        var tabs = tpl.filter(function (n) { return n.e === 'tab'; }).map(function (t) {
+          var tab = {
+            template: { t: t.f.filter(function (n) { return n.e !== 'title'; }) }
+          };
+          var extra = [];
+          var extraTab = [];
 
-        function start(ev) {
-          if (ev.target !== node && ev.target.parentNode !== node) { return; }
-          ctx.ractive._sizing = true;
-          ctx.set('~/dragging', true);
-          available = vert ? root.clientWidth : root.clientHeight;
+          t.m && t.m.forEach(function (a) {
+            if (a.t === 13 && ~tabAttrs.indexOf(a.n)) {
+              if (a.n === 'disabled' && a.f && a.f.length === 1 && a.f[0].t === 2) {
+                var cnd = "_cnd" + (attrs.length);
+                tab.disabled = cnd;
+                attrs.push({ t: 13, n: cnd, f: a.f });
+              } else if (a.n === 'no-pad') {
+                if (!a.f) { tab.pad = false; }
+                else if (a.f.length === 1 && a.f[0].t === 2) {
+                  var cnd$1 = "_cnd" + (attrs.length);
+                  tab.padRef = cnd$1;
+                  attrs.push({ t: 13, n: cnd$1, f: a.f });
+                }
+              } else if (a.n === 'hidden' && a.f && a.f.length === 1 && a.f[0].t === 2) {
+                var cnd$2 = "_cnd" + (attrs.length);
+                tab.hidden = cnd$2;
+                attrs.push({ t: 13, n: cnd$2, f: a.f });
+              } else {
+                tab[a.n] = a.f === 0 ? true : typeof a.f === 'string' ? a.f : { t: a.f };
+              }
+            }
+            else if (a.t === 70) { extraTab.push(a); }
+            else { extra.push(a); }
+          });
 
-          document.addEventListener('touchmove', move, true);
-          document.addEventListener('mousemove', move, true);
-          document.addEventListener('mouseup', end, true);
-          document.addEventListener('touchend', end, true);
-
-          initStart = startSplit.curSize;
-          initEnd = endSplit.curSize;
-
-          if (posKey in ev) {
-            pos = ev[posKey];
-          } else {
-            pos = ev.touches[0][posKey];
+          var tmp;
+          tmp = t.f.find(function (n) { return n.e === 'title'; });
+          if (tmp) {
+            tab.title = tmp.f;
+            if (tmp.m) {
+              extraTab.push.apply(extraTab, tmp.m);
+            }
           }
 
-          ev.preventDefault();
-        }
+          if (extra.length) { tab.extra = { t: extra }; }
+          if (extraTab.length) { tab.extraTab = { t: extraTab }; }
 
-        function move(ev) {
-          var obj;
+          return tab;
+        });
 
-          var cur = posKey in ev ? ev[posKey] : ev.touches[0][posKey];
-          var dist = cur - pos;
-
-          var moved, s, e;
-          moved = (Math.abs(dist) / available) * 100;
-
-          if (dist < 0) {
-            s = initStart - moved;
-            e = initEnd + moved;
-          } else {
-            s = initStart + moved;
-            e = initEnd - moved;
-          }
-
-          if (s < startSplit.min || 0) {
-            e -= startSplit.min - s;
-            s += startSplit.min - s;
-          }
-
-          if (e < endSplit.min || 0) {
-            s -= endSplit.min - e;
-            e += endSplit.min - e;
-          }
-
-          if (s < 0) {
-            s = 0;
-            e = initStart + initEnd;
-          }
-          if (e < 0) {
-            s = initStart + initEnd;
-            e = 0;
-          }
-
-          ctx.set(( obj = {}, obj[startSplit.sizePath ? ("~/" + (startSplit.sizePath)) : ("../" + startIdx + ".size")] = s, obj[endSplit.sizePath ? ("~/" + (endSplit.sizePath)) : ("../" + (startIdx + 1) + ".size")] = e, obj[("../" + startIdx + ".curSize")] = s, obj[("../" + startIdx + ".lastSet")] = s, obj[("../" + startIdx + ".min")] = false, obj[("../" + (startIdx + 1) + ".curSize")] = e, obj[("../" + (startIdx + 1) + ".lastSet")] = e, obj[("../" + (startIdx + 1) + ".min")] = false, obj));
-
-          if (!tm) {
-            setTimeout(function () {
-              ctx.ractive.fire('resize');
-              tm = null;
-            }, 300);
-          }
-        }
-
-        function end() {
-          ctx.ractive._sizing = false;
-          ctx.set('~/dragging', false);
-          document.removeEventListener('touchmove', move, true);
-          document.removeEventListener('mousemove', move, true);
-          document.removeEventListener('mouseup', end, true);
-          document.removeEventListener('touchend', end, true);
-          if (tm) { clearTimeout(tm); }
-          ctx.ractive.fire('resize');
-        }
-
-        ctx.listen('mousedown', start);
-        ctx.listen('touchstart', start);
-
-        return {
-          teardown: function teardown() {
-            ctx.unlisten('mousedown', start);
-            ctx.unlisten('touchstart', start);
-            end();
-          },
-          update: function update(vertical) {
-            vert = vertical;
-            posKey = vertical ? 'screenX' : 'screenY';
-          }
-        };
+        this._ctabs = tabs;
       }
+
+      function select(ctx, idx) {
+        var this$1 = this;
+        var obj;
+
+        if (idx < -1 || idx >= this.get('tabs.length')) { return; }
+        var current = this.get('selected');
+        var trans = this.get('transition');
+
+        if (this._fadetm) {
+          this.set('opacity', 1);
+          clearTimeout(this._fadetm);
+          this._fadetm = 0;
+        }
+
+        if (current !== idx) {
+          if (this.rendered) {
+            var cur = this.getContext(this.find('.rtabs-selected'));
+            var window = this.find('.rtabs-content-window');
+            if (~current) { this.set(("scroll." + (cur.get('@index'))), window.scrollTop); }
+            if (cur.hasListener('leave')) { cur.raise('leave'); }
+            if (trans === 'fade') {
+              this.set({
+                opacity: 0,
+                selected: idx
+              });
+              this.updateIndicator();
+              var ctx$1 = this.getContext(this.find('.rtabs-selected'));
+
+              this._fadetm = setTimeout(function () {
+                var obj;
+
+                this$1._fadetm = 0;
+                this$1.set(( obj = {
+                  selectedContent: idx
+                }, obj[("tabs." + idx + ".load")] = true, obj.opacity = 1, obj));
+                if (ctx$1.hasListener('enter')) { ctx$1.raise('enter'); }
+                if (window && ~current) { window.scrollTop = this$1.get(("scroll." + idx)) || 0; }
+              }, 150);
+            } else if (trans === 'slide') {
+              this.set('selected', idx);
+              this.set(("tabs." + idx + ".load"), true);
+              this.set('selectedContent', idx);
+              this.updateIndicator();
+              var ctx$2 = this.getContext(this.find('.rtabs-selected'));
+              if (ctx$2.hasListener('enter')) { ctx$2.raise('enter'); }
+              if (window && ~current) { window.scrollTop = this.get(("scroll." + idx)) || 0; }
+            } else {
+              this.set(( obj = {
+                selected: idx
+              }, obj[("tabs." + idx + ".load")] = true, obj.selectedContent = idx, obj));
+              this.updateIndicator();
+              var ctx$3 = this.getContext(this.find('.rtabs-selected'));
+              if (ctx$3.hasListener('enter')) { ctx$3.raise('enter'); }
+              if (window) { window.scrollTop = this.get(("scroll." + idx)) || 0; }
+            }
+
+            if (~current && window && window.scrollLeft) { window.scrollLeft = 0; }
+          } else {
+            this.set({
+              selected: idx,
+              selectedContent: idx
+            });
+          }
+        }
+      }
+
+      function close(ctx, idx) {
+        var tab = this.getContext(this._tabs[idx]);
+        var ok = true;
+
+        if (typeof tab.onclose === 'function') {
+          ok = tab.onclose.call(undefined) !== false;
+        }
+
+        if (ok && tab.element.events.find(function (e) { return e.events.find(function (e) { return e.name === 'close'; }); })) {
+          ok = tab.raise('close') !== false;
+        }
+
+        if (ok) { this.splice('tabs', idx, 1); }
+
+        return false;
+      }
+
+      var Handle = function Handle(tabs, item) {
+        this.tabs = tabs;
+        this.item = item;
+      };
+
+      var prototypeAccessors$1 = { keypath: { configurable: true },id: { configurable: true },index: { configurable: true },title: { configurable: true },template: { configurable: true },hidden: { configurable: true },right: { configurable: true },pad: { configurable: true },disabled: { configurable: true },button: { configurable: true },closable: { configurable: true },load: { configurable: true } };
+
+      prototypeAccessors$1.keypath.get = function () {
+        if (this.removed) { return; }
+        return ("tabs." + (this.index));
+      };
+
+      prototypeAccessors$1.id.get = function () { return this.get('id'); };
+      prototypeAccessors$1.id.set = function (v) { this.set('id', v); };
+      prototypeAccessors$1.index.get = function () { return this.tabs.get('tabs').indexOf(this.item); };
+
+      prototypeAccessors$1.title.get = function () { return this.get('title'); };
+      prototypeAccessors$1.title.set = function (v) { this.set('title', v); };
+
+      prototypeAccessors$1.template.get = function () { return this.get('template'); };
+      prototypeAccessors$1.template.set = function (v) { return this.set('template', v); };
+
+      prototypeAccessors$1.hidden.get = function () { return this.get('hidden'); };
+      prototypeAccessors$1.hidden.set = function (v) { return this.set('hidden', v); };
+
+      prototypeAccessors$1.right.get = function () { return this.get('right'); };
+      prototypeAccessors$1.right.set = function (v) { return this.set('right', v); };
+
+      prototypeAccessors$1.pad.get = function () { return this.get('pad'); };
+      prototypeAccessors$1.pad.set = function (v) { return this.set('pad', v); };
+
+      prototypeAccessors$1.disabled.get = function () { return this.get('disabled'); };
+      prototypeAccessors$1.disabled.set = function (v) { return this.set('disabled', v); };
+
+      prototypeAccessors$1.button.get = function () { return this.get('button'); };
+      prototypeAccessors$1.button.set = function (v) { return this.set('button', v); };
+
+      prototypeAccessors$1.closable.get = function () { return this.get('closable'); };
+      prototypeAccessors$1.closable.set = function (v) { return this.set('closable', v); };
+
+      prototypeAccessors$1.load.get = function () { return this.get('load'); };
+      prototypeAccessors$1.load.set = function (v) { return this.set('load', v); };
+
+      Handle.prototype.select = function select () {
+        if (this.removed) { return; }
+        this.tabs.select(this.index);
+      };
+
+      Handle.prototype.remove = function remove () {
+        if (this.removed) { return false; }
+        this.tabs.splice('tabs', this.index, 1);
+        this.removed = true;
+        return true;
+      };
+
+      Handle.prototype.get = function get (keypath) {
+        if (this.removed) { return false; }
+        if (!keypath) { return this.tabs.get(this.keypath); }
+        var key = keypath.replace(/^[\.\/]*/, '');
+        return this.tabs.get(((this.keypath) + "." + key));
+      };
+
+      Handle.prototype.set = function set (keypath, value) {
+        if (this.removed) { return false; }
+        var key = keypath.replace(/^[\.\/]*/, '');
+        return this.tabs.set(((this.keypath) + "." + key), value);
+      };
+
+      Object.defineProperties( Handle.prototype, prototypeAccessors$1 );
 
       function plugin(opts) {
         if ( opts === void 0 ) opts = {};
@@ -307,11 +460,11 @@ System.register(['ractive', './chunk2.js'], function (exports, module) {
         return function(ref) {
           var instance = ref.instance;
 
-          instance.components[opts.name || 'split'] = Split;
+          instance.components[opts.name || 'tabs'] = Tabs;
         }
       }
 
-      globalRegister('RMSplit', 'components', Split);
+      globalRegister('RMTabs', 'components', Tabs);
       exports('default', plugin);
 
     }

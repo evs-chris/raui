@@ -1,275 +1,200 @@
-System.register([], function (exports, module) {
+System.register(['./chunk2.js', './chunk7.js'], function (exports, module) {
   'use strict';
+  var globalRegister, sized;
   return {
+    setters: [function (module) {
+      globalRegister = module.default;
+    }, function (module) {
+      sized = module.sized;
+    }],
     execute: function () {
 
-      exports('default', makeClick);
-      // based on ractive-event-tap
-      var distance = 5;
-      var timeout = 400;
-      var between = 250;
+      exports('style', style);
+      exports('grid', grid);
+      var el;
+      function sizer() {
+        if (!el) {
+          el = document.createElement('div');
+          document.body.appendChild(el);
+        }
+        return el;
+      }
 
-      function makeClick(opts) {
+      var defaults = {
+        tiny: {
+          units: [ 2, 3, 4, 5, 6, 8 ],
+          max: '0',
+          value: 0
+        },
+        xsmall: {
+          units: [ 2, 3, 4, 5, 6, 8, 10, 12 ],
+          max: '20em',
+          prefix: 'xs',
+          value: 10
+        },
+        small: {
+          units: [ 2, 3, 4, 5, 6, 8, 10, 12 ],
+          max: '36em',
+          value: 20
+        },
+        medium: {
+          units: [ 2, 3, 4, 5, 6, 8, 10, 12 ],
+          max: '48em',
+          value: 30
+        },
+        large: {
+          units: [ 2, 3, 4, 5, 6, 8, 10, 12, 16, 20 ],
+          max: '64em',
+          value: 40
+        },
+        xlarge: {
+          units: [ 2, 3, 4, 5, 6, 8, 10, 12, 16, 20 ],
+          max: '100em',
+          value: 50
+        },
+        ginormous: {
+          units: [ 2, 3, 4, 5, 6, 8, 10, 12, 16, 20 ],
+          max: '150em',
+          value: 60
+        }
+      };
+
+      var regexps = { 'grid grid-root': /\bgrid grid-root\b/g };
+      var spaces = /\s+/g;
+      function grid(node, options) {
+        var ctx = this.getContext(node);
+        var owner = this;
+        var points;
+        var opts = options || {};
+        var breaks;
+
+        function resize(size) {
+          if (typeof opts.offset === 'number') { size -= opts.offset; }
+          if (!opts.type || opts.type === 'class') {
+            var cls = node.className;
+            var max = -1;
+            var match;
+            for (var k in points) {
+              regexps[k].lastIndex = -1;
+              if (points[k] <= size) {
+                if (!regexps[k].test(cls)) { cls += " " + k; }
+                if (points[k] > max) {
+                  max = points[k];
+                  match = k;
+                }
+              } else {
+                cls = cls.replace(regexps[k], '').trim();
+              }
+            }
+
+            node.className = cls.replace(spaces, ' ');
+
+            if (!match) { return; }
+
+            if (opts.value) { ctx.set(opts.value, breaks[match].value); }
+            if (opts.name) { ctx.set(opts.name, match); }
+            if (opts.size) { ctx.set(opts.size, size); }
+            if (opts.max) { ctx.set(opts.max, max); }
+          }
+        }
+
+        function settings() {
+          var s = sizer();
+          breaks = owner.get('@style.break') || defaults;
+          points = {};
+          for (var k in breaks) {
+            s.style.width = breaks[k].max;
+            points[k] = s.clientWidth;
+            if (!regexps[k]) { regexps[k] = new RegExp(("\\b" + k + "\\b"), 'g'); }
+          }
+          s.style.width = 0;
+          resize(node.clientWidth);
+        }
+
+        var observer = this.observe('@style.break', settings, { init: false });
+        var listener = ctx.observe('@local.width', resize, { init: false });
+        var watcher = sized.call(this, node, { clientWidth: '@local.width' });
+
+        node.className += ' grid grid-root';
+        if (opts.immediate) { settings(); }
+        else { requestAnimationFrame(settings); }
+
+        return {
+          update: function update(options) {
+            // TODO: if type changes, undo whatever the original did first
+            opts = options || {};
+            requestAnimationFrame(function () { return resize(node.clientWidth); });
+          },
+          teardown: function teardown() {
+            node.className = node.className.replace(regexps['grid grid-root'], '').trim();
+            listener.cancel();
+            observer.cancel();
+            watcher.teardown();
+          }
+        };
+      }
+
+      function style(data, optDefaults) {
+        var defs = data('raui.grid.break') || optDefaults || defaults;
+        var wrappers = (data('raui.grid.wrappers') || ['.row-wrap > ', '.row-wrap > .row-wrap > ']).slice();
+        wrappers.unshift('');
+
+        var out = ".row > * { position: relative; width: 100%; transition-duration: 0.2s; transition-timing-function: ease-in-out; transition-property: padding, margin; box-sizing: border-box; }\n.grid { display: block; }\n.grid .row { display: flex !important; flex-wrap: wrap; min-height: fit-content; width: 100%; align-content: flex-start; }\n.grid .row.row-pad > * { padding: " + (data('raui.grid.padding') || '0.5em') + "; }\n.grid .row > .pad { display: flex; flex-direction: column; padding: " + (data('raui.grid.padding') || '0.5em') + "; box-sizing: border-box; }";
+
+        var points = Object.keys(defs).map(function (k) { return (defs[k].key = k) && defs[k]; });
+        points.sort(function (l, r) { return l.value > r.value ? 1 : l.value < r.value ? -1 : 0; });
+
+        points.forEach(function (size) {
+          var name = size.prefix || size.key[0];
+          var map = {};
+
+          size.units.forEach(function (u) {
+            for (var i = 1; i < u; i++) {
+              var pc = '' + ((i / u) * 100);
+              pc = pc.substr(0, pc.indexOf('.') + 3);
+              if (!map[pc]) { map[pc] = []; }
+              map[pc].push((i + "-" + u));
+            }
+          });
+
+          var s = size.key;
+
+          out += "\n" + ([wrappers.map(function (w) { return ("." + s + " > " + w + "." + name + "1, ." + s + " > " + w + ".row > ." + name + "1"); }).join(', '), ("." + s + " ." + name + "-n1, ." + s + " .row-" + name + "-n1 > *")].filter(function (x) { return x; }).join(', ')) + " { display: " + (data('raui.grid.display') || 'inline-block') + "; width: 100%; flex-grow: 0; flex-shrink: 0; }\n" + ([wrappers.map(function (w) { return ("." + s + " > " + w + "." + name + "0, ." + s + " > " + w + ".row > ." + name + "0"); }).join(', '), ("." + s + " ." + name + "-n0, ." + s + " .row-" + name + "-n0 > *")].filter(function (x) { return x; }).join(', ')) + " { display: none; flex-grow: 0; flex-shrink: 0: }\n" + (Object.keys(map).map(function (pc) { return ((map[pc].map(function (fraction) { return ("" + ([wrappers.map(function (w) { return ("." + s + " > " + w + ".row-" + name + fraction + " > *, ." + s + " > " + w + "." + name + fraction + ", ." + s + " > " + w + ".row > ." + name + fraction); }).join(', '), ("." + s + " .row-" + name + "-n" + fraction + " > * .row > ." + name + "-n" + fraction + ", ." + s + " ." + name + "-n" + fraction + ", ." + s + " .row-" + name + "-n" + fraction + " > *")].filter(function (x) { return x; }).join(', '))); }).join(', ')) + " { display: " + (data('raui.grid.display') || 'inline-block') + "; width: " + pc + "%; flex-grow: 0; flex-shrink: 0; }"); }
+      ).join('\n')) + "\n" + ([wrappers.map(function (w) { return ("." + s + " > " + w + ".row > " + name + "-fill, ." + s + " >" + w + ".row > ." + name + "-auto"); }).join(', '), ("." + s + " ." + name + "-nfill, ." + s + " ." + name + "-nauto")].filter(function (x) { return x; }).join(', ')) + " { display: " + (data('raui.grid.display') || 'inline-block') + "; width: auto; flex-grow: 1; flex-shrink: 1; }";
+        });
+        return out;
+      }
+
+      grid.style = style;
+
+      function plugin(opts) {
         if ( opts === void 0 ) opts = {};
 
-        return function setup(ref) {
+        return function(ref) {
           var Ractive = ref.Ractive;
           var instance = ref.instance;
 
-          instance.events[opts.name || ((opts.count || '') + "clicks")] = function clicks(node, fire, options) {
-            var o = Object.assign({}, opts, options);
-            var handler;
-            if (handler = node.__r_clicks__) {
-              handler.subscribe(o.count || 1, !!o.hold, fire);
-            } else {
-              handler = new Handler(Ractive.getContext(node), o.delay || between, o.bubble || false);
-              node.__r_clicks__ = handler;
-              handler.subscribe(o.count || 1, !!o.hold, fire);
+          // if an extension, offer to include style
+          if (!Ractive.isInstance(instance)) {
+            if (opts.includeStyle) {
+              if (instance === Ractive) {
+                Ractive.addCSS('grid-decorator', style);
+              } else {
+                var css = instance.css;
+                instance.css = function(data) {
+                  var res = typeof css !== "function" ? css || "" : css(data);
+                  return res + style(data, opts.defaults);
+                };
+              }
             }
+          }
 
-            return { teardown: function teardown() { handler.unsubscribe(o.count || 1, !!o.hold, fire); } };
-          };
+          instance.decorators[opts.name || 'grid'] = grid;
         }
       }
 
-      var click = makeClick({ name: 'click', count: 1 });
-      var dblclick = makeClick({ name: 'dblclick', count: 2 });
-      var trpclick = makeClick({ name: 'trpclick', count: 3 });
-
-      var Handler = function Handler(context, delay, bubble) {
-        this.context = context;
-        this.node = context.node;
-        this.delay = delay;
-        this.fires = {};
-        this.refs = 0;
-        this.bubble = bubble;
-
-        this.bind();
-      };
-
-      Handler.prototype.subscribe = function subscribe (count, hold, fire) {
-        (this.fires[(count + "," + hold)] || (this.fires[(count + "," + hold)] = [])).push(fire);
-        this.refs++;
-      };
-
-      Handler.prototype.unsubscribe = function unsubscribe (count, hold, fire) {
-        var fires = this.fires[(count + "," + hold)] || [];
-        fires.splice(fires.indexOf(fire), 1);
-        this.refs--;
-        if (!this.refs) { this.teardown(); }
-      };
-
-      Handler.prototype.bind = function bind () {
-        // listen for mouse/pointer events...
-        if (window.PointerEvent || window.navigator.pointerEnabled) {
-          this.node.addEventListener('pointerdown', handleMousedown);
-        } else if (window.navigator.msPointerEnabled) {
-          this.node.addEventListener('MSPointerDown', handleMousedown);
-        } else {
-          this.node.addEventListener('mousedown', handleMousedown);
-
-          // ...and touch events
-          this.node.addEventListener('touchstart', handleTouchstart);
-        }
-
-        // native buttons, anchors, checkboxes, radios, and button/submit input elements, should fire a tap event
-        // when the space key is pressed
-        if (this.node.tagName === 'A' || this.node.tagName === 'BUTTON' || this.node.type === 'button' || this.node.type === 'submit' || this.node.type === 'checkbox' || this.node.type === 'radio') {
-          this.node.addEventListener('focus', handleFocus);
-        }
-      };
-
-      Handler.prototype.fire = function fire (event, x, y, hold) {
-          var this$1 = this;
-
-        if (this.tm) {
-          this.tmCount++;
-          clearTimeout(this.tm);
-        } else {
-          this.tmCount = 1;
-        }
-
-        var go = function () {
-          this$1.tm = null;
-          (this$1.fires[((this$1.tmCount) + "," + (!!hold))] || []).forEach(function (f) {
-            f({ node: this$1.node, original: event, x: x, y: y, hold: !!hold });
-          });
-        };
-
-        if (hold) { go(); }
-        else { this.tm = setTimeout(go, this.delay); }
-
-        return this.bubble;
-      };
-
-      Handler.prototype.mousedown = function mousedown (event) {
-          var this$1 = this;
-
-        if (this.preventMousedownEvents) {
-          return;
-        }
-
-        if (event.which !== undefined && event.which !== 1) {
-          return;
-        }
-
-        var tm;
-
-        var x = event.clientX;
-        var y = event.clientY;
-
-        // This will be null for mouse events.
-        var pointerId = event.pointerId;
-
-        var handleMouseup = function (event) {
-          if (event.pointerId != pointerId) {
-            return;
-          }
-
-          this$1.fire(event, x, y);
-          cancel();
-        };
-
-        var handleMousemove = function (event) {
-          if (event.pointerId != pointerId) {
-            return;
-          }
-
-          if ((Math.abs(event.clientX - x) >= distance) || (Math.abs(event.clientY - y) >= distance)) {
-            cancel();
-          }
-        };
-
-        var cancel = function () {
-          if (tm) { clearTimeout(tm); }
-          this$1.node.removeEventListener('MSPointerUp', handleMouseup, false);
-          document.removeEventListener('MSPointerMove', handleMousemove, false);
-          document.removeEventListener('MSPointerCancel', cancel, false);
-          this$1.node.removeEventListener('pointerup', handleMouseup, false);
-          document.removeEventListener('pointermove', handleMousemove, false);
-          document.removeEventListener('pointercancel', cancel, false);
-          this$1.node.removeEventListener('click', handleMouseup, false);
-          document.removeEventListener('mousemove', handleMousemove, false);
-        };
-
-        if (window.PointerEvent || window.navigator.pointerEnabled) {
-          this.node.addEventListener('pointerup', handleMouseup, false);
-          document.addEventListener('pointermove', handleMousemove, false);
-          document.addEventListener('pointercancel', cancel, false);
-        } else if (window.navigator.msPointerEnabled) {
-          this.node.addEventListener('MSPointerUp', handleMouseup, false);
-          document.addEventListener('MSPointerMove', handleMousemove, false);
-          document.addEventListener('MSPointerCancel', cancel, false);
-        } else {
-          this.node.addEventListener('click', handleMouseup, false);
-          document.addEventListener('mousemove', handleMousemove, false);
-        }
-
-        tm = setTimeout(function () {
-          cancel();
-          this$1.fire(event, x, y, true);
-        }, timeout);
-
-        if (!this.bubble) { event.stopPropagation(); }
-        return this.bubble;
-      };
-
-      Handler.prototype.touchdown = function touchdown (event) {
-          var this$1 = this;
-
-        var tm;
-        var touch = event.touches[0];
-
-        var x = touch.clientX;
-        var y = touch.clientY;
-
-        var finger = touch.identifier;
-
-        var handleTouchup = function (event) {
-          var touch = event.changedTouches[0];
-
-          if (touch.identifier !== finger) {
-            cancel();
-            return;
-          }
-
-          event.preventDefault(); // prevent compatibility mouse event
-
-          // for the benefit of mobile Firefox and old Android browsers, we need this absurd hack.
-          this$1.preventMousedownEvents = true;
-          clearTimeout(this$1.preventMousedownTimeout);
-
-          this$1.preventMousedownTimeout = setTimeout(function () {
-            this$1.preventMousedownEvents = false;
-          }, 400);
-
-          this$1.fire(event, x, y);
-          cancel();
-        };
-
-        var handleTouchmove = function (event) {
-          if (event.touches.length !== 1 || event.touches[0].identifier !== finger) {
-            cancel();
-          }
-
-          var touch = event.touches[0];
-          if ((Math.abs(touch.clientX - x) >= distance) || (Math.abs(touch.clientY - y) >= distance)) {
-            cancel();
-          }
-        };
-
-        var cancel = function () {
-          if (tm) { clearTimeout(tm); }
-          this$1.node.removeEventListener('touchend', handleTouchup, false);
-          window.removeEventListener('touchmove', handleTouchmove, false);
-          window.removeEventListener('touchcancel', cancel, false);
-        };
-
-        this.node.addEventListener('touchend', handleTouchup, false);
-        window.addEventListener('touchmove', handleTouchmove, false);
-        window.addEventListener('touchcancel', cancel, false);
-
-        tm = setTimeout(function () {
-          cancel();
-          this$1.fire(event, x, y, true);
-        }, timeout);
-
-        if (!this.bubble) { event.stopPropagation(); }
-        return this.bubble;
-      };
-
-      Handler.prototype.teardown = function teardown () {
-        this.node.removeEventListener('pointerdown', handleMousedown);
-        this.node.removeEventListener('MSPointerDown', handleMousedown);
-        this.node.removeEventListener('mousedown', handleMousedown);
-        this.node.removeEventListener('touchstart', handleTouchstart);
-        this.node.removeEventListener('focus', handleFocus);
-
-        delete this.node.__r_clicks__;
-      };
-      function handleMousedown(event) {
-        return this.__r_clicks__.mousedown(event);
-      }
-
-      function handleTouchstart(event) {
-        return this.__r_clicks__.touchdown(event);
-      }
-
-      function handleFocus() {
-        this.addEventListener('keydown', handleKeydown, false);
-        this.addEventListener('blur', handleBlur, false);
-      }
-
-      function handleBlur() {
-        this.removeEventListener('keydown', handleKeydown, false);
-        this.removeEventListener('blur', handleBlur, false);
-      }
-
-      function handleKeydown(event) {
-        if (event.which === 32 || event.which === 10 || event.which === 13) { // space/enter key
-          return this.__r_clicks__.fire();
-        }
-      }
+      globalRegister('grid', 'decorators', grid);
+      exports('default', plugin);
 
     }
   };
