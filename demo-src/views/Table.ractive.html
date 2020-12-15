@@ -76,7 +76,7 @@
 
           ### Template:
           ```handlebars
-          <data-table bind-items bind-filter="[{ op: '||', value: [{ id: 'Foo', op: 'like', value: filter }, { id: 'Bar', op: 'like', value: filter }] }]" bind-border bind-fixed-header=fixedHeader bind-paginate="paginate === 'fixed' ? pages : paginate" bind-allow-select=select bind-allow-select-all=selectAll bind-valign bind-no-header=noHeader on-selected="console.log($1)">
+            <data-table bind-items bind-filter="filter" bind-border bind-fixed-header=fixedHeader bind-paginate="paginate === 'fixed' ? pages : paginate" bind-allow-select=select bind-allow-select-all=selectAll bind-valign bind-no-header=noHeader on-selected="console.log($1)">
             <expand>
               <h3>Extra stuff goes here</h3>
               <p>I have a {{.foo}} that is {{.bar}}.</p>
@@ -93,7 +93,7 @@
         </marked>
         </div>
       </pane><pane style-display=flex style-flex-direction=column>
-        <data-table bind-items bind-filter="[{ op: '||', value: [{ id: 'Foo', op: 'like', value: filter }, { id: 'Bar', op: 'like', value: filter }] }]" bind-border bind-fixed-header=fixedHeader bind-paginate="paginate === 'fixed' ? pages : paginate" bind-allow-select=select bind-allow-select-all=selectAll bind-valign bind-no-header=noHeader on-selected="console.log($1)">
+        <data-table bind-items bind-filter="filter" bind-border bind-fixed-header=fixedHeader bind-paginate="paginate === 'fixed' ? pages : paginate" bind-allow-select=select bind-allow-select-all=selectAll bind-valign bind-no-header=noHeader on-selected="console.log($1)">
           <expand>
             <h3>Extra stuff goes here</h3>
             <p>I have a {{.foo}} that is {{.bar}}.</p>

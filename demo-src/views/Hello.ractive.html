@@ -40,6 +40,8 @@
 
     * AppBar - A titlebar-like thing that goes across the top of your app
     * Card - A material-ish card that's mostly just a boilerplate macro
+    * DateInput - An input with date format and a calendar popover
+    * DatePicker - A calendar date picker component
     * JSONEditor - An object editor tree
     * Menu - A side menu with expanding sections and raw embeds
     * Popover - Your basic popover
@@ -89,6 +91,7 @@
     * Color - A Color class and functions that take CSS colors and help you mangle them by lightening, desaturating, etc
     * Button - Just a style helper to make `<button>`s more Material
     * Toast - A toasting system that can be installed on any old Ractive instance
+    * Validate - A validation rule system with some helper decorators
   </marked></tab>
   <tab title="Theming"><marked>
     RaUI makes use of Ractive's CSS function support to make its components relatively themeable. There are specific variables available for many aspects of each component, that fall back to general variables and _hopefully_ sensible defaults. Colors are managed in groups with `raui.primary` being the only default. Any additional themes will have classes added to each component's styles to match and should be listed in a `raui.themes` list. The variables for additional themes should be set on the root ractive style data in an object with the same name as the theme. Additional themes can also be overridden at the component level e.g. `raui.tabs.secondary` will be based on `raui.secondary` automatically, with the more specific settings taking precedent.

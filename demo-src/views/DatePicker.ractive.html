@@ -1,0 +1,64 @@
+<tabs flat pad class-alt fill height=dynamic>
+  <tab title=Intro><marked>
+    The `DatePicker` displays a calendar that allows selecting a date.
+  </marked></tab>
+  <tab title=Usage><marked>
+    ### Plugin Options
+
+    All options are optional.
+
+    * `name: string = 'date-picker'` - the name to use when registering the component
+
+    ### Attributes
+
+    All attributes are optional.
+
+    * `date: binding` - the value to which the date should be bound
+    * `mode: 'month'|'months'|'year' = 'month'` - the mode for the picker
+  </marked></tab>
+  <tab title=Example>
+    <marked>
+      ### Template:
+      ```handlebars
+      <date-picker />
+      <date-picker date="{{date}}" />
+      <date-picker mode="months" bind-date />
+      ```
+      ### Result:
+    </marked>
+
+    <div class="dates">
+      <date-picker />
+      <date-picker date="{{date}}" />
+      <date-picker mode="months" bind-date />
+    </div>
+
+    <code><pre>
+      Date: {{date}}
+    </pre></code>
+  </tab>
+</tabs>
+
+<script>
+  import { Window } from 'cmp/Window';
+  import date from 'cmp/DatePicker';
+
+  export default Window.extend({
+    template: $TEMPLATE,
+    css: $CSS,
+    use: [date()],
+    options: {
+      title: 'Component :: DatePicker',
+      resizable: true, flex: true,
+      width: '48em', height: '30em'
+    },
+  });
+</script>
+    
+<style>
+  .dates {
+    display: flex;
+    flex-wrap: wrap;
+  }
+</style>
+

@@ -1,0 +1,154 @@
+<tabs flat pad class-alt fill height=dynamic>
+  <tab title=Intro><marked>
+    The Raui `Validate` helper is a rule-based validator that supports three levels of messages across any keypaths observed by the rules. It also includes a decorator that can be used to provide feedback on various raui (and possibly other) widgets, like form elements and tabs.
+    
+    A validator employs Ractive observers to watch keypaths in a few different ways that can include wildcards. The validator also provides an event system to provide notifications based on a path that may also be specified as a regular expression, so you can collect messages for a particular chunk of data to know its validity state.
+
+    As the observers are fired, the matching rules are applied, and any decorators that are registered with the validator are notified. A decorator will show the highest level, so error, then warn, then info. All messages are collected into a title for any particular decorator. The decorators can be scoped to a single keypath, a list of keypaths, a keypath regex, or a named group.
+
+    Validations can be scoped to a single keypath or a list of keypaths, both of which may include wildcards. There is a helper to apply validations to arrays (lists) within the data, which will create a validation scope at the keypath of the given keypath and apply the scope for each item in the list. There is also a helper that allows deferred validator creation using a scope similar to the list helper. The deferred validation scope is applied once the target value exists.
+
+    Validations produce messages, which are simply tuples of levels and messages. Any particular keypath can have any number of messages at any level associated with it. Individual validations may overlap, as the validator only allows a validation to affect messages that it has set.
+  </marked></tab>
+  <tab title=Usage><marked>
+    ### Class
+
+    The validator class constructor takes a ractive instance and an optional debounce interval that defaults to 500ms. The typescript definitions included in the source are a more thorough reference for the validation API, but there is a lighter overview included here.
+
+    #### Types
+
+    * `MessageLevel = 'error'|'warn'|'info'`
+    * `CheckOptions { group?: string|string[]; init?: boolean }`
+    * `ValidatorFN = (...values: any[]) => ValidationResult`
+    * `ValidationResult = Array<[MessageLevel, string]|[MessageLevel, string, string|string[]]>`
+    * `CheckHelper { check(...); checkList(...); checkDefer(...) }`
+    * `CheckScope = (path: string, check: CheckHelper, key: index|string) => void`
+    * `Path = string|string[]` - any of which may include wildcards
+    * `Group { name: string|string[] }`
+
+    #### Methods
+
+    * `check(keys: Path, deps?: string|string[], callback: (...values: any) => ValidationResult, options?: CheckOptions)` - install a validator for the given key(s)
+    * `checkList(path: string, scope: CheckScope, opts?: CheckOptions)` - install validators for a list, where each item is run through the scope individually
+    * `checkDefer(path: string, scope: CheckScope, opts?: CheckOptions)` - install validators for an object once it is defined, which is when the scope is run
+    * `refresh(path: Path|RegExp, recurse?: boolean = true)` - re-validate the matching paths
+    * `clear(path: string|RegExp, recurse?: boolean = false)` - remove validations for the matching paths
+    * `level(path: Path|RegExp|Group, recurse?: boolean = true): MessageLevel` - get the message level for the matching paths
+    * `messages(path: Path|RegExp|Group, recurse?: boolean): ValidationResult` - get the messages for the matching paths
+    * `hook(path: Path|RegExp|Group, hook: () => void): { cancel(): void }` - register a hook to fire when the matching paths change valid state
+    * `unhook(path: Path|RegExp|Group, hook: () => void)` - unregistered a hook
+    * `decorator(opts): Decorator` - create a ractive decorator that can display a validation status
+
+    #### Decorator Options
+
+    * `indicator: boolean` - should this decorator create an indicator element
+    * `tab: boolean` - should this decorator refresh when any children of the decorated element blur
+    * `regex: boolean` - should any paths passed to this decorator be turned in to regexes
+    * `levels: [string, string, string, string]` - the class names for each level in order none, info, warn, and error.
+    * `group: boolean` - whether any paths passed to this decorator should be turned into group names
+  </marked></tab>
+  <tab title=Example>
+    <marked>
+      ### Template:
+      ```handlebars
+        Current level for all paths: {{level}}.
+        <tabs pad>
+          <tab>
+            <title style-padding-right="2em" as-validg=`tab1`>Tab 1</title>
+            <div>
+              <label as-field as-valid=`name`>Name<input value="{{name}}" /></label>
+            </div>
+          </tab>
+          <tab>
+            <title style-padding-right="2em" as-validg=`tab2`>Tab 2</title>
+            <div>
+              <button on-click="@.push('things', {})">Add Thing</button>
+              {{#each things}}
+                <div>
+                  <label as-field as-valid=`.name`>Name<input value="{{.name}}" /></label>
+                  <label as-field as-valid=`.age`>Age<input type=nubmer value="{{.age}}" /></label>
+                  <label as-field><button on-click="@.splice('things', @index, 1)">&times;</button></label>
+                </div>
+              {{/each}}
+            </div>
+          </tab>
+        </tabs>
+      ```
+
+      ```js
+        // in the init event for the ractive instance
+        const validator = new Validator(this);
+        validator.check('name', required('Name'), { group: 'tab1' });
+        validator.check('name', (v) => /dave/i.test(v) ? [['error', 'Dave\'s not here, man.']] : [], { group: 'tab1' });
+        validator.check('things.length', between('Number of things', 1, 10, 'warn'), { group: 'tab2' });
+        validator.checkList('things', (path, v) => {
+          v.check('.name', required('Name'), { group: 'tab2' });
+          v.check('.age', between('Age', 9, 99), { group: 'tab2' });
+        });
+        this.decorators.valid = validator.decorator({ indicator: true });
+        this.decorators.validg = validator.decorator({ indicator: true, group: true });
+        validator.hook(/.*/, () => this.set('level', validator.level(/.*/)));
+      ```
+      ### Result:
+    </marked>
+
+    Current level for all paths: {{level}}.
+    <tabs pad>
+      <tab>
+        <title style-padding-right="2em" as-validg=`tab1`>Tab 1</title>
+        <div>
+          <label as-field as-valid=`name`>Name<input value="{{name}}" /></label>
+        </div>
+      </tab>
+      <tab>
+        <title style-padding-right="2em" as-validg=`tab2`>Tab 2</title>
+        <div>
+          <button on-click="@.push('things', {})">Add Thing</button>
+          {{#each things}}
+            <div>
+              <label as-field as-valid=`.name`>Name<input value="{{.name}}" /></label>
+              <label as-field as-valid=`.age`>Age<input type=nubmer value="{{.age}}" /></label>
+              <label as-field><button on-click="@.splice('things', @index, 1)">&times;</button></label>
+            </div>
+          {{/each}}
+        </div>
+      </tab>
+    </tabs>
+  </tab>
+</tabs>
+
+<script>
+  import { Window } from 'cmp/Window';
+  import { Validator, required, between } from 'cmp/validate';
+  import tabs from 'cmp/Tabs';
+
+  export default Window.extend({
+    template: $TEMPLATE,
+    options: {
+      title: 'Helpers :: Validate',
+      resizable: true, flex: true,
+      width: '48em', height: '30em'
+    },
+    use: [tabs()],
+    data() {
+      return { things: [] };
+    },
+    on: {
+      init() {
+        const validator = new Validator(this);
+        validator.check('name', required('Name'), { group: 'tab1' });
+        validator.check('name', (v) => /dave/i.test(v) ? [['error', 'Dave\'s not here, man.']] : [], { group: 'tab1' });
+        validator.check('things.length', between('Number of things', 1, 10, 'warn'), { group: 'tab2' });
+        validator.checkList('things', (path, v) => {
+          v.check('.name', required('Name'), { group: 'tab2' });
+          v.check('.age', between('Age', 9, 99), { group: 'tab2' });
+        });
+        this.decorators.valid = validator.decorator({ indicator: true });
+        this.decorators.validg = validator.decorator({ indicator: true, group: true });
+        validator.hook(/.*/, () => this.set('level', validator.level(/.*/)));
+      }
+    }
+  });
+</script>
+    
+  
