@@ -337,6 +337,10 @@ export class Validator {
         else if (key.test) this.patternHooks.push([key, fn]);
       });
     }
+
+    return {
+      cancel: () => this.unhook(keys, fn)
+    };
   }
 
   unhook(keys, fn) {
