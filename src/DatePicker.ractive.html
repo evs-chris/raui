@@ -212,17 +212,17 @@
     }
 
     select(dt) {
-      if (dt && dt instanceof Date) this.set('current', dt);
+      if (dt && dt instanceof Date) this.set('date', dt);
       else {
         let current = this.get('safeCurrent');
 
-        if (dt) this.set('current', new Date(dt.y || current.getFullYear(), typeof dt.m === 'number' ? dt.m : current.getMonth(), dt.d || current.getDate()));
+        if (dt) this.set('date', new Date(dt.y || current.getFullYear(), typeof dt.m === 'number' ? dt.m : current.getMonth(), dt.d || current.getDate()));
 
         const mode = this.get('mode');
         if (mode === 'year') this.set('mode', 'months');
         else if (mode === 'months') this.set('mode', 'month');
 
-        this.set('target', this.get('current'));
+        this.set('target', this.get('date'));
       }
     }
 
@@ -249,8 +249,8 @@
     }
 
     today() {
-      this.set('current', new Date());
-      this.set('target', this.get('current'));
+      this.set('date', new Date());
+      this.set('target', this.get('date'));
     }
   }
 
@@ -266,7 +266,7 @@
     },
     computed: {
       safeCurrent() {
-        let current = this.get('current');
+        let current = this.get('date');
         if (typeof current === 'string') {
           try { current = new Date(current); } catch (e) {}
         }
@@ -275,7 +275,7 @@
       },
       safeTarget() {
         let target = this.get('target');
-        if (!target) target = this.get('current');
+        if (!target) target = this.get('date');
         if (typeof target === 'string') {
           try { target = new Date(target); } catch (e) {}
         }
