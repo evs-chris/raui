@@ -284,7 +284,7 @@
       window.on('close', () => {
         const blocking = window.get('control.blocking');
         if (blocking) {
-          const blockers = this.windowGet(blocking, 'blockers');
+          const blockers = this.windowGet(blocking, 'blockers') || [];
           this.splice(`windows.${escape(blocking)}.blockers`, blockers.indexOf(window.id), 1);
         }
         this.detachChild(window).then(() => window.teardown());
