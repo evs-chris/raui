@@ -392,17 +392,23 @@ export class Validator {
         const n = node.querySelector('input,select,textarea');
         if (n) {
           let fn;
-          fn = () => {
-            v.refresh(ks);
+          fn = ev => {
             n.removeEventListener('blur', fn);
+            n.removeEventListener('input', fn);
             tab = null;
+            if (ev.type === 'blur') {
+              v.refresh(ks);
+              hook();
+            }
           };
           tab = [n, fn];
           n.addEventListener('blur', fn);
+          n.addEventListener('input', fn);
         }
       }
 
       function hook() {
+        if (tab) return;
         const level = v.level(ks, true);
         syncClass(node, levels, levels[levelMap[level]]);
         if (opts.indicator) {
