@@ -146,7 +146,9 @@ export default function plugin(options = {}) {
       }));
 
       const selectGroup = () => {
-        const group = groupForPos(groups, node.selectionStart);
+        let group;
+        if (node.selectionStart === node.value.length && node.selectionEnd === node.value.length) group = groups[0];
+        else group = groupForPos(groups, node.selectionStart);
         document.activeElement === node && node.setSelectionRange(group.start, group.end);
       };
       handles.listeners.push(ctx.listen('click', selectGroup));
