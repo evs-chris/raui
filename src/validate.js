@@ -373,9 +373,17 @@ export class Validator {
       let root = ctx.resolve();
 
       let ks;
-      if (opts.regex) ks = keys.map(k => typeof k === 'string' ? new RegExp(k) : k)
-      else if (opts.group) ks = { group: keys };
-      else ks = keys.map(k => ctx.resolve(k));
+      let keyList;
+      function setKeys(keys) {
+        const list = keys.join(',');
+        if (keyList === list) return false;
+        keyList = list;
+        if (opts.regex) ks = keys.map(k => typeof k === 'string' ? new RegExp(k) : k)
+        else if (opts.group) ks = { group: keys };
+        else ks = keys.map(k => ctx.resolve(k));
+        return true;
+      }
+      setKeys(keys);
 
       const levels = opts.levels || Validator.defaults.levels;
       const position = node.style.position;
@@ -422,6 +430,14 @@ export class Validator {
       if (!opts.tab && !opts.regex) setTimeout(hook, v.debounce || 500);
 
       const res = {
+        update(...keys) {
+          const old = ks;
+          if (setKeys(keys)) {
+            v.unhook(old, hook);
+            v.hook(ks, hook);
+            hook();
+          }
+        },
         teardown() {
           v.unhook(ks, hook);
           syncClass(node, levels);
