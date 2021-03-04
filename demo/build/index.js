@@ -402,7 +402,7 @@ System.register(['./chunk3.js', './chunk4.js', './chunk6.js', './chunk2.js', './
           ],
           f: '?'
         }); }
-        if (label) { body.unshift(label.f); }
+        if (label) { body.unshift.apply(body, Array.isArray(label.f) ? label.f : [label.f]); }
         else { body.unshift('\xa0'); }
 
         var outer = {

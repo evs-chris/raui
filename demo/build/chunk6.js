@@ -26,7 +26,7 @@ System.register(['ractive', './chunk2.js', './chunk5.js'], function (exports, mo
       }
 
       var Menu = /*@__PURE__*/(function (Ractive) {
-        function Menu(opt) {
+        function Menu(opts) {
           Ractive.call(this, opts);
           this.refs = {};
         }

@@ -467,9 +467,17 @@ System.register(['ractive', './chunk2.js', './chunk14.js'], function (exports, m
           var root = ctx.resolve();
 
           var ks;
-          if (opts.regex) { ks = keys.map(function (k) { return typeof k === 'string' ? new RegExp(k) : k; }); }
-          else if (opts.group) { ks = { group: keys }; }
-          else { ks = keys.map(function (k) { return ctx.resolve(k); }); }
+          var keyList;
+          function setKeys(keys) {
+            var list = keys.join(',');
+            if (keyList === list) { return false; }
+            keyList = list;
+            if (opts.regex) { ks = keys.map(function (k) { return typeof k === 'string' ? new RegExp(k) : k; }); }
+            else if (opts.group) { ks = { group: keys }; }
+            else { ks = keys.map(function (k) { return ctx.resolve(k); }); }
+            return true;
+          }
+          setKeys(keys);
 
           var levels = opts.levels || Validator.defaults.levels;
           var position = node.style.position;
@@ -486,17 +494,23 @@ System.register(['ractive', './chunk2.js', './chunk14.js'], function (exports, m
             var n = node.querySelector('input,select,textarea');
             if (n) {
               var fn;
-              fn = function () {
-                v.refresh(ks);
+              fn = function (ev) {
                 n.removeEventListener('blur', fn);
+                n.removeEventListener('input', fn);
                 tab = null;
+                if (ev.type === 'blur') {
+                  v.refresh(ks);
+                  hook();
+                }
               };
               tab = [n, fn];
               n.addEventListener('blur', fn);
+              n.addEventListener('input', fn);
             }
           }
 
           function hook() {
+            if (tab) { return; }
             var level = v.level(ks, true);
             syncClass(node, levels, levels[levelMap[level]]);
             if (opts.indicator) {
@@ -510,6 +524,17 @@ System.register(['ractive', './chunk2.js', './chunk14.js'], function (exports, m
           if (!opts.tab && !opts.regex) { setTimeout(hook, v.debounce || 500); }
 
           var res = {
+            update: function update() {
+                var keys = [], len = arguments.length;
+                while ( len-- ) keys[ len ] = arguments[ len ];
+
+              var old = ks;
+              if (setKeys(keys)) {
+                v.unhook(old, hook);
+                v.hook(ks, hook);
+                hook();
+              }
+            },
             teardown: function teardown() {
               v.unhook(ks, hook);
               syncClass(node, levels);
