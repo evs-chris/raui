@@ -98,11 +98,12 @@
     function refresh(value, old, path) {
       let v = h.get('rac.displayprop');
       if (h.get('rac.__display') !== v || h.get('rac._display') === undefined) {
+        const def = () => h.attributes['display-value'] ? h.get('rac.display') : '(none)';
         if (typeof v === 'string') {
           const path = Ractive.splitKeypath(v);
-          v = v => v == null ? '(none)' : safeGet(v, path);
-        } else if (Array.isArray(v)) v = v => v == null ? '(none)' : safeGet(v, v);
-        else if (!v) v = v => v == null ? '(none)' : `${v}`;
+          v = v => v == null ? def() : safeGet(v, path);
+        } else if (Array.isArray(v)) v = v => v == null ? def() : safeGet(v, v);
+        else if (!v) v = v => v == null ? def() : `${v}`;
 
         h.set('rac._display', v);
         h.set('rac.__display', h.get('rac.displayprop'));
