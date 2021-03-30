@@ -13,6 +13,10 @@ System.register(['ractive', './chunk2.js', './chunk14.js'], function (exports, m
 
       // TODO: allow relative keys to be used in wild and list with a . prefix
 
+      function dispose(validator, disposer) {
+        if (validator.disposing) { validator.disposers.splice(validator.disposers.indexOf(disposer), 1); }
+      }
+
       var Validator = function Validator(ractive, debounce) {
         if ( debounce === void 0 ) debounce = 500;
 
@@ -25,9 +29,19 @@ System.register(['ractive', './chunk2.js', './chunk14.js'], function (exports, m
         this.checks = [];
         this.fns = [];
         this.many = [];
+        this.disposers = [];
+      };
+
+      Validator.prototype.reset = function reset () {
+        this.disposing = true;
+        this.disposers.forEach(function (d) { return d.cancel(); });
+        this.state = {};
+        this.disposing = false;
       };
 
       Validator.prototype.check = function check (keys, deps, fn, opts) {
+          var this$1 = this;
+
         var ks = Array.isArray(keys) ? keys.slice() : [keys];
         var all = ks.concat(Array.isArray(deps) ? deps : typeof deps === 'string' ? [deps] : []);
         if (typeof deps === 'function') {
@@ -42,12 +56,15 @@ System.register(['ractive', './chunk2.js', './chunk14.js'], function (exports, m
 
           checker.call(this, fn, ks, all.map(function (k) { return this$1.ractive.get(k); }));
         }, this), { init: opts && opts.init === false ? false : true });
-        return {
-          cancel: function cancel() {
-            this.fns.splice(this.fns.indexOf(set), 1);
+        var disposer = {
+          cancel: function () {
+            dispose(this$1, disposer);
+            this$1.fns.splice(this$1.fns.indexOf(set), 1);
             handle.cancel();
           }
         };
+        this.disposers.push(disposer);
+        return disposer;
       };
 
       Validator.prototype.checkList = function checkList (path, fn, opts) {
@@ -127,10 +144,9 @@ System.register(['ractive', './chunk2.js', './chunk14.js'], function (exports, m
           });
         }];
         this.many.push(handle);
-        return {
-          cancel: function cancel() {
-              var this$1 = this;
-
+        var disposer = {
+          cancel: function () {
+            dispose(this$1, disposer);
             var cks = Object.keys(checks);
             cks.forEach(function (c) {
               cks[c].forEach(function (ref) {
@@ -146,11 +162,13 @@ System.register(['ractive', './chunk2.js', './chunk14.js'], function (exports, m
                 this$1.fns.splice(idx, 1);
               });
             });
-            var i = this.many.length;
-            while (i--) { if (this.many[i][1] === callback) { this.many.splice(i, 1); } }
+            var i = this$1.many.length;
+            while (i--) { if (this$1.many[i][1] === callback) { this$1.many.splice(i, 1); } }
             observer.cancel();
           }
         };
+        this.disposers.push(disposer);
+        return disposer;
       };
 
       Validator.prototype.checkDefer = function checkDefer (path, fn, opts) {
@@ -215,10 +233,9 @@ System.register(['ractive', './chunk2.js', './chunk14.js'], function (exports, m
           });
         }];
         this.many.push(handle);
-        return {
-          cancel: function cancel() {
-              var this$1 = this;
-
+        var disposer = {
+          cancel: function () {
+            dispose(this$1, disposer);
             var cks = Object.keys(checks);
             cks.forEach(function (c) {
               cks[c].forEach(function (ref) {
@@ -234,11 +251,13 @@ System.register(['ractive', './chunk2.js', './chunk14.js'], function (exports, m
                 this$1.fns.splice(idx, 1);
               });
             });
-            var i = this.many.length;
-            while (i--) { if (this.many[i][1] === callback) { this.many.splice(i, 1); } }
+            var i = this$1.many.length;
+            while (i--) { if (this$1.many[i][1] === callback) { this$1.many.splice(i, 1); } }
             observer.cancel();
           }
         };
+        this.disposers.push(disposer);
+        return disposer;
       };
 
       Validator.prototype.refresh = function refresh (path, recurse) {
@@ -425,14 +444,17 @@ System.register(['ractive', './chunk2.js', './chunk14.js'], function (exports, m
           });
         }
 
-        return {
-          cancel: function () { return this$1.unhook(keys, fn); }
+        var disposer = {
+          cancel: function () { return this$1.unhook(keys, fn, disposer); }
         };
+        this.disposers.push(disposer);
+        return disposer;
       };
 
-      Validator.prototype.unhook = function unhook (keys, fn) {
+      Validator.prototype.unhook = function unhook (keys, fn, disposer) {
           var this$1 = this;
 
+        if (disposer) { dispose(this, disposer); }
         if (keys.group) {
           var gs = Array.isArray(keys.group) ? keys.group : [keys.group];
           gs.forEach(function (key) {
