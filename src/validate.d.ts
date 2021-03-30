@@ -125,6 +125,10 @@ export class Validator implements CheckHelper {
    */
   refresh(path: string|string[]|RegExp, recurse = true): void;
   /**
+   * Remove all validations, hooks, etc from this validator.
+   */
+  reset(): void;
+  /**
    * Inform the validator that a path has changed.
    *
    * @param key - the path that has changed

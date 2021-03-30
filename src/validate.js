@@ -2,6 +2,10 @@ import Ractive from 'ractive';
 
 // TODO: allow relative keys to be used in wild and list with a . prefix
 
+function dispose(validator, disposer) {
+  if (validator.disposing) validator.disposers.splice(validator.disposers.indexOf(disposer), 1);
+}
+
 export class Validator {
   constructor(ractive, debounce = 500) {
     this.ractive = ractive;
@@ -13,6 +17,14 @@ export class Validator {
     this.checks = [];
     this.fns = [];
     this.many = [];
+    this.disposers = [];
+  }
+
+  reset() {
+    this.disposing = true;
+    this.disposers.forEach(d => d.cancel());
+    this.state = {};
+    this.disposing = false;
   }
 
   check(keys, deps, fn, opts) {
@@ -28,12 +40,15 @@ export class Validator {
     const handle = this.ractive.observe(all.join(' '), debounce(this.debounce, function() {
       checker.call(this, fn, ks, all.map(k => this.ractive.get(k)));
     }, this), { init: opts && opts.init === false ? false : true });
-    return {
-      cancel() {
+    const disposer = {
+      cancel: () => {
+        dispose(this, disposer);
         this.fns.splice(this.fns.indexOf(set), 1);
         handle.cancel();
       }
     };
+    this.disposers.push(disposer);
+    return disposer;
   }
 
   checkList(path, fn, opts) {
@@ -100,8 +115,9 @@ export class Validator {
       });
     }];
     this.many.push(handle);
-    return {
-      cancel() {
+    const disposer = {
+      cancel: () => {
+        dispose(this, disposer);
         const cks = Object.keys(checks);
         cks.forEach(c => {
           cks[c].forEach(([ks, handle]) => {
@@ -115,6 +131,8 @@ export class Validator {
         observer.cancel();
       }
     };
+    this.disposers.push(disposer);
+    return disposer;
   }
 
   checkDefer(path, fn, opts) {
@@ -168,8 +186,9 @@ export class Validator {
       });
     }];
     this.many.push(handle);
-    return {
-      cancel() {
+    const disposer = {
+      cancel: () => {
+        dispose(this, disposer);
         const cks = Object.keys(checks);
         cks.forEach(c => {
           cks[c].forEach(([ks, handle]) => {
@@ -183,6 +202,8 @@ export class Validator {
         observer.cancel();
       }
     };
+    this.disposers.push(disposer);
+    return disposer;
   }
 
   refresh(path, recurse = true) {
@@ -338,12 +359,15 @@ export class Validator {
       });
     }
 
-    return {
-      cancel: () => this.unhook(keys, fn)
+    const disposer = {
+      cancel: () => this.unhook(keys, fn, disposer)
     };
+    this.disposers.push(disposer);
+    return disposer;
   }
 
-  unhook(keys, fn) {
+  unhook(keys, fn, disposer) {
+    if (disposer) dispose(this, disposer);
     if (keys.group) {
       const gs = Array.isArray(keys.group) ? keys.group : [keys.group];
       gs.forEach(key => {
