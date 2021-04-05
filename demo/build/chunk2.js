@@ -562,6 +562,8 @@ System.register(['ractive'], function (exports, module) {
 
           this.update(("windows." + (escape(window.id)) + ".id"), { force: true });
 
+          this.fire('add', {}, { window: window, options: options });
+
           return promise.then(function () { return window; });
         };
 
@@ -653,6 +655,8 @@ System.register(['ractive'], function (exports, module) {
             var transition = this.get('transition');
             if (transition !== false && !wnd.get('control.slide') && (!leaving || (!leaving.dialog && !leaving.slide) && (!leaving.blocking || (leaving.blocking && leaving.blocking !== top)))) { wnd.transition(transition || 'window', wnd.find('div'), { intro: true }); }
           }
+
+          this.fire('raise', {}, { top: this.topmost });
         };
 
         Host.prototype.place = function place (wnd) {
