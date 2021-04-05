@@ -297,6 +297,8 @@
 
       this.update(`windows.${escape(window.id)}.id`, { force: true });
 
+      this.fire('add', {}, { window, options });
+
       return promise.then(() => window);
     }
 
@@ -386,6 +388,8 @@
         const transition = this.get('transition');
         if (transition !== false && !wnd.get('control.slide') && (!leaving || (!leaving.dialog && !leaving.slide) && (!leaving.blocking || (leaving.blocking && leaving.blocking !== top)))) wnd.transition(transition || 'window', wnd.find('div'), { intro: true });
       }
+
+      this.fire('raise', {}, { top: this.topmost });
     }
 
     place(wnd) {
