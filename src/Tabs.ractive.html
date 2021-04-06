@@ -486,6 +486,7 @@
     if (!~themes.indexOf(t)) themes.push(t);
   });
   const boxy = data('raui.tabs.boxy') || data('raui.tabs.primary.boxy');
+  const bottom = `${(data('raui.tabs.bottom') || 1) * 0.0625}em`;
 
   return `
   .rtabs {
@@ -606,24 +607,23 @@
     min-width: 100%;
     white-space: nowrap;${boxy ? `
     border-style: solid;
-    border-width: 0 0 1px 0;
+    border-width: 0 0 ${bottom} 0;
     border-color: ${primary.bc || '#ccc'};
     line-height: 1.5em;` : ''}
   }
 
   .rtabs-tab {
     display: inline-block;
-    box-sizing: border-box;
     padding: 0.5em 1em;
-    height: 2.5em;
+    height: 1.5em;
     transition: opacity 0.2s ease-in-out;
     user-select: none;
     cursor: pointer;${!boxy ? `
     opacity: 0.9;` : `
     border-color: ${primary.bc || '#ccc'};
     border-style: solid;
-    border-width: 0 1px 1px 0;
-    margin-bottom: -1px;
+    border-width: 0 1px ${bottom} 0;
+    margin-bottom: -${bottom};
     color: ${primary.fg || '#222'};
     background-color: ${primary.bga || '#f4f4f4'};
     `}
