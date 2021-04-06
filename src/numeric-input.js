@@ -74,7 +74,7 @@ export function numeric(options = {}) {
 
       if (minus) next = '-' + next;
 
-      if (o.bind) {
+      if (o.bind && !opts.lazy) {
         lock = true;
         ctx.set(o.bind, next.replace(endsWithDecRE, ''));
         lock = false;
