@@ -23,6 +23,7 @@ export function numeric(options = {}) {
     const cleanup = [];
     let lock = false;
     let leave = false;
+    let write;
 
     if (typeof o.bind !== 'string') delete o.bind;
 
@@ -74,10 +75,11 @@ export function numeric(options = {}) {
 
       if (minus) next = '-' + next;
 
-      if (o.bind && !opts.lazy) {
-        lock = true;
-        ctx.set(o.bind, next.replace(endsWithDecRE, ''));
-        lock = false;
+      write = next.replace(endsWithDecRE, '');
+
+      if (o.bind) {
+        if (leave) setTimeout(writeBack, 5);
+        else if (!opts.lazy) writeBack();
       }
 
       next = `${o.prefix || ''}${number(next)}${o.suffix || ''}`;
@@ -101,16 +103,17 @@ export function numeric(options = {}) {
       document.activeElement === node && typeof node.setSelectionRange === 'function' && node.setSelectionRange.apply(node, range);
     }
 
+    function writeBack() {
+      lock = true;
+      ctx.set(o.bind, write);
+      lock = false;
+    }
+
     cleanup.push(ctx.listen('input', update).cancel);
 
     cleanup.push(ctx.listen('blur', () => {
       const cur = node.value.replace(notNumRE, '');
       node.value = cur.replace(endsWithDecRE, '');
-      if (o.bind) {
-        lock = true;
-        ctx.set(o.bind, node.value);
-        lock = false;
-      }
       document.activeElement === node && node.setSelectionRange(0, 0);
       leave = true;
       update();
