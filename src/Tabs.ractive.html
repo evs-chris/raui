@@ -128,16 +128,14 @@
     }
 
     select(idx) {
-      if (idx < 0 || idx >= (this.get('tabs.length') || 0)) return;
+      if (idx < 0 || idx >= (this.get('tabs.length') || 0) || this._hidden(idx)) return false;
       this.fire('select', {}, idx);
+      return true;
     }
 
     _hidden(idx) {
       let hidden = this.get(`tabs.${idx}.hidden`);
       if (typeof hidden === 'string') hidden = this.get(hidden);
-      setTimeout(() => {
-        if (hidden && this.get('selected') === idx) this.select(0);
-      });
       return hidden;
     }
 
@@ -221,7 +219,16 @@
           if (hidden) setTimeout(() => {
             const trans = this.get('transition');
             this.set('transition', '');
-            this.select(v + 1 >= tabs.length ? 0 : v + 1);
+            const tabs = this.get('tabs');
+            for (let i = 0; i < tabs.length; i++) {
+              const t = tabs[i];
+              let h = t.hidden;
+              if (typeof h === 'string') h = this.get(h);
+              if (!h) {
+                this.select(i);
+                break;
+              }
+            }
             this.set('transition', trans);
           });
         },

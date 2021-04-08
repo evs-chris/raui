@@ -17,8 +17,9 @@ export class Tabs<T extends Tabs<T> = Tabs<any>> extends Ractive<T> {
   /**
    * Make the tab at the given index the active tab.
    * @param index 
+   * @returns `true` if the target tab isn't hidden
    */
-  select(index: number): void;
+  select(index: number): boolean;
 
   /**
    * The visible index of the currently selected tab.
