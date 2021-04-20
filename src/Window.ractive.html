@@ -390,6 +390,10 @@
       }
 
       this.fire('raise', {}, { top: this.topmost });
+      if (last !== this.get('topLevel')) {
+        const wnd = this.current;
+        wnd && wnd.fire('raise', {}, { last: this.getWindow(last) });
+      }
     }
 
     place(wnd) {
