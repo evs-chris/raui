@@ -657,6 +657,10 @@ System.register(['ractive'], function (exports, module) {
           }
 
           this.fire('raise', {}, { top: this.topmost });
+          if (last !== this.get('topLevel')) {
+            var wnd$1 = this.current;
+            wnd$1 && wnd$1.fire('raise', {}, { last: this.getWindow(last) });
+          }
         };
 
         Host.prototype.place = function place (wnd) {

@@ -946,9 +946,10 @@ System.register(['ractive', './chunk8.js', './chunk9.js', './chunk2.js', './chun
           { t: 4, n: 50, r: '~/fixedHeader', f: [{ t: 13, n: 'style-padding-right', f: [{ t: 2, r: '~/scrollOffset' }, 'px'] }] }
         ], f: [{ t: 7, e: 'div', f: columns.filter(function (c) { return c.hidden !== true; }).map(function (c, cidx) {
           c.attrsHP = c.attrs.filter(function (a) { return a.n !== 'title'; });
-          var div = { t: 7, e: 'div', f: [{ t: 7, e: 'div', f: c.label }], m: [{ t: 4, n: 53, r: ("~/columns." + cidx), f: [{ t: 70, n: ['click'], f: { r: ['@this', '.index', '@event'], s: sortKey } }] }, { t: 13, n: 'title', f: c.label }, { t: 16, r: ("~/columns." + cidx + ".attrsHP"), z: z }] };
+          var div = { t: 7, e: 'div', f: [{ t: 7, e: 'div', f: c.label }], m: [{ t: 13, n: 'title', f: c.label }, { t: 16, r: ("~/columns." + cidx + ".attrsHP"), z: z }] };
           if (c.type) { div.m.push({ t: 13, n: ("class-rtable-" + (c.type) + "-column") }); }
-          if (c.filter || c.sort) { div.m.push({ t: 13, n: 'class-rtable-sortable' }); }
+          if (c.filter || c.sort) { div.m.push({ t: 13, n: 'class-rtable-sortable' }, { t: 4, n: 53, r: ("~/columns." + cidx), f: [{ t: 70, n: ['click'], f: { r: ['@this', '.index', '@event'], s: sortKey } }] }); }
+
           div.m.push({ t: 13, n: 'class-rtable-column' });
           if (c.fixed) {
             var path = c.fixed.path || ("~/columns." + cidx + ".fixed");
