@@ -26,6 +26,7 @@ export function numeric(options = {}) {
     let write;
 
     if (typeof o.bind !== 'string') delete o.bind;
+    if (typeof o.number !== 'string') delete o.number;
 
     const type = node.getAttribute('type');
     node.setAttribute('type', 'tel');
@@ -77,7 +78,7 @@ export function numeric(options = {}) {
 
       write = next.replace(endsWithDecRE, '');
 
-      if (o.bind) {
+      if (o.bind || o.number) {
         if (leave) setTimeout(writeBack, 5);
         else if (!opts.lazy) writeBack();
       }
@@ -105,7 +106,8 @@ export function numeric(options = {}) {
 
     function writeBack() {
       lock = true;
-      ctx.set(o.bind, write);
+      if (o.bind) ctx.set(o.bind, write);
+      if (o.number) ctx.set(o.number, !isNaN(write) ? (write === '' && opts.optional ? undefined : +write) : opts.optional ? undefined : 0);
       lock = false;
     }
 
@@ -156,12 +158,21 @@ export function numeric(options = {}) {
     }).cancel);
 
     if (o.bind) {
-      ctx.observe(o.bind, v => {
+      cleanup.push(ctx.observe(o.bind, () => {
         if (lock) return;
         const cur = ctx.get(o.bind);
         node.value = cur;
         update();
-      }, { defer: true });
+      }, { defer: true }).cancel);
+    }
+
+    if (o.number) {
+      cleanup.push(ctx.observe(o.number, () => {
+        if (lock) return;
+        const cur = ctx.get(o.number);
+        node.value = `${cur}`;
+        update();
+      }, { defer: true }).cancel);
     }
 
     return {
