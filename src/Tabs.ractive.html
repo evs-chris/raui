@@ -153,6 +153,10 @@
       if (/hscroll.*(hmiddle|right)/.test(scroll) && !/left/.test(scroll)) return true;
     }
 
+    get selection() {
+      return this.get('selected');
+    }
+
     get visibleSelection() {
       let idx = 0;
       const tabs = this.get('tabs');

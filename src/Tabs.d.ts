@@ -22,9 +22,14 @@ export class Tabs<T extends Tabs<T> = Tabs<any>> extends Ractive<T> {
   select(index: number): boolean;
 
   /**
+   * The index of the currently selected tab.
+   */
+  readonly selection: number;
+
+  /**
    * The visible index of the currently selected tab.
    */
-  visibleSelection: number;
+  readonly visibleSelection: number;
 }
 
 export interface TabAttrs {
