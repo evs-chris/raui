@@ -13,8 +13,10 @@ System.register([], function (exports, module) {
         var allow = opts.allow || 2;
 
         var ctx = this.getContext(node);
+        var pending = false;
 
         function watch() {
+          pending = false;
           var str = '';
           if (node.scrollHeight > node.clientHeight) { str += 'vscroll'; }
           if (node.scrollWidth > node.clientWidth) { str += (str ? ' ' : '') + 'hscroll'; }
@@ -35,9 +37,14 @@ System.register([], function (exports, module) {
         requestAnimationFrame(watch);
 
         return {
-          refresh: watch,
+          refresh: function refresh() {
+            if (pending) { return; }
+            pending = true;
+            requestAnimationFrame(watch);
+          },
           teardown: function teardown() {
             node.removeEventListener('scroll', watch);
+            ctx.set(bind, '');
           }
         }
       }
