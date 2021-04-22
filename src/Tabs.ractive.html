@@ -1,6 +1,6 @@
 <div class-rtabs {{yield extra-attributes}} class-rtabs-flat="~/flat" class-rtabs-margin="~/margin" class-rtabs-fill="~/fill" as-sized="{ clientWidth: '~/clientWidth' }">
-  <div class-rtabs-tab-window-wrapper class-rtabs-scroll-right="@._scrollsRight()" class-rtabs-scroll-left="@._scrollsLeft()">
-    <div class-rtabs-tab-window {{#if .direction === 'left'}}class-rtabs-going-left{{else}}class-rtabs-going-right{{/if}} as-scrolled=`~/scrollStatus`>
+  <div class-rtabs-tab-window-wrapper class-rtabs-scroll-right="@._scrollsRight(~/scrollStatus)" class-rtabs-scroll-left="@._scrollsLeft(~/scrollStatus)">
+    <div class-rtabs-tab-window {{#if .direction === 'left'}}class-rtabs-going-left{{else}}class-rtabs-going-right{{/if}} {{#unless @style.raui.tabs.noscrollindicators}}as-scrolled=`~/scrollStatus`{{/unless}}>
       <div class-rtabs-tabs>
         <div class-rtabs-left class-rtabs-center="~/center">
           {{#each .tabs}}{{#if !.right && !@._hidden(@index)}}{{>tab}}{{/if}}{{/each}}
@@ -20,6 +20,10 @@
         class-rtabs-trans-slide
       {{/if}}
       on-scroll="@.stopHorizontalScroll(@node)"
+      class-rtab-scroll-right="@._scrollsRight(tabs[selected].scrollStatus)"
+      class-rtab-scroll-left="@._scrollsLeft(tabs[selected].scrollStatus)"
+      class-rtab-scroll-top="@._scrollsUp(tabs[selected].scrollStatus)"
+      class-rtab-scroll-bottom="@._scrollsDown(tabs[selected].scrollStatus)"
     >
       <div class-rtabs-contents style-opacity="{{~/opacity}}" style-left="{{.selectedContent * -100}}%" class-rtabs-pad="~/pad">{{#each .tabs}}{{>tab-content}}{{/each}}</div>
     </div>
@@ -33,7 +37,7 @@
     {{#if typeof .disabled === 'string' ? @.get(.disabled) : .disabled}}class-rtabs-disabled
     {{elseif !.button}}on-click=['select', @index]
     {{elseif typeof .button === 'function'}}on-click=".button()"{{/if}}
-    as-registered="@index"
+    as-registered="'tab', @index"
     {{#if .extraTab}}{{yield .extraTab}}{{/if}}
     data-tab-index="{{@index}}"
   >
@@ -50,6 +54,8 @@
       {{#if .extra}}{{yield .extra}}{{/if}}
       {{#if .pad === false}}class-rtabs-no-pad{{elseif .padRef}}class-rtabs-no-pad="~/[.padRef]"{{/if}}
       on-focusin="@.checkSelection(@context, @index)"
+      {{#unless @style.raui.tabs.noscrollindicators}}as-scrolled=`.scrollStatus`{{/unless}}
+      as-registered="'content', @index"
     >
       {{#if (~/defer === 'always' && ~/selectedContent === @index) || (~/defer && .load) || !~/defer}}
         {{yield .template}}
@@ -143,14 +149,20 @@
       if (node.scrollLeft) node.scrollLeft = 0;
     }
 
-    _scrollsRight() {
-      const scroll = this.get('scrollStatus') || '';
+    _scrollsRight(scroll) {
       if (/hscroll.*(hmiddle|left)/.test(scroll) && !/right/.test(scroll)) return true;
     }
 
-    _scrollsLeft() {
-      const scroll = this.get('scrollStatus') || '';
+    _scrollsUp(scroll) {
+      if (/vscroll.*(vmiddle|bottom)/.test(scroll) && !/top/.test(scroll)) return true;
+    }
+
+    _scrollsLeft(scroll) {
       if (/hscroll.*(hmiddle|right)/.test(scroll) && !/left/.test(scroll)) return true;
+    }
+
+    _scrollsDown(scroll) {
+      if (/vscroll.*(vmiddle|top)/.test(scroll) && !/bottom/.test(scroll)) return true;
     }
 
     get selection() {
@@ -243,22 +255,27 @@
       }
     },
     decorators: {
-      registered(node, idx) {
+      registered(node, where, idx) {
         const me = this;
+        const ctx = this.getContext(node);
 
         if (!this._tabs) this._tabs = [];
+        if (!this._contents) this._contents = [];
 
-        this._tabs[idx] = node;
-        this.updateIndicator();
+        this['_' + where + 's'][idx] = node;
+        if (where === 'tab') this.updateIndicator();
+        else if (ctx.decorators.scrolled) ctx.decorators.scrolled.refresh();
 
         return {
           teardown() {},
           invalidate() {
-            me.updateIndicator();
+            if (where === 'tab') me.updateIndicator();
+            else if (ctx.decorators.scrolled) ctx.decorators.scrolled.refresh();
           },
           update(idx) {
-            me._tabs[idx] = node;
-            setTimeout(() => me.updateIndicator());
+            me['_' + where + 's'][idx] = node;
+            if (where === 'tab') setTimeout(() => me.updateIndicator());
+            else if (ctx.decorators.scrolled) setTimeout(() => ctx.decorators.scrolled.refresh());
           }
         };
       },
@@ -337,6 +354,13 @@
       this._fadetm = 0;
     }
 
+    if (this._contents) {
+      const el = this._contents[idx];
+      if (el) {
+        const ctx = this.getContext(el);
+        if (ctx.decorators.scrolled) ctx.decorators.scrolled.refresh();
+      }
+    }
     if (current !== idx) {
       if (this.rendered) {
         const cur = this.getContext(this.find('.rtabs-selected'));
@@ -537,37 +561,29 @@
     position: relative;
     z-index: 10;
   }
-  .rtabs-tab-window-wrapper:before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    height: 100%;
-    width: 10px;
-    opacity: 0;
-    transition: opacity 0.3s ease-in-out;
-    background: linear-gradient(to right, ${primary.indicator.color || primary.fga || '#07e'}, transparent);
-    z-index: 999;
-    pointer-events: none;
-  }
-  .rtabs-tab-window-wrapper.rtabs-scroll-left:before {
-    opacity: 1;
-  }
 
+  .rtabs-tab-window-wrapper:before,
   .rtabs-tab-window-wrapper:after {
     content: '';
     position: absolute;
     top: 0;
-    right: 0;
     height: 100%;
-    width: 10px;
+    width: ${primary.indicator.size || '1em'};
     opacity: 0;
-    background: linear-gradient(to left, ${primary.indicator.color || primary.fga || '#07e'}, transparent);
-    transition: opacity 0.3s ease-in-out;
+    z-index: 999;
     pointer-events: none;
   }
-  .rtabs-tab-window-wrapper.rtabs-scroll-right:after {
-    opacity: 1;
+  .rtabs-tab-window-wrapper:before {
+    background: linear-gradient(to right, ${primary.indicator.highlight || primary.indicator.color || primary.fga || '#07e'}, transparent);
+    left: 0;
+  }
+  .rtabs-tab-window-wrapper:after {
+    background: linear-gradient(to left, ${primary.indicator.highlight || primary.indicator.color || primary.fga || '#07e'}, transparent);
+    right: 0;
+  }
+  .rtabs-tab-window-wrapper.rtabs-scroll-right:after,
+  .rtabs-tab-window-wrapper.rtabs-scroll-left:before {
+    opacity: 0.5;
   }
 
   .rtabs-flat > div > .rtabs-tab-window {
@@ -711,7 +727,8 @@
     display: flex;
     flex-grow: 1;
     overflow-y: auto;
-    overflow-x: hidden
+    overflow-x: hidden;
+    position: relative;
   }
 
   .rtabs {
@@ -757,6 +774,30 @@
     flex-grow: 1;
   }
 
+  .rtabs-content-window:before,
+  .rtabs-content-window:after {
+    content: '';
+    display: block;
+    position: absolute;
+    z-index: 999;
+    height: ${primary.indicator.size || '1em'};
+    width: 100%;
+    opacity: 0;
+    pointer-events: none;
+  }
+  .rtabs-content-window:before {
+    top: 0;
+    background: linear-gradient(to bottom, ${primary.indicator.highlight || primary.indicator.color || primary.fga || '#07e'}, transparent);
+  }
+  .rtabs-content-window:after {
+    bottom: 0;
+    background: linear-gradient(to top, ${primary.indicator.highlight || primary.indicator.color || primary.fga || '#07e'}, transparent);
+  }
+  .rtabs-content-window.rtab-scroll-top:before,
+  .rtabs-content-window.rtab-scroll-bottom:after {
+    opacity: 0.5;
+  }
+
   .rtabs-placeholder {
     display: inline-block;
     width: 100%;
@@ -797,10 +838,16 @@
     `}
   }
   .rtabs.${t} > .rtabs-tab-window-wrapper:before {
-    background: linear-gradient(to right, ${theme.indicator.color || theme.fga || '#07e'}, transparent);
+    background: linear-gradient(to right, ${theme.indicator.highlight || theme.indicator.color || theme.fga || '#07e'}, transparent);
   }
   .rtabs.${t} > .rtabs-tab-window-wrapper:after {
-    background: linear-gradient(to left, ${theme.indicator.color || theme.fga || '#07e'}, transparent);
+    background: linear-gradient(to left, ${theme.indicator.highlight || theme.indicator.color || theme.fga || '#07e'}, transparent);
+  }
+  .rtabs.${t} > .rtabs-content-wrapper > .rtabs-content-window:before {
+    background: linear-gradient(to bottom, ${theme.indicator.highlight || theme.indicator.color || theme.fga || '#07e'}, transparent);
+  }
+  .rtabs.${t} > .rtabs-content-wrapper > .rtabs-content-window:after {
+    background: linear-gradient(to top, ${theme.indicator.highlight || theme.indicator.color || theme.fga || '#07e'}, transparent);
   }
   .rtabs.${t}.alt > div > .rtabs-tab-window {
     color: ${theme.bg || '#fff'};
