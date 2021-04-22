@@ -36,6 +36,7 @@ export function scrolled(node, opts = {}) {
     },
     teardown() {
       node.removeEventListener('scroll', watch);
+      ctx.set(bind, '');
     }
   }
 }
