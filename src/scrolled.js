@@ -5,8 +5,10 @@ export function scrolled(node, opts = {}) {
   const allow = opts.allow || 2;
 
   const ctx = this.getContext(node);
+  let pending = false;
 
   function watch() {
+    pending = false;
     let str = '';
     if (node.scrollHeight > node.clientHeight) str += 'vscroll';
     if (node.scrollWidth > node.clientWidth) str += (str ? ' ' : '') + 'hscroll';
@@ -27,7 +29,11 @@ export function scrolled(node, opts = {}) {
   requestAnimationFrame(watch);
 
   return {
-    refresh: watch,
+    refresh() {
+      if (pending) return;
+      pending = true;
+      requestAnimationFrame(watch);
+    },
     teardown() {
       node.removeEventListener('scroll', watch);
     }
