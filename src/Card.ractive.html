@@ -24,7 +24,7 @@
         {{/if}}
       </div>
     {{/if}}
-    {{#if !_card.expandable || _card.expanded !== false}}
+    {{#if _card.expanded !== false}}
       {{#if _card.tabs && _card.section}}<div class-rcard-tab-wrapper {{#if _card.expandable}}expand-in-out{{/if}}>{{>tab-bodies}}</div>{{/if}}
       {{#if _card.image}}<div class-rcard-image {{#if _card.expandable}}expand-in-out{{/if}}><img src="{{_card.image}}" alt="{{_card.alt}}"/></div>
       {{elseif _card.imageP}}<div class-rcard-image {{#if _card.expandable}}expand-in-out{{/if}} {{#if _card.imageA}}{{>_card.imageA}}{{/if}}>{{>_card.imageP}}</div>{{/if}}
