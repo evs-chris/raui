@@ -20,10 +20,10 @@
         class-rtabs-trans-slide
       {{/if}}
       on-scroll="@.stopHorizontalScroll(@node)"
-      class-rtab-scroll-right="@._scrollsRight(tabs[selected].scrollStatus)"
-      class-rtab-scroll-left="@._scrollsLeft(tabs[selected].scrollStatus)"
-      class-rtab-scroll-top="@._scrollsUp(tabs[selected].scrollStatus)"
-      class-rtab-scroll-bottom="@._scrollsDown(tabs[selected].scrollStatus)"
+      class-rtab-scroll-right="@._scrollsRight(tabs[selected] && tabs[selected].scrollStatus)"
+      class-rtab-scroll-left="@._scrollsLeft(tabs[selected] && tabs[selected].scrollStatus)"
+      class-rtab-scroll-top="@._scrollsUp(tabs[selected] && tabs[selected].scrollStatus)"
+      class-rtab-scroll-bottom="@._scrollsDown(tabs[selected] && tabs[selected].scrollStatus)"
     >
       <div class-rtabs-contents style-opacity="{{~/opacity}}" style-left="{{.selectedContent * -100}}%" class-rtabs-pad="~/pad">{{#each .tabs}}{{>tab-content}}{{/each}}</div>
     </div>
