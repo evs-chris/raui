@@ -12,7 +12,7 @@
         {{elseif _card.avatarP}}<div class-rcard-avatar {{#if _card.avatarA}}{{>_card.avatarA}}{{/if}}>{{>_card.avatarP}}</div>{{/if}}
         <div class-rcard-titles class-rcard-with-sub="_card.subtitle || _card.subtitleP" class-rcard-with-tabs="_card.tabs" {{#if _card.expandable && !_card.arrow }}class-rcard-shrink class-rcard-clickable on-click="_card.expand()"{{/if}}>
           {{#if _card.title}}<div class-rcard-title>{{_card.title}}</div>
-          {{else}}<div class-rcard-title {{#if _card.titleA}}{{>_card.titleA}}{{/if}}>{{>_card.titleP}}</div>{{/if}}
+          {{elseif _card.titleP}}<div class-rcard-title {{#if _card.titleA}}{{>_card.titleA}}{{/if}}>{{>_card.titleP}}</div>{{/if}}
           {{#if _card.subtitle}}<div class-rcard-subtitle>{{_card.subtitle}}</div>
           {{elseif _card.subtitleP}}<div class-rcard-subtitle {{#if _card.subtitleA}}{{>_card.subtitleA}}{{/if}}>{{>_card.subtitleP}}</div>{{/if}}
         </div>
