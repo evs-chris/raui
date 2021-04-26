@@ -221,8 +221,11 @@
     if (data.tablist) {
       data._observer = h.observe(`_card.tabs.length ${data.tablist.items}.length _card.selected`, () => {
         const len = data.tabs.length + h.get(`${data.tablist.items}.length`);
-        if (h.get('_card.selected') >= len) {
+        const tab = h.get('_card.selected');
+        if (tab >= len) {
           setTimeout(() => h.set('_card.selected', len - 1));
+          } else if (len > 0 && tab < 0) {
+          setTimeout(() => h.set('_card.selected', 0));
         }
       }, { init: false })
     }
@@ -233,7 +236,6 @@
 
     return {
       unrender() {
-        console.log('unrender!');
         if (data._observer) data._observer.cancel();
         if (h.get('_card.expandLinked')) h.unlink('_card.expandLinked');
       }
