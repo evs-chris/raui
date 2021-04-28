@@ -34,8 +34,14 @@ System.register(['ractive', './chunk2.js', './chunk14.js'], function (exports, m
 
       Validator.prototype.reset = function reset () {
         this.disposing = true;
-        this.disposers.forEach(function (d) { return d.cancel(); });
+        this.disposers.slice().forEach(function (d) { return d.cancel(); });
         this.state = {};
+        this.hooks = {};
+        this.patternHooks = [];
+        this.groupHooks = {};
+        this.checks = [];
+        this.fns = [];
+        this.many = [];
         this.disposing = false;
       };
 
