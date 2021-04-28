@@ -22,8 +22,14 @@ export class Validator {
 
   reset() {
     this.disposing = true;
-    this.disposers.forEach(d => d.cancel());
+    this.disposers.slice().forEach(d => d.cancel());
     this.state = {};
+    this.hooks = {};
+    this.patternHooks = [];
+    this.groupHooks = {};
+    this.checks = [];
+    this.fns = [];
+    this.many = [];
     this.disposing = false;
   }
 
