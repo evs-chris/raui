@@ -23,6 +23,7 @@
       {{/if}}
       {{#if .refPartial}}{{>.refPartial}}{{elseif typeof .ref === 'string'}}as-ref=".ref"{{/if}}
       {{#if .extra}}{{yield .extra}}{{/if}}
+      {{#if .local}}{{>.local}}{{/if}}
     >
       {{>.type || 'item'}}
       {{#if !.type || .type === 'item'}}{{@._itemRendered(@context)}}{{/if}}

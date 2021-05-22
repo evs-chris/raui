@@ -4,7 +4,7 @@ export interface MenuItem {
   condition?: boolean | (() => boolean);
   type?: 'item' | 'section' | 'container';
   ref?: string;
-  active?: (Handle) => boolean;
+  active?: (handle: Handle) => boolean;
   action?: () => void;
   left?: string;
   title?: string;
@@ -14,6 +14,7 @@ export interface MenuItem {
   content?: string;
   pad?: boolean;
   extra?: any[];
+  local?: any[];
 }
 
 export interface Handle {
@@ -25,7 +26,7 @@ export interface Handle {
   keypath: string;
   disabled: boolean;
   action: () => void;
-  active: boolean | ((Handle) => boolean);
+  active: boolean | ((handle: Handle) => boolean);
   addItem(item: MenuItem, index?: number): Handle;
   open(): void;
   close(): void;
