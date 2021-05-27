@@ -21,8 +21,14 @@ System.register(['./chunk2.js'], function (exports, module) {
 					else if (typeof opt2 === 'object') { Object.assign(opts, opt2); }
 					else if (typeof opt3 === 'object') { Object.assign(opts, opt3); }
 
-					if (typeof opt1 === 'string') { opts.mask = opt1; }
-					if (typeof opt2 === 'string') { opts.bind = opt2; }
+					if (typeof opt1 === 'string') {
+			      if (opts.mask) { opts.value = opt1; }
+			      else { opts.mask = opt1; }
+			    }
+					if (typeof opt2 === 'string') {
+			      if (opts.value) { opts.mask = opt2; }
+			      else { opts.value = opt2; }
+			    }
 
 					opts.mask = opts.mask || '';
 					opts.masks = opts.masks || masked.defaults.masks;
@@ -42,9 +48,19 @@ System.register(['./chunk2.js'], function (exports, module) {
 					var observe;
 					var sync;
 
-					function update(init, nav) {
+					function update(init, nav, blur) {
+			      var blurred = blur || document.activeElement !== node;
+
+			      if (init && opts.privateMask) {
+			        var start = node.selectionStart;
+			        var end = node.selectionEnd;
+			        node.value = value.masked;
+			        node.selectionStart = start;
+			        node.selectionEnd = end;
+			      }
+
 						// if this isn't a focus event and there's more than one character selected, all bets are off, let the user do whatever
-						if (!init && Math.abs(node.selectionEnd - node.selectionStart) > 1) { return; }
+						if (!blurred && !init && Math.abs(node.selectionEnd - node.selectionStart) > 1) { return; }
 
 						var cursor = node.selectionStart;
 
@@ -64,7 +80,8 @@ System.register(['./chunk2.js'], function (exports, module) {
 							if (match) {
 								unmasked += val[j];
 								masked += val[j];
-								res += val[j++];
+			          if (blurred && opts.privateMask) { res += opts.masks[opts.privateMask[i]] ? val[j++] : opts.privateMask[(j++, i)]; }
+								else { res += val[j++]; }
 								last = i + 1;
 							} else {
 								// if looking for a mask match, skip forward in val until one is found
@@ -80,7 +97,7 @@ System.register(['./chunk2.js'], function (exports, module) {
 								}
 
 								if (!match) {
-									if (opts.blurMask && document.activeElement !== node && m) { res += opts.blurMask[0]; }
+									if (opts.blurMask && blurred && m) { res += opts.blurMask[0]; }
 									else { res += mask[i]; }
 								}	else { i--; }
 							}
@@ -142,7 +159,7 @@ System.register(['./chunk2.js'], function (exports, module) {
 					}
 
 					var listener = function(e) {
-						update(e.type === 'focus', e.key && (~e.key.indexOf('Arrow') || ~e.key.indexOf('Backspace') || ~e.key.indexOf('Del')));
+						update(e.type === 'focus', e.key && (~e.key.indexOf('Arrow') || ~e.key.indexOf('Backspace') || ~e.key.indexOf('Del')), e.type === 'blur');
 					};
 
 					ctx.listen('focus', listener);

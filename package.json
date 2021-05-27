@@ -1,6 +1,6 @@
 {
   "name": "@evs-chris/raui",
-  "version": "0.8.19",
+  "version": "0.8.20",
   "description": "Components, decorators, and helpers for Ractive apps that are generally Material-ish",
   "homepage": "https://github.com/evs-chris/raui",
   "bugs": "https://github.com/evs-chris/raui/issues",

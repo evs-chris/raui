@@ -134,6 +134,7 @@ System.register(['ractive', './chunk2.js'], function (exports, module) {
           else if (n.e === 'tablist') {
             var tablist = { tab: [], body: [] };
             var items = n.m.find(function (a) { return a.n === 'items'; });
+            var condition = n.m.find(function (a) { return a.n === 'condition'; });
             if (typeof items.f === 'string') {
               tablist.items = items.f;
               tablist.tab.push({ t: 4, n: 52, r: items.f, f: [] });
@@ -144,6 +145,10 @@ System.register(['ractive', './chunk2.js'], function (exports, module) {
               if (e && e.f) { tablist.body[0].f = [Object.assign({}, template.p['tab-body'][0], { f: e.f })]; }
               data.tablist = tablist;
               if (!data.tabs) { data.tabs = []; }
+              if (condition && condition.f && condition.f[0] && condition.f[0].t === 2) {
+                tablist.tab[0].f = [Object.assign({}, condition.f[0], { t: 4, n: 50, f: tablist.tab[0].f })];
+                tablist.body[0].f = [Object.assign({}, condition.f[0], { t: 4, n: 50, f: tablist.body[0].f }), { t: 4, n: 51, l: 1, f: [Object.assign({}, template.p['tab-body'][0])] }];
+              }
             }
           }
           else { content.push(n); }
