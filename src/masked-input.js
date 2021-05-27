@@ -32,9 +32,19 @@ export function masked(options = {}) {
 		let observe;
 		let sync;
 
-		function update(init, nav) {
+		function update(init, nav, blur) {
+      const blurred = blur || document.activeElement !== node;
+
+      if (init && opts.privateMask) {
+        const start = node.selectionStart;
+        const end = node.selectionEnd;
+        node.value = value.masked;
+        node.selectionStart = start;
+        node.selectionEnd = end;
+      }
+
 			// if this isn't a focus event and there's more than one character selected, all bets are off, let the user do whatever
-			if (!init && Math.abs(node.selectionEnd - node.selectionStart) > 1) return;
+			if (!blurred && !init && Math.abs(node.selectionEnd - node.selectionStart) > 1) return;
 
 			let cursor = node.selectionStart;
 
@@ -54,7 +64,8 @@ export function masked(options = {}) {
 				if (match) {
 					unmasked += val[j];
 					masked += val[j];
-					res += val[j++];
+          if (blurred && opts.privateMask) res += opts.masks[opts.privateMask[i]] ? val[j++] : opts.privateMask[(j++, i)];
+					else res += val[j++];
 					last = i + 1;
 				} else {
 					// if looking for a mask match, skip forward in val until one is found
@@ -70,7 +81,7 @@ export function masked(options = {}) {
 					}
 
 					if (!match) {
-						if (opts.blurMask && document.activeElement !== node && m) res += opts.blurMask[0];
+						if (opts.blurMask && blurred && m) res += opts.blurMask[0];
 						else res += mask[i];
 					}	else i--;
 				}
@@ -132,7 +143,7 @@ export function masked(options = {}) {
 		}
 
 		const listener = function(e) {
-			update(e.type === 'focus', e.key && (~e.key.indexOf('Arrow') || ~e.key.indexOf('Backspace') || ~e.key.indexOf('Del')));
+			update(e.type === 'focus', e.key && (~e.key.indexOf('Arrow') || ~e.key.indexOf('Backspace') || ~e.key.indexOf('Del')), e.type === 'blur');
 		};
 
 		ctx.listen('focus', listener);
