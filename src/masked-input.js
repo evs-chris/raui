@@ -11,8 +11,14 @@ export function masked(options = {}) {
 		else if (typeof opt2 === 'object') Object.assign(opts, opt2);
 		else if (typeof opt3 === 'object') Object.assign(opts, opt3);
 
-		if (typeof opt1 === 'string') opts.mask = opt1;
-		if (typeof opt2 === 'string') opts.bind = opt2;
+		if (typeof opt1 === 'string') {
+      if (opts.mask) opts.value = opt1;
+      else opts.mask = opt1;
+    }
+		if (typeof opt2 === 'string') {
+      if (opts.value) opts.mask = opt2;
+      else opts.value = opt2;
+    }
 
 		opts.mask = opts.mask || '';
 		opts.masks = opts.masks || masked.defaults.masks;
