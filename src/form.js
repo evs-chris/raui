@@ -722,6 +722,7 @@ export const macro = Ractive.macro(handle => {
   const value = attrs.find(a => a.n === 'value');
   const type = attrs.find(a => a.n === 'type');
   const tip = attrs.find(a => a.n === 'tip');
+  const disabled = attrs.find(a => a.n === 'disabled');
   if (tip) attrs.splice(attrs.indexOf(tip), 1);
 
   if (type && typeof macro.types[type.f] === 'function') {
@@ -730,6 +731,7 @@ export const macro = Ractive.macro(handle => {
     const el = {
       t: 7, e: 'input', m: [value]
     };
+    if (disabled) el.m.push(disabled);
     // watch for select
     if (findDeep(content, 'option')) {
       el.e = 'select';
@@ -784,7 +786,7 @@ export const macro = Ractive.macro(handle => {
   else body.unshift('\xa0');
 
   const outer = {
-    t: 7, e: 'label', m: [{ t: 71, n: 'field' }].concat(attrs.filter(a => (a.t !== 13 && a.t !== 73) || (a.n !== 'value' && a.n !== 'type' && a.n !== 'inline' && a.n !== 'label' && a.n !== 'placeholder' && a.n !== 'target'))),
+    t: 7, e: 'label', m: [{ t: 71, n: 'field' }].concat(attrs.filter(a => (a.t !== 13 && a.t !== 73) || (a.n !== 'value' && a.n !== 'type' && a.n !== 'inline' && a.n !== 'label' && a.n !== 'placeholder' && a.n !== 'target' && a.n !== 'disabled'))),
     f: body
   };
 
