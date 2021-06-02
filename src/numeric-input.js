@@ -78,7 +78,7 @@ export function numeric(options = {}) {
 
       write = next.replace(endsWithDecRE, '');
 
-      if (o.bind || o.number) {
+      if ((o.bind || o.number) && +cur !== +next) {
         if (leave) setTimeout(writeBack, 5);
         else if (!opts.lazy) writeBack();
       }
@@ -106,8 +106,11 @@ export function numeric(options = {}) {
 
     function writeBack() {
       lock = true;
-      if (o.bind) ctx.set(o.bind, write);
-      if (o.number) ctx.set(o.number, !isNaN(write) ? (write === '' && opts.optional ? undefined : +write) : opts.optional ? undefined : 0);
+      if (o.bind && +ctx.get(o.bind) !== +write) ctx.set(o.bind, write);
+      if (o.number) {
+        const val = !isNaN(write) ? (write === '' && opts.optional ? undefined : +write) : opts.optional ? undefined : 0;
+        if (ctx.get(o.number) !== val) ctx.set(o.number, val);
+      }
       lock = false;
     }
 
@@ -162,7 +165,7 @@ export function numeric(options = {}) {
         if (lock) return;
         const cur = ctx.get(o.bind);
         node.value = cur;
-        update();
+        setTimeout(update, 1);
       }, { defer: true }).cancel);
     }
 
@@ -171,12 +174,13 @@ export function numeric(options = {}) {
         if (lock) return;
         const cur = ctx.get(o.number);
         node.value = `${cur}`;
-        update();
+        setTimeout(update, 1);
       }, { defer: true }).cancel);
     }
 
     return {
       teardown() {
+        lock = true;
         cleanup.forEach(fn => fn());
         node.setAttribute('type', type);
         node.className = node.className.replace(/ ?rn-numeric/, '');
