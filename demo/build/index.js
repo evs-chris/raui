@@ -344,6 +344,7 @@ System.register(['./chunk3.js', './chunk4.js', './chunk6.js', './chunk2.js', './
         var value = attrs.find(function (a) { return a.n === 'value'; });
         var type = attrs.find(function (a) { return a.n === 'type'; });
         var tip = attrs.find(function (a) { return a.n === 'tip'; });
+        var disabled = attrs.find(function (a) { return a.n === 'disabled'; });
         if (tip) { attrs.splice(attrs.indexOf(tip), 1); }
 
         if (type && typeof macro.types[type.f] === 'function') {
@@ -352,6 +353,7 @@ System.register(['./chunk3.js', './chunk4.js', './chunk6.js', './chunk2.js', './
           var el = {
             t: 7, e: 'input', m: [value]
           };
+          if (disabled) { el.m.push(disabled); }
           // watch for select
           if (findDeep(content, 'option')) {
             el.e = 'select';
@@ -406,7 +408,7 @@ System.register(['./chunk3.js', './chunk4.js', './chunk6.js', './chunk2.js', './
         else { body.unshift('\xa0'); }
 
         var outer = {
-          t: 7, e: 'label', m: [{ t: 71, n: 'field' }].concat(attrs.filter(function (a) { return (a.t !== 13 && a.t !== 73) || (a.n !== 'value' && a.n !== 'type' && a.n !== 'inline' && a.n !== 'label' && a.n !== 'placeholder' && a.n !== 'target'); })),
+          t: 7, e: 'label', m: [{ t: 71, n: 'field' }].concat(attrs.filter(function (a) { return (a.t !== 13 && a.t !== 73) || (a.n !== 'value' && a.n !== 'type' && a.n !== 'inline' && a.n !== 'label' && a.n !== 'placeholder' && a.n !== 'target' && a.n !== 'disabled'); })),
           f: body
         };
 
