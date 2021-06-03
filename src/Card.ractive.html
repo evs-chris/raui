@@ -96,17 +96,17 @@
 
   export const Card = Ractive.macro(
     handle => {
-      init(handle);
+      const callbacks = init(handle);
       handle.setTemplate(template);
 
-      return {
+      return Object.assign({}, callbacks, {
         update() {
           updateAttrs(handle);
         },
         teardown() {
           if (handle._link && typeof handle._link === 'string') handle.unlink(handle._link);
         }
-      }
+      });
     }, {
       cssId: 'rm-card',
       css: $CSS,
@@ -227,12 +227,17 @@
       data._observer = h.observe(`_card.tabs.length ${data.tablist.items}.length _card.selected`, () => {
         const len = data.tabs.length + h.get(`${data.tablist.items}.length`);
         const tab = h.get('_card.selected');
-        if (tab >= len) {
-          setTimeout(() => h.set('_card.selected', len - 1));
-          } else if (len > 0 && tab < 0) {
-          setTimeout(() => h.set('_card.selected', 0));
+        const tabs = h.findAll('.rcard-tab') || [];
+        const ctxs = tabs.map(e => h.ractive.getContext(e));
+        if (tab >= len && ctxs.length) {
+          setTimeout(() => h.set('_card.selected', ctxs[ctxs.length - 1].get('@index')));
+        } else if (len > 0 && tab < 0) {
+          const idx = ctxs.length ? ctxs[0].get('@index') : 0;
+          setTimeout(() => h.set('_card.selected', idx));
         }
-      }, { init: false })
+        const idx = ctxs.find(c => c.get('@index') == idx);
+        if (!~idx && ctxs.length) setTimeout(() => h.set('_card.selected', ctxs[0].get('@index')));
+      }, { init: false, defer: true })
     }
 
     data.contentP = content;
@@ -240,7 +245,12 @@
     h.select = idx => h.set('_card.selected', idx);
 
     return {
+      render() {
+        setTimeout(() => h.select(-1));
+        console.log('rendered!', h.resolve());
+      },
       unrender() {
+        console.log('unrendered!', h.resolve());
         if (data._observer) data._observer.cancel();
         if (h.get('_card.expandLinked')) h.unlink('_card.expandLinked');
       }
