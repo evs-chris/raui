@@ -247,10 +247,8 @@
     return {
       render() {
         setTimeout(() => h.select(-1));
-        console.log('rendered!', h.resolve());
       },
       unrender() {
-        console.log('unrendered!', h.resolve());
         if (data._observer) data._observer.cancel();
         if (h.get('_card.expandLinked')) h.unlink('_card.expandLinked');
       }
