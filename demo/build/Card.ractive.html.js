@@ -15,17 +15,17 @@ System.register(['ractive', './chunk2.js'], function (exports, module) {
 
       var Card = Ractive$1.macro(
         function (handle) {
-          init(handle);
+          var callbacks = init(handle);
           handle.setTemplate(template);
 
-          return {
+          return Object.assign({}, callbacks, {
             update: function update() {
               updateAttrs(handle);
             },
             teardown: function teardown() {
               if (handle._link && typeof handle._link === 'string') { handle.unlink(handle._link); }
             }
-          }
+          });
         }, {
           cssId: 'rm-card',
           css: function(data) { return [(function(data) {
@@ -158,12 +158,17 @@ System.register(['ractive', './chunk2.js'], function (exports, module) {
           data._observer = h.observe(("_card.tabs.length " + (data.tablist.items) + ".length _card.selected"), function () {
             var len = data.tabs.length + h.get(((data.tablist.items) + ".length"));
             var tab = h.get('_card.selected');
-            if (tab >= len) {
-              setTimeout(function () { return h.set('_card.selected', len - 1); });
-              } else if (len > 0 && tab < 0) {
-              setTimeout(function () { return h.set('_card.selected', 0); });
+            var tabs = h.findAll('.rcard-tab') || [];
+            var ctxs = tabs.map(function (e) { return h.ractive.getContext(e); });
+            if (tab >= len && ctxs.length) {
+              setTimeout(function () { return h.set('_card.selected', ctxs[ctxs.length - 1].get('@index')); });
+            } else if (len > 0 && tab < 0) {
+              var idx$1 = ctxs.length ? ctxs[0].get('@index') : 0;
+              setTimeout(function () { return h.set('_card.selected', idx$1); });
             }
-          }, { init: false });
+            var idx = ctxs.find(function (c) { return c.get('@index') == idx; });
+            if (!~idx && ctxs.length) { setTimeout(function () { return h.set('_card.selected', ctxs[0].get('@index')); }); }
+          }, { init: false, defer: true });
         }
 
         data.contentP = content;
@@ -171,7 +176,12 @@ System.register(['ractive', './chunk2.js'], function (exports, module) {
         h.select = function (idx) { return h.set('_card.selected', idx); };
 
         return {
+          render: function render() {
+            setTimeout(function () { return h.select(-1); });
+            console.log('rendered!', h.resolve());
+          },
           unrender: function unrender() {
+            console.log('unrendered!', h.resolve());
             if (data._observer) { data._observer.cancel(); }
             if (h.get('_card.expandLinked')) { h.unlink('_card.expandLinked'); }
           }
