@@ -78,7 +78,7 @@ export function numeric(options = {}) {
 
       write = next.replace(endsWithDecRE, '');
 
-      if ((o.bind || o.number) && +cur !== +next) {
+      if (o.bind || o.number) {
         if (leave) setTimeout(writeBack, 5);
         else if (!opts.lazy) writeBack();
       }
