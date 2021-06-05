@@ -1,4 +1,4 @@
-import { Decorator, Plugin, Macro } from 'ractive';
+import { Decorator, Plugin } from 'ractive';
 
 export function numeric(opts?: DecoratorOpts): Decorator;
 
@@ -7,6 +7,7 @@ export interface DecoratorOpts {
   whole?: number;
   prefix?: string;
   suffix?: string;
+  default?: string;
 }
 
 export interface PluginOpts extends DecoratorOpts {

@@ -35,7 +35,8 @@ export function numeric(options = {}) {
     function update() {
       if (lock) return;
 
-      const cur = node.value;
+      let cur = node.value;
+      if (!('' + cur).length && o.default != null) cur = o.default;
       const num = [cur.substr(0, node.selectionStart).replace(notNumRE, '').length, cur.substr(0, node.selectionEnd).replace(notNumRE, '').length];
       const dir = node.selectionDirection;
 
