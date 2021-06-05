@@ -223,9 +223,9 @@
       else content.push(n);
     });
 
-    if (data.tablist) {
-      data._observer = h.observe(`_card.tabs.length ${data.tablist.items}.length _card.selected`, () => {
-        const len = data.tabs.length + h.get(`${data.tablist.items}.length`);
+    if (data.tablist || data.tabs) {
+      data._observer = h.observe(`_card.tabs.length ${data.tablist ? `${data.tablist.items}.length ` : ''}_card.selected`, () => {
+        const len = data.tabs.length + ((data.tablist ? h.get(`${data.tablist.items}.length`) : 0) || 0);
         const tab = h.get('_card.selected');
         const tabs = h.findAll('.rcard-tab') || [];
         const ctxs = tabs.map(e => h.ractive.getContext(e));
