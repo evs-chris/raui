@@ -51,12 +51,13 @@ System.register(['ractive', './chunk2.js'], function (exports, module) {
         h.aliasLocal('_card');
 
         h.set('_card.expand', function(set) {
+          if (!h.get('_card.expandable')) { return h.set('_card.expanded', true); }
           var expanded = h.get('_card.expanded');
           if (set !== undefined && set === !!expanded) { return; }
           var ctx = h.ractive.getContext(h.find('.rcard-wrapper'));
           var ok = ctx.raise('expanded', {}, !expanded);
-          if (ok !== false) {
-            h.set('_card.expanded', expanded === false ? true : false);
+          if (ok === false) {
+            h.set('_card.expanded', !!expanded);
           }
         });
 
@@ -154,20 +155,20 @@ System.register(['ractive', './chunk2.js'], function (exports, module) {
           else { content.push(n); }
         });
 
-        if (data.tablist) {
-          data._observer = h.observe(("_card.tabs.length " + (data.tablist.items) + ".length _card.selected"), function () {
-            var len = data.tabs.length + h.get(((data.tablist.items) + ".length"));
+        if (data.tablist || data.tabs) {
+          data._observer = h.observe(("_card.tabs.length " + (data.tablist ? ((data.tablist.items) + ".length ") : '') + "_card.selected"), function () {
+            var len = data.tabs.length + ((data.tablist ? h.get(((data.tablist.items) + ".length")) : 0) || 0);
             var tab = h.get('_card.selected');
             var tabs = h.findAll('.rcard-tab') || [];
             var ctxs = tabs.map(function (e) { return h.ractive.getContext(e); });
             if (tab >= len && ctxs.length) {
               setTimeout(function () { return h.set('_card.selected', ctxs[ctxs.length - 1].get('@index')); });
             } else if (len > 0 && tab < 0) {
-              var idx$1 = ctxs.length ? ctxs[0].get('@index') : 0;
-              setTimeout(function () { return h.set('_card.selected', idx$1); });
+              var idx = ctxs.length ? ctxs[0].get('@index') : 0;
+              setTimeout(function () { return h.set('_card.selected', idx); });
             }
-            var idx = ctxs.find(function (c) { return c.get('@index') == idx; });
-            if (!~idx && ctxs.length) { setTimeout(function () { return h.set('_card.selected', ctxs[0].get('@index')); }); }
+            var sel = ctxs.find(function (c) { return c.get('@index') == tab; });
+            if (!sel && ctxs.length) { setTimeout(function () { return h.set('_card.selected', ctxs[0].get('@index')); }); }
           }, { init: false, defer: true });
         }
 
@@ -178,10 +179,8 @@ System.register(['ractive', './chunk2.js'], function (exports, module) {
         return {
           render: function render() {
             setTimeout(function () { return h.select(-1); });
-            console.log('rendered!', h.resolve());
           },
           unrender: function unrender() {
-            console.log('unrendered!', h.resolve());
             if (data._observer) { data._observer.cancel(); }
             if (h.get('_card.expandLinked')) { h.unlink('_card.expandLinked'); }
           }
