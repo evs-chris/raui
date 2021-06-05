@@ -120,12 +120,13 @@
     h.aliasLocal('_card');
 
     h.set('_card.expand', function(set) {
+      if (!h.get('_card.expandable')) return h.set('_card.expanded', true);
       const expanded = h.get('_card.expanded');
       if (set !== undefined && set === !!expanded) return;
       const ctx = h.ractive.getContext(h.find('.rcard-wrapper'));
       const ok = ctx.raise('expanded', {}, !expanded);
-      if (ok !== false) {
-        h.set('_card.expanded', expanded === false ? true : false);
+      if (ok === false) {
+        h.set('_card.expanded', !!expanded);
       }
     });
 
@@ -235,8 +236,8 @@
           const idx = ctxs.length ? ctxs[0].get('@index') : 0;
           setTimeout(() => h.set('_card.selected', idx));
         }
-        const idx = ctxs.find(c => c.get('@index') == tab);
-        if (!~idx && ctxs.length) setTimeout(() => h.set('_card.selected', ctxs[0].get('@index')));
+        const sel = ctxs.find(c => c.get('@index') == tab);
+        if (!sel && ctxs.length) setTimeout(() => h.set('_card.selected', ctxs[0].get('@index')));
       }, { init: false, defer: true })
     }
 
