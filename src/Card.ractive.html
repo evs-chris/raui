@@ -125,9 +125,9 @@
       if (set !== undefined && set === !!expanded) return;
       const ctx = h.ractive.getContext(h.find('.rcard-wrapper'));
       const ok = ctx.raise('expanded', {}, !expanded);
-      if (ok === false) {
-        h.set('_card.expanded', !!expanded);
-      }
+
+      if (ok === false) h.set('_card.expanded', !!expanded);
+      else h.set('_card.expanded', !expanded);
     });
 
     updateAttrs(h);
