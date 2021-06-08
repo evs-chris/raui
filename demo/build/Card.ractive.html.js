@@ -56,9 +56,9 @@ System.register(['ractive', './chunk2.js'], function (exports, module) {
           if (set !== undefined && set === !!expanded) { return; }
           var ctx = h.ractive.getContext(h.find('.rcard-wrapper'));
           var ok = ctx.raise('expanded', {}, !expanded);
-          if (ok === false) {
-            h.set('_card.expanded', !!expanded);
-          }
+
+          if (ok === false) { h.set('_card.expanded', !!expanded); }
+          else { h.set('_card.expanded', !expanded); }
         });
 
         updateAttrs(h);
