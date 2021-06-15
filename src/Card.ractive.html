@@ -68,7 +68,7 @@
 
 <template id="tab-bodies">
   <div class-rcard-tab-window>
-    <div class-rcard-tab-contents style-left="-{{(_card.selected || 0) * 100}}%">
+    <div class-rcard-tab-contents>
     {{#each _card.tabs}}
     <div class-rcard-tab-content class-rcard-content-selected="_card.selected === @index || (!_card.selected && !@index)">
       {{>.content ^^/}}
@@ -228,7 +228,7 @@
       data._observer = h.observe(`_card.tabs.length ${data.tablist ? `${data.tablist.items}.length ` : ''}_card.selected`, () => {
         const len = data.tabs.length + ((data.tablist ? h.get(`${data.tablist.items}.length`) : 0) || 0);
         const tab = h.get('_card.selected');
-        const tabs = h.findAll('.rcard-tab') || [];
+        const tabs = Ractive.getContext(h.find('.rcard-header')).findAll('.rcard-tab') || [];
         const ctxs = tabs.map(e => h.ractive.getContext(e));
         if (tab >= len && ctxs.length) {
           setTimeout(() => h.set('_card.selected', ctxs[ctxs.length - 1].get('@index')));
@@ -623,7 +623,8 @@
   }
 
   .rcard-tab-content {
-    width: 100%;
+    width: 0;
+    overflow: hidden;
     box-sizing: border-box;
     flex-shrink: 0;
     flex-grow: 0;
@@ -631,7 +632,9 @@
     transition: opacity 0.4s ease-in-out;
   }
   .rcard-content-selected {
+    width: 100%;
     opacity: 1;
+    overflow: visible;
   }
 
   .rcard-actions {
