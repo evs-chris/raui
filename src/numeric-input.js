@@ -109,7 +109,7 @@ export function numeric(options = {}) {
       lock = true;
       if (o.bind) {
         const cur = ctx.get(o.bind);
-        if (!opts.optional && cur !== write) ctx.set(o.bind, write);
+        if (cur === '' && !opts.optional) ctx.set(o.bind, write);
         else if (+cur !== +write) ctx.set(o.bind, write);
       }
       if (o.number) {
