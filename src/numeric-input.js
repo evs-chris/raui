@@ -107,7 +107,11 @@ export function numeric(options = {}) {
 
     function writeBack() {
       lock = true;
-      if (o.bind && +ctx.get(o.bind) !== +write) ctx.set(o.bind, write);
+      if (o.bind) {
+        const cur = ctx.get(o.bind);
+        if (!opts.optional && cur !== write) ctx.set(o.bind, write);
+        else if (+cur !== +write) ctx.set(o.bind, write);
+      }
       if (o.number) {
         const val = !isNaN(write) ? (write === '' && opts.optional ? undefined : +write) : opts.optional ? undefined : 0;
         if (ctx.get(o.number) !== val) ctx.set(o.number, val);

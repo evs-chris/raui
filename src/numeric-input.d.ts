@@ -8,6 +8,7 @@ export interface DecoratorOpts {
   prefix?: string;
   suffix?: string;
   default?: string;
+  optional?: boolean;
 }
 
 export interface PluginOpts extends DecoratorOpts {
