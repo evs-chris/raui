@@ -70,7 +70,7 @@
   <div class-rcard-tab-window>
     <div class-rcard-tab-contents>
     {{#each _card.tabs}}
-    <div class-rcard-tab-content class-rcard-content-selected="_card.selected === @index || (!_card.selected && !@index)">
+    <div class-rcard-tab-content class-rcard-content-selected="_card.selected === @index || (!_card.selected && !@index)" class-rcard-content-not-selected="_card.selected !== @index || (!_card.selected && @index)">
       {{>.content ^^/}}
     </div>
     {{/each}}
@@ -82,7 +82,7 @@
 </template>
 
 <template id="tab-body">
-  <div class-rcard-tab-content class-rcard-content-selected="_card.selected === @index + _card.tabs.length || (!_card.selected && !@index && !_card.tabs.length)">
+  <div class-rcard-tab-content class-rcard-content-selected="_card.selected === @index + _card.tabs.length || (!_card.selected && !@index && !_card.tabs.length)" class-rcard-content-not-selected="_card.selected !== @index + _card.tabs.length || (!_card.selected && @index + _card.tabs.lenhth)">
     {{>.content}}
   </div>
 </template>
@@ -635,6 +635,9 @@
     width: 100%;
     opacity: 1;
     overflow: visible;
+  }
+  .rcard-content-not-selected {
+    height: 1px;
   }
 
   .rcard-actions {
