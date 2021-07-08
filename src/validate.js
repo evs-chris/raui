@@ -111,7 +111,7 @@ export class Validator {
         len = v.length;
       }
     };
-    const observer = this.ractive.observe(path, debounce(this.debounce, callback), { init: opts && opts.init === false ? false : true });
+    const observer = this.ractive.observe(path, debounceMany(this.debounce, callback, this, 2), { init: opts && opts.init === false ? false : true });
     const paths = path.split(/\s+/);
     const handle = [paths, () => {
       paths.forEach(path => {
@@ -183,7 +183,7 @@ export class Validator {
         checks[k] = chks;
       }
     };
-    const observer = this.ractive.observe(path, debounce(this.debounce, callback), { init: opts && opts.init === false ? false : true });
+    const observer = this.ractive.observe(path, debounceMany(this.debounce, callback, this, 2), { init: opts && opts.init === false ? false : true });
     const parent = path.split(/\s+/);
     const handle = [parent, () => {
       parent.forEach(path => {
@@ -588,6 +588,19 @@ function debounce(time, fn, context) {
       tm = setTimeout(function() {
         fn.apply(context, args);
         tm = null;
+      }, time);
+    }
+  }
+}
+
+function debounceMany(time, fn, context, which) {
+  const tms = {};
+  return function(...args) {
+    if (tms[args[which]]) return;
+    else {
+      tms[args[which]] = setTimeout(function() {
+        fn.apply(context, args);
+        tms[args[which]] = null;
       }, time);
     }
   }
