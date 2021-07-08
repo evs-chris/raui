@@ -140,7 +140,7 @@ System.register(['ractive', './chunk2.js', './chunk14.js'], function (exports, m
             len = v.length;
           }
         };
-        var observer = this.ractive.observe(path, debounce(this.debounce, callback), { init: opts && opts.init === false ? false : true });
+        var observer = this.ractive.observe(path, debounceMany(this.debounce, callback, this, 2), { init: opts && opts.init === false ? false : true });
         var paths = path.split(/\s+/);
         var handle = [paths, function () {
           paths.forEach(function (path) {
@@ -230,7 +230,7 @@ System.register(['ractive', './chunk2.js', './chunk14.js'], function (exports, m
             checks[k] = chks;
           }
         };
-        var observer = this.ractive.observe(path, debounce(this.debounce, callback), { init: opts && opts.init === false ? false : true });
+        var observer = this.ractive.observe(path, debounceMany(this.debounce, callback, this, 2), { init: opts && opts.init === false ? false : true });
         var parent = path.split(/\s+/);
         var handle = [parent, function () {
           parent.forEach(function (path) {
@@ -702,6 +702,22 @@ System.register(['ractive', './chunk2.js', './chunk14.js'], function (exports, m
             tm = setTimeout(function() {
               fn.apply(context, args);
               tm = null;
+            }, time);
+          }
+        }
+      }
+
+      function debounceMany(time, fn, context, which) {
+        var tms = {};
+        return function() {
+          var args = [], len = arguments.length;
+          while ( len-- ) args[ len ] = arguments[ len ];
+
+          if (tms[args[which]]) { return; }
+          else {
+            tms[args[which]] = setTimeout(function() {
+              fn.apply(context, args);
+              tms[args[which]] = null;
             }, time);
           }
         }
