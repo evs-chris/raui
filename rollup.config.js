@@ -138,7 +138,8 @@ bundles.push({
   output: {
     file: 'demo/build/dev/index.js',
     format: 'iife',
-    globals: { ractive: 'Ractive' }
+    globals: { ractive: 'Ractive' },
+    name: 'RAUI',
   },
   plugins: [
     ractive({
