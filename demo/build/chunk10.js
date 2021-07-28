@@ -260,7 +260,11 @@ System.register([], function (exports, module) {
           }
           g.input = v;
 
-          if (v === '') {
+          if (g.type === 'y' && v.length === 0 && (hasSep || leave)) {
+            g.value = (new Date()).getFullYear();
+            g.input = g.display = padl(g.value, g.length);
+            accepted = true;
+          } else if (v === '') {
             g.value = null;
             g.display = displayForGroup(g);
           } else if (g !== target) {
