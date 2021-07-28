@@ -97,7 +97,7 @@ System.register(['ractive', './chunk8.js', './chunk9.js', './chunk2.js', './chun
         };
 
         Table.prototype._unhover = function _unhover (idx) {
-          if (this.find('.rtable-row-wrap:hover')) { return; }
+          if (this.find('.rtable-top .rtable-row-wrap:hover')) { return; }
           else { this.set('hovered', undefined); }
           return false;
         };
