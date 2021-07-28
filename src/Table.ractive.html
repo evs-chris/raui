@@ -164,6 +164,17 @@
       }
     }
 
+    _hover(idx) {
+      this.set('hovered', this.get('~/visibleRows')[idx]);
+      return false;
+    }
+
+    _unhover(idx) {
+      if (this.find('.rtable-row-wrap:hover')) return;
+      else this.set('hovered', undefined);
+      return false;
+    }
+
     _select(src, ev) {
       let sels = this.get('selections');
       if (!sels) {
@@ -806,7 +817,7 @@
     const cmp = this.component;
     if ( !cmp ) return;
 
-    let expandEl, groupEl, wrapperEl, rowEl, topEl, bottomEl, mappings;
+    let expandEl, hoverEl, groupEl, wrapperEl, rowEl, topEl, bottomEl, mappings;
 
     const tpl = cmp.template.f || [];
     const attrs = cmp.template.m ? cmp.template.m.slice() : [];
@@ -959,6 +970,7 @@
     }
 
     expandEl = tpl.find(e => e.e === 'expand');
+    hoverEl = tpl.find(e => e.e === 'hover');
     groupEl = tpl.find(e => e.e === 'group');
     wrapperEl = tpl.find(e => e.e === 'wrapper');
     rowEl = tpl.find(e => e.e === 'row');
@@ -968,6 +980,7 @@
     this._init = { sets: grabColumns(tpl), partials: {} };
     const columns = this._init.sets.columns;
     this._init.sets['meta.expand'] = expandEl && expandEl.f && expandEl.f.length && expandEl.f;
+    this._init.sets['meta.hover'] = hoverEl && hoverEl.f && hoverEl.f.length && hoverEl.f;
     this._init.sets['meta.extra'] = rowEl && rowEl.f && rowEl.f.length && rowEl.f;
     this._init.sets['meta.top'] = topEl && topEl.f && topEl.f.length && topEl.f;
     this._init.sets['meta.topAttrs'] = topEl && topEl.m;
@@ -1126,6 +1139,17 @@
       ] });
       row[0].f[0].f[0].m.push(ev);
       row[0].f[0].f[1].f[0].m.push({ t: 70, n: ['click'], f: { r: ['@this', '@index'], s: '[_0._expand(_1)]' } });
+    }
+
+    // row hover
+    if (hoverEl && hoverEl.f && hoverEl.f.length) {
+      row[0].f[0].f.unshift({ t: 4, n: 50, x: { r: ['.', '~/hovered'], s: '_0===_1' }, f: [
+          { t: 7, e: 'div', f: [{ t: 7, e: 'div', m: [{ t: 13, n: 'class-rtable-row-hover-content' }].concat(hoverEl.m || []), f: [{ t: 16, r: '~/meta.hover', c: { r: '.' }, z }] }], m: [{ t: 13, n: 'class-rtable-row-hover' }, { t: 4, n: 50, r: '~/noWrap', f: [{ t: 13, n: 'style-width', f: [{ t: 2, x: { r: ['~/tableWidth', '~/allowSelect', '@style.raui.table.selectWidth'], s: `_1?'calc('+_0+'px - '+(_2||'2em')+')':_0+'px'` } }] }] }] }
+      ] });
+      row[0].m.push(
+        { t: 70, n: ['mouseenter'], f: { r: ['@this', '@index'], s: '[_0._hover(_1)]' } },
+        { t: 70, n: ['mouseleave'], f: { r: ['@this', '@index'], s: '[_0._unhover(_1)]' } },
+      );
     }
 
     // select
@@ -1359,6 +1383,20 @@
     padding: ${table.padding || '0.5em'};
   }
 
+  .rtable-row-hover {
+    pointer-events: none;
+    z-index: 1;
+  }
+  .rtable-row-hover-content {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+  }
+  .rtable-row-hover-content > * {
+    pointer-events: visible;
+  }
+
   .rtable-group {
     border-bottom: 2px solid ${table.divider || primary.bc || '#ccc'};
   }
@@ -1420,18 +1458,18 @@
     height: 0;
   }
 
-  .rtable-nowrap .rtable-fixed-column, .rtable-nowrap .rtable-row-extra, .rtable-nowrap .rtable-row-expand {
+  .rtable-nowrap .rtable-fixed-column, .rtable-nowrap .rtable-row-extra, .rtable-nowrap .rtable-row-expand, .rtable-nowrap .rtable-row-hover {
     position: -webkit-sticky;
     position: sticky;
     left: 0;
   }
-  .rtable-border..rtable-nowrap .rtable-fixed-column, .rtable-border.rtable-nowrap .rtable-row-extra, .rtable-border.rtable-nowrap .rtable-row-expand {
+  .rtable-border..rtable-nowrap .rtable-fixed-column, .rtable-border.rtable-nowrap .rtable-row-extra, .rtable-border.rtable-nowrap .rtable-row-expand, .rtable-nowrap .rtable-row-hover  {
     left: 1px;
    }
-  .rtable-nowrap.rtable-with-select .rtable-fixed-column, .rtable-nowrap.rtable-with-select .rtable-row-extra, .rtable-nowrap.rtable-with-select .rtable-row-expand {
+  .rtable-nowrap.rtable-with-select .rtable-fixed-column, .rtable-nowrap.rtable-with-select .rtable-row-extra, .rtable-nowrap.rtable-with-select .rtable-row-expand, .rtable-nowrap .rtable-row-hover  {
     left: ${table.selectWidth || '2em'};
   }
-  .rtabe-border.rtable-nowrap.rtable-with-select .rtable-fixed-column, .rtabe-border.rtable-nowrap.rtable-with-select .rtable-row-extra, .rtabe-border.rtable-nowrap.rtable-with-select .rtable-row-expand {
+  .rtabe-border.rtable-nowrap.rtable-with-select .rtable-fixed-column, .rtabe-border.rtable-nowrap.rtable-with-select .rtable-row-extra, .rtabe-border.rtable-nowrap.rtable-with-select .rtable-row-expand, .rtable-nowrap .rtable-row-hover  {
     left: ${table.selectWidth || '2em'};
   }
 
