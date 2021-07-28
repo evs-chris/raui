@@ -15,9 +15,9 @@
 >
   {{#if (!~/noHeader || meta.top) && ~/fixedHeader}}<div as-grid="{ offset: ~/scrollOffset }" class-rtable-header-fixed>
     {{#if meta.top}}<div class-rtable-header-extra {{#if ~/noWrap}}style-width="{{~/tableWidth}}px"{{/if}} class-rtable-noheader="~/noHeader" {{#if meta.topAttrs}}{{yield meta.topAttrs}}{{/if}}>{{yield meta.top with selections.length as selectedCount, rows.length as rowCount, @this as table, selected as selected, selections as selections}}</div>{{/if}}
-    {{#unless ~/noHeader}}<div class-rtable-header-wrapper class-row-wrap>{{>grid-head}}</div>{{/unless}}
+    {{#unless ~/noHeader}}<div class-rtable-header-wrapper class-row-wrap {{#if ~/noWrap}}as-scrollother=`.rtable-top`{{/if}}>{{>grid-head}}</div>{{/unless}}
   </div>{{/if}}
-  <div class-rtable-top {{#if ~/paginate === 'virtual'}}on-scroll="scroll" as-sized="{ offsetHeight: '~/tableHeight', diffWidth: '~/scrollOffset' }"{{/if}} {{#if (!~/noHeader && ~/fixedHeader) || ~/meta.bottom}}as-scrolled=`~/scroll`{{/if}} {{#if ~/fixedHeader && ~/noWrap}}as-scrollheader{{/if}}>
+  <div class-rtable-top {{#if ~/paginate === 'virtual'}}on-scroll="scroll" as-sized="{ offsetHeight: '~/tableHeight', diffWidth: '~/scrollOffset' }"{{/if}} {{#if (!~/noHeader && ~/fixedHeader) || ~/meta.bottom}}as-scrolled=`~/scroll`{{/if}} {{#if ~/fixedHeader && ~/noWrap}}as-scrollother=`.rtable-header-wrapper`{{/if}}>
     {{#if !~/fixedHeader && meta.top}}<div class-rtable-header-extra {{#if ~/noWrap}}style-width="{{~/tableWidth}}px"{{/if}} class-rtable-noheader="~/noHeader" {{#if meta.topAttrs}}{{yield meta.topAttrs}}{{/if}}>{{yield meta.top with selections.length as selectedCount, rows.length as rowCount, @this as table, selected as selected, selections as selections}}</div>{{/if}}
     <div as-grid="{ size: '~/tableWidth', value: '~/gridValue', name: '~/gridName', max: '~/gridMax' }" {{#if ~/paginate === 'virtual'}}style-margin-top="{{~/virtual.above}}px" style-margin-bottom="{{~/virtual.below}}px"{{/if}}>
       {{#if !~/noHeader && !~/fixedHeader}}
@@ -340,9 +340,9 @@
     }
   }
 
-  function scrollheader(node) {
+  function scrollother(node, find) {
     const scroll = ev => {
-      requestAnimationFrame(() => this.find('.rtable-header-wrapper').scrollLeft = ev.target.scrollLeft);
+      requestAnimationFrame(() => this.find(find).scrollLeft = ev.target.scrollLeft);
     }
     node.addEventListener('scroll', scroll, { passive: true });
     return {
@@ -371,7 +371,7 @@
       Table: false
     },
     syncComputedChildren: true,
-    decorators: { grid, sized, scrollheader },
+    decorators: { grid, sized, scrollother },
     events: {},
     use: [click({ name: 'clickd', count: 1 }), click({ name: 'dblclickd', count: 2 }), expand(), scrolled()],
     on: {
