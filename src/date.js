@@ -261,6 +261,10 @@ function updateValues(groups, target, pos = 0, leave = false) {
       g.value = (new Date()).getFullYear();
       g.input = g.display = padl(g.value, g.length);
       accepted = true;
+    } else if (g.type === 'm' && v.length === 0 && (hasSep || leave)) {
+      g.value = 0;
+      g.input = g.display = padl(g.value, g.length);
+      accepted = true;
     } else if (v === '') {
       g.value = null;
       g.display = displayForGroup(g);
