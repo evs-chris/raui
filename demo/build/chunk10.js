@@ -109,7 +109,19 @@ System.register([], function (exports, module) {
                   setTimeout(sendValue);
                 }
               }, { defer: true }));
-            } else {
+            }
+
+            if (typeof opts.display === 'string') {
+              handles.observers.push(ctx.observe(opts.display, function (v) {
+                node.value = v || '';
+                readInput(groups, node, mask);
+                updateValues(groups);
+                applyValues(groups, sendValue, true, defaultDate);
+                updateDisplay(groups, node);
+              }, { defer: true }));
+            }
+
+            if (!opts.display && !opts.value) {
               if (opts.date || opts.null === false) { groups.value = getDateValue(opts.date || defaultDate()); }
               updateDisplay(groups, node);
             }
@@ -136,6 +148,12 @@ System.register([], function (exports, module) {
                 ctx.set(opts.value, groups.value);
                 handles.observers.forEach(function (h) { return h.resume(); });
               }
+
+              if (typeof opts.display === 'string') {
+                handles.observers.forEach(function (h) { return h.silence(); });
+                ctx.set(opts.display, node.value);
+                handles.observers.forEach(function (h) { return h.resume(); });
+              }
             }
 
             handles.listeners.push(ctx.listen('input', function () {
@@ -145,7 +163,7 @@ System.register([], function (exports, module) {
               readInput(groups, node, mask);
               var active = groupForPos(groups, pos);
               var accepted = updateValues(groups, active, pos);
-              applyValues(groups, sendValue, true);
+              applyValues(groups, sendValue, true, defaultDate);
               updateDisplay(groups, node);
 
               if (active && ((start.length >= mask.length && pos === active.end) || accepted) && active !== groups[groups.length - 1]) {
@@ -178,7 +196,7 @@ System.register([], function (exports, module) {
                   var idx = groups.indexOf(g);
                   if (updateValues(groups, g, node.selectionStart, true)) {
                     updateDisplay(groups, node);
-                    applyValues(groups, sendValue, ev.shiftKey && idx > 0 || !ev.shiftKey && idx + 1 < groups.length);
+                    applyValues(groups, sendValue, ev.shiftKey && idx > 0 || !ev.shiftKey && idx + 1 < groups.length, defaultDate);
                   }
                   if (ev.shiftKey && idx > 0) {
                     node.setSelectionRange(groups[idx - 1].start, groups[idx - 1].end);
@@ -201,7 +219,7 @@ System.register([], function (exports, module) {
                   if (g$1.value === null) { g$1.value = 1; }
                   bumpValue(g$1, ev.key === 'ArrowDown');
                   g$1.input = g$1.display = displayForGroup(g$1);
-                  applyValues(groups, sendValue, true);
+                  applyValues(groups, sendValue, true, defaultDate);
                   updateDisplay(groups, node);
                   ev.preventDefault();
                   ev.stopPropagation();
@@ -264,6 +282,10 @@ System.register([], function (exports, module) {
             g.value = (new Date()).getFullYear();
             g.input = g.display = padl(g.value, g.length);
             accepted = true;
+          } else if (g.type === 'm' && v.length === 0 && (hasSep || leave)) {
+            g.value = 0;
+            g.input = g.display = padl(g.value, g.length);
+            accepted = true;
           } else if (v === '') {
             g.value = null;
             g.display = displayForGroup(g);
@@ -307,8 +329,8 @@ System.register([], function (exports, module) {
         });
       }
 
-      function applyValues(groups, send, focused) {
-        var v = groups.value || origin;
+      function applyValues(groups, send, focused, defaultDate) {
+        var v = groups.value || defaultDate();
         var parts = [v.getFullYear(), v.getMonth(), v.getDate(), v.getHours(), v.getMinutes(), v.getSeconds(), v.getMilliseconds()];
         
         groups.forEach(function (g) {
