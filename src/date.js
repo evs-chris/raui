@@ -93,7 +93,19 @@ export default function plugin(options = {}) {
             setTimeout(sendValue);
           }
         }, { defer: true }));
-      } else {
+      }
+
+      if (typeof opts.display === 'string') {
+        handles.observers.push(ctx.observe(opts.display, v => {
+          node.value = v || '';
+          readInput(groups, node, mask);
+          updateValues(groups);
+          applyValues(groups, sendValue, true, defaultDate);
+          updateDisplay(groups, node);
+        }, { defer: true }));
+      }
+
+      if (!opts.display && !opts.value) {
         if (opts.date || opts.null === false) groups.value = getDateValue(opts.date || defaultDate());
         updateDisplay(groups, node);
       }
@@ -120,6 +132,12 @@ export default function plugin(options = {}) {
           ctx.set(opts.value, groups.value);
           handles.observers.forEach(h => h.resume());
         }
+
+        if (typeof opts.display === 'string') {
+          handles.observers.forEach(h => h.silence());
+          ctx.set(opts.display, node.value);
+          handles.observers.forEach(h => h.resume());
+        }
       }
 
       handles.listeners.push(ctx.listen('input', () => {
@@ -129,7 +147,7 @@ export default function plugin(options = {}) {
         readInput(groups, node, mask);
         const active = groupForPos(groups, pos);
         const accepted = updateValues(groups, active, pos);
-        applyValues(groups, sendValue, true);
+        applyValues(groups, sendValue, true, defaultDate);
         updateDisplay(groups, node);
 
         if (active && ((start.length >= mask.length && pos === active.end) || accepted) && active !== groups[groups.length - 1]) {
@@ -162,7 +180,7 @@ export default function plugin(options = {}) {
             const idx = groups.indexOf(g);
             if (updateValues(groups, g, node.selectionStart, true)) {
               updateDisplay(groups, node);
-              applyValues(groups, sendValue, ev.shiftKey && idx > 0 || !ev.shiftKey && idx + 1 < groups.length);
+              applyValues(groups, sendValue, ev.shiftKey && idx > 0 || !ev.shiftKey && idx + 1 < groups.length, defaultDate);
             }
             if (ev.shiftKey && idx > 0) {
               node.setSelectionRange(groups[idx - 1].start, groups[idx - 1].end);
@@ -183,7 +201,7 @@ export default function plugin(options = {}) {
             if (g.value === null) g.value = 1;
             bumpValue(g, ev.key === 'ArrowDown');
             g.input = g.display = displayForGroup(g);
-            applyValues(groups, sendValue, true);
+            applyValues(groups, sendValue, true, defaultDate);
             updateDisplay(groups, node);
             ev.preventDefault();
             ev.stopPropagation();
@@ -286,8 +304,8 @@ function receiveValue(groups, v) {
   });
 }
 
-function applyValues(groups, send, focused) {
-  const v = groups.value || origin;
+function applyValues(groups, send, focused, defaultDate) {
+  const v = groups.value || defaultDate();
   const parts = [v.getFullYear(), v.getMonth(), v.getDate(), v.getHours(), v.getMinutes(), v.getSeconds(), v.getMilliseconds()];
   
   groups.forEach(g => {
