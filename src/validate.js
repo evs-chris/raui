@@ -510,6 +510,7 @@ Validator.defaults = {
 
 function checker(fn, keys, values, prefix) {
   let changed = false;
+  let notifies;
 
   let checks = this.checks.find(c => c.keys === keys);
   if (!checks) {
@@ -539,9 +540,11 @@ function checker(fn, keys, values, prefix) {
     }
     if (!go) continue;
     changed = true;
+    notifies = notifies || keys.slice();
     const ks = k ? Array.isArray(k) ? k : [k] : keys;
     for (let j = 0; j < ks.length; j++) {
       const key = ks[j];
+      if (!notifies.includes(k)) notifies.push(k);
       const state = this.state[key] || [];
       for (let i = 0; i < state.length; i++) {
         if (state[i][0] === t && state[i][1] === m) {
@@ -565,9 +568,11 @@ function checker(fn, keys, values, prefix) {
     }
     if (!go) continue;
     changed = true;
+    notifies = notifies || keys.slice();
     const ks = k ? Array.isArray(k) ? k : [k] : keys;
     for (let j = 0; j < ks.length; j++) {
       const key = ks[j];
+      if (!notifies.includes(key)) notifies.push(key);
       (this.state[key] || (this.state[key] = [])).push([t, m]);
     }
   }
@@ -576,7 +581,7 @@ function checker(fn, keys, values, prefix) {
 
   // notify the hooks that stuff changed
   if (changed) {
-    keys.forEach(key => this.notify(key, true));
+    notifies.forEach(key => this.notify(key, true));
   }
 }
 
