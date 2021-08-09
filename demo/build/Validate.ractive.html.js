@@ -609,6 +609,7 @@ System.register(['ractive', './chunk2.js', './chunk14.js'], function (exports, m
         var this$1 = this;
 
         var changed = false;
+        var notifies;
 
         var checks = this.checks.find(function (c) { return c.keys === keys; });
         if (!checks) {
@@ -644,9 +645,11 @@ System.register(['ractive', './chunk2.js', './chunk14.js'], function (exports, m
           }
           if (!go) { continue; }
           changed = true;
+          notifies = notifies || keys.slice();
           var ks$1 = k ? Array.isArray(k) ? k : [k] : keys;
           for (var j$1 = 0; j$1 < ks$1.length; j$1++) {
             var key$1 = ks$1[j$1];
+            if (!notifies.includes(k)) { notifies.push(k); }
             var state = this.state[key$1] || [];
             for (var i$2 = 0; i$2 < state.length; i$2++) {
               if (state[i$2][0] === t && state[i$2][1] === m) {
@@ -676,9 +679,11 @@ System.register(['ractive', './chunk2.js', './chunk14.js'], function (exports, m
           }
           if (!go$1) { continue; }
           changed = true;
+          notifies = notifies || keys.slice();
           var ks$2 = k$1 ? Array.isArray(k$1) ? k$1 : [k$1] : keys;
           for (var j$3 = 0; j$3 < ks$2.length; j$3++) {
             var key$3 = ks$2[j$3];
+            if (!notifies.includes(key$3)) { notifies.push(key$3); }
             (this.state[key$3] || (this.state[key$3] = [])).push([t$1, m$1]);
           }
         }
@@ -687,7 +692,7 @@ System.register(['ractive', './chunk2.js', './chunk14.js'], function (exports, m
 
         // notify the hooks that stuff changed
         if (changed) {
-          keys.forEach(function (key) { return this$1.notify(key, true); });
+          notifies.forEach(function (key) { return this$1.notify(key, true); });
         }
       }
 
