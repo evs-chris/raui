@@ -544,7 +544,7 @@ function checker(fn, keys, values, prefix) {
     const ks = k ? Array.isArray(k) ? k : [k] : keys;
     for (let j = 0; j < ks.length; j++) {
       const key = ks[j];
-      if (!notifies.includes(k)) notifies.push(k);
+      if (!notifies.includes(key)) notifies.push(key);
       const state = this.state[key] || [];
       for (let i = 0; i < state.length; i++) {
         if (state[i][0] === t && state[i][1] === m) {
