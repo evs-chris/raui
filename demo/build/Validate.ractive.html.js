@@ -649,7 +649,7 @@ System.register(['ractive', './chunk2.js', './chunk14.js'], function (exports, m
           var ks$1 = k ? Array.isArray(k) ? k : [k] : keys;
           for (var j$1 = 0; j$1 < ks$1.length; j$1++) {
             var key$1 = ks$1[j$1];
-            if (!notifies.includes(k)) { notifies.push(k); }
+            if (!notifies.includes(key$1)) { notifies.push(key$1); }
             var state = this.state[key$1] || [];
             for (var i$2 = 0; i$2 < state.length; i$2++) {
               if (state[i$2][0] === t && state[i$2][1] === m) {
