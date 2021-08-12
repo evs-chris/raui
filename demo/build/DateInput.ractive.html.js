@@ -25,10 +25,12 @@ System.register(['./chunk18.js', './chunk11.js', './chunk10.js', './chunk2.js'],
 
         if (ctx.attributes.string) { ctx.strObserver = ctx.observe('rdi.val', function (v) { return ctx.set(ctx.attributes.string, v ? v.toString() : ''); }); }
 
-        var opts = { value: 'rdi.val', display: 'rdi.display' };
+        var opts = {};
         ['null', 'lazy', 'mask', 'min', 'max', 'mask', 'no-pick'].forEach(function (k) {
           if (k in ctx.attributes) { opts[k.replace(/-/g, '')] = ctx.attributes[k]; }
         });
+        if (ctx.attributes.value) { opts.value = 'rdi.val'; }
+        if (ctx.attributes.display) { opts.display = 'rdi.display'; }
 
         ctx.set('rdi.opts', opts);
       }
