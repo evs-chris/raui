@@ -1299,10 +1299,12 @@
   } 
 
   .rtable-row-wrap {
+    display: flex;
+    flex-grow: 1;
+    align-items: center;
+    z-index: 2;
+    align-items: stretch;
     color: ${primary.fg || '#222'};
-    border-style: solid;
-    border-color: ${table.divider || primary.bc || '#ccc'};
-    border-width: 0 0 1px 0;
     background-color: ${table.even || primary.bga || '#f4f4f4'};
   }
   .rtable-row-wrap.rtable-odd {
@@ -1324,14 +1326,6 @@
   }
   .rtable-row-wrap.rtable-selected.rtable-odd {
     background-color: ${table.selected.odd || '#c5dffb'};
-  }
-
-  .rtable-row-wrap {
-    display: flex;
-    flex-grow: 1;
-    align-items: center;
-    z-index: 2;
-    align-items: stretch;
   }
 
   .rtable-nowrap .rtable-row-wrap {
@@ -1640,6 +1634,18 @@
     align-items: center;
     justify-content: space-around;
     width: ${table.selectWidth || '2em'};
+  }
+  
+  .rtable-row-wrap > .rtable-select-row {
+    border-style: solid;
+    border-color: ${table.divider || primary.bc || '#ccc'};
+    border-width: 0 0 1px 0;
+  }
+
+  .rtable-inner-row-wrap {
+    border-style: solid;
+    border-color: ${table.divider || primary.bc || '#ccc'};
+    border-width: 0 0 1px 0;
   }
 
   .rtable-column button, .rtable-column .btn {
