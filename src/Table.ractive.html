@@ -11,6 +11,7 @@
   class-rtable-valign-center="~/valign === 'center'"
   class-rtable-valign-bottom="~/valign === 'bottom'"
   class-rtable-nowrap="~/noWrap"
+  class-rtable-wrap="!~/noWrap"
   {{yield extra-attributes}}
 >
   {{#if (!~/noHeader || meta.top) && ~/fixedHeader}}<div as-grid="{ offset: ~/scrollOffset }" class-rtable-header-fixed>
@@ -1310,14 +1311,29 @@
   .rtable-row-wrap.rtable-odd {
     background-color: ${table.odd || primary.bg || '#fff'};
   }
-  .rtable-row-wrap:hover, .rtable-row-wrap.rtable-selected:hover, .rtable-row-wrap.rtable-odd.rtable-selected:hover {
-    background-color: ${table.over || active.bg || '#e6f0fa'};
-    position: relative;
-    box-shadow: inset 1px 0 0 #dadce0,inset -1px 0 0 #dadce0, 0 1px 2px 0 rgba(60, 64, 67, 0.3), 0 1px 3px 1px rgba(60, 64, 67, 0.15);
-    z-index: 2;
+  .rtable-row-wrap.row-wrap:hover {
+    z-index: 10;
   }
-  .rtable-header.rtable-row-wrap:hover {
-    box-shadow: none;
+  .rtable-row-wrap:hover .rtable-inner-row-wrap, .rtable-row-wrap:hover .rtable-select-row {
+    background-color: ${table.over || active.bg || '#e6f0fa'};
+  }
+  .rtable-row-wrap:hover .rtable-inner-row-wrap,
+  .rtable-wrap .rtable-row-wrap:hover .rtable-select-row {
+    position: relative;
+  }
+  .rtable-row-wrap:hover .rtable-select-row {
+    z-index: 2;
+    overflow: visible;
+  }
+
+  .rtable-row-wrap:hover .rtable-inner-row-wrap:after, .rtable-row-wrap:hover .rtable-select-row:after {
+    content: ' ';
+    position: absolute;
+    width: 100%;
+    left: 0;
+    bottom: -4px;
+    background-color: ${table.divider || primary.bc || '#ccc'};
+    height: 4px;
   }
 
   .rtable-row-wrap.rtable-selected {
@@ -1342,12 +1358,24 @@
   .rtable-border .rtable-group .rtable-column {
     border-color: ${table.divider || primary.bc || '#ccc'};
     border-style: solid;
+    border-width: 0 0 0 1px;
+    margin: 0 0 0 -1px;
+  }
+  .rtable-wrap.rtable-border .rtable-row .rtable-column,
+  .rtable-border .rtable-group .rtable-column {
     border-width: 0 0 1px 1px;
     margin: 0 0 -1px -1px;
   }
+
   .rtable-border .rtable-header .rtable-column {
-    margin-left: -1px;
+    border-width: 0 0 0 0;
+    margin: 0 0 0 0;
   }
+  .rtable-wrap.rtable-border .rtable-header .rtable-column {
+    border-width: 0 0 1px 0;
+    margin: 0 0 -1px 0;
+  }
+
   .rtable-border .rtable-row .rtable-column:nth-child(1),
   .rtable-border .rtable-group .rtable-column:nth-child(1) {
     border-left-width: 0;
