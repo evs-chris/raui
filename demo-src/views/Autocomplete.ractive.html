@@ -1,0 +1,109 @@
+<tabs flat pad class-alt fill height=dynamic>
+  <tab title=Intro><marked>
+    An `Autocomplete` is an input that has an associated completion list. There is built-in keyboard navigation for those with arrow keys available, and the list is automatically filtered as you type. There is a flag to only allow completion or allow anything to be typed with completion optional.
+  </marked></tab>
+  <tab title=Usage><marked>
+    ### Plugin Options
+
+    All options are optional.
+
+    * `name: string = 'autocomplete'` - the name to use when registering the component as a plugin
+
+    ### Attributes
+
+    * `items: array` - the list of items for completion
+    * `selected: keypath` - the value to be bound to the selected/hovered index
+    * `display: keypath|array` - the property of the selected item to display
+    * `value: keypath` - the value to be bound to the autocomplete
+    * `display-value: keypath` - the string to be bound to the input text of the autocomplete
+    * `member: keypath|array` - the value to be selected from within the selected item
+    * `offsets: number[]` - offsets to be passed to the Popover
+    * `fit: boolean` - to be passed to the Popover - defaults to true if offsets are provided
+
+    ### Theming
+
+    #### Namespace
+
+    `autocomplete`
+
+    #### Variables
+
+    * `fg` - list foreground
+    * `bg` - list background, selected item foreground
+    * `fga` - selected item background
+    * `bc` - default border color
+  </marked></tab>
+  <tab title=Example>
+    <marked>
+      There are two arrays in the data: `names` and `objects`. `names` is an array if strings, and `objects` is an array of objects with name properties that are strings.
+      ### Template:
+      ```hbs
+      <autocomplete items="names" value="strname" />
+      <br />
+      {{strname}}
+      ```
+
+      ### Result:
+    </marked>
+    <div class-center>
+      <autocomplete items="names" value="strname" fit=true />
+      <br />
+      {{strname}}
+    </div>
+
+    <marked>
+      ***
+
+      ### Template:
+      ```hbs
+      <autocomplete items="objects" display="name" value="objnames" display-value="objdisplay" />
+      <br />
+      Value: {{JSON.stringify(objnames)}}
+      <br />
+      Display: {{objdisplay}}
+      ```
+
+      ### Result:
+    </marked>
+    <div class-center>
+      <autocomplete items="objects" display="name" value="objnames" display-value="objdisplay" fit=true />
+      <br />
+      Value: {{JSON.stringify(objnames)}}
+      <br />
+      Display: {{objdisplay}}
+    </div>
+  </tab>
+</tabs>
+
+<script>
+  import { Window } from 'cmp/Window';
+  import autocomplete from 'cmp/Autocomplete';
+
+  export default Window.extend({
+    template: $TEMPLATE,
+    css: $CSS,
+    use: [autocomplete()],
+    options: {
+      title: 'Component :: Autocomplete',
+      resizable: true, flex: true,
+      width: '48em', height: '30em'
+    },
+    data() {
+      return {
+        title: 'Something is happening...',
+        names: ['George', 'Paul', 'John', 'Ringo', 'Simon', 'Lars', 'James', 'Kirk', 'Robert', 'Cliff', 'Jason', 'Dave', 'Bob', 'Ron', 'Elton', 'Freddie', 'Brian', 'Roger', 'Mike', 'Doug', 'Barry'],
+        objects: [{ name: 'George' }, { name: 'Paul' }, { name: 'John' }, { name: 'Ringo' }]
+      }
+    }
+  });
+</script>
+
+<style>
+  input {
+    position: relative;
+  }
+  .center {
+    margin: 1em auto;
+  }
+</style>
+

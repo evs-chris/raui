@@ -69,7 +69,8 @@
       tm = setTimeout(function() {
         tm = null;
         list(e.target.value);
-        h.get('rac.pop').show(h.find('input'))
+        const el = h.find('input');
+        if (el && document.activeElement === el) h.get('rac.pop').show(el);
       }, 500);
       h.set('rac.display', e.target.value);
     });
@@ -171,9 +172,9 @@
       if ('member' in attrs) h.set('rac.member', attrs.member);
       if ('offsets' in attrs) {
         h.set('rac.offsets', attrs.offsets);
-        h.set('rac.fit', true);
+        h.set('rac.fit', 'fit' in attrs ? attrs.fit : true);
       } else {
-        h.set('rac.fit', false);
+        h.set('rac.fit', 'fit' in attrs ? attrs.fit : false);
       }
       h.set('rac.limit', attrs['limit-set']);
       if (h.get('rac.limit') && h.get('input')) {
@@ -185,6 +186,16 @@
 
     update(h.attributes);
 
+    let tmScroll;
+    function scrollView() {
+      if (tmScroll) clearTimeout(tm);
+      tmScroll = setTimeout(() => {
+        tmScroll = null;
+        const el = h.find('.rac-hover');
+        if (el) el.scrollIntoView({behavior: 'smooth', block: 'nearest', inline: 'nearest'});
+      }, 14);
+    }
+
     const opts = { init: false, defer: true };
     const watches = [
       h.observe('rac.displayprop', refresh, opts),
@@ -195,8 +206,8 @@
         else h.set('rac.selected', -1);
       }, opts),
       h.observe('rac.value', v => {
-       display();
-       value();
+        display();
+        value();
         h.set('rac.popped', false);
         h.set('rac.tempValue', v);
       }),
@@ -204,7 +215,8 @@
         const member = h.get('rac._member')
         const which = h.get('rac.list').find(i => member(i) === v);
         if (which !== h.get('rac.value')) h.set('rac.value', which);
-      })
+      }),
+      h.observe('rac.selected', scrollView),
     ];
 
     function teardown() {
@@ -218,7 +230,7 @@
 
     return { teardown, update, render() { root = h.find('span'); } };
   }, {
-    attributes: ['items', 'selected', 'display', 'value', 'member', 'limit-set', 'offsets', 'display-value'],
+    attributes: ['items', 'selected', 'display', 'value', 'member', 'limit-set', 'fit', 'offsets', 'display-value'],
     css: $CSS,
     cssId: 'rautocomplete',
     noCssTransform: true

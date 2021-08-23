@@ -10,6 +10,7 @@
       </item>
       <item open><h3>Components</h3>
         <item ref=AppBar>AppBar</item>
+        <item ref=Autocomplete>Autocomplete</item>
         <item ref=Card>Card</item>
         <item ref=DateInput>Date Input</item>
         <item ref=DatePicker>Date Picker</item>
@@ -92,7 +93,7 @@
 
         host.set('userMax', true);
 
-        const builtins = ['Hello', 'AceEditor', 'AppBar', 'Button', 'Card', 'Click', 'CodeMirror', 'Date', 'DateInput', 'DatePicker', 'Expand', 'Fade', 'Form', 'Grid', 'JSONEditor', 'Keys', 'Marked', 'MaskedInput', 'Menu', 'Popover', 'ScrollSpy', 'Shell', 'Split', 'Swipe', 'Table', 'Tabs', 'Toast', 'Toggle', 'Validate', 'Window'];
+        const builtins = ['Hello', 'AceEditor', 'AppBar', 'Autocomplete', 'Button', 'Card', 'Click', 'CodeMirror', 'Date', 'DateInput', 'DatePicker', 'Expand', 'Fade', 'Form', 'Grid', 'JSONEditor', 'Keys', 'Marked', 'MaskedInput', 'Menu', 'Popover', 'ScrollSpy', 'Shell', 'Split', 'Swipe', 'Table', 'Tabs', 'Toast', 'Toggle', 'Validate', 'Window'];
 
         menu.on('item', (ctx, handle) => {
           if (~builtins.indexOf(handle.ref)) {
