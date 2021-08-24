@@ -1,5 +1,6 @@
 <span class-rautocomplete class-field-wrapper on-pop="@context.set('rac.pop', $1)">
   <input {{>extra-attributes}} on-dblclick="rac.pop.show(@node)" on-focus="rac.stash()" on-input="rac.input(@event)" on-keydown="rac.key(@event)" twoway=false value="{{rac.display}}" />
+  <div class-rac-drop on-click="rac.pop.show(@context.find('input'))" />
   <rac-pop class-rac-pop on-init="@context.raise('pop', {}, $1)" bind-popped="rac.popped" where=below align=end style-padding=0 gap=[[2]] bind-offsets="rac.offsets" bind-fit="rac.fit">
     {{#if inModal}}<input class-rac-modal on-input="rac.input(@event)" on-keydown="rac.key(@event)" twoway=false value="{{rac.display}}" as-autocompletefocus />{{/if}}
     <div class-rac-list tabindex=-1>
@@ -25,7 +26,6 @@
 
   export const Autocomplete = Ractive.macro(h => {
     let tm;
-
     let root;
 
     h.aliasLocal('rac');
@@ -256,10 +256,32 @@
 </script>
 
 <script rel="css">
-  const primary = Object.assign({}, data(`raui.primary`), data(`raui.autocomplete.primary`));
+  const primary = Object.assign({}, data(`raui.primary`), data(`raui.autocomplete`), data(`raui.autocomplete.primary`));
+  const drop = Object.assign({}, data('raui.autocomplete.drop'), data('raui.autocomplete.primary.drop'));
   return `.rautocomplete {
     position: relative;
     display: inline-block;
+  }
+  
+  .rac-drop {
+    width: 2em;
+    height: 100%;
+    position: absolute;
+    top: 0;
+    right: 2px;
+    cursor: pointer;
+  }
+  .rac-drop:after {
+    font-family: ${drop.font || 'sans-serif'};
+    content: ${drop.string || '\'\u25be\''};
+    position: absolute;
+    top: calc(50% - 0.5em);
+    height: 1em;
+    line-height: 1em;
+    width: 100%;
+    text-align: center;
+    font-weight: ${drop.weight || 'normal'};
+    color: ${drop.color || primary.bc || '#ccc'};
   }
   
   .rac-pop {
@@ -294,6 +316,11 @@
   .rac-hover {
     color: ${primary.fg || '#222'};
     background-color: ${primary.bc || '#ccc'};
+  }
+
+  .rac-selected.rac-hover {
+    background-color: ${primary.bc || '#ccc'};
+    color: ${primary.fga || '#07e'};
   }
   
   .rac-invalid {
