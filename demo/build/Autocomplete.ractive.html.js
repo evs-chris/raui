@@ -55,6 +55,12 @@ System.register(['ractive', './chunk11.js', './chunk16.js', './chunk2.js'], func
               h.set('rac.value', list$1[h.get('rac.selected')]);
             }
           } else if (k === 9) {
+            if (h.get('rac.popped')) {
+              var list$2 = h.get('rac.list');
+              if (Array.isArray(list$2)) {
+                h.set('rac.value', list$2[h.get('rac.selected')]);
+              }
+            }
             h.set('rac.popped', false);
             h.get('rac.updateDisplay')();
           }
