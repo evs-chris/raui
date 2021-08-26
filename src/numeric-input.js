@@ -73,7 +73,7 @@ export function numeric(options = {}) {
         next = next.substr(0, o.whole);
       }
 
-      if (leave && !opts.optional && !next) next = '0';
+      if (leave && !o.optional && !next) next = '0';
 
       if (minus) next = '-' + next;
 
@@ -81,7 +81,7 @@ export function numeric(options = {}) {
 
       if (o.bind || o.number) {
         if (leave) setTimeout(writeBack, 5);
-        else if (!opts.lazy) writeBack();
+        else if (!o.lazy) writeBack();
       }
 
       next = `${o.prefix || ''}${number(next)}${o.suffix || ''}`;
@@ -109,11 +109,11 @@ export function numeric(options = {}) {
       lock = true;
       if (o.bind) {
         const cur = ctx.get(o.bind);
-        if (cur === '' && !opts.optional) ctx.set(o.bind, write);
+        if (cur === '' && !o.optional) ctx.set(o.bind, write);
         else if (+cur !== +write) ctx.set(o.bind, write);
       }
       if (o.number) {
-        const val = !isNaN(write) ? (write === '' && opts.optional ? undefined : +write) : opts.optional ? undefined : 0;
+        const val = !isNaN(write) ? (write === '' && o.optional ? undefined : +write) : o.optional ? undefined : 0;
         if (ctx.get(o.number) !== val) ctx.set(o.number, val);
       }
       lock = false;
