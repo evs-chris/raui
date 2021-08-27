@@ -5,7 +5,7 @@
     {{#if inModal}}<input class-rac-modal on-input="rac.input(@event)" on-keydown="rac.key(@event)" twoway=false value="{{rac.display}}" as-autocompletefocus />{{/if}}
     <div class-rac-list tabindex=-1>
       {{#await rac.list}}<div class-rac-item class-rac-invalid>Loading...</div>{{then items}}
-      {{#each items}}<div tabindex=-1 class-rac-item class-rac-selected="rac.value === ." class-rac-hover="rac.selected === @index" on-click="@context.set('rac.value', .)" on-mouseover="@context.set('rac.selected', @index)">{{rac._display(.)}}</div>{{/each}}
+      {{#each items}}<div tabindex=-1 class-rac-item class-rac-selected="rac.value === ." class-rac-hover="rac.selected === @index" {{#if rac.popped}}on-click="@context.set('rac.value', .)" on-mouseover="@context.set('rac.selected', @index)"{{/if}}>{{rac._display(.)}}</div>{{/each}}
       {{catch}}<div class-rac-item class-rac-invalid>Load failed.</div>
       {{/await}}
     </div>
