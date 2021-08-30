@@ -26,6 +26,8 @@
     #### Attributes
 
     * `placement: 'grid' | 'smart'` - the placement algorithm to use when placing a new unpositioned window. `grid` placement uses 3x3 grid that remembers where a window was last placed. `smart` placement computes the portion of the host where the window would overlap the least with the other windows.
+    * `transition: false | string` - the name of the transition to use when raising windows. Defaults to `window`.
+    * `windows: object` - this should be a binding supplied to allow a controlling instance to have easier access to the host window control object.
 
     #### Children
 

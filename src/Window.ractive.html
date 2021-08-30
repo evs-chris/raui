@@ -1,4 +1,4 @@
-<div class-rwhost as-tracked=`host`>
+<div class-rwhost as-tracked=`host` {{yield extra-attributes}}>
   <div class-rwhost-sizer as-tracked=`sizer` />
   {{#if ~/currentMax && ~/_maxP}}
   <div class-rwindow-max-top {{#if ~/_maxAttrsP}}{{yield ~/_maxAttrsP}}{{/if}}>{{yield ~/_maxP with ~/current as window, { t: @this.partials.windowControls } as windowControls, @this as host }}</div>
@@ -209,7 +209,7 @@
 
     get current() {
       const top = this.get('topLevel');
-      return this.getWindow(this.get('windows')[top].id);
+      return this.getWindow(this.get(`windows.${escape(top)}.id`));
     }
 
     get currentId() {
@@ -238,7 +238,7 @@
 
       if (!window.id) window.set('@.id', options.id || `window${id++}`);
       if (!this.get(`windows.${escape(window.id)}`)) {
-        this.set(`windows.${escape(window.id)}`, Object.assign({ show: options.show !== false, autosize: true, id: window.id, blockers: [], close: true, minimize: true, maximize: true }, options, { id: window.id }));
+        this.set(`windows.${escape(window.id)}`, Object.assign({ show: options.show !== false, autosize: true, id: window.id, blockers: [], close: true, minimize: true, maximize: true, minWidth: '5em', minHeight: '5em' }, options, { id: window.id }));
       }
 
       window.host = this;
@@ -252,6 +252,8 @@
           window.set('control.blocking', parent);
         } else parent = false;
       }
+
+      window.minSize(options.minWidth || '5em', options.minHeight || '5em');
 
       if (options.slide) {
       } else if (options.size === 'fill' && (parent || options.block)) {
@@ -588,6 +590,7 @@
     use: [toast(), expand()],
     cssId: 'window-host',
     noIntro: true,
+    attributes: ['placement', 'windows', 'transition'],
     observe: {
       '@style.raui.window.maxFrom'() {
         initMediaListener(this);
@@ -811,11 +814,11 @@
                 'control.autosize': false
               });
             }
-            return;
+            return ok();
           }
 
           const el = this.wrapper;
-          if (!el) return;
+          if (!el) return ok();
 
           if (w === 'auto') {
             this.set('control.autosize', true);
@@ -859,7 +862,75 @@
             });
           }
 
+          const hel = this.host.host;
+          if (hel) {
+            const maxw = this.host.sizeInEm(hel.clientWidth - 16);
+            const maxh = this.host.sizeInEm(hel.clientHeight - 16);
+            if (this.get('control.width') > maxw) this.set('control.width', maxw);
+            if (this.get('control.height') > maxh) this.set('control.height', maxh);
+          }
+          const minw = this.get('control.minWidth') || 5;
+          const minh = this.get('control.minHeight') || 5;
+          if (this.get('control.width') < minw) this.set('control.width', minw);
+          if (this.get('control.height') < minh) this.set('control.height', minh);
+
           this.fire('resize');
+
+          ok();
+        });
+      });
+    }
+
+    minSize(w, h) {
+      return new Promise(ok => {
+        requestAnimationFrame(() => {
+          if (!this.visible) {
+            if (typeof w === 'number' && typeof h === 'number') {
+              this.set({
+                'control.minWidth': this.host.sizeInEm(w),
+                'control.minHeight': this.host.sizeInEm(h),
+              });
+            }
+            return ok();
+          }
+
+          const el = this.wrapper;
+          if (!el) return ok();
+
+          if (w === 'auto') {
+            const auto = this.get('control.autosize');
+            this.set('control.autosize', true);
+            const nw = this.host.sizeInEm(el.clientWidth + 16);
+            const nh = this.host.sizeInEm(el.clientHeight);
+            this.set({
+              'control.minWidth': nw,
+              'control.minHeight': nh,
+              'control.autosize': auto
+            });
+          }
+
+          else if (typeof w === 'number' && typeof h === 'number') {
+            this.set({
+              'control.minWidth': this.host.sizeInEm(w),
+              'control.minHeight': this.host.sizeInEm(h),
+            });
+          }
+
+          else if (typeof w === 'string' && typeof h === 'string') {
+            const ow = el.style.width;
+            const oh = el.style.height;
+            el.style.width = w;
+            el.style.height = h;
+            const nw = el.clientWidth;
+            const nh = el.clientHeight;
+            el.style.width = ow;
+            el.style.height = oh;
+
+            this.set({
+              'control.minWidth': this.host.sizeInEm(nw),
+              'control.minHeight': this.host.sizeInEm(nh),
+            });
+          }
 
           ok();
         });
@@ -967,8 +1038,8 @@
       const oy = this.get('control.top') || 0;
       const ow = this.host.sizeInPx(this.get('control.width') + 'em');
       const oh = this.host.sizeInPx(this.get('control.height') + 'em');
-      const nh = this.host.sizeInPx(this.get('control.naturalHeight') + 'em');
-      const nw = this.host.sizeInPx(this.get('control.naturalWidth') + 'em');
+      const nh = this.host.sizeInPx(this.get('control.minHeight') + 'em');
+      const nw = this.host.sizeInPx(this.get('control.minWidth') + 'em');
 
       let tm;
       const _resize = (ev) => {
@@ -1226,6 +1297,7 @@
     left: 0;
     width: 100%;
     height: 100%;
+    background-color: ${primary.host.bg || primary.bg || '#fff'};
   }
 
   .rwhost-sizer {
@@ -1239,7 +1311,6 @@
     box-sizing: border-box;
     flex-grow: 2;
     overflow: auto;
-    background-color: ${primary.host.bg || primary.bg || '#fff'};
     z-index: 1;
   }
   .rwhost-pane.blocked {

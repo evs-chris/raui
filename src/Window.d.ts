@@ -38,7 +38,12 @@ export class Window<T extends Window<T> = Window<any>, Result = any> extends Rac
   hide(): void;
   raise(show?: boolean): void;
   show(): void;
+  size(width: 'auto'): Promise<void>;
   size(width: string | number, height: string | number): Promise<void>;
+  size(width: string | number | 'auto', height?: string | number): Promise<void>;
+  minSize(width: 'auto'): Promise<void>;
+  minSize(width: string | number, height: string | number): Promise<void>;
+  minSize(width: string | number | 'auto', height?: string | number): Promise<void>;
   move(top: string | number, left: string | number): Promise<void>;
 
   protected setResult(result: Result): void;
@@ -60,6 +65,8 @@ export interface WindowOpts {
   show?: boolean;
   width?: string;
   height?: string;
+  minWidth?: string;
+  minHeight?: string;
   size?: 'fill'|'auto';
   fillPad?: number;
   block?: boolean|Window;
@@ -92,7 +99,7 @@ export class Host<T extends Host<T> = Host<any>> extends Ractive<Host> implement
 
   addWindow<T extends Window>(window: T, opts?: WindowOpts): Promise<T>;
   getWindow(id: string): Window;
-  rasie(window: string | Window, show: boolean);
+  raise(window: string | Window, show: boolean): void;
   sizeInPx(size: number | string): number;
   sizeInEm(size: number | string): number;
 
