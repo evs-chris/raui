@@ -745,7 +745,10 @@
     get visible () { return this.get('control.show'); }
     set visible (v) {
       if (v) this.show();
-      else this.set('control.show', v, { keep: true });
+      else {
+        if (this.get('control.show')) try { this.fire('hide'); } catch (e) {}
+        this.set('control.show', v, { keep: true });
+      }
       this.host.raise(this, { show: v });
     }
     get pad () { return this.get('pad'); }
@@ -795,10 +798,12 @@
     }
 
     show() {
+      const shown = this.get('control.show');
       this.set('control.show', true);
       if (this.get('control.top') === undefined) {
         this.host.place(this);
       }
+      if (!shown) try { this.fire('show'); } catch {}
     }
 
     size(w, h) {
