@@ -61,6 +61,8 @@ System.register(['ractive', './chunk11.js', './chunk16.js', './chunk2.js'], func
               if (Array.isArray(list$2)) {
                 h.set('rac.value', list$2[h.get('rac.selected')]);
               }
+              // always update the display if tabbing out with the popup popped
+              if (!h.get('rac.limit')) { setTimeout(function () { return display(); }, 140); }
             }
             h.set('rac.popped', false);
             h.get('rac.updateDisplay')();

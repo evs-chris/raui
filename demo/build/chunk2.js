@@ -1018,7 +1018,10 @@ System.register(['ractive'], function (exports, module) {
         prototypeAccessors$1.visible.get = function () { return this.get('control.show'); };
         prototypeAccessors$1.visible.set = function (v) {
           if (v) { this.show(); }
-          else { this.set('control.show', v, { keep: true }); }
+          else {
+            if (this.get('control.show')) { try { this.fire('hide'); } catch (e) {} }
+            this.set('control.show', v, { keep: true });
+          }
           this.host.raise(this, { show: v });
         };
         prototypeAccessors$1.pad.get = function () { return this.get('pad'); };
@@ -1070,10 +1073,12 @@ System.register(['ractive'], function (exports, module) {
         };
 
         Window.prototype.show = function show () {
+          var shown = this.get('control.show');
           this.set('control.show', true);
           if (this.get('control.top') === undefined) {
             this.host.place(this);
           }
+          if (!shown) { try { this.fire('show'); } catch (e) {} }
         };
 
         Window.prototype.size = function size (w, h) {
