@@ -803,7 +803,7 @@
       if (this.get('control.top') === undefined) {
         this.host.place(this);
       }
-      if (!shown) try { this.fire('show'); } catch {}
+      if (!shown) try { this.fire('show'); } catch (e) {}
     }
 
     size(w, h) {
