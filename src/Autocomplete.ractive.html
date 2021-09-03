@@ -66,6 +66,8 @@
           if (Array.isArray(list)) {
             h.set('rac.value', list[h.get('rac.selected')]);
           }
+          // always update the display if tabbing out with the popup popped
+          if (!h.get('rac.limit')) setTimeout(() => display(), 140);
         }
         h.set('rac.popped', false);
         h.get('rac.updateDisplay')();
