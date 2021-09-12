@@ -1,8 +1,16 @@
 import Ractive, { Plugin } from 'ractive';
 
 export class Table<V = any, T extends Table<T> = Table<any>> extends Ractive<T> {
+  /** All selected items */
   selections: V[];
+  /** The deisgnated (last) selected item */
   selected: V;
+  /** All items that are currently available for render i.e. not filtered out */
+  rows: V[];
+  /** All items that are currently rendered. */
+  visibleRows: V[];
+  /** All items that are available in the table */
+  allRows: V[];
 
   /** Remove any selections. */
   deselect(): void;

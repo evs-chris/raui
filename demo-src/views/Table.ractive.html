@@ -45,6 +45,9 @@
       * `hidden: boolean = false` - Whether to actually display the column in the table. This is useful for having a column participate in filtering without having to be displayed.
       * `fixed: boolean|string = false` - Whether the column should be fixed in `no-wrap` mode. If the value is a string, it is used to set the left fix point of the column.
       * `valign: 'top' | 'center' | 'bottom'` - Set the vertical alignment of this column.
+      * Children:
+        * `header` - template to render in the column header
+        * `edit` - template to render when the field is being edited
 
     * `row` - The content of the `row` child is fixed below the column content for each row. The attributes of the row are applied to each row in the grid.
     * `wrapper` - The attributes of the wrapper are applied to each rows wrapper.
