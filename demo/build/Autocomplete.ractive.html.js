@@ -13,7 +13,7 @@ System.register(['ractive', './chunk11.js', './chunk16.js', './chunk2.js'], func
     }],
     execute: function () {
 
-      var template = {v:4,t:[{t:7,e:"span",m:[{t:13,n:"class",f:"rautocomplete field-wrapper",g:1},{n:["pop"],t:70,f:{r:["@context","$1"],s:"[(_0).set(\"rac.pop\",_1)]"}}],f:[{t:7,e:"input",m:[{t:8,r:"extra-attributes"},{n:["dblclick"],t:70,f:{r:["rac.pop","@node"],s:"[_0.show(_1)]"}},{n:["focus"],t:70,f:{r:["rac"],s:"[_0.stash()]"}},{n:["input"],t:70,f:{r:["rac","@event"],s:"[_0.input(_1)]"}},{n:["keydown"],t:70,f:{r:["rac","@event"],s:"[_0.key(_1)]"}},{t:73,v:"t",f:"false"},{n:"value",f:[{t:2,r:"rac.display"}],t:13}]}," ",{t:7,e:"div",m:[{t:13,n:"class",f:"rac-drop",g:1},{n:["click"],t:70,f:{r:["rac.pop","@context"],s:"[_0.show((_1).find(\"input\"))]"}}]}," ",{t:7,e:"rac-pop",m:[{t:13,n:"style",f:"padding: 0;",g:1},{t:13,n:"class",f:"rac-pop",g:1},{n:["init"],t:70,f:{r:["@context","$1"],s:"[(_0).raise(\"pop\",{},_1)]"}},{n:"popped",t:13,f:[{t:2,r:"rac.popped"}]},{n:"where",f:"below",t:13,g:1},{n:"align",f:"end",t:13,g:1},{n:"gap",f:[{t:2,x:{r:[],s:"2"},s:1}],t:13},{n:"offsets",t:13,f:[{t:2,r:"rac.offsets"}]},{n:"fit",t:13,f:[{t:2,r:"rac.fit"}]}],f:[{t:4,f:[{t:7,e:"input",m:[{n:"class-rac-modal",t:13},{n:["input"],t:70,f:{r:["rac","@event"],s:"[_0.input(_1)]"}},{n:["keydown"],t:70,f:{r:["rac","@event"],s:"[_0.key(_1)]"}},{t:73,v:"t",f:"false"},{n:"value",f:[{t:2,r:"rac.display"}],t:13},{n:"autocompletefocus",t:71}]}],n:50,r:"inModal"}," ",{t:7,e:"div",m:[{t:13,n:"class",f:"rac-list",g:1},{n:"tabindex",f:"-1",t:13,g:1}],f:[{t:55,f:[{f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rac-item rac-invalid",g:1}],f:["Loading..."]}],t:4},{t:62,f:[" ",{t:4,f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rac-item",g:1},{n:"tabindex",f:"-1",t:13,g:1},{t:4,f:[{n:"class-rac-selected",t:13,f:[{t:2,x:{r:["rac.value","."],s:"_0===_1"}}]}],n:50,r:"rac.valueBound"},{n:"class-rac-hover",t:13,f:[{t:2,x:{r:["rac.selected","@index"],s:"_0===_1"}}]},{t:4,f:[{n:["click"],t:70,f:{r:["@context",".","rac"],s:"[(_0).set(\"rac.value\",_1),_2._drawDisplay()]"}},{n:["mouseover"],t:70,f:{r:["@context","@index"],s:"[(_0).set(\"rac.selected\",_1)]"}}],n:50,r:"rac.popped"}],f:[{t:2,x:{r:["rac","."],s:"_0._display(_1)"}}]}],n:52,r:"items"}," "],n:"items"},{t:63,f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rac-item rac-invalid",g:1}],f:["Load failed."]}]}],r:"rac.list"}]}]}]}],e:{"2":function (){return(2);},"[(_0).set(\"rac.pop\",_1)]":function (_0,_1){return([(_0).set("rac.pop",_1)]);},"[_0.show(_1)]":function (_0,_1){return([_0.show(_1)]);},"[_0.stash()]":function (_0){return([_0.stash()]);},"[_0.input(_1)]":function (_0,_1){return([_0.input(_1)]);},"[_0.key(_1)]":function (_0,_1){return([_0.key(_1)]);},"[_0.show((_1).find(\"input\"))]":function (_0,_1){return([_0.show((_1).find("input"))]);},"[(_0).raise(\"pop\",{},_1)]":function (_0,_1){return([(_0).raise("pop",{},_1)]);},"_0===_1":function (_0,_1){return(_0===_1);},"[(_0).set(\"rac.value\",_1),_2._drawDisplay()]":function (_0,_1,_2){return([(_0).set("rac.value",_1),_2._drawDisplay()]);},"[(_0).set(\"rac.selected\",_1)]":function (_0,_1){return([(_0).set("rac.selected",_1)]);},"_0._display(_1)":function (_0,_1){return(_0._display(_1));}}};
+      var template = {v:4,t:[{t:7,e:"span",m:[{t:13,n:"class",f:"rautocomplete field-wrapper",g:1},{n:["pop"],t:70,f:{r:["@context","$1"],s:"[(_0).set(\"rac.pop\",_1)]"}}],f:[{t:7,e:"input",m:[{t:8,r:"extra-attributes"},{n:["dblclick"],t:70,f:{r:["rac.pop","@node"],s:"[_0.show(_1)]"}},{n:["focus"],t:70,f:{r:["rac"],s:"[_0.stash()]"}},{n:["blur"],t:70,f:{r:["rac"],s:"[_0.key({which:9})]"}},{n:["input"],t:70,f:{r:["rac","@event"],s:"[_0.input(_1)]"}},{n:["keydown"],t:70,f:{r:["rac","@event"],s:"[_0.key(_1)]"}},{t:73,v:"t",f:"false"},{n:"value",f:[{t:2,r:"rac.display"}],t:13}]}," ",{t:7,e:"div",m:[{t:13,n:"class",f:"rac-drop",g:1},{n:["click"],t:70,f:{r:["rac.pop","@context"],s:"[_0.show((_1).find(\"input\"))]"}}]}," ",{t:7,e:"rac-pop",m:[{t:13,n:"style",f:"padding: 0;",g:1},{t:13,n:"class",f:"rac-pop",g:1},{n:["init"],t:70,f:{r:["@context","$1"],s:"[(_0).raise(\"pop\",{},_1)]"}},{n:"popped",t:13,f:[{t:2,r:"rac.popped"}]},{n:"where",f:"below",t:13,g:1},{n:"align",f:"end",t:13,g:1},{n:"gap",f:[{t:2,x:{r:[],s:"2"},s:1}],t:13},{n:"offsets",t:13,f:[{t:2,r:"rac.offsets"}]},{n:"fit",t:13,f:[{t:2,r:"rac.fit"}]}],f:[{t:4,f:[{t:7,e:"input",m:[{n:"class-rac-modal",t:13},{n:["input"],t:70,f:{r:["rac","@event"],s:"[_0.input(_1)]"}},{n:["keydown"],t:70,f:{r:["rac","@event"],s:"[_0.key(_1)]"}},{t:73,v:"t",f:"false"},{n:"value",f:[{t:2,r:"rac.display"}],t:13},{n:"autocompletefocus",t:71}]}],n:50,r:"inModal"}," ",{t:7,e:"div",m:[{t:13,n:"class",f:"rac-list",g:1},{n:"tabindex",f:"-1",t:13,g:1}],f:[{t:55,f:[{f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rac-item rac-invalid",g:1}],f:["Loading..."]}],t:4},{t:62,f:[" ",{t:4,f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rac-item",g:1},{n:"tabindex",f:"-1",t:13,g:1},{t:4,f:[{n:"class-rac-selected",t:13,f:[{t:2,x:{r:["rac.value","."],s:"_0===_1"}}]}],n:50,r:"rac.valueBound"},{n:"class-rac-hover",t:13,f:[{t:2,x:{r:["rac.selected","@index"],s:"_0===_1"}}]},{t:4,f:[{n:["click"],t:70,f:{r:["@context",".","rac"],s:"[(_0).set(\"rac.value\",_1),_2._drawDisplay()]"}},{n:["mouseover"],t:70,f:{r:["@context","@index"],s:"[(_0).set(\"rac.selected\",_1)]"}}],n:50,r:"rac.popped"}],f:[{t:2,x:{r:["rac","."],s:"_0._display(_1)"}}]}],n:52,r:"items"}," "],n:"items"},{t:63,f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rac-item rac-invalid",g:1}],f:["Load failed."]}]}],r:"rac.list"}]}]}]}],e:{"2":function (){return(2);},"[(_0).set(\"rac.pop\",_1)]":function (_0,_1){return([(_0).set("rac.pop",_1)]);},"[_0.show(_1)]":function (_0,_1){return([_0.show(_1)]);},"[_0.stash()]":function (_0){return([_0.stash()]);},"[_0.key({which:9})]":function (_0){return([_0.key({which:9})]);},"[_0.input(_1)]":function (_0,_1){return([_0.input(_1)]);},"[_0.key(_1)]":function (_0,_1){return([_0.key(_1)]);},"[_0.show((_1).find(\"input\"))]":function (_0,_1){return([_0.show((_1).find("input"))]);},"[(_0).raise(\"pop\",{},_1)]":function (_0,_1){return([(_0).raise("pop",{},_1)]);},"_0===_1":function (_0,_1){return(_0===_1);},"[(_0).set(\"rac.value\",_1),_2._drawDisplay()]":function (_0,_1,_2){return([(_0).set("rac.value",_1),_2._drawDisplay()]);},"[(_0).set(\"rac.selected\",_1)]":function (_0,_1){return([(_0).set("rac.selected",_1)]);},"_0._display(_1)":function (_0,_1){return(_0._display(_1));}}};
 
       function safeGet(obj, path) {
         return path.reduce(function (a, c) { return a ? a[c] : a; }, obj)
@@ -30,6 +30,7 @@ System.register(['ractive', './chunk11.js', './chunk16.js', './chunk2.js'], func
           h.set('rac.tempDisplay', h.get('rac.display'));
           h.set('rac.tempValue', h.get('rac.value'));
         });
+
         h.set('rac.key', function(e) {
           var k = e.which;
           if (k === 27) {
@@ -59,10 +60,14 @@ System.register(['ractive', './chunk11.js', './chunk16.js', './chunk2.js'], func
             if (h.get('rac.popped')) {
               var list$2 = h.get('rac.list');
               if (Array.isArray(list$2)) {
-                h.set('rac.value', list$2[h.get('rac.selected')]);
+                var v = list$2[h.get('rac.selected')];
+                if (v == null) { v = getval(v, true); }
+                h.set('rac.value', v);
               }
               // always update the display if tabbing out with the popup popped
               if (!h.get('rac.limit')) { setTimeout(function () { return display(); }, 140); }
+            } else if (h.get('rac.value') == null || !~h.get('rac.selected') || h.get('rac.display') != h.get('rac.tempDisplay')) {
+              h.set('rac.value', getval(null, true));
             }
             h.set('rac.popped', false);
             h.get('rac.updateDisplay')();
@@ -100,15 +105,39 @@ System.register(['ractive', './chunk11.js', './chunk16.js', './chunk2.js'], func
           } else { h.set('rac.list', []); }
         }
 
+        function getval(v, nofetch) {
+          var def = h.get('rac.default');
+          v = v == null && !nofetch ? h.get('rac.value') : v;
+          if (v == null && def) {
+            if (typeof def === 'function') { v = def(h.get('rac.display')); }
+            else { v = def; }
+          }
+          return v;
+        }
+
         function refresh(value, old, path) {
+          var adef = h.get('rac.default');
           var v = h.get('rac.displayprop');
           if (h.get('rac.__display') !== v || h.get('rac._display') === undefined) {
             var def = function () { return h.attributes['display-value'] ? h.get('rac.display') : '(none)'; };
             if (typeof v === 'string') {
               var path$1 = Ractive$1.splitKeypath(v);
-              v = function (v) { return v == null ? def() : safeGet(v, path$1); };
-            } else if (Array.isArray(v)) { v = function (v) { return v == null ? def() : safeGet(v, v); }; }
-            else if (!v) { v = function (v) { return v == null ? def() : ("" + v); }; }
+              v = function (v) {
+                if (v == null) { v = getval(); }
+                return v == null ? def() : safeGet(v, path$1);
+              };
+            } else if (Array.isArray(v)) {
+              var path$2 = v;
+              v = function (v) {
+                if (v == null) { v = getval(); }
+                return v == null ? def() : safeGet(v, path$2);
+              };
+            } else if (!v) {
+              v = function (v) {
+                if (v == null) { v = getval(); }
+                return v == null ? def() : ("" + v);
+              };
+            }
 
             h.set('rac._display', v);
             h.set('rac.__display', h.get('rac.displayprop'));
@@ -118,10 +147,14 @@ System.register(['ractive', './chunk11.js', './chunk16.js', './chunk2.js'], func
           v = h.get('rac.member');
           if (h.get('rac.__member') !== v || h.get('rac._member') === undefined) {
             if (typeof v === 'string') {
-              var path$2 = Ractive$1.splitKeypath(v);
-              v = function (v) { return safeGet(v, path$2); };
-            } else if (Array.isArray(v)) { v = function (v) { return safeGet(v, v); }; }
-            else if (!v) { v = function (v) { return v; }; }
+              var path$3 = Ractive$1.splitKeypath(v);
+              v = function (v) { return safeGet(getval(v), path$3); };
+            } else if (Array.isArray(v)) {
+              var path$4 = v;
+              v = function (v) { return safeGet(getval(v), path$4); };
+            } else if (!v) {
+              v = function (v) { return getval(v); };
+            }
 
             h.set('rac._member', v);
             h.set('rac.__member', h.get('rac.member'));
@@ -183,6 +216,7 @@ System.register(['ractive', './chunk11.js', './chunk16.js', './chunk2.js'], func
             h.set('rac.fit', 'fit' in attrs ? attrs.fit : false);
           }
           h.set('rac.limit', attrs['limit-set']);
+          h.set('rac.default', attrs.default);
           if (h.get('rac.limit') && h.get('input')) {
             var el = h.get('input');
             if (el !== document.activeElement) { display(); }
@@ -235,7 +269,7 @@ System.register(['ractive', './chunk11.js', './chunk16.js', './chunk2.js'], func
 
         return { teardown: teardown, update: update, render: function render() { root = h.find('span'); } };
       }, {
-        attributes: ['items', 'selected', 'display', 'value', 'member', 'limit-set', 'fit', 'offsets', 'display-value'],
+        attributes: ['items', 'selected', 'display', 'value', 'member', 'limit-set', 'fit', 'offsets', 'display-value', 'default'],
         css: function(data) { return [(function(data) {
          var primary = Object.assign({}, data("raui.primary"), data("raui.autocomplete"), data("raui.autocomplete.primary"));
          var drop = Object.assign({}, data('raui.autocomplete.drop'), data('raui.autocomplete.primary.drop'));
