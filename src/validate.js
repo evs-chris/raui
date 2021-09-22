@@ -18,6 +18,7 @@ export class Validator {
     this.fns = [];
     this.many = [];
     this.disposers = [];
+    this.watchers = [];
   }
 
   reset() {
@@ -31,6 +32,7 @@ export class Validator {
     this.fns = [];
     this.many = [];
     this.disposing = false;
+    this.watchers.forEach(w => w.reset());
   }
 
   check(keys, deps, fn, opts) {
@@ -197,7 +199,7 @@ export class Validator {
         dispose(this, disposer);
         const cks = Object.keys(checks);
         cks.forEach(c => {
-          cks[c].forEach(([ks, handle]) => {
+          checks[c].forEach(([ks, handle]) => {
             handle.cancel();
             const idx = this.fns.findIndex(([k]) => k === ks);
             this.fns.splice(idx, 1);
@@ -289,7 +291,13 @@ export class Validator {
   }
 
   level(key, recurse = true) {
-    if (key.group) key = keysForGroup(this, key.group);
+    if (key && key.group) key = keysForGroup(this, key.group);
+    if (typeof key === 'boolean') {
+      recurse = key;
+      key = /.*/;
+    } else if (key === undefined) {
+      key = /.*/;
+    }
     const keys = Array.isArray(key) ? key : [key];
     let level = 'none';
 
@@ -354,10 +362,14 @@ export class Validator {
   }
 
   hook(keys, fn) {
-    if (keys.group) {
+    if (keys && keys.group) {
       const gs = Array.isArray(keys.group) ? keys.group : [keys.group];
       gs.forEach(g => (this.groupHooks[g] || (this.groupHooks[g] = [])).push(fn));
     } else {
+      if (typeof keys === 'function') {
+        fn = keys;
+        keys = /.*/;
+      }
       const ks = Array.isArray(keys) ? keys : [keys];
       ks.forEach(key => {
         if (typeof key === 'string') (this.hooks[key] || (this.hooks[key] = [])).push(fn);
@@ -374,7 +386,7 @@ export class Validator {
 
   unhook(keys, fn, disposer) {
     if (disposer) dispose(this, disposer);
-    if (keys.group) {
+    if (keys && keys.group) {
       const gs = Array.isArray(keys.group) ? keys.group : [keys.group];
       gs.forEach(key => {
         const arr = this.groupHooks[key] || [];
@@ -382,6 +394,10 @@ export class Validator {
         arr.splice(idx, 1);
       });
     } else {
+      if (typeof keys === 'function') {
+        fn = keys;
+        keys = /.*/;
+      }
       const ks = Array.isArray(keys) ? keys : [keys];
       ks.forEach(key => {
         if (typeof key === 'string') {
@@ -389,11 +405,19 @@ export class Validator {
           const idx = arr.indexOf(fn);
           arr.splice(idx, 1);
         } else if (key.test) {
-          const idx = this.patternHooks.findIndex(h => h[0] === key && h[1] === fn);
+          const idx = this.patternHooks.findIndex(h => h[0].toString() === key.toString() && h[1] === fn);
           this.patternHooks.splice(idx, 1);
         }
       });
     }
+  }
+
+  register(what) {
+    this.watchers.push(what);
+  }
+
+  unregister(what) {
+    this.watchers.splice(this.watchers.indexOf(what), 1);
   }
 
   decorator(opts = {}) {
@@ -474,6 +498,11 @@ export class Validator {
           node.style.position = position;
           if (indicator) indicator.remove();
           if (tab) tab[0].removeEventListener('blur', tab[1]);
+          v.unregister(res);
+        },
+        reset() {
+          v.hook(ks, hook);
+          hook();
         },
       }
 
@@ -498,6 +527,8 @@ export class Validator {
           }
         }
       }
+
+      v.register(res);
 
       return res;
     }

@@ -145,6 +145,10 @@ export class Validator implements CheckHelper {
    */
   clear(key: string|RegExp, recurse?: boolean): void;
   /**
+   * Retrieve the highest level of validation result for all paths.
+   */
+  level(): Level;
+  /**
    * Retrieve the highest level of validation result for the given path specifier.
    * 
    * @param key - the path specifier, which may be a named group
@@ -159,6 +163,12 @@ export class Validator implements CheckHelper {
    */
   messages(key: string|string[]|RegExp|GroupKey, recurse?: boolean): ValidatorResult;
   /**
+   * Fire a callback function when the validation status of any path changes.
+   *
+   * @param fn - the function to call when changes occur
+   */
+  hook(fn: Hook): HookHandle;
+  /**
    * Fire a callback function when the validation status of a path specifier changes.
    *
    * @param key - the path specifier, which may be a named group
@@ -166,12 +176,27 @@ export class Validator implements CheckHelper {
    */
   hook(key: string|string[]|RegExp|RegExp[]|GroupKey, fn: Hook): HookHandle;
   /**
+   * Remove a hook that was registered against all paths.
+   *
+   * @param fn - thie originally supplied function callback
+   */
+  unhook(fn: Hook): void;
+  /**
    * Remove a hook.
    *
    * @param key - the originally supplied path specifier
    * @param fn - the originally supplied function callback
    */
   unhook(key: string|string[]|RegExp|RegExp[]|GroupKey, fn: Hook): void;
+  /**
+   * Registers a watcher with the validator that will have its reset method called when the
+   * validator is reset.
+   */
+  register(watcher: { reset(): void }): void;
+  /**
+   * Unregisters a watcher.
+   */
+  unregister(watcher: { reset(): void }): void;
   /**
    * Builds a decorator that can be used to expose validation to the UI.
    */
