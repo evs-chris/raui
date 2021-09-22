@@ -30,6 +30,7 @@ System.register(['ractive', './chunk2.js', './chunk14.js'], function (exports, m
         this.fns = [];
         this.many = [];
         this.disposers = [];
+        this.watchers = [];
       };
 
       Validator.prototype.reset = function reset () {
@@ -43,6 +44,7 @@ System.register(['ractive', './chunk2.js', './chunk14.js'], function (exports, m
         this.fns = [];
         this.many = [];
         this.disposing = false;
+        this.watchers.forEach(function (w) { return w.reset(); });
       };
 
       Validator.prototype.check = function check (keys, deps, fn, opts) {
@@ -244,7 +246,7 @@ System.register(['ractive', './chunk2.js', './chunk14.js'], function (exports, m
             dispose(this$1, disposer);
             var cks = Object.keys(checks);
             cks.forEach(function (c) {
-              cks[c].forEach(function (ref) {
+              checks[c].forEach(function (ref) {
                   var ks = ref[0];
                   var handle = ref[1];
 
@@ -370,7 +372,13 @@ System.register(['ractive', './chunk2.js', './chunk14.js'], function (exports, m
       Validator.prototype.level = function level (key, recurse) {
           if ( recurse === void 0 ) recurse = true;
 
-        if (key.group) { key = keysForGroup(this, key.group); }
+        if (key && key.group) { key = keysForGroup(this, key.group); }
+        if (typeof key === 'boolean') {
+          recurse = key;
+          key = /.*/;
+        } else if (key === undefined) {
+          key = /.*/;
+        }
         var keys = Array.isArray(key) ? key : [key];
         var level = 'none';
 
@@ -439,10 +447,14 @@ System.register(['ractive', './chunk2.js', './chunk14.js'], function (exports, m
       Validator.prototype.hook = function hook (keys, fn) {
           var this$1 = this;
 
-        if (keys.group) {
+        if (keys && keys.group) {
           var gs = Array.isArray(keys.group) ? keys.group : [keys.group];
           gs.forEach(function (g) { return (this$1.groupHooks[g] || (this$1.groupHooks[g] = [])).push(fn); });
         } else {
+          if (typeof keys === 'function') {
+            fn = keys;
+            keys = /.*/;
+          }
           var ks = Array.isArray(keys) ? keys : [keys];
           ks.forEach(function (key) {
             if (typeof key === 'string') { (this$1.hooks[key] || (this$1.hooks[key] = [])).push(fn); }
@@ -461,7 +473,7 @@ System.register(['ractive', './chunk2.js', './chunk14.js'], function (exports, m
           var this$1 = this;
 
         if (disposer) { dispose(this, disposer); }
-        if (keys.group) {
+        if (keys && keys.group) {
           var gs = Array.isArray(keys.group) ? keys.group : [keys.group];
           gs.forEach(function (key) {
             var arr = this$1.groupHooks[key] || [];
@@ -469,6 +481,10 @@ System.register(['ractive', './chunk2.js', './chunk14.js'], function (exports, m
             arr.splice(idx, 1);
           });
         } else {
+          if (typeof keys === 'function') {
+            fn = keys;
+            keys = /.*/;
+          }
           var ks = Array.isArray(keys) ? keys : [keys];
           ks.forEach(function (key) {
             if (typeof key === 'string') {
@@ -476,11 +492,19 @@ System.register(['ractive', './chunk2.js', './chunk14.js'], function (exports, m
               var idx = arr.indexOf(fn);
               arr.splice(idx, 1);
             } else if (key.test) {
-              var idx$1 = this$1.patternHooks.findIndex(function (h) { return h[0] === key && h[1] === fn; });
+              var idx$1 = this$1.patternHooks.findIndex(function (h) { return h[0].toString() === key.toString() && h[1] === fn; });
               this$1.patternHooks.splice(idx$1, 1);
             }
           });
         }
+      };
+
+      Validator.prototype.register = function register (what) {
+        this.watchers.push(what);
+      };
+
+      Validator.prototype.unregister = function unregister (what) {
+        this.watchers.splice(this.watchers.indexOf(what), 1);
       };
 
       Validator.prototype.decorator = function decorator (opts) {
@@ -569,6 +593,11 @@ System.register(['ractive', './chunk2.js', './chunk14.js'], function (exports, m
               node.style.position = position;
               if (indicator) { indicator.remove(); }
               if (tab) { tab[0].removeEventListener('blur', tab[1]); }
+              v.unregister(res);
+            },
+            reset: function reset() {
+              v.hook(ks, hook);
+              hook();
             },
           };
 
@@ -596,6 +625,8 @@ System.register(['ractive', './chunk2.js', './chunk14.js'], function (exports, m
               }
             };
           }
+
+          v.register(res);
 
           return res;
         }
