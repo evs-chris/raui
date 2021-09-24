@@ -75,6 +75,12 @@
       if (!this.sizer) return 10;
       return this.sizeInPx(size) / this.sizeInPx(rel);
     }
+
+    shellSize(rel = '1em') {
+      const el = this.outer;
+      if (!el) return { width: 0, height: 0 };
+      return { width: this.relativeSize(el.clientWidth), height: this.relativeSize(el.clientHeight) };
+    }
   }
 
   Ractive.extendWith(Shell, {
@@ -199,7 +205,8 @@
     const media = {
       fn() {
         const outer = r.relativeSize('100%');
-        if (media.last === outer) return;
+        const outerH = r.relativeSize(r.outer.clientHeight);
+        if (media.last === outer && media.lastH === outerH) return;
         else media.last = outer;
 
         const sizes = {
@@ -247,7 +254,7 @@
         if (tm) clearTimeout(tm);
         tm = setTimeout(() => {
           if (media.listener) media.listener.silence();
-          r.fire('resize');
+            r.fire('resize', {}, { width: outer, height: outerH });
           if (media.listener) media.listener.resume();
           tm = 0;
         }, (r.get('shell.slide.ms') || 400) + 100);
