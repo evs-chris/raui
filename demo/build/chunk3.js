@@ -41,6 +41,14 @@ System.register(['ractive', './chunk1.js', './chunk2.js'], function (exports, mo
           return this.sizeInPx(size) / this.sizeInPx(rel);
         };
 
+        Shell.prototype.shellSize = function shellSize (rel) {
+          if ( rel === void 0 ) rel = '1em';
+
+          var el = this.outer;
+          if (!el) { return { width: 0, height: 0 }; }
+          return { width: this.relativeSize(el.clientWidth), height: this.relativeSize(el.clientHeight) };
+        };
+
         return Shell;
       }(Ractive$1));
 
@@ -176,7 +184,8 @@ System.register(['ractive', './chunk1.js', './chunk2.js'], function (exports, mo
         var media = {
           fn: function fn() {
             var outer = r.relativeSize('100%');
-            if (media.last === outer) { return; }
+            var outerH = r.relativeSize(r.outer.clientHeight);
+            if (media.last === outer && media.lastH === outerH) { return; }
             else { media.last = outer; }
 
             var sizes = {
@@ -224,7 +233,7 @@ System.register(['ractive', './chunk1.js', './chunk2.js'], function (exports, mo
             if (tm) { clearTimeout(tm); }
             tm = setTimeout(function () {
               if (media.listener) { media.listener.silence(); }
-              r.fire('resize');
+                r.fire('resize', {}, { width: outer, height: outerH });
               if (media.listener) { media.listener.resume(); }
               tm = 0;
             }, (r.get('shell.slide.ms') || 400) + 100);
