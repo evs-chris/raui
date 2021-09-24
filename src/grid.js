@@ -64,6 +64,7 @@ export function grid(node, options) {
       let cls = node.className;
       let max = -1;
       let match;
+      const matches = [];
       for (const k in points) {
         regexps[k].lastIndex = -1;
         if (points[k] <= size) {
@@ -71,6 +72,7 @@ export function grid(node, options) {
           if (points[k] > max) {
             max = points[k];
             match = k;
+            matches.push(match);
           }
         } else {
           cls = cls.replace(regexps[k], '').trim();
@@ -85,6 +87,8 @@ export function grid(node, options) {
       if (opts.name) ctx.set(opts.name, match);
       if (opts.size) ctx.set(opts.size, size);
       if (opts.max) ctx.set(opts.max, max);
+      if (opts.classes) ctx.set(opts.classes, matches.join(' '));
+      if (opts.matches) ctx.set(opts.matches, matches);
     }
   }
 
