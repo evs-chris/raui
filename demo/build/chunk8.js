@@ -74,6 +74,7 @@ System.register(['./chunk2.js', './chunk7.js'], function (exports, module) {
             var cls = node.className;
             var max = -1;
             var match;
+            var matches = [];
             for (var k in points) {
               regexps[k].lastIndex = -1;
               if (points[k] <= size) {
@@ -81,6 +82,7 @@ System.register(['./chunk2.js', './chunk7.js'], function (exports, module) {
                 if (points[k] > max) {
                   max = points[k];
                   match = k;
+                  matches.push(match);
                 }
               } else {
                 cls = cls.replace(regexps[k], '').trim();
@@ -95,6 +97,8 @@ System.register(['./chunk2.js', './chunk7.js'], function (exports, module) {
             if (opts.name) { ctx.set(opts.name, match); }
             if (opts.size) { ctx.set(opts.size, size); }
             if (opts.max) { ctx.set(opts.max, max); }
+            if (opts.classes) { ctx.set(opts.classes, matches.join(' ')); }
+            if (opts.matches) { ctx.set(opts.matches, matches); }
           }
         }
 
