@@ -30,6 +30,7 @@ System.register([], function (exports, module) {
           else if (!~str.indexOf('left') && !~str.indexOf('right')) { str += ' hmiddle'; }
 
           ctx.set(bind, str);
+          if (ctx.hasListener('scrolled')) { ctx.raise('scrolled', {}); }
         }
 
         node.addEventListener('scroll', watch, { passive: true });
