@@ -243,7 +243,8 @@
             }
           }
         },
-        defer: true
+        defer: true,
+        init: false,
       },
       __popped: {
         handler(v) {
@@ -284,7 +285,8 @@
             this.tailSource = null;
           }
         },
-        defer: true
+        defer: true,
+        init: false,
       },
       'align where tail fit': {
         handler() { this.position() },
