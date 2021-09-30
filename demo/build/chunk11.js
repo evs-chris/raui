@@ -267,7 +267,8 @@ System.register(['./chunk2.js', 'ractive', './chunk5.js', './chunk12.js'], funct
                 }
               }
             },
-            defer: true
+            defer: true,
+            init: false,
           },
           __popped: {
             handler: function handler(v) {
@@ -308,7 +309,8 @@ System.register(['./chunk2.js', 'ractive', './chunk5.js', './chunk12.js'], funct
                 this.tailSource = null;
               }
             },
-            defer: true
+            defer: true,
+            init: false,
           },
           'align where tail fit': {
             handler: function handler() { this.position(); },
