@@ -3,7 +3,8 @@ import Ractive from 'ractive';
 // TODO: allow relative keys to be used in wild and list with a . prefix
 
 function dispose(validator, disposer) {
-  if (validator.disposing) validator.disposers.splice(validator.disposers.indexOf(disposer), 1);
+  const idx = validator.disposers.indexOf(disposer);
+  if (~idx && validator.disposing) validator.disposers.splice(idx, 1);
 }
 
 export class Validator {
@@ -46,12 +47,15 @@ export class Validator {
     const set = [ks, deps, fn, opts && opts.group && (Array.isArray(opts.group) ? opts.group : [opts.group])];
     this.fns.push(set);
     const handle = this.ractive.observe(all.join(' '), debounce(this.debounce, function() {
+      if (set.disposed) return; // watch for cancelled debounces
       checker.call(this, fn, ks, all.map(k => this.ractive.get(k)));
     }, this), { init: opts && opts.init === false ? false : true });
     const disposer = {
       cancel: () => {
         dispose(this, disposer);
-        this.fns.splice(this.fns.indexOf(set), 1);
+        set.disposed = true;
+        const idx = this.fns.indexOf(set);
+        if (~idx) this.fns.splice(idx, 1);
         handle.cancel();
       }
     };
@@ -75,7 +79,7 @@ export class Validator {
                   this.notify(k, true, true);
                 });
                 const idx = this.fns.findIndex(([k]) => k === ks);
-                this.fns.splice(idx, 1);
+                if (~idx) this.fns.splice(idx, 1);
               });
               delete checks[i];
             }
@@ -131,7 +135,7 @@ export class Validator {
           cks[c].forEach(([ks, handle]) => {
             handle.cancel();
             const idx = this.fns.findIndex(([k]) => k === ks);
-            this.fns.splice(idx, 1);
+            if (~idx) this.fns.splice(idx, 1);
           });
         });
         let i = this.many.length;
@@ -154,7 +158,7 @@ export class Validator {
             this.notify(k, true, true);
           });
           const idx = this.fns.findIndex(([k]) => k === ks);
-          this.fns.splice(idx, 1);
+          if (~idx) this.fns.splice(idx, 1);
         });
         delete checks[k];
       } else if (v != null && !checks[k]) {
@@ -202,7 +206,7 @@ export class Validator {
           checks[c].forEach(([ks, handle]) => {
             handle.cancel();
             const idx = this.fns.findIndex(([k]) => k === ks);
-            this.fns.splice(idx, 1);
+            if (~idx) this.fns.splice(idx, 1);
           });
         });
         let i = this.many.length;
@@ -391,7 +395,7 @@ export class Validator {
       gs.forEach(key => {
         const arr = this.groupHooks[key] || [];
         const idx = arr.indexOf(fn);
-        arr.splice(idx, 1);
+        if (~idx) arr.splice(idx, 1);
       });
     } else {
       if (typeof keys === 'function') {
@@ -403,10 +407,10 @@ export class Validator {
         if (typeof key === 'string') {
           const arr = this.hooks[key] || [];
           const idx = arr.indexOf(fn);
-          arr.splice(idx, 1);
+          if (~idx) arr.splice(idx, 1);
         } else if (key.test) {
           const idx = this.patternHooks.findIndex(h => h[0].toString() === key.toString() && h[1] === fn);
-          this.patternHooks.splice(idx, 1);
+          if (~idx) this.patternHooks.splice(idx, 1);
         }
       });
     }
@@ -417,7 +421,8 @@ export class Validator {
   }
 
   unregister(what) {
-    this.watchers.splice(this.watchers.indexOf(what), 1);
+    const idx = this.watchers.indexOf(what);
+    if (~idx) this.watchers.splice(idx, 1);
   }
 
   decorator(opts = {}) {
