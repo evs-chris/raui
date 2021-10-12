@@ -14,7 +14,8 @@ System.register(['ractive', './chunk2.js', './chunk14.js'], function (exports, m
       // TODO: allow relative keys to be used in wild and list with a . prefix
 
       function dispose(validator, disposer) {
-        if (validator.disposing) { validator.disposers.splice(validator.disposers.indexOf(disposer), 1); }
+        var idx = validator.disposers.indexOf(disposer);
+        if (~idx && validator.disposing) { validator.disposers.splice(idx, 1); }
       }
 
       var Validator = function Validator(ractive, debounce) {
@@ -67,7 +68,9 @@ System.register(['ractive', './chunk2.js', './chunk14.js'], function (exports, m
         var disposer = {
           cancel: function () {
             dispose(this$1, disposer);
-            this$1.fns.splice(this$1.fns.indexOf(set), 1);
+            set.disposed = true;
+            var idx = this$1.fns.indexOf(set);
+            if (~idx) { this$1.fns.splice(idx, 1); }
             handle.cancel();
           }
         };
@@ -100,7 +103,7 @@ System.register(['ractive', './chunk2.js', './chunk14.js'], function (exports, m
 
                         return k === ks;
                       });
-                    this$1.fns.splice(idx, 1);
+                    if (~idx) { this$1.fns.splice(idx, 1); }
                   });
                   delete checks[i];
                 }
@@ -167,7 +170,7 @@ System.register(['ractive', './chunk2.js', './chunk14.js'], function (exports, m
 
                     return k === ks;
                   });
-                this$1.fns.splice(idx, 1);
+                if (~idx) { this$1.fns.splice(idx, 1); }
               });
             });
             var i = this$1.many.length;
@@ -199,7 +202,7 @@ System.register(['ractive', './chunk2.js', './chunk14.js'], function (exports, m
 
                   return k === ks;
                 });
-              this$1.fns.splice(idx, 1);
+              if (~idx) { this$1.fns.splice(idx, 1); }
             });
             delete checks[k];
           } else if (v != null && !checks[k]) {
@@ -256,7 +259,7 @@ System.register(['ractive', './chunk2.js', './chunk14.js'], function (exports, m
 
                     return k === ks;
                   });
-                this$1.fns.splice(idx, 1);
+                if (~idx) { this$1.fns.splice(idx, 1); }
               });
             });
             var i = this$1.many.length;
@@ -478,7 +481,7 @@ System.register(['ractive', './chunk2.js', './chunk14.js'], function (exports, m
           gs.forEach(function (key) {
             var arr = this$1.groupHooks[key] || [];
             var idx = arr.indexOf(fn);
-            arr.splice(idx, 1);
+            if (~idx) { arr.splice(idx, 1); }
           });
         } else {
           if (typeof keys === 'function') {
@@ -490,10 +493,10 @@ System.register(['ractive', './chunk2.js', './chunk14.js'], function (exports, m
             if (typeof key === 'string') {
               var arr = this$1.hooks[key] || [];
               var idx = arr.indexOf(fn);
-              arr.splice(idx, 1);
+              if (~idx) { arr.splice(idx, 1); }
             } else if (key.test) {
               var idx$1 = this$1.patternHooks.findIndex(function (h) { return h[0].toString() === key.toString() && h[1] === fn; });
-              this$1.patternHooks.splice(idx$1, 1);
+              if (~idx$1) { this$1.patternHooks.splice(idx$1, 1); }
             }
           });
         }
@@ -504,7 +507,8 @@ System.register(['ractive', './chunk2.js', './chunk14.js'], function (exports, m
       };
 
       Validator.prototype.unregister = function unregister (what) {
-        this.watchers.splice(this.watchers.indexOf(what), 1);
+        var idx = this.watchers.indexOf(what);
+        if (~idx) { this.watchers.splice(idx, 1); }
       };
 
       Validator.prototype.decorator = function decorator (opts) {

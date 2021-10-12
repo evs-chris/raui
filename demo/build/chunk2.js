@@ -672,7 +672,7 @@ System.register(['ractive'], function (exports, module) {
           return new Promise(function (ok) {
             requestAnimationFrame(function () {
               var local = wnd.get('control');
-              if (local.width === undefined) { wnd.size('auto'); }
+              if (local.width === undefined && !local.dialog) { wnd.size('auto'); }
               var left = 0;
               var top = 0;
 
@@ -681,6 +681,14 @@ System.register(['ractive'], function (exports, module) {
               var host = this$1.find('.rwhost');
               var maxw = host.clientWidth;
               var maxh = host.clientHeight;
+
+              var lw = local.width;
+              var lh = local.height;
+
+              if (local.dialog && (!local.size || local.size === 'auto' || !local.width || !local.height)) {
+                lw = this$1.sizeInEm(wnd.pane.clientWidth);
+                lh = this$1.sizeInEm(wnd.pane.clientHeight);
+              }
 
               // if it's blocking, center on blocked
               var blocking = local.blocking;
@@ -694,8 +702,8 @@ System.register(['ractive'], function (exports, module) {
                 var bl = bmax ? 0 : blocked.left;
                 var bt = bmax ? 0 : blocked.top;
 
-                left = (max ? maxw : bw / 2) + (max ? 0 : bl) - (this$1.sizeInPx(((local.width) + "em")) / 2);
-                top = (max ? maxh : bh / 2) + (max ? 0 : bt) - (this$1.sizeInPx(((local.height) + "em")) / 2);
+                left = (max ? maxw : bw / 2) + (max ? 0 : bl) - (this$1.sizeInPx((lw + "em")) / 2);
+                top = (max ? maxh : bh / 2) + (max ? 0 : bt) - (this$1.sizeInPx((lh + "em")) / 2);
               }
 
               // place in 3x3 grid
