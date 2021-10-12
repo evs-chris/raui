@@ -403,7 +403,7 @@
       return new Promise(ok => {
         requestAnimationFrame(() => {
           const local = wnd.get('control');
-          if (local.width === undefined) wnd.size('auto');
+          if (local.width === undefined && !local.dialog) wnd.size('auto');
           let left = 0;
           let top = 0;
 
@@ -412,6 +412,14 @@
           const host = this.find('.rwhost');
           const maxw = host.clientWidth;
           const maxh = host.clientHeight;
+
+          let lw = local.width;
+          let lh = local.height;
+
+          if (local.dialog && (!local.size || local.size === 'auto' || !local.width || !local.height)) {
+            lw = this.sizeInEm(wnd.pane.clientWidth);
+            lh = this.sizeInEm(wnd.pane.clientHeight);
+          }
 
           // if it's blocking, center on blocked
           const blocking = local.blocking;
@@ -425,8 +433,8 @@
             const bl = bmax ? 0 : blocked.left;
             const bt = bmax ? 0 : blocked.top;
 
-            left = (max ? maxw : bw / 2) + (max ? 0 : bl) - (this.sizeInPx(`${local.width}em`) / 2);
-            top = (max ? maxh : bh / 2) + (max ? 0 : bt) - (this.sizeInPx(`${local.height}em`) / 2);
+            left = (max ? maxw : bw / 2) + (max ? 0 : bl) - (this.sizeInPx(`${lw}em`) / 2);
+            top = (max ? maxh : bh / 2) + (max ? 0 : bt) - (this.sizeInPx(`${lh}em`) / 2);
           }
 
           // place in 3x3 grid
