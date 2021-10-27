@@ -1217,17 +1217,21 @@
           }
 
           if (btns) {
-            wnd._btns = btns.f.filter(e => e.e === 'button' || (e.t === 4 && (e.n === 50 || e.n === 51) && e.f.find(e => e.e === 'button'))).map(n => {
+            wnd._btns = btns.f.filter(e => e.e === 'button' || e.e === 'not-button' || (e.t === 4 && (e.n === 50 || e.n === 51) && e.f.find(e => e.e === 'button' || e.e === 'not-button'))).map(n => {
               if (n.t === 4) {
-                  return n.f.filter(e => e.e === 'button').map(bb => {
-                    const b = mapButton(bb);
-                    const f = { t: n.t, n: n.n, f: [b.partial.t[0]] };
-                    if (n.r) f.r = n.r;
-                    if (n.rx) f.rx = n.rx;
-                    if (n.x) f.x = n.x;
-                    b.partial = { t: [f] };
-                    return b;
-                  });
+                return n.f.filter(e => e.e === 'button' || e.e === 'not-button').map(bb => {
+                  const attrs = bb.m || [];
+                  const b = bb.e === 'button' ? mapButton(bb) : { partial: { t: bb.f || [] }, where: attrs.find(a => a.n === 'left') ? 'left' : attrs.find(a => a.n === 'center') ? 'center' : 'right' };
+                  const f = { t: n.t, n: n.n, f: [b.partial.t[0]] };
+                  if (n.r) f.r = n.r;
+                  if (n.rx) f.rx = n.rx;
+                  if (n.x) f.x = n.x;
+                  b.partial = { t: [f] };
+                  return b;
+                });
+              } else if (n.e === 'not-button') {
+                const attrs = n.m || [];
+                return [{ partial: { t: n.f || [] }, where: attrs.find(a => a.n === 'left') ? 'left' : attrs.find(a => a.n === 'center') ? 'center' : 'right' }];
               } else {
                 const b = mapButton(n);
                 return [b];
