@@ -1575,13 +1575,13 @@
     position: absolute;
     display: block;
     margin: 0;
-    width: 2em;
-    height: 2em;
+    width: 3em;
+    height: 3em;
     box-shadow: none;
     outline: none;
     opacity: 0;
-    top: -4px;
-    left: -1.5px;
+    top: -0.45em;
+    left: -0.6em;
     border-radius: 2em;
     transition: transform 0.2s, opacity 0.2s;
     background-color: ${primary.bc || '#ccc'};
@@ -1599,6 +1599,7 @@
     justify-content: space-around;
     align-items: center;
     flex-grow: 0;
+    display: block;
   }
 
   .rtable-select:checked {
@@ -1630,9 +1631,9 @@
     box-sizing: border-box;
     border: solid 2px; /* Safari */
     border-color: ${primary.fg || '#222'};
-    border-radius: 2px;
-    width: 18px;
-    height: 18px;
+    border-radius: 0.125em;
+    width: 1.2em;
+    height: 1.2em;
     vertical-align: middle;
     transition: border-color 0.2s, background-color 0.2s;
   }
@@ -1641,10 +1642,10 @@
     content: "";
     display: block;
     position: absolute;
-    top: -5px;
-    left: 0px;
-    width: 10px;
-    height: 5px;
+    top: 0;
+    left: 0;
+    width: 0.7em;
+    height: 0.3em;
     border: solid 2px transparent;
     border-right: none;
     border-top: none;
@@ -1660,6 +1661,10 @@
   .rtable-selected .rtable-select-row > div:after, .rtable-all-selected > div:after {
     border-color: ${primary.bg || '#fff'};
     opacity: 1;
+  }
+
+  .rtable-all-selected > div:after {
+    top: -0.25em;
   }
 
   .rtable-row-wrap > .rtable-select-header,
