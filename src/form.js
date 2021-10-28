@@ -133,13 +133,13 @@ export function style(data) {
     -webkit-appearance: none;
     z-index: -1;
     position: absolute;
-    left: -3px;
-    top: 23px;
+    left: -0.5em;
+    top: 1em;
     display: block;
     margin: 0;
     border-radius: 50%;
-    width: 40px;
-    height: 40px;
+    width: 3.2em;
+    height: 3.2em;
     background-color: ${primary.bc || '#ccc'};
     box-shadow: none;
     outline: none;
@@ -149,8 +149,8 @@ export function style(data) {
     transition: opacity 0.3s, transform 0.2s;
   }
   label.field.inline.check input {
-    top: 3px;
-    left: -3px;
+    top: -0.45em;
+    left: -0.55em;
   }
 
   label.field.check input:checked {
@@ -179,12 +179,12 @@ export function style(data) {
     content: "";
     display: inline-block;
     box-sizing: border-box;
-    margin: 3px 11px 3px 1px;
-    border: solid 2px; /* Safari */
+    margin: 0 0.5em 0.2em 0.1em;
+    border: solid 0.125em; /* Safari */
     border-color: ${primary.fg || '#222'};
-    border-radius: 2px;
-    width: 18px;
-    height: 18px;
+    border-radius: 0.125em;
+    width: 1.2em;
+    height: 1.2em;
     vertical-align: bottom;
     transition: border-color 0.2s, background-color 0.2s;
   }
@@ -193,11 +193,11 @@ export function style(data) {
     content: "";
     display: block;
     position: absolute;
-    top: 0px;
-    left: 0px;
-    width: 10px;
-    height: 5px;
-    border: solid 2px transparent;
+    top: -0.15em;
+    left: -0.05em;
+    width: 0.7em;
+    height: 0.3em;
+    border: solid 0.125em transparent;
     border-right: none;
     border-top: none;
     transform: translate(0.8em, 2.65em) rotate(-45deg);
@@ -263,13 +263,13 @@ export function style(data) {
     display: block;
     margin: 0;
     border-radius: 50%;
-    width: 41px;
-    height: 40px;
+    width: 3.2em;
+    height: 3.2em;
     background-color: ${primary.bc || '#ccc'};
     outline: none;
     opacity: 0;
     pointer-events: none;
-    transform: translate(-0.2em, 24px) scale(1);
+    transform: translate(-0.2em, 1.5em) scale(1);
     transition: opacity 0.3s, transform 0.3s;
   }
   label.field.inline.radio input {
@@ -285,12 +285,12 @@ export function style(data) {
     content: "";
     display: inline-block;
     box-sizing: border-box;
-    margin: 2px 10px 2px 0;
-    border: solid 2px; /* Safari */
+    margin: 0 0.5em 0.2em 0.1em;
+    border: solid 0.125em; /* Safari */
     border-color: ${primary.fg || '#222'};
-    border-radius: 50%;
-    width: 20px;
-    height: 20px;
+    border-radius: 0.125em;
+    width: 1.2em;
+    height: 1.2em;
     vertical-align: middle;
     transition: border-color 0.2s;
   }
@@ -300,8 +300,8 @@ export function style(data) {
     display: block;
     position: absolute;
     border-radius: 50%;
-    width: 10px;
-    height: 10px;
+    width: 0.625em;
+    height: 0.625em;
     background-color: ${primary.fga || '#07e'};
     transform: translate(5px, -17px) scale(0);
     transition: transform 0.2s;
