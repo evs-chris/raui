@@ -63,6 +63,7 @@ System.register(['ractive', './chunk2.js', './chunk14.js'], function (exports, m
         var handle = this.ractive.observe(all.join(' '), debounce(this.debounce, function() {
             var this$1 = this;
 
+          if (set.disposed) { return; } // watch for cancelled debounces
           checker.call(this, fn, ks, all.map(function (k) { return this$1.ractive.get(k); }));
         }, this), { init: opts && opts.init === false ? false : true });
         var disposer = {

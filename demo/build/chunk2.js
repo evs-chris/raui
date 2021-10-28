@@ -1506,17 +1506,21 @@ System.register(['ractive'], function (exports, module) {
               }
 
               if (btns) {
-                wnd._btns = btns.f.filter(function (e) { return e.e === 'button' || (e.t === 4 && (e.n === 50 || e.n === 51) && e.f.find(function (e) { return e.e === 'button'; })); }).map(function (n) {
+                wnd._btns = btns.f.filter(function (e) { return e.e === 'button' || e.e === 'not-button' || (e.t === 4 && (e.n === 50 || e.n === 51) && e.f.find(function (e) { return e.e === 'button' || e.e === 'not-button'; })); }).map(function (n) {
                   if (n.t === 4) {
-                      return n.f.filter(function (e) { return e.e === 'button'; }).map(function (bb) {
-                        var b = mapButton(bb);
-                        var f = { t: n.t, n: n.n, f: [b.partial.t[0]] };
-                        if (n.r) { f.r = n.r; }
-                        if (n.rx) { f.rx = n.rx; }
-                        if (n.x) { f.x = n.x; }
-                        b.partial = { t: [f] };
-                        return b;
-                      });
+                    return n.f.filter(function (e) { return e.e === 'button' || e.e === 'not-button'; }).map(function (bb) {
+                      var attrs = bb.m || [];
+                      var b = bb.e === 'button' ? mapButton(bb) : { partial: { t: bb.f || [] }, where: attrs.find(function (a) { return a.n === 'left'; }) ? 'left' : attrs.find(function (a) { return a.n === 'center'; }) ? 'center' : 'right' };
+                      var f = { t: n.t, n: n.n, f: [b.partial.t[0]] };
+                      if (n.r) { f.r = n.r; }
+                      if (n.rx) { f.rx = n.rx; }
+                      if (n.x) { f.x = n.x; }
+                      b.partial = { t: [f] };
+                      return b;
+                    });
+                  } else if (n.e === 'not-button') {
+                    var attrs = n.m || [];
+                    return [{ partial: { t: n.f || [] }, where: attrs.find(function (a) { return a.n === 'left'; }) ? 'left' : attrs.find(function (a) { return a.n === 'center'; }) ? 'center' : 'right' }];
                   } else {
                     var b = mapButton(n);
                     return [b];
