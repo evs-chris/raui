@@ -171,7 +171,14 @@ export function masked(options = {}) {
 					ctx.unlisten('blur', sync);
 					observables.forEach(k => observe[k] && observe[k].cancel());
 				}
-			}
+			},
+      shuffled() {
+        observables.forEach(k => {
+          if (opts[`bind_${k}`]) {
+            bound[k] = ctx.get(opts[`bind_${k}`]);
+          }
+        });
+      }
 		};
 	}
 }
