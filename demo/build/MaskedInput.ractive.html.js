@@ -181,7 +181,15 @@ System.register(['./chunk2.js'], function (exports, module) {
 								ctx.unlisten('blur', sync);
 								observables.forEach(function (k) { return observe[k] && observe[k].cancel(); });
 							}
-						}
+						},
+			      shuffled: function shuffled() {
+			        observables.forEach(function (k) {
+			          if (opts[("bind_" + k)]) {
+			            bound[k] = ctx.get(opts[("bind_" + k)]);
+			          }
+			        });
+			        console.log(value, bound);
+			      }
 					};
 				}
 			}
