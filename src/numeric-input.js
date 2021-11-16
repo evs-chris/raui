@@ -53,7 +53,8 @@ export function numeric(options = {}) {
         num[1] -= len - next.length;
       }
 
-      const dec = next.indexOf('.');
+      let dec = next.indexOf('.');
+      if (!~dec && o.decimal && !o.preferInteger) dec = next.length;
       if (~dec) {
         let preDec = next.substr(0, dec);
         let postDec = next.substr(dec + 1).replace(decimalRE, '');
@@ -68,7 +69,8 @@ export function numeric(options = {}) {
           }
         }
         if (leave && !preDec) preDec = '0';
-        next = `${preDec}.${postDec}`;
+        if (leave && !+postDec && o.preferInteger) next = preDec;
+        else next = `${preDec}.${postDec}`;
       } else if (typeof o.whole === 'number' && next.length > o.whole) {
         next = next.substr(0, o.whole);
       }
@@ -170,7 +172,11 @@ export function numeric(options = {}) {
         if (lock) return;
         const cur = ctx.get(o.bind);
         node.value = cur;
-        setTimeout(update, 1);
+        setTimeout(() => {
+          leave = true;
+          update();
+          leave = false;
+        }, 1);
       }, { defer: true }).cancel);
     }
 
@@ -179,7 +185,11 @@ export function numeric(options = {}) {
         if (lock) return;
         const cur = ctx.get(o.number);
         node.value = `${cur}`;
-        setTimeout(update, 1);
+        setTimeout(() => {
+          leave = true;
+          update();
+          leave = false;
+        }, 1);
       }, { defer: true }).cancel);
     }
 

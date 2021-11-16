@@ -10,6 +10,7 @@ export interface DecoratorOpts {
   default?: string;
   optional?: boolean;
   lazy?: boolean;
+  preferInteger?: boolean;
 }
 
 export interface PluginOpts extends DecoratorOpts {
