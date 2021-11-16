@@ -188,7 +188,6 @@ System.register(['./chunk2.js'], function (exports, module) {
 			            bound[k] = ctx.get(opts[("bind_" + k)]);
 			          }
 			        });
-			        console.log(value, bound);
 			      }
 					};
 				}
