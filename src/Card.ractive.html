@@ -5,7 +5,6 @@
         {{#if _card.arrow && _card.expandable}}
           <div class-rcard-expand class-rcard-expanded="_card.expanded !== false"><svg><path d="M16.59 8.59L12 13.17 7.41 8.59 6 10l6 6 6-6z"></path></svg></div>
         {{/if}}
-        <div class-rcard-title-pad>&nbsp;</div>
         {{#if _card.avatar && typeof _card.avatar === 'string'}}<div class-rcard-avatar class-rcard-avatar-round="_card.round">
           <div class-rcard-avatar-inner style-background-image="url({{_card.avatar}})" />
         </div>
@@ -314,7 +313,8 @@
   }
   .rcard {
     position: relative;
-    display: block;
+    display: flex;
+    flex-direction: column;
     color: ${primary.fg || '#222'};
     background-color: ${primary.bg || '#fff'};
     border-radius: ${primary.radius || '0.2em'};
@@ -375,7 +375,7 @@
   .rcard-section > .rcard-header {
     background-color: ${header.fga || '#07e'};
     color: ${header.bg || '#fff'};
-    min-height: auto;
+    min-height: 3em;
   }
 
   .rcard-section > .rcard-header:first-of-type {
@@ -383,11 +383,6 @@
     background: ${header.gradient};
     color: ${header.fg || '#222'};
     border-bottom: 1px solid ${header.bc || '#ccc'};` : ''}
-  }
-  .rcard-header .rcard-title-pad {
-    height: 100%;
-    width: 0;${header.padding ? `
-    margin: ${header.padding} 0;` : ''}
   }
 
   .rcard-avatar {
