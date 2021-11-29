@@ -1,0 +1,91 @@
+<tabs flat pad class-alt fill height=dynamic>
+  <tab title=Intro><marked>
+    This decorator takes an input and sets it up for display and input of numeric values. It allows specifying number of whole and decimal places, including disallowing decimals entirely.
+  </marked></tab>
+  <tab title=Usage><marked>
+    ### Plugin options
+
+    All options are optional.
+
+    * `name: string ='numeric'` - the name to use when registering the decorator as a plugin
+
+    ### Arguments
+
+    This decorator takes a string or an options object. Passing a string is equivalent to `{ bind: string }`.
+
+    * `bind: keypath` - a keypath to bind the string version of the number, without prefix or suffix
+    * `number: keypath` - a keypath to use to bind the input value as a number
+    * `optional: boolean = true` - if no number is supplied for a non-optional input, the value with be `0`. For optional inputs, the value will be an empty string and the number will be undefined.
+    * `lazy: boolean = true` - whether or not to immediately update the bound values
+    * `whole: number` - an optional number of whole digits to allow in the input
+    * `decimal: number` - an optional number of decimal digits to all in the input
+    * `preferInteger: boolean = true` - automatically drop `.0+` from the input.
+    * `prefix: string` - optionally prefix the numeric input with a string. Input starts after the prefix and cursor placement is handled automatically.
+    * `suffix: string` - optionally suffix the numeric input with a string. Input starts before the suffix and cursor placement is handled automatically.
+  </marked></tab>
+  <tab title=Example>
+    <div as-grid>
+      <div class="row row-s1-4">
+        <label as-field>Prefix<input value="{{options.prefix}}" /></label>
+        <label as-field>Suffix<input value="{{options.suffix}}" /></label>
+        <label as-field>Whole<input type="number" value="{{options.whole}}" /></label>
+        <label as-field>Decimal<input type="number" value="{{options.decimal}}" /></label>
+        <label as-field><input type="checkbox" checked="{{options.optional}}" /> Optional?</label>
+        <label as-field><input type="checkbox" checked="{{options.lazy}}" /> Lazy?</label>
+        <label as-field><input type="checkbox" checked="{{options.preferInteger}}" /> Prefer integer?</label>
+      </div>
+    </div>
+    <marked>
+      Template:
+
+      ```hbs
+      <label as-field>A fistful of digits
+        <input as-numeric=`dollars` />
+      </label>
+      <label as-field>A few digits more
+        <input as-numeric=options />
+      </label>
+      ```
+
+      Result:
+    </marked>
+    <div style="max-width: 16em; margin: auto;">
+      <label as-field>A fistful of dollars
+        <input as-numeric=`dollars` />
+      </label>
+      <label as-field>A few digits more
+        <input as-numeric=options />
+      </label>
+      <dl style="margin-top: 2em;">
+        <dt>A fistful of digits</dt>
+        <dd>&#x200b;{{dollars}}</dd>
+        <dt>A few digits more</dt>
+        <dd>&#x200b;{{custom}}</dd>
+      </dl>
+    </div>
+  </tab>
+</tabs>
+
+<script>
+  import { Window } from 'cmp/Window';
+  import numeric from 'cmp/numeric-input';
+
+  export default Window.extend({
+    template: $TEMPLATE,
+    use: [numeric()],
+    options: {
+      title: 'Decorator :: NumericInput',
+      resizable: true, flex: true,
+      width: '48em', height: '30em'
+    },
+    data() {
+      return {
+        options: {
+          number: 'custom',
+        }
+      }
+    }
+  });
+</script>
+    
+

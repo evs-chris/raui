@@ -54,6 +54,7 @@ export function numeric(options = {}) {
       }
 
       let dec = next.indexOf('.');
+      const decIdx = dec;
       if (!~dec && o.decimal && !o.preferInteger) dec = next.length;
       if (~dec) {
         let preDec = next.substr(0, dec);
@@ -64,13 +65,13 @@ export function numeric(options = {}) {
         if (typeof o.decimal === 'number') {
           if (postDec.length > o.decimal) {
             postDec = postDec.substr(0, o.decimal);
-          } else if (postDec.length < o.decimal) {
+          } else if (postDec.length < o.decimal && leave) {
             for (let i = postDec.length; i < o.decimal; i++) postDec += '0';
           }
         }
         if (leave && !preDec) preDec = '0';
         if (leave && !+postDec && o.preferInteger) next = preDec;
-        else next = `${preDec}.${postDec}`;
+        else next = `${preDec}${~decIdx || postDec ? '.' : ''}${postDec}`;
       } else if (typeof o.whole === 'number' && next.length > o.whole) {
         next = next.substr(0, o.whole);
       }
@@ -171,7 +172,7 @@ export function numeric(options = {}) {
       cleanup.push(ctx.observe(o.bind, () => {
         if (lock) return;
         const cur = ctx.get(o.bind);
-        node.value = cur;
+        node.value = cur == null ? '' : cur;
         setTimeout(() => {
           leave = true;
           update();
@@ -184,7 +185,7 @@ export function numeric(options = {}) {
       cleanup.push(ctx.observe(o.number, () => {
         if (lock) return;
         const cur = ctx.get(o.number);
-        node.value = `${cur}`;
+        node.value = `${cur == null ? '' : cur}`;
         setTimeout(() => {
           leave = true;
           update();
