@@ -16,9 +16,9 @@ export function number(v, dec) {
 }
 
 export function numeric(options = {}) {
-  return function(node, opts = {}) {
+  return function(node, opts = {}, more = {}) {
     if (typeof opts === 'string') opts = { bind: opts };
-    const o = Object.assign({}, options, opts);
+    const o = Object.assign({}, options, opts, more);
     const ctx = this.getContext(node);
     const cleanup = [];
     let lock = false;
@@ -109,6 +109,7 @@ export function numeric(options = {}) {
     }
 
     function writeBack() {
+      if (o.twoway === false) return;
       lock = true;
       if (o.bind) {
         const cur = ctx.get(o.bind);

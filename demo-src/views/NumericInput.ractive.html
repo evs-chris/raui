@@ -11,7 +11,7 @@
 
     ### Arguments
 
-    This decorator takes a string or an options object. Passing a string is equivalent to `{ bind: string }`.
+    This decorator takes a string or an options object. Passing a string is equivalent to `{ bind: string }`. A second options object can also be passed, allowing a string binding first with additional options set by the following object.
 
     * `bind: keypath` - a keypath to bind the string version of the number, without prefix or suffix
     * `number: keypath` - a keypath to use to bind the input value as a number
@@ -22,6 +22,7 @@
     * `preferInteger: boolean = true` - automatically drop `.0+` from the input.
     * `prefix: string` - optionally prefix the numeric input with a string. Input starts after the prefix and cursor placement is handled automatically.
     * `suffix: string` - optionally suffix the numeric input with a string. Input starts before the suffix and cursor placement is handled automatically.
+    * `twoway: boolean` - if `false`, will not set the bound value on change, defaults to `true`
   </marked></tab>
   <tab title=Example>
     <div as-grid>
@@ -50,7 +51,7 @@
       Result:
     </marked>
     <div style="max-width: 16em; margin: auto;">
-      <label as-field>A fistful of dollars
+      <label as-field>A fistful of digits
         <input as-numeric=`dollars` />
       </label>
       <label as-field>A few digits more

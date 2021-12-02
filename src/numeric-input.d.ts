@@ -11,6 +11,7 @@ export interface DecoratorOpts {
   optional?: boolean;
   lazy?: boolean;
   preferInteger?: boolean;
+  twoway?: boolean;
 }
 
 export interface PluginOpts extends DecoratorOpts {
