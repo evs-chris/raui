@@ -870,6 +870,9 @@
           col.label = (e.f || []).find(e => e.e === 'header');
           if (col.label) {
             col.label = col.label.f;
+            col.title = attrs.find(a => a.n === 'label');
+            if (!col.title) col.title = attrs.find(a => a.n === 'header');
+            if (col.title && col.title.f) col.title = map(col.title);
           } else {
             col.label = attrs.find(a => a.n === 'label');
             if (!col.label) col.label = attrs.find(a => a.n === 'header');
@@ -1026,7 +1029,7 @@
       { t: 4, n: 50, r: '~/fixedHeader', f: [{ t: 13, n: 'style-padding-right', f: [{ t: 2, r: '~/scrollOffset' }, 'px'] }] }
     ], f: [{ t: 7, e: 'div', f: columns.filter(c => c.hidden !== true).map((c, cidx) => {
       c.attrsHP = c.attrs.filter(a => a.n !== 'title');
-      const div = { t: 7, e: 'div', f: [{ t: 7, e: 'div', f: [{ t: 16, r: `~/columns.${cidx}.label`, c: { r: '.' }, z }] }], m: [{ t: 13, n: 'title', f: c.label }, { t: 16, r: `~/columns.${cidx}.attrsHP`, z }] };
+      const div = { t: 7, e: 'div', f: [{ t: 7, e: 'div', f: [{ t: 16, r: `~/columns.${cidx}.label`, c: { r: '.' }, z }] }], m: [{ t: 13, n: 'title', f: c.title || c.label }, { t: 16, r: `~/columns.${cidx}.attrsHP`, z }] };
       if (c.type) div.m.push({ t: 13, n: `class-rtable-${c.type}-column` });
       if (c.filter || c.sort) div.m.push({ t: 13, n: 'class-rtable-sortable' }, { t: 4, n: 53, r: `~/columns.${cidx}`, f: [{ t: 70, n: ['click'], f: { r: ['@this', '.index', '@event'], s: sortKey } }] });
 
