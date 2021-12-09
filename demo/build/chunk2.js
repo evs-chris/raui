@@ -1112,8 +1112,8 @@ System.register(['ractive'], function (exports, module) {
 
               if (w === 'auto') {
                 this$1.set('control.autosize', true);
-                var nw = this$1.host.sizeInEm(el.clientWidth + 16);
-                var nh = this$1.host.sizeInEm(el.clientHeight);
+                var nw = Math.ceil(this$1.host.sizeInEm(el.clientWidth + 16));
+                var nh = Math.ceil(this$1.host.sizeInEm(el.clientHeight + 8));
                 this$1.set({
                   'control.width': nw,
                   'control.height': nh,
