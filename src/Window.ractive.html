@@ -835,8 +835,8 @@
 
           if (w === 'auto') {
             this.set('control.autosize', true);
-            const nw = this.host.sizeInEm(el.clientWidth + 16);
-            const nh = this.host.sizeInEm(el.clientHeight);
+            const nw = Math.ceil(this.host.sizeInEm(el.clientWidth + 16));
+            const nh = Math.ceil(this.host.sizeInEm(el.clientHeight + 8));
             this.set({
               'control.width': nw,
               'control.height': nh,
