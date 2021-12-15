@@ -12,7 +12,7 @@
     <div class-rcal-block-outer>
       <div class-rcal-block-header>
         <div class-rcal-click class-rcal-arrow {{#if left}}on-click="@.prev(), false"{{/if}}>{{#if left}}<div class-rcal-left />{{/if}}</div>
-        <div class-rcal-click class-rcal-title on-click="@.set('mode', 'months'), false">{{@.monthName(.month)}}{{#if .currentYear !== .year}}, {{.year}}{{/if}}</div>
+        <div class-rcal-click class-rcal-title on-click="@.set('mode', 'months'), false">{{@.monthName(.month)}}{{#if .currentYear !== .year}} {{.year}}{{/if}}</div>
         <div class-rcal-click class-rcal-arrow {{#if right}}on-click="@.next(), false"{{/if}}>{{#if right}}<div class-rcal-right />{{/if}}</div>
       </div>
       <div class-rcal-month>
