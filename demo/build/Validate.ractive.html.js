@@ -448,7 +448,7 @@ System.register(['ractive', './chunk2.js', './chunk14.js'], function (exports, m
         return res;
       };
 
-      Validator.prototype.hook = function hook (keys, fn) {
+      Validator.prototype.hook = function hook (keys, fn, opts) {
           var this$1 = this;
 
         if (keys && keys.group) {
@@ -456,6 +456,7 @@ System.register(['ractive', './chunk2.js', './chunk14.js'], function (exports, m
           gs.forEach(function (g) { return (this$1.groupHooks[g] || (this$1.groupHooks[g] = [])).push(fn); });
         } else {
           if (typeof keys === 'function') {
+            opts = fn;
             fn = keys;
             keys = /.*/;
           }
@@ -470,6 +471,7 @@ System.register(['ractive', './chunk2.js', './chunk14.js'], function (exports, m
           cancel: function () { return this$1.unhook(keys, fn, disposer); }
         };
         this.disposers.push(disposer);
+        if (!opts || opts.lazy !== true) { fn(); }
         return disposer;
       };
 
