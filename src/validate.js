@@ -365,12 +365,13 @@ export class Validator {
     return res;
   }
 
-  hook(keys, fn) {
+  hook(keys, fn, opts) {
     if (keys && keys.group) {
       const gs = Array.isArray(keys.group) ? keys.group : [keys.group];
       gs.forEach(g => (this.groupHooks[g] || (this.groupHooks[g] = [])).push(fn));
     } else {
       if (typeof keys === 'function') {
+        opts = fn;
         fn = keys;
         keys = /.*/;
       }
@@ -385,6 +386,7 @@ export class Validator {
       cancel: () => this.unhook(keys, fn, disposer)
     };
     this.disposers.push(disposer);
+    if (!opts || opts.lazy !== true) fn();
     return disposer;
   }
 

@@ -81,6 +81,11 @@ export interface DecoratorOpts {
   group?: boolean;
 }
 
+export interface HookOpts {
+  /** By default, hooks will fire upon instantiation. If lazy is set to true, the hook will not fire until a change affects it. */
+  lazy?: boolean;
+}
+
 export class Validator implements CheckHelper {
   constructor(ractive: Ractive, debounce = 500); 
 
@@ -167,14 +172,14 @@ export class Validator implements CheckHelper {
    *
    * @param fn - the function to call when changes occur
    */
-  hook(fn: Hook): HookHandle;
+  hook(fn: Hook, opts?: HookOpts): HookHandle;
   /**
    * Fire a callback function when the validation status of a path specifier changes.
    *
    * @param key - the path specifier, which may be a named group
    * @param fn - the function to call when changes occur
    */
-  hook(key: string|string[]|RegExp|RegExp[]|GroupKey, fn: Hook): HookHandle;
+  hook(key: string|string[]|RegExp|RegExp[]|GroupKey, fn: Hook, opts?: HookOpts): HookHandle;
   /**
    * Remove a hook that was registered against all paths.
    *
