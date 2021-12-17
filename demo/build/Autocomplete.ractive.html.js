@@ -116,7 +116,6 @@ System.register(['ractive', './chunk11.js', './chunk16.js', './chunk2.js'], func
         }
 
         function refresh(value, old, path) {
-          var adef = h.get('rac.default');
           var v = h.get('rac.displayprop');
           if (h.get('rac.__display') !== v || h.get('rac._display') === undefined) {
             var def = function () { return h.attributes['display-value'] ? h.get('rac.display') : '(none)'; };
@@ -255,6 +254,10 @@ System.register(['ractive', './chunk11.js', './chunk16.js', './chunk2.js'], func
             var member = h.get('rac._member');
             var which = h.get('rac.list').find(function (i) { return member(i) === v; });
             if (which !== h.get('rac.value')) { h.set('rac.value', which); }
+            if (!which && v && h.get('rac.valueBound')) {
+              h.set('rac.display', v);
+              refresh();
+            }
           }),
           h.observe('rac.selected', scrollView) ];
 
