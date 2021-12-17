@@ -195,6 +195,21 @@ System.register(['./chunk2.js', 'ractive', './chunk5.js', './chunk12.js'], funct
               }
             }
 
+            if (offset.left + pos.popLeft < 0) {
+              var diff$4 = 0 - (offset.left + pos.popLeft);        pos.popLeft += diff$4;
+              if (vert && pos.tailLeft) { pos.tailLeft -= diff$4; }
+              if (vert && pos.tailRight) { pos.tailRight += diff$4; }
+              if (tail && !vert) { pos.tail = false; }
+            }
+
+            if (offset.top + pos.popTop < 0) {
+              var diff$5 = 0 - (offset.top + pos.popTop);
+              pos.popTop += diff$5;
+              if (!vert && pos.tailTop) { pos.tailTop -= diff$5; }
+              if (!vert && pos.tailBottom) { pos.tailBottom += diff$5; }
+              if (tail && vert) { pos.tail = false; }
+            }
+
             this.set('position', pos);
           } else {
             this.set('position', null);
