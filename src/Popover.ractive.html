@@ -187,6 +187,22 @@
           }
         }
 
+        if (offset.left + pos.popLeft < 0) {
+          const diff = 0 - (offset.left + pos.popLeft);;
+          pos.popLeft += diff;
+          if (vert && pos.tailLeft) pos.tailLeft -= diff;
+          if (vert && pos.tailRight) pos.tailRight += diff;
+          if (tail && !vert) pos.tail = false;
+        }
+
+        if (offset.top + pos.popTop < 0) {
+          const diff = 0 - (offset.top + pos.popTop);
+          pos.popTop += diff;
+          if (!vert && pos.tailTop) pos.tailTop -= diff;
+          if (!vert && pos.tailBottom) pos.tailBottom += diff;
+          if (tail && vert) pos.tail = false;
+        }
+
         this.set('position', pos);
       } else {
         this.set('position', null);
