@@ -121,7 +121,6 @@
     }
 
     function refresh(value, old, path) {
-      let adef = h.get('rac.default');
       let v = h.get('rac.displayprop');
       if (h.get('rac.__display') !== v || h.get('rac._display') === undefined) {
         const def = () => h.attributes['display-value'] ? h.get('rac.display') : '(none)';
@@ -260,6 +259,10 @@
         const member = h.get('rac._member')
         const which = h.get('rac.list').find(i => member(i) === v);
         if (which !== h.get('rac.value')) h.set('rac.value', which);
+        if (!which && v && h.get('rac.valueBound')) {
+          h.set('rac.display', v);
+          refresh();
+        }
       }),
       h.observe('rac.selected', scrollView),
     ];
