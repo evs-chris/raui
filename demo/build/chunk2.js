@@ -9,8 +9,11 @@ System.register(['ractive'], function (exports, module) {
     execute: function () {
 
       exports('default', globalRegister);
+      exports('sizeInEm', sizeInEm);
+      exports('sized', sized);
+      exports('sizeInPx', sizeInPx);
       exports('expand', expand);
-      exports('default$3', plugin$1);
+      exports('default$3', plugin$2);
       var win = typeof window !== 'undefined' ? window : null;
 
       function globalRegister(name, registry, constructor) {
@@ -37,6 +40,96 @@ System.register(['ractive'], function (exports, module) {
             Ractive[registry][(aliases && aliases[name]) || name] = constructor;
           }
         }
+      }
+
+      /** @param { HTMLElement } node  */
+      function sized(node, attrs) {
+        var ctx = attrs.context || this.getContext(node);
+        var start = {
+          position: node.style.position,
+          overflowY: node.style.overflowY
+        };
+
+        if (node.style.position === '' || node.style.position === 'static') { node.style.position = 'relative'; }
+
+        var refresh = function () {
+          if (attrs.offsetWidth) { ctx.set(attrs.offsetWidth, node.offsetWidth); }
+          if (attrs.offsetHeight) { ctx.set(attrs.offsetHeight, node.offsetHeight); }
+          if (attrs.clientWidth) { ctx.set(attrs.clientWidth, node.clientWidth); }
+          if (attrs.clientHeight) { ctx.set(attrs.clientHeight, node.clientHeight); }
+          if (attrs.diffWidth) { ctx.set(attrs.diffWidth, node.offsetWidth - node.clientWidth); }
+          if (attrs.diffHeight) { ctx.set(attrs.diffHeight, node.offsetHeight - node.clientHeight); }
+        };
+
+        var obj = initObject(node, refresh);
+
+        return {
+          refresh: refresh,
+          teardown: function teardown() {
+            node.removeChild(obj);
+            node.style.position = start.position;
+            node.style.overflowY = start.overflowY;
+          }
+        }
+      }
+
+      function initObject(parent, refresh) {
+        var obj = document.createElement('object');
+        obj.setAttribute('style', 'display: block; position: absolute; top: 0; left: 0; height: 100%; width: 100%; overflow: hidden; pointer-events: none; z-index: -1;');
+        obj.setAttribute('tabindex', '-1');
+        obj.type = 'text/html';
+
+        obj.onload = function () {
+          obj.contentDocument.defaultView.addEventListener('resize', refresh);
+          refresh();
+        };
+        
+        if (/Trident/.test(navigator.userAgent)) {
+          parent.appendChild(obj);
+          obj.data = 'about:blank';
+        } else {
+          obj.data = 'about:blank';
+          parent.appendChild(obj);
+        }
+
+        return obj;
+      }
+
+      var emSize = 16;
+      var emEl;
+
+      function setEmSize(size) {
+        emSize = size;
+      }
+
+      function initEmEl() {
+        if (!emEl && window && 'document' in window && typeof document.createElement === 'function') {
+          emEl = document.createElement('div');
+          emEl.setAttribute('style', 'position: absolute; left: -2em; width: 1em; height: 1em;');
+
+          initObject(emEl, function () { return setEmSize(emEl.clientWidth); });
+
+          window.addEventListener('resize', function () {
+            initEmEl();
+            setEmSize(emEl.clientWidth);
+          });
+        }
+
+        if (emEl && !emEl.parent) {
+          document.body.appendChild(emEl);
+        }
+      }
+
+      function sizeInEm(px) {
+        if (!emEl) { initEmEl(); }
+        if (typeof px === 'string') { px = px.replace(/[^-.\d]/g, ''); }
+        return +px / emSize;
+      }
+
+      function sizeInPx(em) {
+        if (!emEl) { initEmEl(); }
+        if (typeof em === 'string') { em = em.replace(/[^-.\d]/g, ''); }
+        return +em * emSize;
       }
 
       function expand(t, params) {
@@ -66,7 +159,7 @@ System.register(['ractive'], function (exports, module) {
         });
       }
 
-      function plugin(opts) {
+      function plugin$1(opts) {
         if ( opts === void 0 ) opts = {};
 
         return function(ref) {
@@ -77,14 +170,14 @@ System.register(['ractive'], function (exports, module) {
       }
 
       globalRegister('expand', 'transitions', expand);
-      exports('default$1', plugin);
+      exports('default$1', plugin$1);
 
       var DEFAULTS = {
         timeout: 6000,
         top: true
       };
 
-      function plugin$1(opts) {
+      function plugin$2(opts) {
         if ( opts === void 0 ) opts = {};
 
         var style = function(data) { return [(function(data) {
@@ -363,7 +456,7 @@ System.register(['ractive'], function (exports, module) {
          primary.action = Object.assign({}, data('raui.window.action'), data('raui.window.primary.action'));
          primary.host = Object.assign({}, data('raui.window.host'), data('raui.window.primary.host'));
          primary.title = Object.assign({ inactive: {} }, data('raui.window.title'), data('raui.window.primary.title'));
-         return ("\n   .rwhost {\n     position: relative;\n     display: flex;\n     flex-direction: column;\n     box-sizing: border-box;\n     top: 0;\n     left: 0;\n     width: 100%;\n     height: 100%;\n     background-color: " + (primary.host.bg || primary.bg || '#fff') + ";\n   }\n \n   .rwhost-sizer {\n     position: absolute;\n   }\n \n   .rwhost-pane {\n     display: flex;\n     position: relative;\n     width: 100%;\n     box-sizing: border-box;\n     flex-grow: 2;\n     overflow: auto;\n     z-index: 1;\n   }\n   .rwhost-pane.blocked {\n     overflow: hidden;\n   }\n \n   .rwhost-pane-content {\n     flex-grow: 1;\n   }\n \n   .rwhost-modal {\n     position: absolute;\n     position: --webkit-sticky;\n     position: sticky;\n     top: 0;\n     left: 0;\n     z-index: -1;\n     opacity: 0;\n     transition: opacity 0.2s ease-in-out, z-index 0s linear 0.2s;\n     background-color: #000;\n     width: 100%;\n     height: 100%;\n   }\n   .rwhost-modal-active {\n     opacity: 0.5;\n     z-index: 1;\n     transition: opacity 0.2s ease-in-out, z-index 0s linear;\n   }\n \n   .rwindow-wrapper {\n     display: inline-block;\n     box-sizing: border-box;\n     position: absolute;\n   }\n   .rwindow-wrapper.rwindow-resizing {\n     transition: none;\n   }\n \n   .rwindow-wrapper.rwindow-resizable {\n     padding: " + (primary.handleSize || 7) + "px;\n   }\n \n   .rwindow-slide-left {\n     height: 100%;\n     left: 0;\n   }\n   .rwindow-slide-right {\n     height: 100%;\n     right: 0;\n   }\n   .rwindow-slide-top {\n     width: 100%;\n     top: 0;\n   }\n   .rwindow-slide-bottom {\n     width: 100%;\n     bottom: 0;\n   }\n \n   .rwindow-topmost > .rwindow {\n     box-shadow: 0 6px 10px 0 rgba(0, 0, 0, 0.14), 0 1px 18px 0 rgba(0, 0, 0, 0.12), 0 3px 5px -1px rgba(0, 0, 0, 0.3);\n     opacity: 1;\n   }\n \n   .rwindow-modal {\n     position: absolute;\n     top: 0;\n     bottom: 0;\n     left: 0;\n     right: 0;\n     background-color: rgba(0, 0, 0, 0.5);\n     opacity: 0;\n     z-index: -1;\n     transition: opacity 0.4s ease-in-out, z-index 0s linear 0.4s;\n   }\n   .rwindow-modal.rwindow-blocked {\n     opacity: 1;\n     z-index: 50;\n     transition: opacity 0.4s ease-in-out, z-index 0s linear;\n   }\n \n   .rwindow {\n     position: relative;\n     box-sizing: border-box;\n     background-color: " + (primary.bg || '#fff') + ";\n     color: " + (primary.fg || '#222') + ";\n     box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.14), 0 1px 5px 0 rgba(0, 0, 0, 0.12), 0 3px 1px -2px rgba(0, 0, 0, 0.2);\n     border-radius: 2px;\n     overflow: hidden;\n     width: 100%;\n     height: 100%;\n     min-width: " + (primary.minWidth || '6em') + ";\n     min-height: " + (primary.minHeight || '6em') + ";\n     transition: box-shadow 0.4s ease-in-out, opacity 0.4s ease-in-out;\n   }\n   .rwindow-max > .rwindow {\n    border-radius: 0;\n    box-shadow: none;\n   }\n \n   .rwindow-pane-top,\n   .rwindow-max-top {\n     background-color: " + (primary.title.inactive.bg || primary.fg || '#222') + ";\n     color: " + (primary.title.inactive.fg || primary.bg || '#fff') + ";\n     flex-shrink: 0;\n   }\n \n   .rwindow-max-top {\n     flex-shrink: 2;\n   }\n \n   .rwindow-pane-top {\n     display: flex;\n     align-items: center;\n   }\n \n   .rwindow-topmost .rwindow-pane-top {\n     background-color: " + (primary.title.bg || primary.fga || '#07e') + ";\n     color: " + (primary.title.fg || primary.bg || '#fff') + ";\n   }\n \n   .rwindow-pane {\n     display: flex;\n     flex-direction: column;\n     table-layout: fixed;\n     width: 100%;\n     height: 100%;\n   }\n   .rwindow-autosizing {\n     display: block;\n     box-sizing: border-box;\n   }\n   .rwindow-content {\n     overflow: auto;\n     flex-grow: 2;\n     position: relative;\n     box-sizing: border-box;\n   }\n   .rwindow-content.rwindow-pad {\n     padding: 1em;\n   }\n   .rwindow-content.rwindow-flex {\n     display: flex;\n     flex-direction: column;\n   }\n \n   .rwindow-buttons {\n     display: flex;\n     flex-shrink: 0;\n     padding: 0.5em;\n     border-top: 1px solid " + (primary.action.bc || primary.bc || '#ccc') + ";\n     background-color: " + (primary.action.bg || primary.bg || '#fff') + ";\n     color: " + (primary.action.fg || primary.fg || '#222') + ";\n   }\n   .rwindow-buttons.no-buttons {\n     display: none;\n   }\n   .rwindow-left-buttons {\n     text-align: left;\n     flex-grow: 2;\n   }\n   .rwindow-left-buttons button {\n     margin-right: 0.5em;\n   }\n   .rwindow-center-buttons {\n     text-align: center;\n     flex-shrink: 2;\n   }\n   .rwindow-center-buttons button {\n     margin: 0 0.25em;\n   }\n   .rwindow-right-buttons {\n     text-align: right;\n     flex-grow: 2;\n   }\n   .rwindow-right-buttons button {\n     margin-left: 0.5em;\n   }\n \n   .rwindow-title {\n     overflow: hidden;\n     text-overflow: ellipsis;\n     padding: 0.5em;\n     white-space: nowrap;\n     box-sizing: border-box;\n     flex-grow: 1;\n   }\n \n   .rwindow-controls {\n     display: flex;\n     justify-content: flex-end;\n     align-items: center;\n     flex-grow: 1;\n   }\n   .rwindow-controls > div {\n     margin: 0 1em 0 0;\n     width: 0.7em;\n     height: 0.7em;\n     cursor: pointer;\n   }\n   .rwindow-minimize {\n     border-bottom: 2px solid;\n   }\n   .rwindow-maximize {\n     border: 2px solid;\n   }\n   .rwindow-controls > .rwindow-close {\n     width: 0.5em;\n     height: 1em;\n     border-right: 2px solid;\n     transform: rotate(45deg);\n     transform-origin: center right;\n     position: relative;\n     margin-right: 1.5em;\n   }\n   .rwindow-close:before {\n     cursor: pointer;\n     height: 1.2em;\n     width: 1.2em;\n     top: 0.3em;\n     left: 0.1em;\n     content: ' ';\n     transform: rotate(-45deg);\n     transform-origin: center left;\n     position: absolute;\n   }\n   .rwindow-close:after {\n     cursor: pointer;\n     height: 100%;\n     width: 100%;\n     top: 1px;\n     left: calc(100% + 1px);\n     content: ' ';\n     border-left: 2px solid;\n     transform: rotate(-90deg);\n     transform-origin: center left;\n     position: absolute;\n   }\n   .rwindow-max-top .rwindow-controls > .rwindow-close {\n     margin-right: 0.5em;\n   }\n   " + (typeof data('raui.window.extra') === 'function' ? data('raui.window.extra').call(this, data) : '') + "\n   ");
+         return ("\n   .rwhost {\n     position: relative;\n     display: flex;\n     flex-direction: column;\n     box-sizing: border-box;\n     top: 0;\n     left: 0;\n     width: 100%;\n     height: 100%;\n     background-color: " + (primary.host.bg || primary.bg || '#fff') + ";\n   }\n \n   .rwhost-pane {\n     display: flex;\n     position: relative;\n     width: 100%;\n     box-sizing: border-box;\n     flex-grow: 2;\n     overflow: auto;\n     z-index: 1;\n   }\n   .rwhost-pane.blocked {\n     overflow: hidden;\n   }\n \n   .rwhost-pane-content {\n     flex-grow: 1;\n   }\n \n   .rwhost-modal {\n     position: absolute;\n     position: --webkit-sticky;\n     position: sticky;\n     top: 0;\n     left: 0;\n     z-index: -1;\n     opacity: 0;\n     transition: opacity 0.2s ease-in-out, z-index 0s linear 0.2s;\n     background-color: #000;\n     width: 100%;\n     height: 100%;\n   }\n   .rwhost-modal-active {\n     opacity: 0.5;\n     z-index: 1;\n     transition: opacity 0.2s ease-in-out, z-index 0s linear;\n   }\n \n   .rwindow-wrapper {\n     display: inline-block;\n     box-sizing: border-box;\n     position: absolute;\n   }\n   .rwindow-wrapper.rwindow-resizing {\n     transition: none;\n   }\n \n   .rwindow-wrapper.rwindow-resizable {\n     padding: " + (primary.handleSize || 7) + "px;\n   }\n \n   .rwindow-slide-left {\n     height: 100%;\n     left: 0;\n   }\n   .rwindow-slide-right {\n     height: 100%;\n     right: 0;\n   }\n   .rwindow-slide-top {\n     width: 100%;\n     top: 0;\n   }\n   .rwindow-slide-bottom {\n     width: 100%;\n     bottom: 0;\n   }\n \n   .rwindow-topmost > .rwindow {\n     box-shadow: 0 6px 10px 0 rgba(0, 0, 0, 0.14), 0 1px 18px 0 rgba(0, 0, 0, 0.12), 0 3px 5px -1px rgba(0, 0, 0, 0.3);\n     opacity: 1;\n   }\n \n   .rwindow-modal {\n     position: absolute;\n     top: 0;\n     bottom: 0;\n     left: 0;\n     right: 0;\n     background-color: rgba(0, 0, 0, 0.5);\n     opacity: 0;\n     z-index: -1;\n     transition: opacity 0.4s ease-in-out, z-index 0s linear 0.4s;\n   }\n   .rwindow-modal.rwindow-blocked {\n     opacity: 1;\n     z-index: 50;\n     transition: opacity 0.4s ease-in-out, z-index 0s linear;\n   }\n \n   .rwindow {\n     position: relative;\n     box-sizing: border-box;\n     background-color: " + (primary.bg || '#fff') + ";\n     color: " + (primary.fg || '#222') + ";\n     box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.14), 0 1px 5px 0 rgba(0, 0, 0, 0.12), 0 3px 1px -2px rgba(0, 0, 0, 0.2);\n     border-radius: 2px;\n     overflow: hidden;\n     width: 100%;\n     height: 100%;\n     min-width: " + (primary.minWidth || '6em') + ";\n     min-height: " + (primary.minHeight || '6em') + ";\n     transition: box-shadow 0.4s ease-in-out, opacity 0.4s ease-in-out;\n   }\n   .rwindow-max > .rwindow {\n    border-radius: 0;\n    box-shadow: none;\n   }\n \n   .rwindow-pane-top,\n   .rwindow-max-top {\n     background-color: " + (primary.title.inactive.bg || primary.fg || '#222') + ";\n     color: " + (primary.title.inactive.fg || primary.bg || '#fff') + ";\n     flex-shrink: 0;\n   }\n \n   .rwindow-max-top {\n     flex-shrink: 2;\n   }\n \n   .rwindow-pane-top {\n     display: flex;\n     align-items: center;\n   }\n \n   .rwindow-topmost .rwindow-pane-top {\n     background-color: " + (primary.title.bg || primary.fga || '#07e') + ";\n     color: " + (primary.title.fg || primary.bg || '#fff') + ";\n   }\n \n   .rwindow-pane {\n     display: flex;\n     flex-direction: column;\n     table-layout: fixed;\n     width: 100%;\n     height: 100%;\n   }\n   .rwindow-autosizing {\n     display: block;\n     box-sizing: border-box;\n   }\n   .rwindow-content {\n     overflow: auto;\n     flex-grow: 2;\n     position: relative;\n     box-sizing: border-box;\n   }\n   .rwindow-content.rwindow-pad {\n     padding: 1em;\n   }\n   .rwindow-content.rwindow-flex {\n     display: flex;\n     flex-direction: column;\n   }\n \n   .rwindow-buttons {\n     display: flex;\n     flex-shrink: 0;\n     padding: 0.5em;\n     border-top: 1px solid " + (primary.action.bc || primary.bc || '#ccc') + ";\n     background-color: " + (primary.action.bg || primary.bg || '#fff') + ";\n     color: " + (primary.action.fg || primary.fg || '#222') + ";\n   }\n   .rwindow-buttons.no-buttons {\n     display: none;\n   }\n   .rwindow-left-buttons {\n     text-align: left;\n     flex-grow: 2;\n   }\n   .rwindow-left-buttons button {\n     margin-right: 0.5em;\n   }\n   .rwindow-center-buttons {\n     text-align: center;\n     flex-shrink: 2;\n   }\n   .rwindow-center-buttons button {\n     margin: 0 0.25em;\n   }\n   .rwindow-right-buttons {\n     text-align: right;\n     flex-grow: 2;\n   }\n   .rwindow-right-buttons button {\n     margin-left: 0.5em;\n   }\n \n   .rwindow-title {\n     overflow: hidden;\n     text-overflow: ellipsis;\n     padding: 0.5em;\n     white-space: nowrap;\n     box-sizing: border-box;\n     flex-grow: 1;\n   }\n \n   .rwindow-controls {\n     display: flex;\n     justify-content: flex-end;\n     align-items: center;\n     flex-grow: 1;\n   }\n   .rwindow-controls > div {\n     margin: 0 1em 0 0;\n     width: 0.7em;\n     height: 0.7em;\n     cursor: pointer;\n   }\n   .rwindow-minimize {\n     border-bottom: 2px solid;\n   }\n   .rwindow-maximize {\n     border: 2px solid;\n   }\n   .rwindow-controls > .rwindow-close {\n     width: 0.5em;\n     height: 1em;\n     border-right: 2px solid;\n     transform: rotate(45deg);\n     transform-origin: center right;\n     position: relative;\n     margin-right: 1.5em;\n   }\n   .rwindow-close:before {\n     cursor: pointer;\n     height: 1.2em;\n     width: 1.2em;\n     top: 0.3em;\n     left: 0.1em;\n     content: ' ';\n     transform: rotate(-45deg);\n     transform-origin: center left;\n     position: absolute;\n   }\n   .rwindow-close:after {\n     cursor: pointer;\n     height: 100%;\n     width: 100%;\n     top: 1px;\n     left: calc(100% + 1px);\n     content: ' ';\n     border-left: 2px solid;\n     transform: rotate(-90deg);\n     transform-origin: center left;\n     position: absolute;\n   }\n   .rwindow-max-top .rwindow-controls > .rwindow-close {\n     margin-right: 0.5em;\n   }\n   " + (typeof data('raui.window.extra') === 'function' ? data('raui.window.extra').call(this, data) : '') + "\n   ");
       }).call(this, data)].join(' '); },
         cssId: 'rwindow',
         noCssTransform: true,
@@ -686,8 +779,8 @@ System.register(['ractive'], function (exports, module) {
               var lh = local.height;
 
               if (local.dialog && (!local.size || local.size === 'auto' || !local.width || !local.height)) {
-                lw = this$1.sizeInEm(wnd.pane.clientWidth);
-                lh = this$1.sizeInEm(wnd.pane.clientHeight);
+                lw = sizeInEm(wnd.pane.clientWidth);
+                lh = sizeInEm(wnd.pane.clientHeight);
               }
 
               // if it's blocking, center on blocked
@@ -697,13 +790,13 @@ System.register(['ractive'], function (exports, module) {
                 var blocked = this$1.get(key);
                 var max = local.max || (!local.dialog && (this$1.get('max') || this$1.get('userMax')));
                 var bmax = blocked.max || this$1.get('userMax') || this$1.get('max');
-                var bw = bmax ? this$1.host.clientWidth : this$1.sizeInPx(((blocked.width) + "em"));
-                var bh = bmax ? this$1.host.clientHeight : this$1.sizeInPx(((blocked.height) + "em"));
+                var bw = bmax ? this$1.host.clientWidth : sizeInPx(((blocked.width) + "em"));
+                var bh = bmax ? this$1.host.clientHeight : sizeInPx(((blocked.height) + "em"));
                 var bl = bmax ? 0 : blocked.left;
                 var bt = bmax ? 0 : blocked.top;
 
-                left = (max ? maxw : bw / 2) + (max ? 0 : bl) - (this$1.sizeInPx((lw + "em")) / 2);
-                top = (max ? maxh : bh / 2) + (max ? 0 : bt) - (this$1.sizeInPx((lh + "em")) / 2);
+                left = (max ? maxw : bw / 2) + (max ? 0 : bl) - (sizeInPx(lw) / 2);
+                top = (max ? maxh : bh / 2) + (max ? 0 : bt) - (sizeInPx(lh) / 2);
               }
 
               // place in 3x3 grid
@@ -745,17 +838,6 @@ System.register(['ractive'], function (exports, module) {
           });
         };
 
-        Host.prototype.sizeInPx = function sizeInPx (size) {
-          if (!this.sizer) { return parseFloat(size) * 16; }
-          this.sizer.style.width = typeof size === 'number' ? (size + "px") : size;
-          return this.sizer.clientWidth;
-        };
-
-        Host.prototype.sizeInEm = function sizeInEm (size) {
-          var px = this.sizeInPx(size);
-          return px / this.sizeInPx('1em');
-        };
-
         Object.defineProperties( Host.prototype, prototypeAccessors );
 
         return Host;
@@ -772,8 +854,8 @@ System.register(['ractive'], function (exports, module) {
 
         var width = Math.floor(maxw / 3);
         var height = Math.floor(maxh / 3);
-        var localWidth = host.sizeInPx(node.width + 'em');
-        var localHeight = host.sizeInPx(node.height + 'em');
+        var localWidth = sizeInPx(node.width);
+        var localHeight = sizeInPx(node.height + 'em');
 
         switch (grid1) {
           case 5: case 7: case 8:
@@ -825,7 +907,7 @@ System.register(['ractive'], function (exports, module) {
         for (var k in windows) {
           wins++;
           win = windows[k];
-          t = Math.floor(win.top / cell); l = Math.floor(win.left / cell); h = Math.ceil(host.sizeInPx(win.height + 'em') / cell); w = Math.ceil(host.sizeInPx(win.width + 'em') / cell);
+          t = Math.floor(win.top / cell); l = Math.floor(win.left / cell); h = Math.ceil(sizeInPx(win.height) / cell); w = Math.ceil(sizeInPx(win.width) / cell);
           for (i = t; i < t + h && i < mh; i++) {
             for (j = l; j < l + w && j < mw; j++) {
               grid[i * mw + j]++;
@@ -835,8 +917,8 @@ System.register(['ractive'], function (exports, module) {
 
         // compute each cell
         var c, ii, jj;
-        w = Math.ceil(host.sizeInPx(node.width + 'em') / cell);
-        h = Math.ceil(host.sizeInPx(node.height + 'em') / cell);
+        w = Math.ceil(sizeInPx(node.width) / cell);
+        h = Math.ceil(sizeInPx(node.height) / cell);
         for (i = 0; i < mh; i++) {
           for (j = 0; j < mw; j++) {
             if (i + h > mh || j + w > mw) { c = wins * w * h; }
@@ -867,8 +949,8 @@ System.register(['ractive'], function (exports, module) {
       }
 
       Base.extendWith(Host, {
-        template: {v:4,t:[{t:7,e:"div",m:[{t:13,n:"class",f:"rwhost",g:1},{n:"tracked",t:71,f:{r:[],s:"[\"host\"]"}},{t:16,r:"extra-attributes"}],f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rwhost-sizer",g:1},{n:"tracked",t:71,f:{r:[],s:"[\"sizer\"]"}}]}," ",{t:4,f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rwindow-max-top",g:1},{t:4,f:[{t:16,r:"~/_maxAttrsP"}],n:50,r:"~/_maxAttrsP"}],f:[{t:16,r:"~/_maxP",z:[{n:"window",x:{r:"~/current"}},{n:"windowControls",x:{x:{r:["@this.partials.windowControls"],s:"{t:_0}"}}},{n:"host",x:{r:"@this"}}]}]}],n:50,x:{r:["~/currentMax","~/_maxP"],s:"_0&&_1"}}," ",{t:7,e:"div",m:[{t:13,n:"class",f:"rwhost-pane",g:1},{n:"class-rwhost-blocked",t:13,f:[{t:2,r:"~/blocked"}]}],f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rwhost-pane-content",g:1}],f:[{t:16}]}," ",{t:4,f:[{t:11,n:"window",m:[{n:"control",f:[{t:2,rx:{r:"~/windows",m:[{t:30,n:".instance.id"}]}}],t:13},{n:"root",t:13,f:[{t:2,r:"~/"}]}]}],n:52,r:"@this.children.byName.window"}," ",{t:7,e:"div",m:[{t:13,n:"class",f:"rwhost-modal",g:1},{n:"tracked",t:71,f:{r:[],s:"[\"modalPane\"]"}},{t:4,f:[{n:"class-rwhost-modal-active",t:13},{n:"style-z-index",f:[{t:2,r:"~/blocked"}],t:13}],n:50,r:"~/blocked"}]}]}," ",{t:8,r:"toast"}]}],e:{"[\"host\"]":function (){return(["host"]);},"[\"sizer\"]":function (){return(["sizer"]);},"{t:_0}":function (_0){return({t:_0});},"_0&&_1":function (_0,_1){return(_0&&_1);},"[\"modalPane\"]":function (){return(["modalPane"]);},"[_0.getWindow(_1).hide()]":function (_0,_1){return([_0.getWindow(_1).hide()]);},"!_0&&_1":function (_0,_1){return(!_0&&_1);},"[_0.getWindow(_1).maximize()]":function (_0,_1){return([_0.getWindow(_1).maximize()]);},"!_0&&_1&&_2":function (_0,_1,_2){return(!_0&&_1&&_2);},"[_0.getWindow(_1).close()]":function (_0,_1){return([_0.getWindow(_1).close()]);},"[\"top\"]":function (){return(["top"]);},"[_0.hide()]":function (_0){return([_0.hide()]);},"[_0.maximize()]":function (_0){return([_0.maximize()]);},"[_0.close()]":function (_0){return([_0.close()]);},"!((_0||_1||_2)&&_3&&!_4)&&!_5&&!_6":function (_0,_1,_2,_3,_4,_5,_6){return(!((_0||_1||_2)&&_3&&!_4)&&!_5&&!_6);},"[\"content\"]":function (){return(["content"]);},"!_0":function (_0){return(!_0);},"[_0.call(_1)]":function (_0,_1){return([_0.call(_1)]);},"[\"wrapper\"]":function (){return(["wrapper"]);},"_0!==false":function (_0){return(_0!==false);},"_0||_1":function (_0,_1){return(_0||_1);},"(_0||_1||_2)&&!_3&&!_4":function (_0,_1,_2,_3,_4){return((_0||_1||_2)&&!_3&&!_4);},"[{from:_0}]":function (_0){return([{from:_0}]);},"[_0._startResize(_1)]":function (_0,_1){return([_0._startResize(_1)]);},"[_0._sizeHandle(_1)]":function (_0,_1){return([_0._sizeHandle(_1)]);},"[_0._startMove(_1)]":function (_0,_1){return([_0._startMove(_1)]);},"!(_4===false||((_0||_1)&&!_3)||_2)&&(!_3||_4===true)&&!_5":function (_0,_1,_2,_3,_4,_5){return(!(_4===false||((_0||_1)&&!_3)||_2)&&(!_3||_4===true)&&!_5);},"[_0.raise()]":function (_0){return([_0.raise()]);},"[\"pane\"]":function (){return(["pane"]);},"_0&&!_1":function (_0,_1){return(_0&&!_1);}},p:{title:[{t:4,f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rwindow-title",g:1}],f:[{t:3,r:"~/control.title"}]}],n:50,r:"~/control.title"}],windowControls:[{t:7,e:"div",m:[{t:13,n:"class",f:"rwindow-controls",g:1}],f:[{t:4,f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rwindow-minimize",g:1},{n:["click"],t:70,f:{r:["host","window.id"],s:"[_0.getWindow(_1).hide()]"}}]}],n:50,x:{r:["window.dialog","window.minimize"],s:"!_0&&_1"}}," ",{t:4,f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rwindow-maximize",g:1},{n:["click"],t:70,f:{r:["host","window.id"],s:"[_0.getWindow(_1).maximize()]"}}]}],n:50,x:{r:["window.dialog","window.maximize","host.data.userMax"],s:"!_0&&_1&&_2"}}," ",{t:4,f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rwindow-close",g:1},{n:["click"],t:70,f:{r:["host","window.id"],s:"[_0.getWindow(_1).close()]"}}]}],n:50,r:"window.close"}]}],pane:[{t:4,f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rwindow-pane-top",g:1},{n:"tracked",t:71,f:{r:[],s:"[\"top\"]"}}],f:[{t:8,r:"title"}," ",{t:7,e:"div",m:[{t:13,n:"class",f:"rwindow-controls",g:1}],f:[{t:4,f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rwindow-minimize",g:1},{n:["click"],t:70,f:{r:["@this"],s:"[_0.hide()]"}}]}],n:50,x:{r:["~/control.dialog","~/control.minimize"],s:"!_0&&_1"}}," ",{t:4,f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rwindow-maximize",g:1},{n:["click"],t:70,f:{r:["@this"],s:"[_0.maximize()]"}}]}],n:50,x:{r:["~/control.dialog","~/control.maximize"],s:"!_0&&_1"}}," ",{t:4,f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rwindow-close",g:1},{n:["click"],t:70,f:{r:["@this"],s:"[_0.close()]"}}]}],n:50,r:"~/control.close"}]}]}],n:50,x:{r:["~/control.max","~/root.userMax","~/root.max","~/root.hideTitleMax","~/control.dialog","~/control.hideTitle","~/control.slide"],s:"!((_0||_1||_2)&&_3&&!_4)&&!_5&&!_6"}}," ",{t:7,e:"div",m:[{t:13,n:"class",f:"rwindow-content",g:1},{n:"tracked",t:71,f:{r:[],s:"[\"content\"]"}},{n:"class-rwindow-pad",t:13,f:[{t:2,r:"~/control.pad"}]},{n:"class-rwindow-flex",t:13,f:[{t:2,r:"~/control.flex"}]},{t:4,f:[{n:"style-overflow",f:"visible",t:13}],n:50,r:"~/control.autosize"}],f:[{t:8,r:"contents"}]}," ",{t:4,f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rwindow-buttons",g:1},{n:"class-no-buttons",t:13,f:[{t:2,x:{r:["~/visibleButtons"],s:"!_0"}}]}],f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rwindow-left-buttons",g:1}],f:[{t:4,f:[{t:4,f:[{t:8,r:".partial"}],n:50,r:".partial"},{t:4,f:[{t:7,e:"button",m:[{n:"button",t:71},{n:["click"],t:70,f:{r:[".action","@"],s:"[_0.call(_1)]"}},{t:4,f:[{n:"class",f:[{t:2,r:".class"}],t:13}],n:50,r:".class"}],f:[{t:2,r:".label"}]}],n:51,l:1}],n:52,r:"~/leftButtons"}]}," ",{t:7,e:"div",m:[{t:13,n:"class",f:"rwindow-center-buttons",g:1}],f:[{t:4,f:[{t:4,f:[{t:8,r:".partial"}],n:50,r:".partial"},{t:4,f:[{t:7,e:"button",m:[{n:"button",t:71},{n:["click"],t:70,f:{r:[".action","@"],s:"[_0.call(_1)]"}},{t:4,f:[{n:"class",f:[{t:2,r:".class"}],t:13}],n:50,r:".class"}],f:[{t:2,r:".label"}]}],n:51,l:1}],n:52,r:"~/centerButtons"}]}," ",{t:7,e:"div",m:[{t:13,n:"class",f:"rwindow-right-buttons",g:1}],f:[{t:4,f:[{t:4,f:[{t:8,r:".partial"}],n:50,r:".partial"},{t:4,f:[{t:7,e:"button",m:[{n:"button",t:71},{n:["click"],t:70,f:{r:[".action","@"],s:"[_0.call(_1)]"}},{t:4,f:[{n:"class",f:[{t:2,r:".class"}],t:13}],n:50,r:".class"}],f:[{t:2,r:".label"}]}],n:51,l:1}],n:52,r:"~/rightButtons"}]}]}],n:50,r:"~/buttons"}," ",{t:7,e:"div",m:[{t:13,n:"class",f:"rwindow-pane-bottom",g:1}],f:[{t:8,r:"status"}]}],window:[{t:4,f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rwindow-wrapper",g:1},{n:"tracked",t:71,f:{r:[],s:"[\"wrapper\"]"}},{t:4,f:[" ",{t:4,f:[{n:"window",t:72,v:"t2"}],n:50,x:{r:["~/root.transition"],s:"_0!==false"}}," ",{t:4,f:[{n:"style-top",f:"0",t:13},{n:"style-left",f:"0",t:13},{n:"style-width",f:"100%",t:13},{n:"style-height",f:"100%",t:13}],n:51,x:{r:["~/control.autosize","~/control.dialog"],s:"_0||_1"}},{n:"class-rwindow-max",t:13}],n:50,x:{r:["~/root.max","~/root.userMax","~/control.max","~/control.dialog","~/control.slide"],s:"(_0||_1||_2)&&!_3&&!_4"}},{t:4,f:[{n:"class",f:["rwindow-slide rwindow-slide-",{t:2,r:"~/control.slide"}],t:13},{n:"slide",t:72,f:{r:["~/control.slide"],s:"[{from:_0}]"},v:"t0"}],n:50,r:"~/control.slide",l:1},{t:4,f:[" ",{t:4,f:[{n:"modal",t:72,v:"t0"}],n:50,x:{r:["~/root.transition"],s:"_0!==false"}}," ",{t:4,f:[{n:"class-rwindow-resizable",t:13},{n:["mousedown","touchstart"],t:70,f:{r:["@this","@event"],s:"[_0._startResize(_1)]"}},{n:["mousemove","mouseout"],t:70,f:{r:["@this","@event"],s:"[_0._sizeHandle(_1)]"}}],n:50,r:"~/control.resizable"}," ",{t:4,f:[{n:"class-rwindow-resizing",t:13}],n:50,r:"~/control.resizing"},{n:"style-top",f:[{t:2,r:"~/control.top"},"px"],t:13},{n:"style-left",f:[{t:2,r:"~/control.left"},"px"],t:13},{t:4,f:[{n:"style-width",f:[{t:2,r:"~/control.width"},"em"],t:13},{n:"style-height",f:[{t:2,r:"~/control.height"},"em"],t:13}],n:51,r:"~/control.autosize"}],n:51,l:1},{n:"style-z-index",f:[{t:2,r:"~/control.index"}],t:13},{n:"class-rwindow-topmost",t:13,f:[{t:2,r:"~/control.topmost"}]}],f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rwindow",g:1},{t:4,f:[{n:["mousedown","touchstart"],t:70,f:{r:["@this","@event"],s:"[_0._startMove(_1)]"}}],n:50,x:{r:["~/root.max","~/root.userMax","~/control.max","~/control.dialog","~/control.movable","~/control.slide"],s:"!(_4===false||((_0||_1)&&!_3)||_2)&&(!_3||_4===true)&&!_5"}},{t:4,f:[{n:["mousedown","touchstart"],t:70,f:{r:["@this"],s:"[_0.raise()]"}}],n:50,x:{r:["~/control.topmost"],s:"!_0"},l:1}],f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rwindow-modal",g:1},{n:"class-rwindow-blocked",t:13,f:[{t:2,x:{r:["~/control.blockers.length","~/control.blocked"],s:"_0||_1"}}]}]}," ",{t:7,e:"div",m:[{t:13,n:"class",f:"rwindow-pane",g:1},{n:"tracked",t:71,f:{r:[],s:"[\"pane\"]"}},{t:4,f:[{n:"class-rwindow-autosizing",t:13}],n:50,x:{r:["~/control.autosize","~/control.slide"],s:"_0&&!_1"}}],f:[{t:8,r:"pane"}]}]}]}],n:50,r:"~/control.show"}]}},
-        use: [plugin$1(), plugin()],
+        template: {v:4,t:[{t:7,e:"div",m:[{t:13,n:"class",f:"rwhost",g:1},{n:"tracked",t:71,f:{r:[],s:"[\"host\"]"}},{t:16,r:"extra-attributes"}],f:[{t:4,f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rwindow-max-top",g:1},{t:4,f:[{t:16,r:"~/_maxAttrsP"}],n:50,r:"~/_maxAttrsP"}],f:[{t:16,r:"~/_maxP",z:[{n:"window",x:{r:"~/current"}},{n:"windowControls",x:{x:{r:["@this.partials.windowControls"],s:"{t:_0}"}}},{n:"host",x:{r:"@this"}}]}]}],n:50,x:{r:["~/currentMax","~/_maxP"],s:"_0&&_1"}}," ",{t:7,e:"div",m:[{t:13,n:"class",f:"rwhost-pane",g:1},{n:"class-rwhost-blocked",t:13,f:[{t:2,r:"~/blocked"}]}],f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rwhost-pane-content",g:1}],f:[{t:16}]}," ",{t:4,f:[{t:11,n:"window",m:[{n:"control",f:[{t:2,rx:{r:"~/windows",m:[{t:30,n:".instance.id"}]}}],t:13},{n:"root",t:13,f:[{t:2,r:"~/"}]}]}],n:52,r:"@this.children.byName.window"}," ",{t:7,e:"div",m:[{t:13,n:"class",f:"rwhost-modal",g:1},{n:"tracked",t:71,f:{r:[],s:"[\"modalPane\"]"}},{t:4,f:[{n:"class-rwhost-modal-active",t:13},{n:"style-z-index",f:[{t:2,r:"~/blocked"}],t:13}],n:50,r:"~/blocked"}]}]}," ",{t:8,r:"toast"}]}],e:{"[\"host\"]":function (){return(["host"]);},"{t:_0}":function (_0){return({t:_0});},"_0&&_1":function (_0,_1){return(_0&&_1);},"[\"modalPane\"]":function (){return(["modalPane"]);},"[_0.getWindow(_1).hide()]":function (_0,_1){return([_0.getWindow(_1).hide()]);},"!_0&&_1":function (_0,_1){return(!_0&&_1);},"[_0.getWindow(_1).maximize()]":function (_0,_1){return([_0.getWindow(_1).maximize()]);},"!_0&&_1&&_2":function (_0,_1,_2){return(!_0&&_1&&_2);},"[_0.getWindow(_1).close()]":function (_0,_1){return([_0.getWindow(_1).close()]);},"[\"top\"]":function (){return(["top"]);},"[_0.hide()]":function (_0){return([_0.hide()]);},"[_0.maximize()]":function (_0){return([_0.maximize()]);},"[_0.close()]":function (_0){return([_0.close()]);},"!((_0||_1||_2)&&_3&&!_4)&&!_5&&!_6":function (_0,_1,_2,_3,_4,_5,_6){return(!((_0||_1||_2)&&_3&&!_4)&&!_5&&!_6);},"[\"content\"]":function (){return(["content"]);},"!_0":function (_0){return(!_0);},"[_0.call(_1)]":function (_0,_1){return([_0.call(_1)]);},"[\"wrapper\"]":function (){return(["wrapper"]);},"_0!==false":function (_0){return(_0!==false);},"_0||_1":function (_0,_1){return(_0||_1);},"(_0||_1||_2)&&!_3&&!_4":function (_0,_1,_2,_3,_4){return((_0||_1||_2)&&!_3&&!_4);},"[{from:_0}]":function (_0){return([{from:_0}]);},"[_0._startResize(_1)]":function (_0,_1){return([_0._startResize(_1)]);},"[_0._sizeHandle(_1)]":function (_0,_1){return([_0._sizeHandle(_1)]);},"[_0._startMove(_1)]":function (_0,_1){return([_0._startMove(_1)]);},"!(_4===false||((_0||_1)&&!_3)||_2)&&(!_3||_4===true)&&!_5":function (_0,_1,_2,_3,_4,_5){return(!(_4===false||((_0||_1)&&!_3)||_2)&&(!_3||_4===true)&&!_5);},"[_0.raise()]":function (_0){return([_0.raise()]);},"[\"pane\"]":function (){return(["pane"]);},"_0&&!_1":function (_0,_1){return(_0&&!_1);}},p:{title:[{t:4,f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rwindow-title",g:1}],f:[{t:3,r:"~/control.title"}]}],n:50,r:"~/control.title"}],windowControls:[{t:7,e:"div",m:[{t:13,n:"class",f:"rwindow-controls",g:1}],f:[{t:4,f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rwindow-minimize",g:1},{n:["click"],t:70,f:{r:["host","window.id"],s:"[_0.getWindow(_1).hide()]"}}]}],n:50,x:{r:["window.dialog","window.minimize"],s:"!_0&&_1"}}," ",{t:4,f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rwindow-maximize",g:1},{n:["click"],t:70,f:{r:["host","window.id"],s:"[_0.getWindow(_1).maximize()]"}}]}],n:50,x:{r:["window.dialog","window.maximize","host.data.userMax"],s:"!_0&&_1&&_2"}}," ",{t:4,f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rwindow-close",g:1},{n:["click"],t:70,f:{r:["host","window.id"],s:"[_0.getWindow(_1).close()]"}}]}],n:50,r:"window.close"}]}],pane:[{t:4,f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rwindow-pane-top",g:1},{n:"tracked",t:71,f:{r:[],s:"[\"top\"]"}}],f:[{t:8,r:"title"}," ",{t:7,e:"div",m:[{t:13,n:"class",f:"rwindow-controls",g:1}],f:[{t:4,f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rwindow-minimize",g:1},{n:["click"],t:70,f:{r:["@this"],s:"[_0.hide()]"}}]}],n:50,x:{r:["~/control.dialog","~/control.minimize"],s:"!_0&&_1"}}," ",{t:4,f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rwindow-maximize",g:1},{n:["click"],t:70,f:{r:["@this"],s:"[_0.maximize()]"}}]}],n:50,x:{r:["~/control.dialog","~/control.maximize"],s:"!_0&&_1"}}," ",{t:4,f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rwindow-close",g:1},{n:["click"],t:70,f:{r:["@this"],s:"[_0.close()]"}}]}],n:50,r:"~/control.close"}]}]}],n:50,x:{r:["~/control.max","~/root.userMax","~/root.max","~/root.hideTitleMax","~/control.dialog","~/control.hideTitle","~/control.slide"],s:"!((_0||_1||_2)&&_3&&!_4)&&!_5&&!_6"}}," ",{t:7,e:"div",m:[{t:13,n:"class",f:"rwindow-content",g:1},{n:"tracked",t:71,f:{r:[],s:"[\"content\"]"}},{n:"class-rwindow-pad",t:13,f:[{t:2,r:"~/control.pad"}]},{n:"class-rwindow-flex",t:13,f:[{t:2,r:"~/control.flex"}]},{t:4,f:[{n:"style-overflow",f:"visible",t:13}],n:50,r:"~/control.autosize"}],f:[{t:8,r:"contents"}]}," ",{t:4,f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rwindow-buttons",g:1},{n:"class-no-buttons",t:13,f:[{t:2,x:{r:["~/visibleButtons"],s:"!_0"}}]}],f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rwindow-left-buttons",g:1}],f:[{t:4,f:[{t:4,f:[{t:8,r:".partial"}],n:50,r:".partial"},{t:4,f:[{t:7,e:"button",m:[{n:"button",t:71},{n:["click"],t:70,f:{r:[".action","@"],s:"[_0.call(_1)]"}},{t:4,f:[{n:"class",f:[{t:2,r:".class"}],t:13}],n:50,r:".class"}],f:[{t:2,r:".label"}]}],n:51,l:1}],n:52,r:"~/leftButtons"}]}," ",{t:7,e:"div",m:[{t:13,n:"class",f:"rwindow-center-buttons",g:1}],f:[{t:4,f:[{t:4,f:[{t:8,r:".partial"}],n:50,r:".partial"},{t:4,f:[{t:7,e:"button",m:[{n:"button",t:71},{n:["click"],t:70,f:{r:[".action","@"],s:"[_0.call(_1)]"}},{t:4,f:[{n:"class",f:[{t:2,r:".class"}],t:13}],n:50,r:".class"}],f:[{t:2,r:".label"}]}],n:51,l:1}],n:52,r:"~/centerButtons"}]}," ",{t:7,e:"div",m:[{t:13,n:"class",f:"rwindow-right-buttons",g:1}],f:[{t:4,f:[{t:4,f:[{t:8,r:".partial"}],n:50,r:".partial"},{t:4,f:[{t:7,e:"button",m:[{n:"button",t:71},{n:["click"],t:70,f:{r:[".action","@"],s:"[_0.call(_1)]"}},{t:4,f:[{n:"class",f:[{t:2,r:".class"}],t:13}],n:50,r:".class"}],f:[{t:2,r:".label"}]}],n:51,l:1}],n:52,r:"~/rightButtons"}]}]}],n:50,r:"~/buttons"}," ",{t:7,e:"div",m:[{t:13,n:"class",f:"rwindow-pane-bottom",g:1}],f:[{t:8,r:"status"}]}],window:[{t:4,f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rwindow-wrapper",g:1},{n:"tracked",t:71,f:{r:[],s:"[\"wrapper\"]"}},{t:4,f:[" ",{t:4,f:[{n:"window",t:72,v:"t2"}],n:50,x:{r:["~/root.transition"],s:"_0!==false"}}," ",{t:4,f:[{n:"style-top",f:"0",t:13},{n:"style-left",f:"0",t:13},{n:"style-width",f:"100%",t:13},{n:"style-height",f:"100%",t:13}],n:51,x:{r:["~/control.autosize","~/control.dialog"],s:"_0||_1"}},{n:"class-rwindow-max",t:13}],n:50,x:{r:["~/root.max","~/root.userMax","~/control.max","~/control.dialog","~/control.slide"],s:"(_0||_1||_2)&&!_3&&!_4"}},{t:4,f:[{n:"class",f:["rwindow-slide rwindow-slide-",{t:2,r:"~/control.slide"}],t:13},{n:"slide",t:72,f:{r:["~/control.slide"],s:"[{from:_0}]"},v:"t0"}],n:50,r:"~/control.slide",l:1},{t:4,f:[" ",{t:4,f:[{n:"modal",t:72,v:"t0"}],n:50,x:{r:["~/root.transition"],s:"_0!==false"}}," ",{t:4,f:[{n:"class-rwindow-resizable",t:13},{n:["mousedown","touchstart"],t:70,f:{r:["@this","@event"],s:"[_0._startResize(_1)]"}},{n:["mousemove","mouseout"],t:70,f:{r:["@this","@event"],s:"[_0._sizeHandle(_1)]"}}],n:50,r:"~/control.resizable"}," ",{t:4,f:[{n:"class-rwindow-resizing",t:13}],n:50,r:"~/control.resizing"},{n:"style-top",f:[{t:2,r:"~/control.top"},"px"],t:13},{n:"style-left",f:[{t:2,r:"~/control.left"},"px"],t:13},{t:4,f:[{n:"style-width",f:[{t:2,r:"~/control.width"},"em"],t:13},{n:"style-height",f:[{t:2,r:"~/control.height"},"em"],t:13}],n:51,r:"~/control.autosize"}],n:51,l:1},{n:"style-z-index",f:[{t:2,r:"~/control.index"}],t:13},{n:"class-rwindow-topmost",t:13,f:[{t:2,r:"~/control.topmost"}]}],f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rwindow",g:1},{t:4,f:[{n:["mousedown","touchstart"],t:70,f:{r:["@this","@event"],s:"[_0._startMove(_1)]"}}],n:50,x:{r:["~/root.max","~/root.userMax","~/control.max","~/control.dialog","~/control.movable","~/control.slide"],s:"!(_4===false||((_0||_1)&&!_3)||_2)&&(!_3||_4===true)&&!_5"}},{t:4,f:[{n:["mousedown","touchstart"],t:70,f:{r:["@this"],s:"[_0.raise()]"}}],n:50,x:{r:["~/control.topmost"],s:"!_0"},l:1}],f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rwindow-modal",g:1},{n:"class-rwindow-blocked",t:13,f:[{t:2,x:{r:["~/control.blockers.length","~/control.blocked"],s:"_0||_1"}}]}]}," ",{t:7,e:"div",m:[{t:13,n:"class",f:"rwindow-pane",g:1},{n:"tracked",t:71,f:{r:[],s:"[\"pane\"]"}},{t:4,f:[{n:"class-rwindow-autosizing",t:13}],n:50,x:{r:["~/control.autosize","~/control.slide"],s:"_0&&!_1"}}],f:[{t:8,r:"pane"}]}]}]}],n:50,r:"~/control.show"}]}},
+        use: [plugin$2(), plugin$1()],
         cssId: 'window-host',
         noIntro: true,
         attributes: ['placement', 'windows', 'transition'],
@@ -950,7 +1032,7 @@ System.register(['ractive'], function (exports, module) {
           r._media = {};
           r._media.fn = function () {
             if (!r.host) { return; }
-            var max = r.sizeInPx(r.get('@style.raui.window.maxFrom'));
+            var max = sizeInPx(r.get('@style.raui.window.maxFrom'));
             var trans = r.transitionsEnabled;
             r.transitionsEnabled = false;
             r.set('max', r.host.clientWidth <= max);
@@ -1097,10 +1179,10 @@ System.register(['ractive'], function (exports, module) {
               if (!this$1.visible) {
                 if (typeof w === 'number' && typeof h === 'number') {
                   this$1.set({
-                    'control.width': this$1.host.sizeInEm(w),
-                    'control.height': this$1.host.sizeInEm(h),
-                    'control.naturalWidth': this$1.host.sizeInEm(w),
-                    'control.naturalHeight': this$1.host.sizeInEm(h),
+                    'control.width': sizeInEm(w),
+                    'control.height': sizeInEm(h),
+                    'control.naturalWidth': sizeInEm(w),
+                    'control.naturalHeight': sizeInEm(h),
                     'control.autosize': false
                   });
                 }
@@ -1112,8 +1194,8 @@ System.register(['ractive'], function (exports, module) {
 
               if (w === 'auto') {
                 this$1.set('control.autosize', true);
-                var nw = Math.ceil(this$1.host.sizeInEm(el.clientWidth + 16));
-                var nh = Math.ceil(this$1.host.sizeInEm(el.clientHeight + 8));
+                var nw = Math.ceil(sizeInEm(el.clientWidth + 16));
+                var nh = Math.ceil(sizeInEm(el.clientHeight + 8));
                 this$1.set({
                   'control.width': nw,
                   'control.height': nh,
@@ -1125,10 +1207,10 @@ System.register(['ractive'], function (exports, module) {
 
               else if (typeof w === 'number' && typeof h === 'number') {
                 this$1.set({
-                  'control.width': this$1.host.sizeInEm(w),
-                  'control.height': this$1.host.sizeInEm(h),
-                  'control.naturalWidth': this$1.host.sizeInEm(w),
-                  'control.naturalHeight': this$1.host.sizeInEm(h),
+                  'control.width': sizeInEm(w),
+                  'control.height': sizeInEm(h),
+                  'control.naturalWidth': sizeInEm(w),
+                  'control.naturalHeight': sizeInEm(h),
                   'control.autosize': false
                 });
               }
@@ -1144,18 +1226,18 @@ System.register(['ractive'], function (exports, module) {
                 el.style.height = oh;
 
                 this$1.set({
-                  'control.width': this$1.host.sizeInEm(nw$1),
-                  'control.height': this$1.host.sizeInEm(nh$1),
-                  'control.naturalWidth': this$1.host.sizeInEm(nw$1),
-                  'control.naturalHeight': this$1.host.sizeInEm(nh$1),
+                  'control.width': sizeInEm(nw$1),
+                  'control.height': sizeInEm(nh$1),
+                  'control.naturalWidth': sizeInEm(nw$1),
+                  'control.naturalHeight': sizeInEm(nh$1),
                   'control.autosize': false
                 });
               }
 
               var hel = this$1.host.host;
               if (hel) {
-                var maxw = this$1.host.sizeInEm(hel.clientWidth - 16);
-                var maxh = this$1.host.sizeInEm(hel.clientHeight - 16);
+                var maxw = sizeInEm(hel.clientWidth - 16);
+                var maxh = sizeInEm(hel.clientHeight - 16);
                 if (this$1.get('control.width') > maxw) { this$1.set('control.width', maxw); }
                 if (this$1.get('control.height') > maxh) { this$1.set('control.height', maxh); }
               }
@@ -1179,8 +1261,8 @@ System.register(['ractive'], function (exports, module) {
               if (!this$1.visible) {
                 if (typeof w === 'number' && typeof h === 'number') {
                   this$1.set({
-                    'control.minWidth': this$1.host.sizeInEm(w),
-                    'control.minHeight': this$1.host.sizeInEm(h),
+                    'control.minWidth': sizeInEm(w),
+                    'control.minHeight': sizeInEm(h),
                   });
                 }
                 return ok();
@@ -1192,8 +1274,8 @@ System.register(['ractive'], function (exports, module) {
               if (w === 'auto') {
                 var auto = this$1.get('control.autosize');
                 this$1.set('control.autosize', true);
-                var nw = this$1.host.sizeInEm(el.clientWidth + 16);
-                var nh = this$1.host.sizeInEm(el.clientHeight);
+                var nw = sizeInEm(el.clientWidth + 16);
+                var nh = sizeInEm(el.clientHeight);
                 this$1.set({
                   'control.minWidth': nw,
                   'control.minHeight': nh,
@@ -1203,8 +1285,8 @@ System.register(['ractive'], function (exports, module) {
 
               else if (typeof w === 'number' && typeof h === 'number') {
                 this$1.set({
-                  'control.minWidth': this$1.host.sizeInEm(w),
-                  'control.minHeight': this$1.host.sizeInEm(h),
+                  'control.minWidth': sizeInEm(w),
+                  'control.minHeight': sizeInEm(h),
                 });
               }
 
@@ -1219,8 +1301,8 @@ System.register(['ractive'], function (exports, module) {
                 el.style.height = oh;
 
                 this$1.set({
-                  'control.minWidth': this$1.host.sizeInEm(nw$1),
-                  'control.minHeight': this$1.host.sizeInEm(nh$1),
+                  'control.minWidth': sizeInEm(nw$1),
+                  'control.minHeight': sizeInEm(nh$1),
                 });
               }
 
@@ -1235,10 +1317,10 @@ System.register(['ractive'], function (exports, module) {
           return new Promise(function (ok) {
             requestAnimationFrame(function () {
               if (top === 'center') { top = (this$1.host.modalPane.clientHeight / 2) - (this$1.wrapper.clientHeight / 2); }
-              else if (typeof top === 'string') { top = this$1.host.sizeInEm(top); }
+              else if (typeof top === 'string') { top = sizeInEm(top); }
 
               if (left === 'center') { left = (this$1.host.modalPane.clientWidth / 2) - (this$1.wrapper.clientWidth / 2); }
-              if (typeof left === 'string') { left = this$1.host.sizeInEm(left); }
+              if (typeof left === 'string') { left = sizeInEm(left); }
 
               var set = {};
 
@@ -1334,10 +1416,10 @@ System.register(['ractive'], function (exports, module) {
 
           var ox = this.get('control.left') || 0;
           var oy = this.get('control.top') || 0;
-          var ow = this.host.sizeInPx(this.get('control.width') + 'em');
-          var oh = this.host.sizeInPx(this.get('control.height') + 'em');
-          var nh = this.host.sizeInPx(this.get('control.minHeight') + 'em');
-          var nw = this.host.sizeInPx(this.get('control.minWidth') + 'em');
+          var ow = sizeInPx(this.get('control.width'));
+          var oh = sizeInPx(this.get('control.height'));
+          var nh = sizeInPx(this.get('control.minHeight'));
+          var nw = sizeInPx(this.get('control.minWidth'));
 
           var tm;
           var _resize = function (ev) {
@@ -1379,8 +1461,8 @@ System.register(['ractive'], function (exports, module) {
             if (set['control.left'] < 0) { set['control.left'] = 0; }
             if (set['control.top'] < 0) { set['control.top'] = 0; }
 
-            if (set['control.width']) { set['control.width'] = this$1.host.sizeInEm(set['control.width']); }
-            if (set['control.height']) { set['control.height'] = this$1.host.sizeInEm(set['control.height']); }
+            if (set['control.width']) { set['control.width'] = sizeInEm(set['control.width']); }
+            if (set['control.height']) { set['control.height'] = sizeInEm(set['control.height']); }
 
             this$1.set(set);
 
@@ -1547,12 +1629,12 @@ System.register(['ractive'], function (exports, module) {
                   if (this.wrapper) {
                     this.set(
                       'control.actual',
-                      { width: this.host.sizeInEm(this.wrapper.clientWidth), height: this.host.sizeInEm(this.wrapper.clientHeight), max: max }
+                      { width: sizeInEm(this.wrapper.clientWidth), height: sizeInEm(this.wrapper.clientHeight), max: max }
                     );
                   }
                 } else if (~k.indexOf('client') && typeof v === 'number') {
-                  if (~k.indexOf('Width')) { this.set('control.actual.width', this.host.sizeInEm(v)); }
-                  else if (~k.indexOf('Height')) { this.set('control.actual.height', this.host.sizeInEm(v)); }
+                  if (~k.indexOf('Width')) { this.set('control.actual.width', sizeInEm(v)); }
+                  else if (~k.indexOf('Height')) { this.set('control.actual.height', sizeInEm(v)); }
                 }
               } else {
                 if (typeof v === 'number') {
@@ -1574,7 +1656,7 @@ System.register(['ractive'], function (exports, module) {
         }
       });
 
-      function plugin$2(opts) {
+      function plugin$3(opts) {
         if ( opts === void 0 ) opts = {};
 
         return function(ref) {
@@ -1588,7 +1670,7 @@ System.register(['ractive'], function (exports, module) {
       globalRegister('RMWindow', 'components', Window);
 
       Host.prototype.Window = Window;
-      exports('default$2', plugin$2);
+      exports('default$2', plugin$3);
 
     }
   };

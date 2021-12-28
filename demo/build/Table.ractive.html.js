@@ -1,6 +1,6 @@
-System.register(['ractive', './chunk8.js', './chunk9.js', './chunk2.js', './chunk13.js', './chunk7.js', './chunk17.js'], function (exports, module) {
+System.register(['ractive', './chunk7.js', './chunk8.js', './chunk2.js', './chunk12.js', './chunk16.js'], function (exports, module) {
   'use strict';
-  var Ractive$1, grid, style, click, expand, globalRegister, Window, scrolled, sized, split;
+  var Ractive$1, grid, style, click, expand, sized, globalRegister, Window, scrolled, split;
   return {
     setters: [function (module) {
       Ractive$1 = module.default;
@@ -11,12 +11,11 @@ System.register(['ractive', './chunk8.js', './chunk9.js', './chunk2.js', './chun
       click = module.default;
     }, function (module) {
       expand = module.default$1;
+      sized = module.sized;
       globalRegister = module.default;
       Window = module.Window;
     }, function (module) {
       scrolled = module.default;
-    }, function (module) {
-      sized = module.sized;
     }, function (module) {
       split = module.default;
     }],
