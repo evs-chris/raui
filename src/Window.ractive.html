@@ -1,5 +1,4 @@
 <div class-rwhost as-tracked=`host` {{yield extra-attributes}}>
-  <div class-rwhost-sizer as-tracked=`sizer` />
   {{#if ~/currentMax && ~/_maxP}}
   <div class-rwindow-max-top {{#if ~/_maxAttrsP}}{{yield ~/_maxAttrsP}}{{/if}}>{{yield ~/_maxP with ~/current as window, { t: @this.partials.windowControls } as windowControls, @this as host }}</div>
   {{/if}}
@@ -98,6 +97,7 @@
   import expand from './transition-expand';
   import toast from './Toast';
   import globalRegister from './globalRegister';
+  import { sizeInEm, sizeInPx } from './watch-size';
 
   const escape = Ractive.escapeKey;
   let windowTrans;
@@ -417,8 +417,8 @@
           let lh = local.height;
 
           if (local.dialog && (!local.size || local.size === 'auto' || !local.width || !local.height)) {
-            lw = this.sizeInEm(wnd.pane.clientWidth);
-            lh = this.sizeInEm(wnd.pane.clientHeight);
+            lw = sizeInEm(wnd.pane.clientWidth);
+            lh = sizeInEm(wnd.pane.clientHeight);
           }
 
           // if it's blocking, center on blocked
@@ -428,13 +428,13 @@
             const blocked = this.get(key);
             const max = local.max || (!local.dialog && (this.get('max') || this.get('userMax')));
             const bmax = blocked.max || this.get('userMax') || this.get('max');
-            const bw = bmax ? this.host.clientWidth : this.sizeInPx(`${blocked.width}em`);
-            const bh = bmax ? this.host.clientHeight : this.sizeInPx(`${blocked.height}em`);
+            const bw = bmax ? this.host.clientWidth : sizeInPx(`${blocked.width}em`);
+            const bh = bmax ? this.host.clientHeight : sizeInPx(`${blocked.height}em`);
             const bl = bmax ? 0 : blocked.left;
             const bt = bmax ? 0 : blocked.top;
 
-            left = (max ? maxw : bw / 2) + (max ? 0 : bl) - (this.sizeInPx(`${lw}em`) / 2);
-            top = (max ? maxh : bh / 2) + (max ? 0 : bt) - (this.sizeInPx(`${lh}em`) / 2);
+            left = (max ? maxw : bw / 2) + (max ? 0 : bl) - (sizeInPx(lw) / 2);
+            top = (max ? maxh : bh / 2) + (max ? 0 : bt) - (sizeInPx(lh) / 2);
           }
 
           // place in 3x3 grid
@@ -475,17 +475,6 @@
         });
       });
     }
-
-    sizeInPx(size) {
-      if (!this.sizer) return parseFloat(size) * 16;
-      this.sizer.style.width = typeof size === 'number' ? `${size}px` : size;
-      return this.sizer.clientWidth;
-    }
-
-    sizeInEm(size) {
-      const px = this.sizeInPx(size);
-      return px / this.sizeInPx('1em');
-    }
   }
 
   function placeGrid(host, target, node) {
@@ -499,8 +488,8 @@
 
     const width = Math.floor(maxw / 3);
     const height = Math.floor(maxh / 3);
-    const localWidth = host.sizeInPx(node.width + 'em');
-    const localHeight = host.sizeInPx(node.height + 'em');
+    const localWidth = sizeInPx(node.width);
+    const localHeight = sizeInPx(node.height + 'em');
 
     switch (grid1) {
       case 5: case 7: case 8:
@@ -552,7 +541,7 @@
     for (const k in windows) {
       wins++;
       win = windows[k];
-      t = Math.floor(win.top / cell); l = Math.floor(win.left / cell); h = Math.ceil(host.sizeInPx(win.height + 'em') / cell); w = Math.ceil(host.sizeInPx(win.width + 'em') / cell);
+      t = Math.floor(win.top / cell); l = Math.floor(win.left / cell); h = Math.ceil(sizeInPx(win.height) / cell); w = Math.ceil(sizeInPx(win.width) / cell);
       for (i = t; i < t + h && i < mh; i++) {
         for (j = l; j < l + w && j < mw; j++) {
           grid[i * mw + j]++;
@@ -562,8 +551,8 @@
 
     // compute each cell
     let c, ii, jj;
-    w = Math.ceil(host.sizeInPx(node.width + 'em') / cell);
-    h = Math.ceil(host.sizeInPx(node.height + 'em') / cell);
+    w = Math.ceil(sizeInPx(node.width) / cell);
+    h = Math.ceil(sizeInPx(node.height) / cell);
     for (i = 0; i < mh; i++) {
       for (j = 0; j < mw; j++) {
         if (i + h > mh || j + w > mw) c = wins * w * h;
@@ -675,7 +664,7 @@
       r._media = {};
       r._media.fn = () => {
         if (!r.host) return;
-        const max = r.sizeInPx(r.get('@style.raui.window.maxFrom'));
+        const max = sizeInPx(r.get('@style.raui.window.maxFrom'));
         const trans = r.transitionsEnabled;
         r.transitionsEnabled = false;
         r.set('max', r.host.clientWidth <= max);
@@ -820,10 +809,10 @@
           if (!this.visible) {
             if (typeof w === 'number' && typeof h === 'number') {
               this.set({
-                'control.width': this.host.sizeInEm(w),
-                'control.height': this.host.sizeInEm(h),
-                'control.naturalWidth': this.host.sizeInEm(w),
-                'control.naturalHeight': this.host.sizeInEm(h),
+                'control.width': sizeInEm(w),
+                'control.height': sizeInEm(h),
+                'control.naturalWidth': sizeInEm(w),
+                'control.naturalHeight': sizeInEm(h),
                 'control.autosize': false
               });
             }
@@ -835,8 +824,8 @@
 
           if (w === 'auto') {
             this.set('control.autosize', true);
-            const nw = Math.ceil(this.host.sizeInEm(el.clientWidth + 16));
-            const nh = Math.ceil(this.host.sizeInEm(el.clientHeight + 8));
+            const nw = Math.ceil(sizeInEm(el.clientWidth + 16));
+            const nh = Math.ceil(sizeInEm(el.clientHeight + 8));
             this.set({
               'control.width': nw,
               'control.height': nh,
@@ -848,10 +837,10 @@
 
           else if (typeof w === 'number' && typeof h === 'number') {
             this.set({
-              'control.width': this.host.sizeInEm(w),
-              'control.height': this.host.sizeInEm(h),
-              'control.naturalWidth': this.host.sizeInEm(w),
-              'control.naturalHeight': this.host.sizeInEm(h),
+              'control.width': sizeInEm(w),
+              'control.height': sizeInEm(h),
+              'control.naturalWidth': sizeInEm(w),
+              'control.naturalHeight': sizeInEm(h),
               'control.autosize': false
             });
           }
@@ -867,18 +856,18 @@
             el.style.height = oh;
 
             this.set({
-              'control.width': this.host.sizeInEm(nw),
-              'control.height': this.host.sizeInEm(nh),
-              'control.naturalWidth': this.host.sizeInEm(nw),
-              'control.naturalHeight': this.host.sizeInEm(nh),
+              'control.width': sizeInEm(nw),
+              'control.height': sizeInEm(nh),
+              'control.naturalWidth': sizeInEm(nw),
+              'control.naturalHeight': sizeInEm(nh),
               'control.autosize': false
             });
           }
 
           const hel = this.host.host;
           if (hel) {
-            const maxw = this.host.sizeInEm(hel.clientWidth - 16);
-            const maxh = this.host.sizeInEm(hel.clientHeight - 16);
+            const maxw = sizeInEm(hel.clientWidth - 16);
+            const maxh = sizeInEm(hel.clientHeight - 16);
             if (this.get('control.width') > maxw) this.set('control.width', maxw);
             if (this.get('control.height') > maxh) this.set('control.height', maxh);
           }
@@ -900,8 +889,8 @@
           if (!this.visible) {
             if (typeof w === 'number' && typeof h === 'number') {
               this.set({
-                'control.minWidth': this.host.sizeInEm(w),
-                'control.minHeight': this.host.sizeInEm(h),
+                'control.minWidth': sizeInEm(w),
+                'control.minHeight': sizeInEm(h),
               });
             }
             return ok();
@@ -913,8 +902,8 @@
           if (w === 'auto') {
             const auto = this.get('control.autosize');
             this.set('control.autosize', true);
-            const nw = this.host.sizeInEm(el.clientWidth + 16);
-            const nh = this.host.sizeInEm(el.clientHeight);
+            const nw = sizeInEm(el.clientWidth + 16);
+            const nh = sizeInEm(el.clientHeight);
             this.set({
               'control.minWidth': nw,
               'control.minHeight': nh,
@@ -924,8 +913,8 @@
 
           else if (typeof w === 'number' && typeof h === 'number') {
             this.set({
-              'control.minWidth': this.host.sizeInEm(w),
-              'control.minHeight': this.host.sizeInEm(h),
+              'control.minWidth': sizeInEm(w),
+              'control.minHeight': sizeInEm(h),
             });
           }
 
@@ -940,8 +929,8 @@
             el.style.height = oh;
 
             this.set({
-              'control.minWidth': this.host.sizeInEm(nw),
-              'control.minHeight': this.host.sizeInEm(nh),
+              'control.minWidth': sizeInEm(nw),
+              'control.minHeight': sizeInEm(nh),
             });
           }
 
@@ -954,10 +943,10 @@
       return new Promise(ok => {
         requestAnimationFrame(() => {
           if (top === 'center') top = (this.host.modalPane.clientHeight / 2) - (this.wrapper.clientHeight / 2)
-          else if (typeof top === 'string') top = this.host.sizeInEm(top);
+          else if (typeof top === 'string') top = sizeInEm(top);
 
           if (left === 'center') left = (this.host.modalPane.clientWidth / 2) - (this.wrapper.clientWidth / 2)
-          if (typeof left === 'string') left = this.host.sizeInEm(left);
+          if (typeof left === 'string') left = sizeInEm(left);
 
           const set = {};
 
@@ -1049,10 +1038,10 @@
 
       const ox = this.get('control.left') || 0;
       const oy = this.get('control.top') || 0;
-      const ow = this.host.sizeInPx(this.get('control.width') + 'em');
-      const oh = this.host.sizeInPx(this.get('control.height') + 'em');
-      const nh = this.host.sizeInPx(this.get('control.minHeight') + 'em');
-      const nw = this.host.sizeInPx(this.get('control.minWidth') + 'em');
+      const ow = sizeInPx(this.get('control.width'));
+      const oh = sizeInPx(this.get('control.height'));
+      const nh = sizeInPx(this.get('control.minHeight'));
+      const nw = sizeInPx(this.get('control.minWidth'));
 
       let tm;
       const _resize = (ev) => {
@@ -1094,8 +1083,8 @@
         if (set['control.left'] < 0) set['control.left'] = 0;
         if (set['control.top'] < 0) set['control.top'] = 0;
 
-        if (set['control.width']) set['control.width'] = this.host.sizeInEm(set['control.width']);
-        if (set['control.height']) set['control.height'] = this.host.sizeInEm(set['control.height']);
+        if (set['control.width']) set['control.width'] = sizeInEm(set['control.width']);
+        if (set['control.height']) set['control.height'] = sizeInEm(set['control.height']);
 
         this.set(set);
 
@@ -1258,12 +1247,12 @@
               if (this.wrapper) {
                 this.set(
                   'control.actual',
-                  { width: this.host.sizeInEm(this.wrapper.clientWidth), height: this.host.sizeInEm(this.wrapper.clientHeight), max }
+                  { width: sizeInEm(this.wrapper.clientWidth), height: sizeInEm(this.wrapper.clientHeight), max }
                 );
               }
             } else if (~k.indexOf('client') && typeof v === 'number') {
-              if (~k.indexOf('Width')) this.set('control.actual.width', this.host.sizeInEm(v));
-              else if (~k.indexOf('Height')) this.set('control.actual.height', this.host.sizeInEm(v));
+              if (~k.indexOf('Width')) this.set('control.actual.width', sizeInEm(v));
+              else if (~k.indexOf('Height')) this.set('control.actual.height', sizeInEm(v));
             }
           } else {
             if (typeof v === 'number') {
@@ -1315,10 +1304,6 @@
     width: 100%;
     height: 100%;
     background-color: ${primary.host.bg || primary.bg || '#fff'};
-  }
-
-  .rwhost-sizer {
-    position: absolute;
   }
 
   .rwhost-pane {

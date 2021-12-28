@@ -1,5 +1,4 @@
 <div class-rshell {{yield extra-attributes}} as-tracked=`outer` class-rshell-left-popped=".leftPop" class-rshell-right-popped=".rightPop" class-rshell-top-popped=".topPop" class-rshell-bottom-popped=".bottomPop">
-  <div class-rshell-sizer as-tracked=`sizer` />
   <div class-rshell-main>
     {{#if ._top}}<div class-rshell-top class-rshell-overflow="~/topOverflow" {{#if ._topA}}{{yield ._topA}}{{/if}}>{{yield ._top}}</div>{{/if}}
     <div class-rshell-middle class-rshell-has-left="._left && !._leftOver && !.leftOver" class-rshell-has-right="._right && !._rightOver && !.rightOver" class-rshell-left-hidden=".leftHidden" class-rshell-right-hidden=".rightHidden">
@@ -52,6 +51,7 @@
   import Ractive from 'ractive';
   import { left as swipeleft, right as swiperight } from './event-swipe';
   import globalRegister from './globalRegister';
+  import { sizeInEm } from './watch-size';
 
   export class Shell extends Ractive {
     constructor(opts) { super(opts); }
@@ -65,21 +65,10 @@
       }
     }
 
-    sizeInPx(size) {
-      if (!this.sizer) return 160;
-      this.sizer.style.width = typeof size === 'number' ? `${size}px` : size;
-      return this.sizer.clientWidth;
-    }
-
-    relativeSize(size, rel = '1em') {
-      if (!this.sizer) return 10;
-      return this.sizeInPx(size) / this.sizeInPx(rel);
-    }
-
     shellSize(rel = '1em') {
       const el = this.outer;
       if (!el) return { width: 0, height: 0 };
-      return { width: this.relativeSize(el.clientWidth), height: this.relativeSize(el.clientHeight) };
+      return { width: sizeInEm(el.clientWidth), height: sizeInEm(el.clientHeight) }
     }
   }
 
@@ -204,8 +193,8 @@
 
     const media = {
       fn() {
-        const outer = r.relativeSize('100%');
-        const outerH = r.relativeSize(r.outer.clientHeight);
+        const outer = sizeInEm(r.outer.clientWidth);
+        const outerH = sizeInEm(r.outer.clientHeight);
         if (media.last === outer && media.lastH === outerH) return;
         else media.last = outer;
 
@@ -213,12 +202,12 @@
           left:  !r.get('leftOver') && r.left && r.left.clientWidth || 0,
           right: !r.get('rightOver') && r.right && r.right.clientWidth || 0
         };
-        if (sizes.left) sizes.left = r.relativeSize(sizes.left);
-        if (sizes.right) sizes.right = r.relativeSize(sizes.right);
+        if (sizes.left) sizes.left = sizeInEm(sizes.left);
+        if (sizes.right) sizes.right = sizeInEm(sizes.right);
 
         const primary = r.get('_rightPrimary') ? 'right' : 'left';
         const secondary = primary === 'right' ? 'left' : 'right';
-        const medium = r.relativeSize(r.get('@style.break.medium') || '60rem', '1rem');
+        const medium = r.get('@style.break.medium') || 60;
 
         const overs = { _leftOver: false, _rightOver: false };
         const hides = { leftHidden: r.get('leftOver'), rightHidden: r.get('rightOver') };
@@ -297,9 +286,6 @@
     height: 100%;
     position: absolute;
     overflow: hidden;
-  }
-  .rshell-sizer {
-    position: absolute;
   }
   .rshell-modal {
     position: absolute;

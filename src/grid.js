@@ -1,14 +1,5 @@
 import globalRegister from './globalRegister';
-import { sized } from './watch-size';
-
-let el;
-function sizer() {
-  if (!el) {
-    el = document.createElement('div');
-    document.body.appendChild(el);
-  }
-  return el;
-}
+import { sized, sizeInPx } from './watch-size';
 
 const defaults = {
   tiny: {
@@ -93,15 +84,12 @@ export function grid(node, options) {
   }
 
   function settings() {
-    const s = sizer();
     breaks = owner.get('@style.break') || defaults;
     points = {};
     for (const k in breaks) {
-      s.style.width = breaks[k].max;
-      points[k] = s.clientWidth;
+      points[k] = sizeInPx(breaks[k].max);
       if (!regexps[k]) regexps[k] = new RegExp(`\\b${k}\\b`, 'g');
     }
-    s.style.width = 0;
     resize(node.clientWidth);
   }
 
