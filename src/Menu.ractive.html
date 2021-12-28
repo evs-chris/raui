@@ -1,4 +1,4 @@
-<div {{yield extra-attributes}} class-rmenu-wrapper class-rmenu-vertical="!~/horizontal" class-rmenu-horizontal="~/horizontal">
+<div {{yield extra-attributes}} class-rmenu-wrapper class-rmenu-vertical="!~/horizontal" class-rmenu-horizontal="~/horizontal" class-rmenu-alt="alt">
   <div class-rmenu><div class-rmenu-inner>
     {{>items}}
   </div></div>
@@ -32,6 +32,10 @@
   {{/each}}
 </template>
 
+<template id="arrow">
+  <svg viewBox="4 7 16 10"><path d="M16.59 8.59L12 13.17 7.41 8.59 6 10l6 6 6-6z"></path></svg>
+</template>
+
 <template id="item">
   <div class-rmenu-main
     {{#if .activeRef}}class-rmenu-active="~/[.activeRef]"{{elseif typeof .active === 'function'}}class-rmenu-active=".active.length ? .active(@.getHandle(@context)) : .active()"{{elseif typeof .active === 'boolean'}}class-rmenu-active=".active"{{elseif .popout}}class-rmenu-active='@.childActive(@keypath)'{{/if}}
@@ -48,7 +52,7 @@
     </div>
     {{#if .right}}<div class-menu-right>{{{.right}}}</div>{{elseif .rightPartial}}<div class-rmenu-right>{{yield .rightPartial}}</div>{{/if}}
     {{#if .items && .items.length && @.visibleItems(.items)}}
-    <div class-rmenu-expand on-click=".popout && @.popSiblingsIn(@context), @context.toggle('.open'), false" expand-in-out={ axis: 'x' } />
+    <div class-rmenu-expand on-click=".popout && @.popSiblingsIn(@context), @context.toggle('.open'), false" expand-in-out={ axis: 'x' }>{{>arrow}}</div>
     {{/if}}
   </div>
   {{>children}}
@@ -210,7 +214,7 @@
         if ( this._items ) this.set('items', (this.get('items') || []).concat(this._items), { shuffle: true });
       }
     },
-    attributes: ['noExpand'],
+    attributes: ['noExpand', 'alt'],
     use: [expand(), clickout()],
     decorators: {
       ref(node, name) {
@@ -549,7 +553,7 @@
     left: 0;
     right: 0;
   }
-  .rmenu-wrapper.alt > .rmenu {
+  .rmenu-wrapper.rmenu-alt > .rmenu {
     color: ${primary.fga || '#222'};
     background-color: ${primary.bg || '#fff'};
   }
@@ -578,6 +582,8 @@
     border-top: 0.0625em solid ${primary.bc || '#ccc'};
     border-bottom: 0.0625em solid ${primary.bc || '#ccc'};
   }
+  .rmenu-wrapper.rmenu-alt .rmenu-expanded,
+  .rmenu-wrapper.rmenu-alt .rmenu-item,
   .rmenu-popout.rmenu-expanded {
     border: none;
   }
@@ -608,13 +614,38 @@
     color: ${primary.popout.bg || primary.bg || '#fff'};
     background-color: ${primary.popout.fga || primary.fga || '#07e'};
   }
-  .rmenu-wrapper.alt .rmenu-main.rmenu.active {
+  .rmenu-wrapper.rmenu-alt .rmenu-main.rmenu.active {
     color: ${primary.bg || '#fff'};
     background-color: ${primary.fg || '#222'};
   }
-  .rmenu-popout .rmenu-items .rmenu-item:hover > .rmenu-main {
+  .rmenu-popout .rmenu-items .rmenu-item:hover > .rmenu-main,
+  .rmenu-wrapper.rmenu-alt .rmenu-popout .rmenu-item:hover > .rmenu-main {
     background-color: ${primary.popout.bga || '#f4f4f4'};
     color: ${primary.popout.fg || '#222'};
+  }
+
+  .rmenu-wrapper.rmenu-alt .rmenu-item > .rmenu-main {
+    border-bottom: ${primary.border || 1}px solid ${primary.bc || '#ccc'};
+  }
+
+  .rmenu-wrapper.rmenu-alt .rmenu-expanded > .rmenu-items {
+    background-color: ${primary.bga || '#f4f4f4'};
+  }
+  .rmenu-wrapper.rmenu-alt .rmenu-popout > .rmenu-items {
+    background-color: ${primary.bg || '#fff'};
+  }
+  .rmenu-wrapper.rmenu-alt .rmenu-expanded > .rmenu-items {
+    box-shadow: 0 0.5em 0.5em 0em rgba(0, 0, 0, 0.1) inset;
+  }
+  .rmenu-wrapper.rmenu-alt .rmenu-popout > .rmenu-items {
+    box-shadow: none;
+  }
+  .rmenu-wrapper.rmenu-alt .rmenu-item:hover > .rmenu-main {
+    color: ${primary.fg || '#222'};
+    background-color: ${primary.bg || '#fff'};
+  }
+  .rmenu-wrapper.rmenu-alt .rmenu-expanded .rmenu-items .rmenu-item > .rmenu-main:hover {
+    background-color: ${primary.bc || '#ccc'};
   }
 
   .rmenu-items {
@@ -627,28 +658,34 @@
     padding-left: 0.4em;
   }
   .rmenu-expand {
-    width: 1.5em;
-    height: 1.5em;
-    padding-left: 0.5em;
+    width: 2em;
+    height: 2em;
+    padding-right: 0.5em;
     cursor: pointer;
     position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
-  .rmenu-expand:before {
-    position: absolute;
-    display: inline-block;
-    top: 0.35em;
-    content: ' ';
-    transform: rotate(45deg);
-    transition: transform 0.2s ease-in-out, top 0.2s ease-in-out, left 0.2s ease-in-out;
-    box-sizing: border-box;
-    border-width: 0.25em;
-    border-style: solid;
-    border-left-color: transparent;
-    border-top-color: transparent;
+  .rmenu-expand svg {
+    transform: rotate(0deg);
+    transition: transform 0.2s ease-in-out;
+    fill: ${primary.bg || '#fff'};
+    height: 1.2em;
+    width: 1.2em;
   }
-  .rmenu-expanded > .rmenu-main > .rmenu-expand:before {
-    transform: rotate(-135deg);
-    top: 0.65em;
+  .rmenu-expanded > .rmenu-main > .rmenu-expand svg {
+    transform: rotate(180deg);
+  }
+  .rmenu-popout > .rmenu-main > .rmenu-expand svg {
+    transform: rotate(-90deg);
+  }
+  .rmenu-expanded.rmenu-popout > .rmenu-main > .rmenu-expand svg {
+    transform: rotate(90deg);
+  }
+  .rmenu-popitems .rmenu-expand svg,
+  .rmenu-wrapper.rmenu-alt .rmenu-expand svg {
+    fill: ${primary.popout.fg || '#222'};
   }
 
   .rmenu-popout > .rmenu-items {
@@ -680,16 +717,6 @@
   .rmenu-popout.rmenu-expanded > .rmenu-items.rmenu-shrink,
   .rmenu-popout.rmenu-expanded > .rmenu-items .rmenu-popout.rmenu-expanded > .rmenu-items.rmenu-shrink {
     left: 0;
-  }
-
-  .rmenu-popout > .rmenu-main > .rmenu-expand:before {
-    transform: rotate(-45deg);
-    top: 0.4em;
-  }
-
-  .rmenu-popout.rmenu-expanded > .rmenu-main > .rmenu-expand:before {
-    transform: rotate(135deg);
-    left: 0.75em;
   }
 
   .rmenu-popout > .rmenu-items .rmenu-popout > .rmenu-items {
