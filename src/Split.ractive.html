@@ -1,4 +1,4 @@
-<div class-rsplit class-rsplit-vertical="vertical" class-rsplit-horizontal="!vertical" class-rsplit-draggable="draggable" {{yield extra-attributes}}>
+<div class-rsplit class-rsplit-vertical="vertical" class-rsplit-horizontal="!vertical" class-rsplit-draggable="draggable" {{yield extra-attributes}} class-rsplit-flex="flex">
   {{#each splits}}
     <div class-rsplit-split
       {{#unless ~/dragging}}style-transition="width 0.3s ease-in-out, height 0.3s ease-in-out"{{/unless}}
@@ -97,7 +97,7 @@
     template: $TEMPLATE, css: $CSS,
     cssId: 'split',
     noCssTransform: true,
-    attributes: ['vertical', 'draggable', 'maximizable', 'minimizable'],
+    attributes: ['vertical', 'draggable', 'maximizable', 'minimizable', 'flex'],
     data() {
       return {
         draggable: true,
@@ -331,6 +331,9 @@
     display: inline-block;
     overflow: auto;
     position: relative;
+  }
+  .rsplit.rsplit-flex > .rsplit-split {
+    display: flex;
   }
 
   .rsplit.rsplit-vertical > .rsplit-split {
