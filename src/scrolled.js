@@ -6,6 +6,7 @@ export function scrolled(node, opts = {}) {
 
   const ctx = this.getContext(node);
   let pending = false;
+  let tm;
 
   function watch() {
     pending = false;
@@ -32,8 +33,12 @@ export function scrolled(node, opts = {}) {
   return {
     refresh() {
       if (pending) return;
-      pending = true;
-      requestAnimationFrame(watch);
+      if (tm) clearTimeout(tm);
+      tm = setTimeout(function() {
+        tm = null;
+        pending = true;
+        requestAnimationFrame(watch);
+      }, 250);
     },
     teardown() {
       node.removeEventListener('scroll', watch);
