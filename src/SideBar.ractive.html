@@ -1,0 +1,374 @@
+<div {{yield extra-attributes with @this as sidebar}} class="rsidebar rsb-{{~/size}}" class-rsb-open="~/open" class-rsb-closed="!~/open" class-rsb-right="~/right" class-rsb-left="!~/right" class-rsb-has-tabs="~/tabs.length" class-rsb-no-tabs="!~/tabs.length" as-sized="{ clientWidth: '~/clientWidth' }">
+  {{#if ~/size === 'narrow' && !~/open && !~/['no-mobile']}}
+    {{#if ~/tabs.mobile}}
+      {{yield ~/tabs.mobile with @this as sidebar}}
+    {{else}}
+      <div class-rsb-mobile on-click="@.toggle('open')"><svg viewBox="4 7 16 10"><path d="M16.59 8.59L12 13.17 7.41 8.59 6 10l6 6 6-6z"></path></svg></div>
+    {{/if}}
+  {{/if}}
+  <div class=rsb-bar>
+    {{#if ~/tabs.length}}
+    <div class=rsb-tabs>
+      <div class="rsb-tab rsb-indicator" on-click="@.toggle('open')"><svg viewBox="4 7 16 10"><path d="M16.59 8.59L12 13.17 7.41 8.59 6 10l6 6 6-6z"></path></svg></div>
+      {{#each ~/tabs}}<div class=rsb-tab class-rsb-selected="@index === ~/selected" {{#if .label}}label="{{yield .label}}"{{/if}} {{#if .tabattrs}}{{yield .tabattrs}}{{/if}} on-click="@.set({ selected: @index, open: true })">{{yield .tab with @this as sidebar}}</div>{{/each}}
+    </div>
+    {{/if}}
+    <div class=rsb-tab-contents {{#if ~/width}}style-min-width="{{~/width}}"{{/if}}>
+      {{#each ~/tabs}}<div class=rsb-tab-content class-rsb-selected="@index === ~/selected" {{yield .attrs}}>{{yield .content with @this as sidebar}}</div>{{/each}}
+      {{#if ~/tabs.side}}<div class=rsb-contents {{yield ~/tabs.sideattrs}}>{{yield ~/tabs.side with @this as sidebar}}</div>{{/if}}
+    </div>
+  </div>
+  <div class=rsb-main>
+    {{yield ~/tabs.main with @this as sidebar}}
+  </div>
+</div>
+
+<script>
+  import Ractive from 'ractive';
+  import { sized, sizeInEm } from './watch-size';
+  import globalRegister from './globalRegister';
+
+  export class SideBar extends Ractive {
+    constructor(opts) {
+      super(opts);
+    }
+
+    select(idx) {
+      if (idx < 0 || idx > (this.get('tabs.length') || 0) - 1) return;
+      return this.set('selected', idx);
+    }
+
+    open() { return this.set('open', true); }
+    close() { return this.set('open', false); }
+    toggle(key) {
+      if (key === undefined) {
+        return super.toggle('open');
+      } else {
+        return super.toggle(key);
+      }
+    }
+  }
+
+  Ractive.extendWith(SideBar, {
+    template: $TEMPLATE,
+    css: $CSS, cssId: 'rsidebar',
+    attributes: ['right', 'open', 'no-mobile', 'width'],
+    decorators: { sized },
+    data() {
+      return {
+        selected: 0,
+        open: true,
+      };
+    },
+    computed: {
+      size() {
+        const size = sizeInEm(this.get('~/clientWidth') || 1280);
+        if (size > (this.get('@style.raui.sidebar.wide.break') || 76)) return 'wide';
+        else if (size > (this.get('@style.raui.sidebar.medium.break') || 40)) return 'medium';
+        else return 'narrow';
+      }
+    },
+    on: {
+      construct: initTemplate,
+      config() {
+        if (this._tabs) {
+          const data = this.get('tabs');
+          if (Array.isArray(data)) this._tabs.unshit.apply(this._tabs, data);
+          this.set('tabs', this._tabs, { shuffle: true });
+        }
+        this._tabs = 0;
+      },
+    },
+    observe: {
+      size(n) {
+        this.set('open', n === 'wide');
+      }
+    }
+  });
+
+  function initTemplate() {
+    const cmp = this.component;
+    if (!cmp) return;
+
+    const tpl = cmp.template.f || [];
+    const attrs = cmp.template.m ? cmp.template.m.slice() : [];
+    const orig = cmp.template;
+    const main = tpl.filter(e => e.e !== 'tab' && e.e !== 'side');
+    cmp.template = { e: orig.e, f: main, t: orig.t, m: attrs, p: Object.assign({}, orig.p, { main }) };
+
+    const tabs = tpl.filter(e => e.e === 'tab').map(t => {
+      const res = { content: (t.f || []).filter(e => e.e !== 'tab'), attrs: (t.m || []).filter(a => a.n !== 'label' && a.n !== 'tab') };
+      res.label = ((t.m && t.m.find(a => a.n === 'label')) || {}).f;
+      if (typeof res.label === 'string') res.label = [res.label];
+      res.tab = (t.f || []).find(e => e.e === 'tab');
+      if (res.tab) res.tabattrs = res.tab.m || [];
+      if (!res.tab) res.tab = t.m.find(a => a.n === 'tab');
+      if (res.tab) res.tab = typeof res.tab.f === 'string' ? [res.tab.f] : res.tab.f;
+      return res;
+    });
+
+    tabs.side = tpl.find(e => e.e === 'side');
+    if (tabs.side) {
+      tabs.sideattrs = tabs.side.m || [];
+      tabs.side = tabs.side.f;
+    }
+
+    tabs.main = main;
+
+    if (tabs.side && tabs.length) console.warn(`Raui SideBar should not have both side and tabs elements`);
+
+    this._tabs = tabs;
+  }
+
+  export function plugin(opts = {}) {
+    return function({ instance }) {
+      instance.components[opts.name || 'sidebar'] = SideBar;
+    };
+  }
+
+  export default plugin;
+
+  globalRegister('RMSideBar', 'components', SideBar);
+</script>
+
+<script rel=css>
+  const primary = Object.assign({}, data('raui.primary'), data('raui.sidebar.primary'));
+  const themes = (data('raui.themes') || []).slice();
+  (data('raui.sidebar.themes') || []).forEach(t => {
+    if (!~themes.indexOf(t)) themes.push(t);
+  });
+
+  return `
+    .rsidebar {
+      display: flex;
+      flex-grow: 1;
+      overflow: hidden;
+    }
+
+    .rsidebar.rsb-right {
+      flex-direction: row-reverse;
+    }
+
+    .rsb-left.rsb-narrow.rsb-closed .rsb-bar,
+    .rsb-left.rsb-medium.rsb-closed.rsb-no-tabs .rsb-bar,
+    .rsb-left.rsb-wide.rsb-closed.rsb-no-tabs .rsb-bar {
+      transform: translateX(-100%);
+    }
+    .rsb-right.rsb-narrow.rsb-closed .rsb-bar,
+    .rsb-right.rsb-medium.rsb-closed.rsb-no-tabs .rsb-bar,
+    .rsb-right.rsb-wide.rsb-closed.rsb-no-tabs .rsb-bar {
+      transform: translateX(100%);
+    }
+    .rsb-left.rsb-wide.rsb-closed .rsb-bar,
+    .rsb-left.rsb-medium.rsb-closed .rsb-bar {
+      transform: translateX(calc(-100% + ${primary.tabsize || '3em'} + ${primary.border || 1}px));
+    }
+    .rsb-right.rsb-wide.rsb-closed .rsb-bar,
+    .rsb-right.rsb-medium.rsb-closed .rsb-bar {
+      transform: translateX(calc(100% - ${primary.tabsize || '3em'} - ${primary.border || 1}px));
+    }
+    .rsb-narrow.rsb-open .rsb-bar,
+    .rsb-narrow.rsb-open .rsb-bar {
+      transform: translateX(0);
+    }
+
+    .rsb-bar {
+      flex-shrink: 0;
+      display: flex;
+      border-color: ${primary.bc || '#ccc'};
+      border-style: solid;
+      border-width: 0;
+      transition: transform 0.2s ease-in-out;
+      transform: translateX(0);
+      z-index: 2;
+      background-color: ${primary.bg || '#fff'};
+    }
+    .rsb-narrow .rsb-bar,
+    .rsb-medium .rsb-bar {
+      position: absolute;
+      height: 100%;
+    }
+    .rsb-narrow.rsb-open .rsb-bar,
+    .rsb-medium.rsb-open .rsb-bar {
+      box-shadow: 0em 0em 0.5em 0.25em rgba(0, 0, 0, 0.25);
+    }
+    .rsb-right .rsb-bar {
+      border-left-width: 1px;
+    }
+    .rsb-left .rsb-bar {
+      flex-direction: row-reverse;
+      border-right-width: 1px;
+    }
+
+    .rsb-indicator svg, .rsb-mobile svg {
+      transition: transform 0.2s ease-in-out;
+      width: 1.2em;
+      height: 1.2em;
+    }
+    .rsb-open.rsb-left .rsb-indicator svg,
+    .rsb-closed.rsb-right .rsb-indicator svg,
+    .rsb-closed.rsb-right .rsb-mobile svg,
+    .rsb-closed.rsb-right .rsb-moble svg {
+      transform: rotate(90deg);
+    }
+    .rsb-closed.rsb-left .rsb-indicator svg,
+    .rsb-open.rsb-right .rsb-indicator svg,
+    .rsb-closed.rsb-left .rsb-mobile svg,
+    .rsb-open.rsb-right .rsb-mobile svg {
+      transform: rotate(-90deg);
+    }
+
+    .rsb-tabs {
+      display: flex;
+      flex-direction: column;
+      border-color: ${primary.bc || '#ccc'};
+      border-style: solid;
+      border-width: 0;
+    }
+    .rsb-right .rsb-tabs {
+      border-right-width: 1px;
+    }
+    .rsb-left .rsb-tabs {
+      border-left-width: 1px;
+    }
+
+    .rsb-tab {
+      display: flex;
+      position: relative;
+      align-items: center;
+      justify-content: center;
+      width: ${primary.tabsize || '3em'};
+      height: ${primary.tabsize || '3em'};
+      border-style: solid;
+      border-color: transparent;
+      border-width: ${primary.border || 1}px 0 ${primary.border || 1}px 0;
+      background-color: ${primary.bg || '#fff'};
+      color: ${primary.fg || '#222'};
+      cursor: pointer;
+    }
+    .rsb-tab.rsb-selected {
+      border-color: ${primary.bc || '#ccc'};
+      background-color: ${primary.bg || '#fff'};
+      color: ${primary.fga || '#07e'};
+      width: calc(${primary.tabsize || '3em'} + ${primary.border || 1}px);
+    }
+    .rsb-right .rsb-tab.rsb-selected {
+      margin-right: -${primary.border || 1}px;
+    }
+    .rsb-left .rsb-tab.rsb-selected {
+      margin-left: -${primary.border || 1}px;
+    }
+    .rsb-tab[label]:hover:after {
+      position: absolute;
+      content: attr(label);
+      top: 50%;
+      display: block;
+      padding: 0.4em;
+      background: #333;
+      color: #fff;
+      font-family: Arial, Helvetica, sans-serif;
+      font-size: 1em;
+      font-weight: 400;
+      border-radius: 0.4em;
+      pointer-events: none;
+      white-space: nowrap;
+      transform: translateY(-50%);
+    }
+    .rsb-left .rsb-tab[label]:after {
+      left: 110%;
+    }
+    .rsb-right .rsb-tab[label]:after {
+      right: 110%;
+    }
+
+    .rsb-tab-contents {
+      position: relative;
+      flex-grow: 1;
+      overflow: hidden;
+      box-sizing: border-box;
+      transition: transform 0.2s ease-in-out;
+      background-color: ${primary.bg || '#fff'};
+      min-width: 16em;
+    }
+
+    .rsb-open .rsb-content {
+      padding: ${primary.padding || '0.5em'};
+    }
+
+    .rsb-contents, .rsb-tab-content {
+      position: absolute;
+      padding: ${primary.padding || '0.5em'};
+      top: 0;
+      left: 0;
+      box-sizing: border-box;
+      width: 100%;
+      height: 100%;
+      overflow: auto;
+      opacity: 0;
+      z-index: 0;
+      transition: opacity 0.2s ease-in-out;
+    }
+    .rsb-tab-content.rsb-selected {
+      z-index: 1;
+      opacity: 1;
+    }
+
+    .rsb-contents {
+      z-index: 1;
+      opacity: 1;
+    }
+
+    .rsb-main {
+      flex-grow: 1;
+      background-color: ${primary.bg || '#fff'};
+      padding: ${primary.padding || '0.5em'};
+      overflow: auto;
+      box-sizing: border-box;
+      z-index: 1;
+    }
+
+    .rsb-closed.rsb-wide .rsb-main,
+    .rsb-medium .rsb-main {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+    }
+    .rsb-closed.rsb-wide.rsb-has-tabs .rsb-main,
+    .rsb-medium.rsb-has-tabs .rsb-main {
+      width: calc(100% - ${primary.tabsize || '3em'} - 1px);
+    }
+    .rsb-left.rsb-closed.rsb-wide.rsb-has-tabs .rsb-main,
+    .rsb-left.rsb-medium.rsb-has-tabs .rsb-main {
+      left: calc(${primary.tabsize || '3em'} + 1px);
+    }
+    .rsb-right.rsb-closed.rsb-wide.rsb-has-tabs .rsb-main,
+    .rsb-right.rsb-medium.rsb-has-tabs .rsb-main {
+      right: calc(${primary.tabsize || '3em'} + 1px);
+    }
+
+    .rsb-mobile {
+      position: absolute;
+      top: 1em;
+      width: 3em;
+      height: 3em;
+      border-style: solid;
+      border-color: ${primary.bc || '#ccc'};
+      background-color: ${primary.bg || '#fff'};
+      box-shadow: 0 0 0.25em rgba(0, 0, 0, 0.25);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 2;
+    }
+    .rsb-left .rsb-mobile {
+      border-width: 1px 1px 1px 0;
+      border-radius: 0 0.5em 0.5em 0;
+    }
+    .rsb-right .rsb-mobile {
+      border-width: 1px 0 1px 1px;
+      border-radius: 0.5em 0 0 0.5em;
+    }
+  `;
+</script>

@@ -1,0 +1,134 @@
+<tabs flat pad class-alt height=dynamic>
+  <tab title="Intro"><marked>
+    This is a bit like a shell, but intended to be wrapped in some other container.
+  </marked></tab>
+  <tab title="Usage"><marked>
+    ### Attributes
+
+    * `right: boolean = false` - when true, the bar will appear on the right side
+    * `no-mobile: boolean = false` - when true, will not show a toggle for the bar at the mobile stop
+    * `open: boolean` - the binding that controls whether the bar is open
+    * `width: number` - the minimum width of bar content in `em`
+
+    ### Children
+
+    The non-content parts of the SideBar are specified as special child elements. Anything that is not a `tab` or `side` element will be displayed as the main content within the SideBar component. You can specify any number of `tab`s or a single `side`, but they should not be mixed.
+
+    * `tab` - a tab on the bar
+      * `tab` - element or attribute that specifies the content of the tab button
+        * any attributes on an inner tab element are carried to the corresponding component element
+      * `label` - attribute that specifies an option hover tooltip
+      * any additional attributes are carried through to the corresponding component element
+      * any other child content becomes the content of the tab on the bar
+    * `side` - element whose content is shown as the bar with no tabs
+      * any additional attributes are carrried through to the corresponding component element
+
+    ### API
+
+    * `close()` - close the side bar
+    * `open()` - open the side bar
+    * `select(idx: number)` - select the bar tab by number
+    * `toggle()` - toggle the side bar
+
+    ### Styles
+
+    * `raui.sidebar.tabsize` - Specifies the size of the tab squares - `'3em'`
+    * `raui.sidebar.border` - Specifies the size of the borders in px - `1`
+    * the usual `bg`, `bc`, `fg`, and `fga` are also used
+  </marked></tab>
+  <tab title="Example">
+    <div>
+      <label as-field><input type=checkbox checked="{{~/right}}" /> Right?</label>
+      <label as-field><input type=checkbox checked="{{~/['no-mobile']}}" /> No mobile?</label>
+    </div>
+    <marked>
+    ***
+    ### Template:
+    ```handlebars
+    <div class="container">
+      <sidebar bind-right bind-no-mobile>
+        <tab tab="JJ">Some stuff</tab>
+        <tab tab="YY">Other Stuff</tab>
+        Content!
+      </sidebar>
+    </div>
+    ```
+    ### Result:
+    </marked>
+
+    <div class="container">
+      <split vertical flex>
+        <sidebar bind-right bind-no-mobile>
+          <tab tab="JJ" label="Look, some stuff">Some stuff</tab>
+          <tab tab="YY">Other Stuff</tab>
+          Content!
+        </sidebar>
+        <div class=space />
+      </split>
+    </div>
+    <marked>
+    ***
+    ### Template:
+    ```handlebars
+    <div class="container">
+      <sidebar bind-right bind-no-mobile>
+        <side class="blueish">Bar content! {{#if sidebar.data.size !== 'wide'}}<button on-click="sidebar.close()">Close</button>{{/if}}</side>
+        Content!<br/><button on-click="sidebar.toggle()">Toggle SideBar</button>
+      </sidebar>
+    </div>
+    ```
+    ### Result:
+    </marked>
+
+    <div class="container">
+      <split vertical flex>
+        <sidebar bind-right bind-no-mobile>
+          <side class="blueish">Bar content! {{#if sidebar.data.size !== 'wide'}}<button on-click="sidebar.close()">Close</button>{{/if}}</side>
+          Content!<br/><button on-click="sidebar.toggle()">Toggle SideBar</button>
+        </sidebar>
+        <div class=space />
+      </split>
+    </div>
+  </tab>
+</tabs>
+
+<script>
+  import { Window } from 'cmp/Window';
+  import sidebar from 'cmp/SideBar';
+  import split from 'cmp/Split';
+
+  export default Window.extend({
+    template: $TEMPLATE, css: $CSS,
+    options: {
+      title: 'Components :: Side Bar',
+      width: '40em', height: '30em',
+      flex: true, resizable: true,
+    },
+    use: [sidebar(), split()],
+  });
+</script>
+
+<style>
+  .container {
+    display: flex;
+    width: 80vw;
+    max-width: 100%;
+    height: 30em;
+    margin: 0 auto;
+    box-shadow: 1px 1px 0.5em rgba(0, 0, 0, 0.25);
+    position: relative;
+  }
+
+  .space {
+    flex-grow: 1;
+    background-color: #656565;
+    opacity: 1;
+    background-image:  repeating-linear-gradient(45deg, #5c5c5c 25%, transparent 25%, transparent 75%, #5c5c5c 75%, #5c5c5c), repeating-linear-gradient(45deg, #5c5c5c 25%, #656565 25%, #656565 75%, #5c5c5c 75%, #5c5c5c);
+    background-position: 0 0, 7px 7px;
+    background-size: 14px 14px;
+  }
+
+  .blueish {
+    background-color: lightblue;
+  }
+</style>
