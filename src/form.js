@@ -782,15 +782,16 @@ export const macro = Ractive.macro(handle => {
     ],
     f: '?'
   });
-  if (label) body.unshift.apply(body, Array.isArray(label.f) ? label.f : [label.f]);
-  else body.unshift('\xa0');
+  const inline = attrs.find(a => a.n === 'inline');
+  if (label && !inline) body.unshift.apply(body, Array.isArray(label.f) ? label.f : [label.f]);
+  else if (!inline) body.unshift('\xa0');
 
   const outer = {
     t: 7, e: 'label', m: [{ t: 71, n: 'field' }].concat(attrs.filter(a => (a.t !== 13 && a.t !== 73) || (a.n !== 'value' && a.n !== 'type' && a.n !== 'inline' && a.n !== 'label' && a.n !== 'placeholder' && a.n !== 'target' && a.n !== 'disabled'))),
     f: body
   };
 
-  if (attrs.find(a => a.n === 'inline')) outer.m.push({ t: 13, n: 'class', f: 'inline' });
+  if (inline) outer.m.push({ t: 13, n: 'class', f: 'inline' });
 
   handle.setTemplate([outer]);
 });
