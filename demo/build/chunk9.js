@@ -37,18 +37,35 @@ System.register([], function (exports, module) {
 
       var defaults = {
         mask: 'yyyy-MM-dd',
-        time: '00:00:00.000',
+        time: [0, 0, 0, 0],
         date: function date() {
           var now = new Date();
-          return new Date(((now.getFullYear()) + "-" + (padl(now.getMonth() + 1, 2)) + "-" + (padl(now.getDate(), 2)) + "T" + (defaults.time)));
+          var tm = defaults.time;
+          return new Date(now.getFullYear(), now.getMonth(), now.getDate(), tm[0], tm[1], tm[2], tm[3]);
         }
       };
+
+      function timeArray(value) {
+        if (value === 'start') { value = [0, 0, 0, 0]; }
+        else if (value === 'end') { value = [23, 59, 59, 999]; }
+        else if (value === 'mid') { value = [12, 0, 0, 0]; }
+        else if (value === 'now') { value = function () {
+          var dt = new Date();
+          return [dt.getHours(), dt.getMinutes(), dt.getSeconds(), dt.getMilliseconds()];
+        }; }
+        else if (typeof value === 'string') {
+          var dt = new Date(("2000-05-13T" + value + "Z"));
+          if (+dt) { value = [dt.getUTCHours(), dt.getUTCMinutes(), dt.getUTCSeconds(), dt.getUTCMilliseconds()]; }
+        }
+        if (!Array.isArray(value) && typeof value !== 'function' && !Array.isArray(value())) { value = [0, 0, 0, 0]; }
+        return value;
+      }
 
       function plugin(options) {
         if ( options === void 0 ) options = {};
 
         var defaultMask = options.mask || defaults.mask;
-        var defaultTime = options.time || defaults.time;
+        var defaultTime = timeArray(options.time || defaults.time);
         var defaultDate = options.date || defaults.date;
         if (typeof defaultDate !== 'function') {
           var dt = defaultDate;
@@ -64,10 +81,16 @@ System.register([], function (exports, module) {
             var opts = Object.assign(
               {},
               options,
-              typeof optsin === 'string' ? { value: optsin } : 0,
-              typeof other === 'string' ? { mask: other } : 0,
-              typeof optsin === 'object' ? optsin : 0
+              typeof optsin === 'string' ? { value: optsin } : optsin,
+              typeof other === 'string' ? { mask: other } : other
             );
+
+            var defdt = opts.date || defaultDate;
+            var deftm = timeArray(opts.time || defaultTime);
+            if (typeof defdt !== 'function') {
+              var dt = defdt;
+              defdt = function () { return dt; };
+            }
 
             var ctx = this.getContext(node);
             var mask = opts.mask || defaultMask;
@@ -99,7 +122,7 @@ System.register([], function (exports, module) {
             
             if (typeof opts.value === 'string') {
               handles.observers.push(ctx.observe(opts.value, function (v) {
-                if (!v && opts.null === false) { v = defaultDate(); }
+                if (!v && opts.null === false) { v = defdt(); }
                 groups.value = v;
                 receiveValue(groups, v);
                 groups.last = v;
@@ -116,13 +139,13 @@ System.register([], function (exports, module) {
                 node.value = v || '';
                 readInput(groups, node, mask);
                 updateValues(groups);
-                applyValues(groups, sendValue, true, defaultDate);
+                applyValues(groups, sendValue, true, defdt, deftm);
                 updateDisplay(groups, node);
               }, { defer: true }));
             }
 
             if (!opts.display && !opts.value) {
-              if (opts.date || opts.null === false) { groups.value = getDateValue(opts.date || defaultDate()); }
+              if (opts.date || opts.null === false) { groups.value = getDateValue(opts.date || defdt()); }
               updateDisplay(groups, node);
             }
 
@@ -163,7 +186,7 @@ System.register([], function (exports, module) {
               readInput(groups, node, mask);
               var active = groupForPos(groups, pos);
               var accepted = updateValues(groups, active, pos);
-              applyValues(groups, sendValue, true, defaultDate);
+              applyValues(groups, sendValue, true, defdt, deftm);
               updateDisplay(groups, node);
 
               if (active && ((start.length >= mask.length && pos === active.end) || accepted) && active !== groups[groups.length - 1]) {
@@ -196,7 +219,7 @@ System.register([], function (exports, module) {
                   var idx = groups.indexOf(g);
                   if (updateValues(groups, g, node.selectionStart, true)) {
                     updateDisplay(groups, node);
-                    applyValues(groups, sendValue, ev.shiftKey && idx > 0 || !ev.shiftKey && idx + 1 < groups.length, defaultDate);
+                    applyValues(groups, sendValue, ev.shiftKey && idx > 0 || !ev.shiftKey && idx + 1 < groups.length, defdt, deftm);
                   }
                   if (ev.shiftKey && idx > 0) {
                     node.setSelectionRange(groups[idx - 1].start, groups[idx - 1].end);
@@ -219,7 +242,7 @@ System.register([], function (exports, module) {
                   if (g$1.value === null) { g$1.value = 1; }
                   bumpValue(g$1, ev.key === 'ArrowDown');
                   g$1.input = g$1.display = displayForGroup(g$1);
-                  applyValues(groups, sendValue, true, defaultDate);
+                  applyValues(groups, sendValue, true, defdt, deftm);
                   updateDisplay(groups, node);
                   ev.preventDefault();
                   ev.stopPropagation();
@@ -268,7 +291,7 @@ System.register([], function (exports, module) {
         var accepted = false;
         for (var i = 0; i < groups.length; i++) {
           var g = groups[i];
-          var v = g.input.replace(nonDigits, '');
+          var v = (g.input || '').replace(nonDigits, '');
           var hasSep = groups[i + 1] && groups[i + 1].prefix && nonDisplay.test(g.input);
           if (v.length > g.length && g === target) {
             var drop = v.length - target.length;
@@ -329,9 +352,14 @@ System.register([], function (exports, module) {
         });
       }
 
-      function applyValues(groups, send, focused, defaultDate) {
+      function applyValues(groups, send, focused, defaultDate, defaultTime) {
         var v = groups.value || defaultDate();
         var parts = [v.getFullYear(), v.getMonth(), v.getDate(), v.getHours(), v.getMinutes(), v.getSeconds(), v.getMilliseconds()];
+
+        if (!groups.find(function (p) { return p.type === 'm' || p.type === 's' || p.type === 'h' || p.type === 'S'; })) {
+          if (typeof defaultTime === 'function') { defaultTime = defaultTime(); }
+          for (var i = 0; i < 4; i++) { parts[i + 3] = defaultTime[i]; }
+        }
         
         groups.forEach(function (g) {
           var vv = g.value;
