@@ -13,7 +13,7 @@
       {{#each ~/tabs}}<div class=rsb-tab class-rsb-selected="@index === ~/selected" {{#if .label}}label="{{yield .label}}"{{/if}} {{#if .tabattrs}}{{yield .tabattrs}}{{/if}} on-click="@.set({ selected: @index, open: true })">{{yield .tab with @this as sidebar}}</div>{{/each}}
     </div>
     {{/if}}
-    <div class=rsb-tab-contents {{#if ~/width}}style-min-width="{{~/width}}"{{/if}}>
+    <div class=rsb-tab-contents {{#if ~/width}}style-min-width="{{~/width}}em"{{/if}}>
       {{#each ~/tabs}}<div class=rsb-tab-content class-rsb-selected="@index === ~/selected" {{yield .attrs}}>{{yield .content with @this as sidebar}}</div>{{/each}}
       {{#if ~/tabs.side}}<div class=rsb-contents {{yield ~/tabs.sideattrs}}>{{yield ~/tabs.side with @this as sidebar}}</div>{{/if}}
     </div>
