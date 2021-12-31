@@ -20,13 +20,15 @@
     * `string: keypath` - the keypath to which the text of the input should be bound
     * `min: Date` - the minimum value for the date input
     * `max: Date` - the maximum value for the date input
+    * `time` - the time setting to be passed to the date decorator
+
   </marked></tab>
   <tab title=Example>
     <marked>
       ### Template:
       ```handlebars
       <date-input />
-      <date-input value=".date" />
+      <date-input value=".date" time=now />
       <date-input value=".date" mask="MM/dd/yyyy" string=".dateString" />
       <date-input value=".minDate" min="{{.min}}" />
       <date-input value=".maxDate" max="{{.max}}" />
@@ -36,7 +38,7 @@
 
     <div class="dates">
       <date-input />
-      <date-input value=".date" />
+      <date-input value=".date" time=now />
       <date-input value=".date" mask="MM/dd/yyyy" string=".dateString" />
       <date-input value=".minDate" min="{{.min}}" />
       <date-input value=".maxDate" max="{{.max}}" />
@@ -66,8 +68,8 @@
     },
     data() {
       return {
-        min: new Date(new Date() - 86400000 * 30),
-        max: new Date(new Date() + 86400000 * 30),
+        min: new Date(+new Date() - 86400000 * 30),
+        max: new Date(+new Date() + 86400000 * 30),
       };
     }
   });

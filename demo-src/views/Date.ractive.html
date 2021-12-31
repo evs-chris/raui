@@ -24,7 +24,7 @@
       * `m` - minute
       * `s` - second
       * `S` - millisecond
-    * `time: string = '00:00:00.000'` - the default time to use as a starting point for an undefined base value
+    * `time: string|[h, m, s, ms] = '00:00:00.000'` - the default time to use as a starting point for an undefined base value. You can also pass an array of 4 integers or one of `'start'`, `'end'`, `'mid'`, or `'now'`, which correspond to midnight, a millisecond before midnight, noon, and the current instant, respectively.
     * `date: string = '0000-01-01'` - the default date to use as a starting point for an undefined base value
 
     ### Decorator options
@@ -33,6 +33,7 @@
 
     * `mask: string` - overrides the plugin mask for this field
     * `value: keypath` - the keypath to which the date should be bound
+    * `time: string|[h, m, s, ms]` - the default time for masks that don't include time
 
     Alternatively, you can pass just a keypath string, optionally followed by a mask.
   </marked></tab>
@@ -48,10 +49,31 @@
       ### Result:
     </marked>
 
-    <input as-date=`.date` />
-    <input as-date="'.date', 'MM'" />
-    <input as-date="{ value: '.date', mask: 'yyyy-MM-dd HH:mm:ss.SSS' }" />
-    <input as-date="{ value: '.date', mask: 'HH:mm:ss'}" />
+    <div class=container>
+      <input as-date=`.date` />
+      <input as-date="'.date', 'MM'" />
+      <input as-date="{ value: '.date', mask: 'yyyy-MM-dd HH:mm:ss.SSS' }" />
+      <input as-date="{ value: '.date', mask: 'HH:mm:ss'}" />
+    </div>
+
+    <marked>
+      ---
+      ### Template:
+      ```handlebars
+      <input as-date="'.other', { time: 'end' }`" />
+      <input as-date="'.other', 'MM'" />
+      <input as-date="{ value: '.other', mask: 'yyyy-MM-dd HH:mm:ss.SSS' }" />
+      <input as-date="{ value: '.other', mask: 'HH:mm:ss'}" />
+      ```
+      ### Result:
+    </marked>
+
+    <div class=container>
+      <input as-date="'.other', { time: 'end' }" />
+      <input as-date="'.other', 'MM'" />
+      <input as-date="{ value: '.other', mask: 'yyyy-MM-dd HH:mm:ss.SSS' }" />
+      <input as-date="{ value: '.other', mask: 'HH:mm:ss'}" />
+    </div>
   </tab>
 </tabs>
 
@@ -70,3 +92,8 @@
   });
 </script>
     
+<style>
+  .container {
+    max-width: 20em;
+  }
+</style>

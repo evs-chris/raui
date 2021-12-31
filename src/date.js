@@ -27,16 +27,33 @@ export function padr(str, total, char = '0') {
 
 export const defaults = {
   mask: 'yyyy-MM-dd',
-  time: '00:00:00.000',
+  time: [0, 0, 0, 0],
   date() {
     const now = new Date();
-    return new Date(`${now.getFullYear()}-${padl(now.getMonth() + 1, 2)}-${padl(now.getDate(), 2)}T${defaults.time}`);
+    const tm = defaults.time;
+    return new Date(now.getFullYear(), now.getMonth(), now.getDate(), tm[0], tm[1], tm[2], tm[3]);
   }
+}
+
+function timeArray(value) {
+  if (value === 'start') value = [0, 0, 0, 0];
+  else if (value === 'end') value = [23, 59, 59, 999];
+  else if (value === 'mid') value = [12, 0, 0, 0];
+  else if (value === 'now') value = () => {
+    const dt = new Date();
+    return [dt.getHours(), dt.getMinutes(), dt.getSeconds(), dt.getMilliseconds()];
+  };
+  else if (typeof value === 'string') {
+    const dt = new Date(`2000-05-13T${value}Z`);
+    if (+dt) value = [dt.getUTCHours(), dt.getUTCMinutes(), dt.getUTCSeconds(), dt.getUTCMilliseconds()];
+  }
+  if (!Array.isArray(value) && typeof value !== 'function' && !Array.isArray(value())) value = [0, 0, 0, 0];
+  return value;
 }
 
 export default function plugin(options = {}) {
   const defaultMask = options.mask || defaults.mask;
-  const defaultTime = options.time || defaults.time;
+  let defaultTime = timeArray(options.time || defaults.time);
   let defaultDate = options.date || defaults.date;
   if (typeof defaultDate !== 'function') {
     const dt = defaultDate;
@@ -48,10 +65,16 @@ export default function plugin(options = {}) {
       const opts = Object.assign(
         {},
         options,
-        typeof optsin === 'string' ? { value: optsin } : 0,
-        typeof other === 'string' ? { mask: other } : 0,
-        typeof optsin === 'object' ? optsin : 0
+        typeof optsin === 'string' ? { value: optsin } : optsin,
+        typeof other === 'string' ? { mask: other } : other,
       );
+
+      let defdt = opts.date || defaultDate;
+      const deftm = timeArray(opts.time || defaultTime);
+      if (typeof defdt !== 'function') {
+        const dt = defdt;
+        defdt = () => dt;
+      }
 
       const ctx = this.getContext(node);
       const mask = opts.mask || defaultMask;
@@ -83,7 +106,7 @@ export default function plugin(options = {}) {
       
       if (typeof opts.value === 'string') {
         handles.observers.push(ctx.observe(opts.value, v => {
-          if (!v && opts.null === false) v = defaultDate();
+          if (!v && opts.null === false) v = defdt();
           groups.value = v;
           receiveValue(groups, v);
           groups.last = v;
@@ -100,13 +123,13 @@ export default function plugin(options = {}) {
           node.value = v || '';
           readInput(groups, node, mask);
           updateValues(groups);
-          applyValues(groups, sendValue, true, defaultDate);
+          applyValues(groups, sendValue, true, defdt, deftm);
           updateDisplay(groups, node);
         }, { defer: true }));
       }
 
       if (!opts.display && !opts.value) {
-        if (opts.date || opts.null === false) groups.value = getDateValue(opts.date || defaultDate());
+        if (opts.date || opts.null === false) groups.value = getDateValue(opts.date || defdt());
         updateDisplay(groups, node);
       }
 
@@ -147,7 +170,7 @@ export default function plugin(options = {}) {
         readInput(groups, node, mask);
         const active = groupForPos(groups, pos);
         const accepted = updateValues(groups, active, pos);
-        applyValues(groups, sendValue, true, defaultDate);
+        applyValues(groups, sendValue, true, defdt, deftm);
         updateDisplay(groups, node);
 
         if (active && ((start.length >= mask.length && pos === active.end) || accepted) && active !== groups[groups.length - 1]) {
@@ -180,7 +203,7 @@ export default function plugin(options = {}) {
             const idx = groups.indexOf(g);
             if (updateValues(groups, g, node.selectionStart, true)) {
               updateDisplay(groups, node);
-              applyValues(groups, sendValue, ev.shiftKey && idx > 0 || !ev.shiftKey && idx + 1 < groups.length, defaultDate);
+              applyValues(groups, sendValue, ev.shiftKey && idx > 0 || !ev.shiftKey && idx + 1 < groups.length, defdt, deftm);
             }
             if (ev.shiftKey && idx > 0) {
               node.setSelectionRange(groups[idx - 1].start, groups[idx - 1].end);
@@ -201,7 +224,7 @@ export default function plugin(options = {}) {
             if (g.value === null) g.value = 1;
             bumpValue(g, ev.key === 'ArrowDown');
             g.input = g.display = displayForGroup(g);
-            applyValues(groups, sendValue, true, defaultDate);
+            applyValues(groups, sendValue, true, defdt, deftm);
             updateDisplay(groups, node);
             ev.preventDefault();
             ev.stopPropagation();
@@ -247,7 +270,7 @@ function updateValues(groups, target, pos = 0, leave = false) {
   let accepted = false;
   for (let i = 0; i < groups.length; i++) {
     const g = groups[i];
-    let v = g.input.replace(nonDigits, '');
+    let v = (g.input || '').replace(nonDigits, '');
     const hasSep = groups[i + 1] && groups[i + 1].prefix && nonDisplay.test(g.input);
     if (v.length > g.length && g === target) {
       const drop = v.length - target.length;
@@ -308,9 +331,14 @@ function receiveValue(groups, v) {
   });
 }
 
-function applyValues(groups, send, focused, defaultDate) {
+function applyValues(groups, send, focused, defaultDate, defaultTime) {
   const v = groups.value || defaultDate();
   const parts = [v.getFullYear(), v.getMonth(), v.getDate(), v.getHours(), v.getMinutes(), v.getSeconds(), v.getMilliseconds()];
+
+  if (!groups.find(p => p.type === 'm' || p.type === 's' || p.type === 'h' || p.type === 'S')) {
+    if (typeof defaultTime === 'function') defaultTime = defaultTime();
+    for (let i = 0; i < 4; i++) parts[i + 3] = defaultTime[i];
+  }
   
   groups.forEach(g => {
     let vv = g.value;
