@@ -33,16 +33,22 @@
       super(opts);
     }
 
-    select(idx) {
+    select(idx, open) {
       if (idx < 0 || idx > (this.get('tabs.length') || 0) - 1) return;
+      if (open !== false) this.open();
       return this.set('selected', idx);
+    }
+
+    blur() {
+      if (this.get('size') !== 'wide' && this.get('open')) return this.close().then(() => true);
+      else return Promise.resolve(false);
     }
 
     open() { return this.set('open', true); }
     close() { return this.set('open', false); }
     toggle(key) {
       if (key === undefined) {
-        return super.toggle('open');
+        return super.toggle('open').then(() => this.get('open'));
       } else {
         return super.toggle(key);
       }
