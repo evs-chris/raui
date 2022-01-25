@@ -132,7 +132,7 @@ export class Validator {
         dispose(this, disposer);
         const cks = Object.keys(checks);
         cks.forEach(c => {
-          cks[c].forEach(([ks, handle]) => {
+          checks[c].forEach(([ks, handle]) => {
             handle.cancel();
             const idx = this.fns.findIndex(([k]) => k === ks);
             if (~idx) this.fns.splice(idx, 1);
