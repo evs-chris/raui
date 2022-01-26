@@ -151,29 +151,7 @@ System.register(['./chunk2.js'], function (exports, module) {
           cleanup.push(ctx.listen('focus', function () {
             var start = node.selectionStart, end = node.selectionEnd;
             if (start === 0 && end === 0) {
-              setTimeout(function () {
-                var cur = node.value;
-                var pos;
-                if (!numRE.test(cur)) {
-                  pos = (o.prefix || '').length;
-                  node.setSelectionRange(pos, pos);
-                } else if (decimalRE.test(cur)) {
-                  pos = cur.indexOf('.');
-                  node.setSelectionRange(pos, pos);
-                } else if (numRE.test(cur)) {
-                  var i = cur.length;
-                  while (i--) {
-                    if (numRE.test(cur[i])) {
-                      pos = i + 1;
-                      node.setSelectionRange(pos, pos);
-                      break;
-                    }
-                  }
-                } else {
-                  pos = cur.length - (o.suffix || '').length;
-                  node.setSelectionRange(pos, pos);
-                }
-              });
+              node.setSelectionRange(0, node.value.length);
             } else if (start === end) {
               if (start === node.value.length) {
                 node.setSelectionRange(0, start);
