@@ -6,7 +6,7 @@ export function style(data) {
   const active = Object.assign({}, data('raui.primary.active'), data('raui.form.primary.active'));
   const boxy = data('raui.form.boxy');
   return `
-  label.field {
+  label.field, .field-manual {
     display: inline-block;
     font-size: 0.9em;
     font-weight: 500;
@@ -49,7 +49,8 @@ export function style(data) {
 
   label.field input,
   label.field select,
-  label.field textarea
+  label.field textarea,
+  .field-manual .field-body
   {
     display: block;
     border-width: ${boxy ? '0.0625em' : '0 0 0.0625em 0'};
