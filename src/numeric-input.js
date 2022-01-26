@@ -137,29 +137,7 @@ export function numeric(options = {}) {
     cleanup.push(ctx.listen('focus', () => {
       const start = node.selectionStart, end = node.selectionEnd;
       if (start === 0 && end === 0) {
-        setTimeout(() => {
-          const cur = node.value;
-          let pos;
-          if (!numRE.test(cur)) {
-            pos = (o.prefix || '').length;
-            node.setSelectionRange(pos, pos);
-          } else if (decimalRE.test(cur)) {
-            pos = cur.indexOf('.');
-            node.setSelectionRange(pos, pos);
-          } else if (numRE.test(cur)) {
-            let i = cur.length;
-            while (i--) {
-              if (numRE.test(cur[i])) {
-                pos = i + 1;
-                node.setSelectionRange(pos, pos);
-                break;
-              }
-            }
-          } else {
-            pos = cur.length - (o.suffix || '').length;
-            node.setSelectionRange(pos, pos);
-          }
-        });
+        node.setSelectionRange(0, node.value.length);
       } else if (start === end) {
         if (start === node.value.length) {
           node.setSelectionRange(0, start);
