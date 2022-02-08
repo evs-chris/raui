@@ -7,7 +7,7 @@
       {{yield}}
     </div>
     {{#each @.children.byName.window}}
-    <#window control="{{~/windows[.instance.id]}}" bind-root="~/" />
+    <#window control="{{~/windows[.instance.id]}}" moving="{{~/moving}}" bind-root="~/" />
     {{/each}}
     <div class-rwhost-modal as-tracked=`modalPane` {{#if ~/blocked}}class-rwhost-modal-active style-z-index="{{~/blocked}}"{{/if}} />
   </div>
@@ -44,7 +44,7 @@
         on-mousedown-touchstart="@.raise()"
       {{/if}}
     >
-      <div class-rwindow-modal class-rwindow-blocked="~/control.blockers.length || ~/control.blocked"></div>
+      <div class-rwindow-modal class-rwindow-blocked="~/control.blockers.length || ~/control.blocked" class-rwindow-move="~/moving"></div>
       <div class-rwindow-pane as-tracked=`pane` {{#if ~/control.autosize && !~/control.slide}}class-rwindow-autosizing{{/if}}>
         {{>pane}}
       </div>
@@ -969,6 +969,8 @@
         if (event.targetTouches && event.targetTouches.length === 1 && event.target !== this.content && event.target !== this.top && !this.top.contains(event.target)) return;
       }
 
+      this.set('moving', true);
+
       const wnd = this.pane;
       const cursor = wnd.style.cursor;
       wnd.style.cursor = 'move';
@@ -1001,6 +1003,7 @@
           moveEvents.forEach(e => document.removeEventListener(e, _move, { passive: false }));
           wnd.style.cursor = cursor;
           wnd.style.userSelect = '';
+          this.set('moving', false);
         } else {
           ev.preventDefault();
         }
@@ -1022,6 +1025,7 @@
       if (!this.get('control.topmost')) this.raise();
 
       this.set('control.resizing', true);
+      this.set('moving', true);
 
       const el = this.wrapper;
       const ix = event.offsetX || (event.targetTouches && (event.targetTouches[0].pageX - el.getBoundingClientRect().left));
@@ -1091,6 +1095,7 @@
         if (ev.type === 'touchend' || ev.type === 'mouseup') {
           moveEvents.forEach(e => document.removeEventListener(e, _resize, { passive: false }));
           this.set('control.resizing', false);
+          this.set('moving', false);
           if (ow !== this.get('control.width') || oh !== this.get('control.height')) {
             if (tm) clearTimeout(tm);
             tm = null;
@@ -1392,6 +1397,9 @@
     opacity: 1;
     z-index: 50;
     transition: opacity 0.4s ease-in-out, z-index 0s linear;
+  }
+  .rwindow-modal.rwindow-move {
+    z-index: 50;
   }
 
   .rwindow {
