@@ -4,6 +4,7 @@ import Ractive from 'ractive';
 export function style(data) {
   const primary = Object.assign({}, data('raui.primary'), data('raui.form.primary'));
   const active = Object.assign({}, data('raui.primary.active'), data('raui.form.primary.active'));
+  const disabled = Object.assign({}, data('raui.primary.disabled'), data('raui.form.primary.disabled'));
   const boxy = data('raui.form.boxy');
   return `
   label.field, .field-manual {
@@ -78,9 +79,13 @@ export function style(data) {
   }
 
   label.field input:disabled,
+  label.field input:read-only,
   label.field select:disabled,
-  label.field textarea:disabled {
-    background: #f4f4f4;
+  label.field select:read-only,
+  label.field textarea:disabled,
+  label.field textarea:read-only {
+    background: ${disabled.bg || '#f4f4f4'};
+    color: ${disabled.fg || '#444'};
   }
 
   label.field textarea {
@@ -225,17 +230,18 @@ export function style(data) {
   }
 
   label.field.check.disabled {
-    color: ${primary.bc || '#ccc'};
+    color: ${disabled.fg || '#444'};
+    background-color: ${disabled.bg || '#f4f4f4'};
     cursor: initial;
   }
 
   label.field.check.disabled:before {
-    border-color: ${primary.bc || '#ccc'};
+    border-color: ${disabled.bc || '#ccc'};
   }
 
   label.field.check.checked.disabled:before {
     border-color: transparent;
-    background-color: ${primary.bc || '#ccc'};
+    background-color: ${disabled.bc || '#ccc'};
   }
 
 
@@ -359,16 +365,17 @@ export function style(data) {
   }
 
   label.field.radio.disabled {
-    color: ${primary.bc || '#ccc'};
+    color: ${disabled.fg || '#444'};
+    background-color: ${disabled.bg || '#f4f4f4'};
     cursor: initial;
   }
 
   label.field.radio.disabled:before {
-    border-color: ${primary.bc || '#ccc'};
+    border-color: ${disabled.bc || '#ccc'};
   }
 
   label.field.radio.disabled:after {
-    background-color: ${primary.bc || '#ccc'};
+    background-color: ${disabled.bc || '#ccc'};
   }
 
 
