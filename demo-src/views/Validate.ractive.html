@@ -19,7 +19,8 @@
 
     * `MessageLevel = 'error'|'warn'|'info'`
     * `CheckOptions { group?: string|string[]; init?: boolean }`
-    * `ValidatorFN = (...values: any[]) => ValidationResult`
+    * `ValidatorFn = (...values: any[]) => ValidationResult`
+    * `ConditionFn = (...values: any[]) => boolean`
     * `ValidationResult = Array<[MessageLevel, string]|[MessageLevel, string, string|string[]]>`
     * `CheckHelper { check(...); checkList(...); checkDefer(...) }`
     * `CheckScope = (path: string, check: CheckHelper, key: index|string) => void`
@@ -31,6 +32,8 @@
     * `check(keys: Path, deps?: string|string[], callback: (...values: any) => ValidationResult, options?: CheckOptions)` - install a validator for the given key(s)
     * `checkList(path: string, scope: CheckScope, opts?: CheckOptions)` - install validators for a list, where each item is run through the scope individually
     * `checkDefer(path: string, scope: CheckScope, opts?: CheckOptions)` - install validators for an object once it is defined, which is when the scope is run
+    * `checkCondition(path: string, condition: ConditionFn, scope: CheckScope, opts?: CheckOptions)` - install validators for an object when a condition function returns true, which is when the scope is run
+    * `checkCondition(path: string, deps: string|string[], condition: ConditionFn, scope: CheckScope, opts?: CheckOptions)` - install validators for an object when a condition function returns true, which is when the scope is run
     * `refresh(path: Path|RegExp, recurse?: boolean = true)` - re-validate the matching paths
     * `clear(path: string|RegExp, recurse?: boolean = false)` - remove validations for the matching paths
     * `level(path: Path|RegExp|Group, recurse?: boolean = true): MessageLevel` - get the message level for the matching paths
@@ -57,6 +60,7 @@
             <title style-padding-right="2em" as-validg=`tab1`>Tab 1</title>
             <div>
               <label as-field as-valid=`name`>Name<input value="{{name}}" /></label>
+              <label as-field as-valid=`other`>Other<input value="{{other}}" /></label>
             </div>
           </tab>
           <tab>
@@ -77,9 +81,12 @@
 
       ```js
         // in the init event for the ractive instance
-        const validator = new Validator(this);
+        const validator = this.valid = new Validator(this);
         validator.check('name', required('Name'), { group: 'tab1' });
         validator.check('name', (v) => /dave/i.test(v) ? [['error', 'Dave\'s not here, man.']] : [], { group: 'tab1' });
+        validator.checkCondition('things.length', len => len > 2, (path, v) => {
+            v.check('other', n => n.length < 5 ? [['warn', `That's a lot of things for someone with a short other`]] : [], { group: 'tab1' });
+        });
         validator.check('things.length', between('Number of things', 1, 10, 'warn'), { group: 'tab2' });
         validator.checkList('things', (path, v) => {
           v.check('.name', required('Name'), { group: 'tab2' });
@@ -98,6 +105,7 @@
         <title style-padding-right="2em" as-validg=`tab1`>Tab 1</title>
         <div>
           <label as-field as-valid=`name`>Name<input value="{{name}}" /></label>
+          <label as-field as-valid=`other`>Other<input value="{{other}}" /></label>
         </div>
       </tab>
       <tab>
@@ -135,9 +143,12 @@
     },
     on: {
       init() {
-        const validator = new Validator(this);
+        const validator = this.valid = new Validator(this);
         validator.check('name', required('Name'), { group: 'tab1' });
         validator.check('name', (v) => /dave/i.test(v) ? [['error', 'Dave\'s not here, man.']] : [], { group: 'tab1' });
+        validator.checkCondition('things.length', len => len > 2, (path, v) => {
+            v.check('other', n => n.length < 5 ? [['warn', `That's a lot of things for someone with a short other`]] : [], { group: 'tab1' });
+        });
         validator.check('things.length', between('Number of things', 1, 10, 'warn'), { group: 'tab2' });
         validator.checkList('things', (path, v) => {
           v.check('.name', required('Name'), { group: 'tab2' });

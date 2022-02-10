@@ -4,6 +4,7 @@ export type MessageLevel = 'error'|'warn'|'info';
 export type Level = 'none'|MessageLevel;
 export type ValidatorResult = Array<[MessageLevel, string]|[MessageLevel, string, string|string[]]>;
 export type ValidatorFn = (this: Ractive, ...values: any[]) => ValidatorResult;
+export type ConditionFn = (this: Ractive, ...values: any[]) => boolean;
 
 export interface CheckHandle {
   cancel(): void;
@@ -66,6 +67,25 @@ export interface CheckHelper {
    * @param opts - additional validation options
    */
   checkDefer(path: string, scope: (path: string, check: CheckHelper, key: string) => void, opts?: ManyCheckOptions): void;
+  /**
+   * Watches the given path, executing the conditional function on each change to determine whether to run the check function or remove any checks previously installed.
+   *
+   * @param path - the path to watch
+   * @param condition - the condition function used to determine whether to validate or not
+   * @param scope - the scope function to fire once for each item that matches the keypath
+   * @param opts - additional validation options
+   */
+  checkCondition(path: string, condition: ConditionFn, scope: (path: string, check: CheckHelper, key: string) => void, opts?: ManyCheckOptions): void;
+  /**
+   * Watches the given path, executing the conditional function on each change to determine whether to run the check function or remove any checks previously installed.
+   *
+   * @param path - the path to watch
+   * @param deps - an additional keypath or array of additional keypaths to watch
+   * @param condition - the condition function used to determine whether to validate or not
+   * @param scope - the scope function to fire once for each item that matches the keypath
+   * @param opts - additional validation options
+   */
+  checkCondition(path: string, deps: string|string[], condition: ConditionFn, scope: (path: string, check: CheckHelper, key: string) => void, opts?: ManyCheckOptions): void;
 }
 
 export interface DecoratorOpts {
@@ -122,6 +142,25 @@ export class Validator implements CheckHelper {
    * @param opts - additional validation options
    */
   checkDefer(path: string, scope: (path: string, check: CheckHelper, key: string) => void, opts?: ManyCheckOptions): void;
+  /**
+   * Watches the given path, executing the conditional function on each change to determine whether to run the check function or remove any checks previously installed.
+   *
+   * @param path - the path to watch
+   * @param condition - the condition function used to determine whether to validate or not
+   * @param scope - the scope function to fire once for each item that matches the keypath
+   * @param opts - additional validation options
+   */
+  checkCondition(path: string, condition: ConditionFn, scope: (path: string, check: CheckHelper, key: string) => void, opts?: ManyCheckOptions): void;
+  /**
+   * Watches the given path, executing the conditional function on each change to determine whether to run the check function or remove any checks previously installed.
+   *
+   * @param path - the path to watch
+   * @param deps - an additional keypath or array of additional keypaths to watch
+   * @param condition - the condition function used to determine whether to validate or not
+   * @param scope - the scope function to fire once for each item that matches the keypath
+   * @param opts - additional validation options
+   */
+  checkCondition(path: string, deps: string|string[], condition: ConditionFn, scope: (path: string, check: CheckHelper, key: string) => void, opts?: ManyCheckOptions): void;
   /**
    * Re-validate the paths that match the given path specifier.
    *

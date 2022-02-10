@@ -108,7 +108,10 @@ export class Validator {
               },
               checkDefer: (path, fn, opts) => {
                 chks.push([[], this.checkDefer(path[0] === '.' ? k + path : path, fn, opts)]);
-              }
+              },
+              checkCondition: (path, deps, cond, fn, opts) => {
+                chks.push([[], this.checkCondition(path[0] === '.' ? k + path : path, deps, cond, fn, opts)]);
+              },
             };
             fn(k, o, i);
             checks[i] = chks;
@@ -148,48 +151,70 @@ export class Validator {
   }
 
   checkDefer(path, fn, opts) {
+    return this.checkCondition(path, v => v != null, fn, opts);
+  }
+
+  checkCondition(path, deps, cond, fn, opts) {
+    if (typeof deps === 'function') {
+      opts = fn;
+      fn = cond;
+      cond = deps;
+      deps = [];
+    }
+    if (typeof deps === 'string') deps = [deps];
+    const keys = [path].concat(deps);
     const checks = {};
-    const callback = (v, o, k, p) => {
-      if (v == null && checks[k]) {
-        checks[k].forEach(([ks, handle]) => {
-          handle.cancel();
-          ks.forEach(k => {
-            this.clear(k, true);
-            this.notify(k, true, true);
+    const callback = (_v, _o, ck, p) => {
+      const primary = !~deps.indexOf(ck);
+      if (primary && !(ck in checks)) checks[ck] = undefined;
+      const tocheck = primary ? [ck] : Object.keys(checks);
+      for (let i = 0; i < tocheck.length; i++) {
+        const k = tocheck[i];
+        const cc = cond.apply(this.ractive, [k].concat(deps).map(k => this.ractive.get(k)));
+        if (!cc && checks[k]) {
+          checks[k].forEach(([ks, handle]) => {
+            handle.cancel();
+            ks.forEach(k => {
+              this.clear(k, true);
+              this.notify(k, true, true);
+            });
+            const idx = this.fns.findIndex(([k]) => k === ks);
+            if (~idx) this.fns.splice(idx, 1);
           });
-          const idx = this.fns.findIndex(([k]) => k === ks);
-          if (~idx) this.fns.splice(idx, 1);
-        });
-        delete checks[k];
-      } else if (v != null && !checks[k]) {
-        const chks = [];
-        const o = {
-          check: (keys, deps, fn, opts) => {
-            const ks = (Array.isArray(keys) ? keys.slice() : [keys]).map(s => s[0] === '.' ? k + s : s);
-            const all = ks.concat((Array.isArray(deps) ? deps : typeof deps === 'string' ? [deps] : []).map(s => s[0] === '.' ? k + s : s));
-            if (typeof deps === 'function') {
-              opts = fn;
-              fn = deps;
-              deps = [];
-            }
-            chks.push([ks, this.ractive.observe(all.join(' '), debounce(this.debounce, function() {
-              checker.call(this, fn, ks, all.map(k => this.ractive.get(k)), k);
-            }, this), { init: opts && opts.init === false ? false : true })]);
-            this.fns.push([ks, deps, fn, opts && opts.group && (Array.isArray(opts.group) ? opts.group : [opts.group])]);
-            ks.prefix = k;
-          },
-          checkList: (path, fn, opts) => {
-            chks.push([[], this.checkList(path[0] === '.' ? k + path : path, fn, opts)]);
-          },
-          checkDefer: (path, fn, opts) => {
-            chks.push([[], this.checkDefer(path[0] === '.' ? k + path : path, fn, opts)]);
-          }
-        };
-        fn(k, o, p);
-        checks[k] = chks;
+          checks[k] = undefined;
+        } else if (cc && !checks[k]) {
+          const chks = [];
+          const o = {
+            check: (keys, deps, fn, opts) => {
+              const ks = (Array.isArray(keys) ? keys.slice() : [keys]).map(s => s[0] === '.' ? k + s : s);
+              const all = ks.concat((Array.isArray(deps) ? deps : typeof deps === 'string' ? [deps] : []).map(s => s[0] === '.' ? k + s : s));
+              if (typeof deps === 'function') {
+                opts = fn;
+                fn = deps;
+                deps = [];
+              }
+              chks.push([ks, this.ractive.observe(all.join(' '), debounce(this.debounce, function() {
+                checker.call(this, fn, ks, all.map(k => this.ractive.get(k)), k);
+              }, this), { init: opts && opts.init === false ? false : true })]);
+              this.fns.push([ks, deps, fn, opts && opts.group && (Array.isArray(opts.group) ? opts.group : [opts.group])]);
+              ks.prefix = k;
+            },
+            checkList: (path, fn, opts) => {
+              chks.push([[], this.checkList(path[0] === '.' ? k + path : path, fn, opts)]);
+            },
+            checkDefer: (path, fn, opts) => {
+              chks.push([[], this.checkDefer(path[0] === '.' ? k + path : path, fn, opts)]);
+            },
+            checkCondition: (path, deps, cond, fn, opts) => {
+              chks.push([[], this.checkCondition(path[0] === '.' ? k + path : path, deps, cond, fn, opts)]);
+            },
+          };
+          fn(k, o, p);
+          checks[k] = chks;
+        }
       }
     };
-    const observer = this.ractive.observe(path, debounceMany(this.debounce, callback, this, 2), { init: opts && opts.init === false ? false : true });
+    const observer = this.ractive.observe(keys.join(' '), debounceMany(this.debounce, callback, this, 2), { init: opts && opts.init === false ? false : true });
     const parent = path.split(/\s+/);
     const handle = [parent, () => {
       parent.forEach(path => {
