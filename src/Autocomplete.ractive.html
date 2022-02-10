@@ -1,8 +1,8 @@
 <span class-rautocomplete class-field-wrapper on-pop="@context.set('rac.pop', $1)">
-  <input {{>extra-attributes}} on-dblclick="rac.pop.show(@node)" on-focus="rac.stash()" on-blur="rac.key({ which: 9 })" on-input="rac.input(@event)" on-keydown="rac.key(@event)" twoway=false value="{{rac.display}}" />
+  <input {{>extra-attributes}} on-dblclick="rac.pop.show(@node)" on-focus="rac.stash()" on-blur="rac.checkBlur()" on-input="rac.input(@event)" on-keydown="rac.key(@event)" twoway=false value="{{rac.display}}" />
   <div class-rac-drop on-click="rac.pop.show(@context.find('input'))" />
   <rac-pop class-rac-pop on-init="@context.raise('pop', {}, $1)" bind-popped="rac.popped" where=below align=end style-padding=0 gap=[[2]] bind-offsets="rac.offsets" bind-fit="rac.fit">
-    {{#if inModal}}<input class-rac-modal on-input="rac.input(@event)" on-keydown="rac.key(@event)" twoway=false value="{{rac.display}}" as-autocompletefocus />{{/if}}
+    {{#if inModal}}<input class-rac-modal on-input="rac.input(@event)" on-keydown="rac.key(@event)" twoway=false value="{{rac.display}}" on-blur="rac.checkBlur()" as-autocompletefocus />{{/if}}
     <div class-rac-list tabindex=-1>
       {{#await rac.list}}<div class-rac-item class-rac-invalid>Loading...</div>{{then items}}
       {{#each items}}<div tabindex=-1 class-rac-item {{#if rac.valueBound}}class-rac-selected="rac.value === ."{{/if}} class-rac-hover="rac.selected === @index" {{#if rac.popped}}on-click="@context.set('rac.value', .), rac._drawDisplay()" on-mouseover="@context.set('rac.selected', @index)"{{/if}}>{{rac._display(.)}}</div>{{/each}}
@@ -23,6 +23,8 @@
   function safeGet(obj, path) {
     return path.reduce((a, c) => a ? a[c] : a, obj)
   }
+
+  const formNodes = ['INPUT', 'SELECT', 'TEXTAREA', 'BUTTON'];
 
   export const Autocomplete = Ractive.macro(h => {
     let tm;
@@ -266,6 +268,13 @@
       }),
       h.observe('rac.selected', scrollView),
     ];
+
+    h.set('rac.checkBlur', function checkBlur() {
+      const active = document.activeElement;
+      if (!~formNodes.indexOf(active.nodeName) && !active.getAttribute('tabindex')) return;
+      const inputs = h.findAll('input');
+      if (document.activeElement && !~inputs.indexOf(document.activeElement)) h.get('rac.key')({ which: 9 });
+    });
 
     function teardown() {
       h.unlink('rac.items');
