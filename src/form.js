@@ -79,11 +79,10 @@ export function style(data) {
   }
 
   label.field input:disabled,
-  label.field input:read-only,
+  label.field input[readonly],
   label.field select:disabled,
-  label.field select:read-only,
   label.field textarea:disabled,
-  label.field textarea:read-only {
+  label.field textarea[readonly] {
     background: ${disabled.bg || '#f4f4f4'};
     color: ${disabled.fg || '#444'};
   }
