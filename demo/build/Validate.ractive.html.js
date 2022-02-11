@@ -135,7 +135,10 @@ System.register(['ractive', './chunk2.js', './chunk13.js'], function (exports, m
                   },
                   checkDefer: function (path, fn, opts) {
                     chks.push([[], this$1.checkDefer(path[0] === '.' ? k$1 + path : path, fn, opts)]);
-                  }
+                  },
+                  checkCondition: function (path, deps, cond, fn, opts) {
+                    chks.push([[], this$1.checkCondition(path[0] === '.' ? k$1 + path : path, deps, cond, fn, opts)]);
+                  },
                 };
                 fn(k$1, o$1, i);
                 checks[i] = chks;
@@ -184,59 +187,83 @@ System.register(['ractive', './chunk2.js', './chunk13.js'], function (exports, m
       };
 
       Validator.prototype.checkDefer = function checkDefer (path, fn, opts) {
+        return this.checkCondition(path, function (v) { return v != null; }, fn, opts);
+      };
+
+      Validator.prototype.checkCondition = function checkCondition (path, deps, cond, fn, opts) {
           var this$1 = this;
 
+        if (typeof deps === 'function') {
+          opts = fn;
+          fn = cond;
+          cond = deps;
+          deps = [];
+        }
+        if (typeof deps === 'string') { deps = [deps]; }
+        var keys = [path].concat(deps);
         var checks = {};
-        var callback = function (v, o, k, p) {
-          if (v == null && checks[k]) {
-            checks[k].forEach(function (ref) {
-                var ks = ref[0];
-                var handle = ref[1];
+        var callback = function (_v, _o, ck, p) {
+          var primary = !~deps.indexOf(ck);
+          if (primary && !(ck in checks)) { checks[ck] = undefined; }
+          var tocheck = primary ? [ck] : Object.keys(checks);
+          var loop = function ( i ) {
+            var k = tocheck[i];
+            var cc = cond.apply(this$1.ractive, [k].concat(deps).map(function (k) { return this$1.ractive.get(k); }));
+            if (!cc && checks[k]) {
+              checks[k].forEach(function (ref) {
+                  var ks = ref[0];
+                  var handle = ref[1];
 
-              handle.cancel();
-              ks.forEach(function (k) {
-                this$1.clear(k, true);
-                this$1.notify(k, true, true);
-              });
-              var idx = this$1.fns.findIndex(function (ref) {
-                  var k = ref[0];
-
-                  return k === ks;
+                handle.cancel();
+                ks.forEach(function (k) {
+                  this$1.clear(k, true);
+                  this$1.notify(k, true, true);
                 });
-              if (~idx) { this$1.fns.splice(idx, 1); }
-            });
-            delete checks[k];
-          } else if (v != null && !checks[k]) {
-            var chks = [];
-            var o$1 = {
-              check: function (keys, deps, fn, opts) {
-                var ks = (Array.isArray(keys) ? keys.slice() : [keys]).map(function (s) { return s[0] === '.' ? k + s : s; });
-                var all = ks.concat((Array.isArray(deps) ? deps : typeof deps === 'string' ? [deps] : []).map(function (s) { return s[0] === '.' ? k + s : s; }));
-                if (typeof deps === 'function') {
-                  opts = fn;
-                  fn = deps;
-                  deps = [];
-                }
-                chks.push([ks, this$1.ractive.observe(all.join(' '), debounce(this$1.debounce, function() {
-                    var this$1 = this;
+                var idx = this$1.fns.findIndex(function (ref) {
+                    var k = ref[0];
 
-                  checker.call(this, fn, ks, all.map(function (k) { return this$1.ractive.get(k); }), k);
-                }, this$1), { init: opts && opts.init === false ? false : true })]);
-                this$1.fns.push([ks, deps, fn, opts && opts.group && (Array.isArray(opts.group) ? opts.group : [opts.group])]);
-                ks.prefix = k;
-              },
-              checkList: function (path, fn, opts) {
-                chks.push([[], this$1.checkList(path[0] === '.' ? k + path : path, fn, opts)]);
-              },
-              checkDefer: function (path, fn, opts) {
-                chks.push([[], this$1.checkDefer(path[0] === '.' ? k + path : path, fn, opts)]);
-              }
-            };
-            fn(k, o$1, p);
-            checks[k] = chks;
-          }
+                    return k === ks;
+                  });
+                if (~idx) { this$1.fns.splice(idx, 1); }
+              });
+              checks[k] = undefined;
+            } else if (cc && !checks[k]) {
+              var chks = [];
+              var o = {
+                check: function (keys, deps, fn, opts) {
+                  var ks = (Array.isArray(keys) ? keys.slice() : [keys]).map(function (s) { return s[0] === '.' ? k + s : s; });
+                  var all = ks.concat((Array.isArray(deps) ? deps : typeof deps === 'string' ? [deps] : []).map(function (s) { return s[0] === '.' ? k + s : s; }));
+                  if (typeof deps === 'function') {
+                    opts = fn;
+                    fn = deps;
+                    deps = [];
+                  }
+                  chks.push([ks, this$1.ractive.observe(all.join(' '), debounce(this$1.debounce, function() {
+                      var this$1 = this;
+
+                    checker.call(this, fn, ks, all.map(function (k) { return this$1.ractive.get(k); }), k);
+                  }, this$1), { init: opts && opts.init === false ? false : true })]);
+                  this$1.fns.push([ks, deps, fn, opts && opts.group && (Array.isArray(opts.group) ? opts.group : [opts.group])]);
+                  ks.prefix = k;
+                },
+                checkList: function (path, fn, opts) {
+                  chks.push([[], this$1.checkList(path[0] === '.' ? k + path : path, fn, opts)]);
+                },
+                checkDefer: function (path, fn, opts) {
+                  chks.push([[], this$1.checkDefer(path[0] === '.' ? k + path : path, fn, opts)]);
+                },
+                checkCondition: function (path, deps, cond, fn, opts) {
+                  chks.push([[], this$1.checkCondition(path[0] === '.' ? k + path : path, deps, cond, fn, opts)]);
+                },
+              };
+              fn(k, o, p);
+              checks[k] = chks;
+            }
+          };
+
+            for (var i = 0; i < tocheck.length; i++) loop( i );
         };
-        var observer = this.ractive.observe(path, debounceMany(this.debounce, callback, this, 2), { init: opts && opts.init === false ? false : true });
+        var observer = this.ractive.observe(keys.join(' '), debounceMany(this.debounce, callback, this, 2), { init: opts && opts.init === false ? false : true });
         var parent = path.split(/\s+/);
         var handle = [parent, function () {
           parent.forEach(function (path) {
@@ -836,7 +863,7 @@ System.register(['ractive', './chunk2.js', './chunk13.js'], function (exports, m
        return function (v) { if (v < lower || v > upper) { return [[level, (name + " " + (level !== 'error' ? probably : 'must') + " be between " + lower + " and " + upper)]]; } }; }
 
       var Validate_ractive = exports('default', Window.extend({
-        template: {v:4,t:[{t:7,e:"tabs",m:[{t:13,n:"class",f:"alt",g:1},{n:"flat",f:0,t:13},{n:"pad",f:0,t:13},{n:"fill",f:0,t:13},{n:"height",f:"dynamic",t:13,g:1}],f:[{t:7,e:"tab",m:[{n:"title",f:"Intro",t:13,g:1}],f:[{t:7,e:"marked",f:["    The Raui `Validate` helper is a rule-based validator that supports three levels of messages across any keypaths observed by the rules. It also includes a decorator that can be used to provide feedback on various raui (and possibly other) widgets, like form elements and tabs.\n    \n    A validator employs Ractive observers to watch keypaths in a few different ways that can include wildcards. The validator also provides an event system to provide notifications based on a path that may also be specified as a regular expression, so you can collect messages for a particular chunk of data to know its validity state.\n\n    As the observers are fired, the matching rules are applied, and any decorators that are registered with the validator are notified. A decorator will show the highest level, so error, then warn, then info. All messages are collected into a title for any particular decorator. The decorators can be scoped to a single keypath, a list of keypaths, a keypath regex, or a named group.\n\n    Validations can be scoped to a single keypath or a list of keypaths, both of which may include wildcards. There is a helper to apply validations to arrays (lists) within the data, which will create a validation scope at the keypath of the given keypath and apply the scope for each item in the list. There is also a helper that allows deferred validator creation using a scope similar to the list helper. The deferred validation scope is applied once the target value exists.\n\n    Validations produce messages, which are simply tuples of levels and messages. Any particular keypath can have any number of messages at any level associated with it. Individual validations may overlap, as the validator only allows a validation to affect messages that it has set.\n  "]}]}," ",{t:7,e:"tab",m:[{n:"title",f:"Usage",t:13,g:1}],f:[{t:7,e:"marked",f:["    ### Class\n\n    The validator class constructor takes a ractive instance and an optional debounce interval that defaults to 500ms. The typescript definitions included in the source are a more thorough reference for the validation API, but there is a lighter overview included here.\n\n    #### Types\n\n    * `MessageLevel = 'error'|'warn'|'info'`\n    * `CheckOptions { group?: string|string[]; init?: boolean }`\n    * `ValidatorFN = (...values: any[]) => ValidationResult`\n    * `ValidationResult = Array<[MessageLevel, string]|[MessageLevel, string, string|string[]]>`\n    * `CheckHelper { check(...); checkList(...); checkDefer(...) }`\n    * `CheckScope = (path: string, check: CheckHelper, key: index|string) => void`\n    * `Path = string|string[]` - any of which may include wildcards\n    * `Group { name: string|string[] }`\n\n    #### Methods\n\n    * `check(keys: Path, deps?: string|string[], callback: (...values: any) => ValidationResult, options?: CheckOptions)` - install a validator for the given key(s)\n    * `checkList(path: string, scope: CheckScope, opts?: CheckOptions)` - install validators for a list, where each item is run through the scope individually\n    * `checkDefer(path: string, scope: CheckScope, opts?: CheckOptions)` - install validators for an object once it is defined, which is when the scope is run\n    * `refresh(path: Path|RegExp, recurse?: boolean = true)` - re-validate the matching paths\n    * `clear(path: string|RegExp, recurse?: boolean = false)` - remove validations for the matching paths\n    * `level(path: Path|RegExp|Group, recurse?: boolean = true): MessageLevel` - get the message level for the matching paths\n    * `messages(path: Path|RegExp|Group, recurse?: boolean): ValidationResult` - get the messages for the matching paths\n    * `hook(path: Path|RegExp|Group, hook: () => void): { cancel(): void }` - register a hook to fire when the matching paths change valid state\n    * `unhook(path: Path|RegExp|Group, hook: () => void)` - unregistered a hook\n    * `decorator(opts): Decorator` - create a ractive decorator that can display a validation status\n\n    #### Decorator Options\n\n    * `indicator: boolean` - should this decorator create an indicator element\n    * `tab: boolean` - should this decorator refresh when any children of the decorated element blur\n    * `regex: boolean` - should any paths passed to this decorator be turned in to regexes\n    * `levels: [string, string, string, string]` - the class names for each level in order none, info, warn, and error.\n    * `group: boolean` - whether any paths passed to this decorator should be turned into group names\n  "]}]}," ",{t:7,e:"tab",m:[{n:"title",f:"Example",t:13,g:1}],f:[{t:7,e:"marked",f:["      ### Template:\n      ```handlebars\n        Current level for all paths: {{level}}.\n        <tabs pad>\n          <tab>\n            <title style-padding-right=\"2em\" as-validg=`tab1`>Tab 1</title>\n            <div>\n              <label as-field as-valid=`name`>Name<input value=\"{{name}}\" /></label>\n            </div>\n          </tab>\n          <tab>\n            <title style-padding-right=\"2em\" as-validg=`tab2`>Tab 2</title>\n            <div>\n              <button on-click=\"@.push('things', {})\">Add Thing</button>\n              {{#each things}}\n                <div>\n                  <label as-field as-valid=`.name`>Name<input value=\"{{.name}}\" /></label>\n                  <label as-field as-valid=`.age`>Age<input type=nubmer value=\"{{.age}}\" /></label>\n                  <label as-field><button on-click=\"@.splice('things', @index, 1)\">&times;</button></label>\n                </div>\n              {{/each}}\n            </div>\n          </tab>\n        </tabs>\n      ```\n\n      ```js\n        // in the init event for the ractive instance\n        const validator = new Validator(this);\n        validator.check('name', required('Name'), { group: 'tab1' });\n        validator.check('name', (v) => /dave/i.test(v) ? [['error', 'Dave\\'s not here, man.']] : [], { group: 'tab1' });\n        validator.check('things.length', between('Number of things', 1, 10, 'warn'), { group: 'tab2' });\n        validator.checkList('things', (path, v) => {\n          v.check('.name', required('Name'), { group: 'tab2' });\n          v.check('.age', between('Age', 9, 99), { group: 'tab2' });\n        });\n        this.decorators.valid = validator.decorator({ indicator: true });\n        this.decorators.validg = validator.decorator({ indicator: true, group: true });\n        validator.hook(/.*/, () => this.set('level', validator.level(/.*/)));\n      ```\n      ### Result:\n    "]}," Current level for all paths: ",{t:2,r:"level"},". ",{t:7,e:"tabs",m:[{n:"pad",f:0,t:13}],f:[{t:7,e:"tab",f:[{t:7,e:"title",m:[{t:13,n:"style",f:"padding-right: 2em;",g:1},{n:"validg",t:71,f:{r:[],s:"[\"tab1\"]"}}],f:["Tab 1"]}," ",{t:7,e:"div",f:[{t:7,e:"label",m:[{n:"field",t:71},{n:"valid",t:71,f:{r:[],s:"[\"name\"]"}}],f:["Name",{t:7,e:"input",m:[{n:"value",f:[{t:2,r:"name"}],t:13}]}]}]}]}," ",{t:7,e:"tab",f:[{t:7,e:"title",m:[{t:13,n:"style",f:"padding-right: 2em;",g:1},{n:"validg",t:71,f:{r:[],s:"[\"tab2\"]"}}],f:["Tab 2"]}," ",{t:7,e:"div",f:[{t:7,e:"button",m:[{n:["click"],t:70,f:{r:["@this"],s:"[_0.push(\"things\",{})]"}}],f:["Add Thing"]}," ",{t:4,f:[{t:7,e:"div",f:[{t:7,e:"label",m:[{n:"field",t:71},{n:"valid",t:71,f:{r:[],s:"[\".name\"]"}}],f:["Name",{t:7,e:"input",m:[{n:"value",f:[{t:2,r:".name"}],t:13}]}]}," ",{t:7,e:"label",m:[{n:"field",t:71},{n:"valid",t:71,f:{r:[],s:"[\".age\"]"}}],f:["Age",{t:7,e:"input",m:[{n:"type",f:"nubmer",t:13},{n:"value",f:[{t:2,r:".age"}],t:13}]}]}," ",{t:7,e:"label",m:[{n:"field",t:71}],f:[{t:7,e:"button",m:[{n:["click"],t:70,f:{r:["@this","@index"],s:"[_0.splice(\"things\",_1,1)]"}}],f:["×"]}]}]}],n:52,r:"things"}]}]}]}]}]}],e:{"[\"tab1\"]":function (){return(["tab1"]);},"[\"name\"]":function (){return(["name"]);},"[\"tab2\"]":function (){return(["tab2"]);},"[_0.push(\"things\",{})]":function (_0){return([_0.push("things",{})]);},"[\".name\"]":function (){return([".name"]);},"[\".age\"]":function (){return([".age"]);},"[_0.splice(\"things\",_1,1)]":function (_0,_1){return([_0.splice("things",_1,1)]);}}},
+        template: {v:4,t:[{t:7,e:"tabs",m:[{t:13,n:"class",f:"alt",g:1},{n:"flat",f:0,t:13},{n:"pad",f:0,t:13},{n:"fill",f:0,t:13},{n:"height",f:"dynamic",t:13,g:1}],f:[{t:7,e:"tab",m:[{n:"title",f:"Intro",t:13,g:1}],f:[{t:7,e:"marked",f:["    The Raui `Validate` helper is a rule-based validator that supports three levels of messages across any keypaths observed by the rules. It also includes a decorator that can be used to provide feedback on various raui (and possibly other) widgets, like form elements and tabs.\n    \n    A validator employs Ractive observers to watch keypaths in a few different ways that can include wildcards. The validator also provides an event system to provide notifications based on a path that may also be specified as a regular expression, so you can collect messages for a particular chunk of data to know its validity state.\n\n    As the observers are fired, the matching rules are applied, and any decorators that are registered with the validator are notified. A decorator will show the highest level, so error, then warn, then info. All messages are collected into a title for any particular decorator. The decorators can be scoped to a single keypath, a list of keypaths, a keypath regex, or a named group.\n\n    Validations can be scoped to a single keypath or a list of keypaths, both of which may include wildcards. There is a helper to apply validations to arrays (lists) within the data, which will create a validation scope at the keypath of the given keypath and apply the scope for each item in the list. There is also a helper that allows deferred validator creation using a scope similar to the list helper. The deferred validation scope is applied once the target value exists.\n\n    Validations produce messages, which are simply tuples of levels and messages. Any particular keypath can have any number of messages at any level associated with it. Individual validations may overlap, as the validator only allows a validation to affect messages that it has set.\n  "]}]}," ",{t:7,e:"tab",m:[{n:"title",f:"Usage",t:13,g:1}],f:[{t:7,e:"marked",f:["    ### Class\n\n    The validator class constructor takes a ractive instance and an optional debounce interval that defaults to 500ms. The typescript definitions included in the source are a more thorough reference for the validation API, but there is a lighter overview included here.\n\n    #### Types\n\n    * `MessageLevel = 'error'|'warn'|'info'`\n    * `CheckOptions { group?: string|string[]; init?: boolean }`\n    * `ValidatorFn = (...values: any[]) => ValidationResult`\n    * `ConditionFn = (...values: any[]) => boolean`\n    * `ValidationResult = Array<[MessageLevel, string]|[MessageLevel, string, string|string[]]>`\n    * `CheckHelper { check(...); checkList(...); checkDefer(...) }`\n    * `CheckScope = (path: string, check: CheckHelper, key: index|string) => void`\n    * `Path = string|string[]` - any of which may include wildcards\n    * `Group { name: string|string[] }`\n\n    #### Methods\n\n    * `check(keys: Path, deps?: string|string[], callback: (...values: any) => ValidationResult, options?: CheckOptions)` - install a validator for the given key(s)\n    * `checkList(path: string, scope: CheckScope, opts?: CheckOptions)` - install validators for a list, where each item is run through the scope individually\n    * `checkDefer(path: string, scope: CheckScope, opts?: CheckOptions)` - install validators for an object once it is defined, which is when the scope is run\n    * `checkCondition(path: string, condition: ConditionFn, scope: CheckScope, opts?: CheckOptions)` - install validators for an object when a condition function returns true, which is when the scope is run\n    * `checkCondition(path: string, deps: string|string[], condition: ConditionFn, scope: CheckScope, opts?: CheckOptions)` - install validators for an object when a condition function returns true, which is when the scope is run\n    * `refresh(path: Path|RegExp, recurse?: boolean = true)` - re-validate the matching paths\n    * `clear(path: string|RegExp, recurse?: boolean = false)` - remove validations for the matching paths\n    * `level(path: Path|RegExp|Group, recurse?: boolean = true): MessageLevel` - get the message level for the matching paths\n    * `messages(path: Path|RegExp|Group, recurse?: boolean): ValidationResult` - get the messages for the matching paths\n    * `hook(path: Path|RegExp|Group, hook: () => void): { cancel(): void }` - register a hook to fire when the matching paths change valid state\n    * `unhook(path: Path|RegExp|Group, hook: () => void)` - unregistered a hook\n    * `decorator(opts): Decorator` - create a ractive decorator that can display a validation status\n\n    #### Decorator Options\n\n    * `indicator: boolean` - should this decorator create an indicator element\n    * `tab: boolean` - should this decorator refresh when any children of the decorated element blur\n    * `regex: boolean` - should any paths passed to this decorator be turned in to regexes\n    * `levels: [string, string, string, string]` - the class names for each level in order none, info, warn, and error.\n    * `group: boolean` - whether any paths passed to this decorator should be turned into group names\n  "]}]}," ",{t:7,e:"tab",m:[{n:"title",f:"Example",t:13,g:1}],f:[{t:7,e:"marked",f:["      ### Template:\n      ```handlebars\n        Current level for all paths: {{level}}.\n        <tabs pad>\n          <tab>\n            <title style-padding-right=\"2em\" as-validg=`tab1`>Tab 1</title>\n            <div>\n              <label as-field as-valid=`name`>Name<input value=\"{{name}}\" /></label>\n              <label as-field as-valid=`other`>Other<input value=\"{{other}}\" /></label>\n            </div>\n          </tab>\n          <tab>\n            <title style-padding-right=\"2em\" as-validg=`tab2`>Tab 2</title>\n            <div>\n              <button on-click=\"@.push('things', {})\">Add Thing</button>\n              {{#each things}}\n                <div>\n                  <label as-field as-valid=`.name`>Name<input value=\"{{.name}}\" /></label>\n                  <label as-field as-valid=`.age`>Age<input type=nubmer value=\"{{.age}}\" /></label>\n                  <label as-field><button on-click=\"@.splice('things', @index, 1)\">&times;</button></label>\n                </div>\n              {{/each}}\n            </div>\n          </tab>\n        </tabs>\n      ```\n\n      ```js\n        // in the init event for the ractive instance\n        const validator = this.valid = new Validator(this);\n        validator.check('name', required('Name'), { group: 'tab1' });\n        validator.check('name', (v) => /dave/i.test(v) ? [['error', 'Dave\\'s not here, man.']] : [], { group: 'tab1' });\n        validator.checkCondition('things.length', len => len > 2, (path, v) => {\n            v.check('other', n => n.length < 5 ? [['warn', `That's a lot of things for someone with a short other`]] : [], { group: 'tab1' });\n        });\n        validator.check('things.length', between('Number of things', 1, 10, 'warn'), { group: 'tab2' });\n        validator.checkList('things', (path, v) => {\n          v.check('.name', required('Name'), { group: 'tab2' });\n          v.check('.age', between('Age', 9, 99), { group: 'tab2' });\n        });\n        this.decorators.valid = validator.decorator({ indicator: true });\n        this.decorators.validg = validator.decorator({ indicator: true, group: true });\n        validator.hook(/.*/, () => this.set('level', validator.level(/.*/)));\n      ```\n      ### Result:\n    "]}," Current level for all paths: ",{t:2,r:"level"},". ",{t:7,e:"tabs",m:[{n:"pad",f:0,t:13}],f:[{t:7,e:"tab",f:[{t:7,e:"title",m:[{t:13,n:"style",f:"padding-right: 2em;",g:1},{n:"validg",t:71,f:{r:[],s:"[\"tab1\"]"}}],f:["Tab 1"]}," ",{t:7,e:"div",f:[{t:7,e:"label",m:[{n:"field",t:71},{n:"valid",t:71,f:{r:[],s:"[\"name\"]"}}],f:["Name",{t:7,e:"input",m:[{n:"value",f:[{t:2,r:"name"}],t:13}]}]}," ",{t:7,e:"label",m:[{n:"field",t:71},{n:"valid",t:71,f:{r:[],s:"[\"other\"]"}}],f:["Other",{t:7,e:"input",m:[{n:"value",f:[{t:2,r:"other"}],t:13}]}]}]}]}," ",{t:7,e:"tab",f:[{t:7,e:"title",m:[{t:13,n:"style",f:"padding-right: 2em;",g:1},{n:"validg",t:71,f:{r:[],s:"[\"tab2\"]"}}],f:["Tab 2"]}," ",{t:7,e:"div",f:[{t:7,e:"button",m:[{n:["click"],t:70,f:{r:["@this"],s:"[_0.push(\"things\",{})]"}}],f:["Add Thing"]}," ",{t:4,f:[{t:7,e:"div",f:[{t:7,e:"label",m:[{n:"field",t:71},{n:"valid",t:71,f:{r:[],s:"[\".name\"]"}}],f:["Name",{t:7,e:"input",m:[{n:"value",f:[{t:2,r:".name"}],t:13}]}]}," ",{t:7,e:"label",m:[{n:"field",t:71},{n:"valid",t:71,f:{r:[],s:"[\".age\"]"}}],f:["Age",{t:7,e:"input",m:[{n:"type",f:"nubmer",t:13},{n:"value",f:[{t:2,r:".age"}],t:13}]}]}," ",{t:7,e:"label",m:[{n:"field",t:71}],f:[{t:7,e:"button",m:[{n:["click"],t:70,f:{r:["@this","@index"],s:"[_0.splice(\"things\",_1,1)]"}}],f:["×"]}]}]}],n:52,r:"things"}]}]}]}]}]}],e:{"[\"tab1\"]":function (){return(["tab1"]);},"[\"name\"]":function (){return(["name"]);},"[\"other\"]":function (){return(["other"]);},"[\"tab2\"]":function (){return(["tab2"]);},"[_0.push(\"things\",{})]":function (_0){return([_0.push("things",{})]);},"[\".name\"]":function (){return([".name"]);},"[\".age\"]":function (){return([".age"]);},"[_0.splice(\"things\",_1,1)]":function (_0,_1){return([_0.splice("things",_1,1)]);}}},
         options: {
           title: 'Helpers :: Validate',
           resizable: true, flex: true,
@@ -850,9 +877,12 @@ System.register(['ractive', './chunk2.js', './chunk13.js'], function (exports, m
           init: function init() {
             var this$1 = this;
 
-            var validator = new Validator(this);
+            var validator = this.valid = new Validator(this);
             validator.check('name', required('Name'), { group: 'tab1' });
             validator.check('name', function (v) { return /dave/i.test(v) ? [['error', 'Dave\'s not here, man.']] : []; }, { group: 'tab1' });
+            validator.checkCondition('things.length', function (len) { return len > 2; }, function (path, v) {
+                v.check('other', function (n) { return n.length < 5 ? [['warn', "That's a lot of things for someone with a short other"]] : []; }, { group: 'tab1' });
+            });
             validator.check('things.length', between('Number of things', 1, 10, 'warn'), { group: 'tab2' });
             validator.checkList('things', function (path, v) {
               v.check('.name', required('Name'), { group: 'tab2' });
