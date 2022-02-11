@@ -121,7 +121,7 @@ export function style(data) {
 
   /**** CHECK BOXES ****/
 
-  label.field.check {
+  label.field.check, label.field.radio {
     position:relative;
     z-index: 0;
     overflow: visible;
@@ -129,11 +129,11 @@ export function style(data) {
     padding-top: 2.2em;
     white-space: normal;
   }
-  label.field.check.inline {
+  label.field.check.inline, label.field.radio.inline {
     padding-top: 0.7em;
   }
 
-  label.field.check input {
+  label.field.check input, label.field.radio input {
     appearance: none;
     -moz-appearance: none;
     -webkit-appearance: none;
@@ -154,35 +154,35 @@ export function style(data) {
     pointer-events: none;
     transition: opacity 0.3s, transform 0.2s;
   }
-  label.field.inline.check input {
+  label.field.inline.check input, label.field.inline.radio input {
     top: -0.45em;
     left: -0.55em;
   }
 
-  label.field.check input:checked {
+  label.field.check input:checked, label.field.radio input:checked {
     background-color: ${primary.fga || '#07e'};
   }
 
-  label.field.check:hover > input {
+  label.field.check:hover > input, label.field.radio:hover > input {
     opacity: 0.04;
   }
 
-  label.field.check input:focus {
+  label.field.check input:focus, label.field.radio input:focus {
     opacity: 0.12;
   }
 
-  label.field.check:hover > input:focus {
+  label.field.check:hover > input:focus, label.field.radio:hover > input:focus {
     opacity: 0.16;
   }
 
-  label.field.check input:active {
+  label.field.check input:active, label.field.radio input:active {
     opacity: 0.6;
     transform: scale(0);
     transition: transform 0s, opacity 0s;
   }
 
-  label.field.check:before {
-    content: "";
+  label.field.check:before, label.field.radio:before {
+    content: '';
     display: inline-block;
     box-sizing: border-box;
     margin: 0 0.5em 0.2em 0.1em;
@@ -195,190 +195,56 @@ export function style(data) {
     transition: border-color 0.2s, background-color 0.2s;
   }
 
-  label.field.check:after {
-    content: "";
-    display: block;
+  label.field.check:after, label.field.radio:after {
+    content: '';
+    display: inline-block;
+    opacity: 0;
     position: absolute;
-    top: -0.15em;
-    left: -0.05em;
-    width: 0.7em;
-    height: 0.3em;
-    border: solid 0.125em transparent;
-    border-right: none;
-    border-top: none;
-    transform: translate(0.8em, 2.65em) rotate(-45deg);
+    width: 1.2em;
+    height: 1.2em;
+    top: 2.3em;
+    left: 0.6em;
+    border-radius: 0.125em;
   }
-
-  label.field.check.inline:after {
-    transform: translate(0.8em, 1.2em) rotate(-45deg);
-  }
-
-  label.field.check.checked:before {
-    border-color: ${primary.fga || '#07e'};
-    background-color: ${primary.fga || '#07e'};
-  }
-  label.field.check.focus:before {
-    border-color: ${primary.fga || '#07e'};
+  label.field.check.inline:after, label.field.radio.inline:after {
+    top: 0.8em;
   }
 
   label.field.check.checked:after {
-    border-color: ${primary.bg || '#fff'};
-  }
-
-  label.field.check input:disabled {
-    opacity: 0;
-  }
-
-  label.field.check.disabled {
-    color: ${disabled.fg || '#444'};
-    background-color: ${disabled.bg || '#f4f4f4'};
-    cursor: initial;
-  }
-
-  label.field.check.disabled:before {
-    border-color: ${disabled.bc || '#ccc'};
-  }
-
-  label.field.check.checked.disabled:before {
-    border-color: transparent;
-    background-color: ${disabled.bc || '#ccc'};
-  }
-
-
-  /**** RADIO BUTTONS ****/
-  
-  label.field.radio {
-    z-index: 0;
-    position: relative;
-    display: inline-block;
-    overflow: visible;
-    padding-top: 2.2em;
-    white-space: normal;
-  }
-  label.field.radio.inline {
-    padding-top: 0.8em;
-  }
-
-  label.field.radio input {
-    appearance: none;
-    -moz-appearance: none;
-    -webkit-appearance: none;
-    z-index: -1;
-    position: absolute;
-    left: 0;
-    top: 0;
-    display: block;
-    margin: 0;
-    border-radius: 50%;
-    width: 3.2em;
-    height: 3.2em;
-    background-color: ${primary.bc || '#ccc'};
-    outline: none;
-    opacity: 0;
-    pointer-events: none;
-    transform: translate(-0.2em, 1.5em) scale(1);
-    transition: opacity 0.3s, transform 0.3s;
-  }
-  label.field.inline.radio input {
-    transform: translate(-0.2em, 3px) scale(1);
-  }
-
-  label.field.radio {
-    cursor: pointer;
-    position: relative;
-  }
-
-  label.field.radio:before {
-    content: "";
-    display: inline-block;
-    box-sizing: border-box;
-    margin: 0 0.5em 0.2em 0.1em;
-    border: solid 0.125em; /* Safari */
-    border-color: ${primary.fg || '#222'};
-    border-radius: 0.125em;
-    width: 1.2em;
-    height: 1.2em;
-    vertical-align: middle;
-    transition: border-color 0.2s;
-  }
-
-  label.field.radio:after {
-    content: "";
-    display: block;
-    position: absolute;
-    border-radius: 50%;
-    width: 0.625em;
-    height: 0.625em;
-    background-color: ${primary.fga || '#07e'};
-    transform: translate(5px, -17px) scale(0);
-    transition: transform 0.2s;
-  }
-
-  label.field.radio input:checked {
-    background-color: ${primary.fga || '#07e'};
-  }
-
-  label.field.radio.checked:before {
-    border-color: ${primary.fga || '#07e'};
+    opacity: 1;
+    background: no-repeat center/80% url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><path fill="${(primary.bg || '#fff').replace(/#/g, '%23')}" d="m 15.378906,1.7050781 a 1.0583349,1.0583349 0 0 0 -1.478515,0.234375 L 6.6210937,11.960938 1.8652344,8.5058594 a 1.0583349,1.0583349 0 0 0 -1.47851565,0.234375 1.0583349,1.0583349 0 0 0 0.234375,1.4785156 L 6.234375,14.294922 A 1.0584408,1.0584408 0 0 0 7.7128906,14.060547 L 15.613281,3.1835938 A 1.0583349,1.0583349 0 0 0 15.378906,1.7050781 Z" /></svg>') ${primary.fga || '#07e'};
   }
 
   label.field.radio.checked:after {
-    transform: translate(5px, -17px) scale(1);
-  }
-
-  label.field.radio:hover input {
-    opacity: 0.04;
-  }
-
-  label.field.radio input:focus {
-    opacity: 0.12;
-    transform: translate(-0.2em, 24px) scale(1);
-    transition: transform 0.2s, opacity 0.2s;
-  }
-  label.field.inline.radio input:focus {
-    transform: translate(-0.2em, 3px) scale(1);
-  }
-
-  label.field.radio:hover input:focus {
-    opacity: 0.16;
-  }
-
-  label.field.radio input:active {
     opacity: 1;
-    transform: translate(-0.2em, 24px) scale(0);
-    transition: transform 0s, opacity 0s;
-  }
-  label.field.inline.radio input:active {
-    transform: translate(-0.2em, 3px) scale(0);
+    background: no-repeat center/80% url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><circle fill="${(primary.bg || '#fff').replace(/#/g, '%23')}" cx="8" cy="8" r="5" /></svg>') ${primary.fga || '#07e'};
   }
 
-  label.field.radio.checked:before {
+  label.field.check.checked:before, label.field.radio.checked:before {
+    border-color: ${primary.fga || '#07e'};
+  }
+  label.field.check.focus:before, label.field.radio.focus:before {
     border-color: ${primary.fga || '#07e'};
   }
 
-  label.field.radio.focus:before {
-    border-color: ${primary.fga || '#07e'};
-  }
-
-  label.field.radio input:disabled {
+  label.field.check input:disabled, label.field.radio input:disabled {
     opacity: 0;
   }
 
-  label.field.radio.disabled {
+  label.field.check.disabled, label.field.radio.disabled {
     color: ${disabled.fg || '#444'};
-    background-color: ${disabled.bg || '#f4f4f4'};
     cursor: initial;
   }
 
-  label.field.radio.disabled:before {
+  label.field.check.disabled:before, label.field.radio.disabled:before {
     border-color: ${disabled.bc || '#ccc'};
+    background-color: ${disabled.bg || '#f4f4f4'};
   }
 
-  label.field.radio.disabled:after {
+  label.field.check.checked.disabled:after, label.field.radio.checked.disabled:after {
+    border-color: transparent;
     background-color: ${disabled.bc || '#ccc'};
   }
-
-
 
   label.field select {
     padding-right: 2em;
@@ -394,7 +260,7 @@ export function style(data) {
     position: absolute;
     display: block;
     width: 0.6em;
-    right: 19px;
+    right: 1.125em;
     height: 0.6em;
     top: 2.6em;
     border-bottom: 0.125em solid;

@@ -1583,8 +1583,8 @@
     box-shadow: none;
     outline: none;
     opacity: 0;
-    top: -0.45em;
-    left: -0.6em;
+    top: -0.75em;
+    left: -0.75em;
     border-radius: 2em;
     transition: transform 0.2s, opacity 0.2s;
     background-color: ${primary.bc || '#ccc'};
@@ -1595,6 +1595,7 @@
     padding: 0;
     overflow: visible;
     width: 1.5em;
+    height: 1.5em;
     position: relative;
     line-height: 1.8em;
     cursor: pointer;
@@ -1632,42 +1633,37 @@
     content: "";
     display: inline-block;
     box-sizing: border-box;
-    border: solid 2px; /* Safari */
+    border: solid 0.125em; /* Safari */
     border-color: ${primary.fg || '#222'};
     border-radius: 0.125em;
     width: 1.2em;
     height: 1.2em;
-    vertical-align: middle;
+    position: absolute;
+    top: 0.3em;
+    left: 0.15em;
     transition: border-color 0.2s, background-color 0.2s;
   }
 
   .rtable-select-row > div:after, .rtable-select-header > div:after {
-    content: "";
-    display: block;
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 0.7em;
-    height: 0.3em;
-    border: solid 2px transparent;
-    border-right: none;
-    border-top: none;
-    transform: translate(0.35em, 0.55em) rotate(-45deg);
+    content: '';
+    display: inline-block;
     opacity: 0;
+    position: absolute;
+    width: 1.2em;
+    height: 1.2em;
+    top: 0.3em;
+    left: 0.15em;
+    border-radius: 0.125em;
   }
 
   .rtable-selected .rtable-select-row > div:before, .rtable-all-selected > div:before {
     border-color: ${primary.fga || '#07e'};
-    background-color: ${primary.fga || '#07e'};
   }
 
   .rtable-selected .rtable-select-row > div:after, .rtable-all-selected > div:after {
     border-color: ${primary.bg || '#fff'};
+    background: no-repeat center/80% url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><path fill="${(primary.bg || '#fff').replace(/#/g, '%23')}" d="m 15.378906,1.7050781 a 1.0583349,1.0583349 0 0 0 -1.478515,0.234375 L 6.6210937,11.960938 1.8652344,8.5058594 a 1.0583349,1.0583349 0 0 0 -1.47851565,0.234375 1.0583349,1.0583349 0 0 0 0.234375,1.4785156 L 6.234375,14.294922 A 1.0584408,1.0584408 0 0 0 7.7128906,14.060547 L 15.613281,3.1835938 A 1.0583349,1.0583349 0 0 0 15.378906,1.7050781 Z" /></svg>') ${primary.fga || '#07e'};
     opacity: 1;
-  }
-
-  .rtable-all-selected > div:after {
-    top: -0.25em;
   }
 
   .rtable-row-wrap > .rtable-select-header,
