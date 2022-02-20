@@ -164,7 +164,7 @@ System.register(['ractive', './chunk2.js', './chunk13.js'], function (exports, m
             dispose(this$1, disposer);
             var cks = Object.keys(checks);
             cks.forEach(function (c) {
-              checks[c].forEach(function (ref) {
+              checks[c] && checks[c].forEach(function (ref) {
                   var ks = ref[0];
                   var handle = ref[1];
 
@@ -277,7 +277,7 @@ System.register(['ractive', './chunk2.js', './chunk13.js'], function (exports, m
             dispose(this$1, disposer);
             var cks = Object.keys(checks);
             cks.forEach(function (c) {
-              checks[c].forEach(function (ref) {
+              checks[c] && checks[c].forEach(function (ref) {
                   var ks = ref[0];
                   var handle = ref[1];
 
