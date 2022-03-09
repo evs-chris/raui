@@ -5,7 +5,7 @@ System.register([], function (exports, module) {
 
       exports('default', makeClick);
       // based on ractive-event-tap
-      var distance = 5;
+      var distance = 12;
       var timeout = 400;
       var between = 250;
 
