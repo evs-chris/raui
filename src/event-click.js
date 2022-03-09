@@ -1,5 +1,5 @@
 // based on ractive-event-tap
-const distance = 5;
+const distance = 12;
 const timeout = 400;
 const between = 250;
 
