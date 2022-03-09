@@ -1329,6 +1329,9 @@
     color: ${primary.fg || '#222'};
     background-color: ${table.even || primary.bga || '#f4f4f4'};
   }
+  .rtable-row-wrap:focus-within {
+    z-index: 3;
+  }
   .rtable-row-wrap.rtable-odd {
     background-color: ${table.odd || primary.bg || '#fff'};
   }
