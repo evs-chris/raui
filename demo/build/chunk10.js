@@ -69,6 +69,7 @@ System.register(['./chunk2.js', 'ractive', './chunk5.js', './chunk11.js'], funct
         Popover.prototype.constructor = Popover;
 
         Popover.prototype.position = function position (node) {
+          // TODO: use right position rather than left for vertical end-aligned popovers?
           var source = node || this.source;
           var popped = this.get('popped');
           if (!source || !popped) { return; }

@@ -395,7 +395,7 @@ System.register([], function (exports, module) {
               var last = lastDay(new Date(parts[0], parts[1], 1));
               if (parts[2] > last) {
                 d.value = parts[2] = last;
-                d.display = displayForGroup(d);
+                d.display = d.input = displayForGroup(d);
               }
             }
           }
