@@ -1,5 +1,5 @@
 <span class-rautocomplete class-field-wrapper on-pop="@context.set('rac.pop', $1)">
-  <input {{>extra-attributes}} on-dblclick="rac.pop.show(@node)" on-focus="rac.stash()" on-blur="rac.checkBlur()" on-input="rac.input(@event)" on-keydown="rac.key(@event)" twoway=false value="{{rac.display}}" />
+  <input {{>extra-attributes}} on-dblclick="rac.pop.show(@node)" on-focus="rac.stash()" on-blur="rac.checkBlur(@node)" on-input="rac.input(@event)" on-keydown="rac.key(@event)" twoway=false value="{{rac.display}}" />
   <div class-rac-drop on-click="rac.pop.show(@context.find('input'))" />
   <rac-pop class-rac-pop on-init="@context.raise('pop', {}, $1)" bind-popped="rac.popped" where=below align=end style-padding=0 gap=[[2]] bind-offsets="rac.offsets" bind-fit="rac.fit">
     {{#if inModal}}<input class-rac-modal on-input="rac.input(@event)" on-keydown="rac.key(@event)" twoway=false value="{{rac.display}}" on-blur="rac.checkBlur()" as-autocompletefocus />{{/if}}
@@ -88,7 +88,7 @@
         const el = h.find('input');
         if (el && document.activeElement === el) h.get('rac.pop').show(el);
       }, 500);
-      h.set('rac.display', e.target.value);
+      if (!h.attributes.lazy) h.set('rac.display', e.target.value);
     });
     h.setTemplate(template);
 
@@ -269,7 +269,7 @@
       h.observe('rac.selected', scrollView),
     ];
 
-    h.set('rac.checkBlur', function checkBlur() {
+    h.set('rac.checkBlur', function checkBlur(node) {
       const active = document.activeElement;
       if (!~formNodes.indexOf(active.nodeName) && !active.getAttribute('tabindex')) return;
       const inputs = h.findAll('input');
