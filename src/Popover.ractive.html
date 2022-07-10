@@ -15,16 +15,16 @@
 >
   {{#if ~/tail}}
     <div class-rpop-tail
-      {{#if position.tailTop}}style-top="{{position.tailTop + (position.vert ? 1 : 0)}}px"{{/if}}
-      {{#if position.tailBottom}}style-bottom="{{position.tailBottom + (position.vert ? 1 : 0)}}px"{{/if}}
-      {{#if position.tailLeft}}style-left="{{position.tailLeft + (position.vert ? 0 : 1)}}px"{{/if}}
-      {{#if position.tailRight}}style-right="{{position.tailRight + (position.vert ? 0 : 1)}}px"{{/if}}
+      {{#if position.tailTop != null}}style-top="{{position.tailTop + (position.vert ? 3 : 0)}}px"{{/if}}
+      {{#if position.tailBottom != null}}style-bottom="{{position.tailBottom + (position.vert ? 3 : 0)}}px"{{/if}}
+      {{#if position.tailLeft != null}}style-left="{{position.tailLeft + (position.vert ? 0 : 3)}}px"{{/if}}
+      {{#if position.tailRight != null}}style-right="{{position.tailRight + (position.vert ? 0 : 3)}}px"{{/if}}
     />
     <div class-rpop-tail-outer
-      {{#if position.tailTop}}style-top="{{position.tailTop - 2}}px"{{/if}}
-      {{#if position.tailBottom}}style-bottom="{{position.tailBottom - 2}}px"{{/if}}
-      {{#if position.tailLeft}}style-left="{{position.tailLeft - 2}}px"{{/if}}
-      {{#if position.tailRight}}style-right="{{position.tailRight - 2}}px"{{/if}}
+      {{#if position.tailTop != null}}style-top="{{position.tailTop - 2}}px"{{/if}}
+      {{#if position.tailBottom != null}}style-bottom="{{position.tailBottom - 2}}px"{{/if}}
+      {{#if position.tailLeft != null}}style-left="{{position.tailLeft - 2}}px"{{/if}}
+      {{#if position.tailRight != null}}style-right="{{position.tailRight - 2}}px"{{/if}}
     />
   {{/if}}
   <div class-rpop>
@@ -202,6 +202,11 @@
           if (!vert && pos.tailBottom) pos.tailBottom += diff;
           if (tail && vert) pos.tail = false;
         }
+
+        if (pos.tailLeft) pos.tailLeft = Math.floor(pos.tailLeft);
+        if (pos.tailRight) pos.tailRight = Math.floor(pos.tailRight);
+        if (pos.tailTop) pos.tailTop = Math.floor(pos.tailTop);
+        if (pos.tailBottom) pos.tailBottom = Math.floor(pos.tailBottom);
 
         this.set('position', pos);
       } else {
