@@ -28,7 +28,7 @@
     />
   {{/if}}
   <div class-rpop>
-    {{yield content}}
+    {{yield content with triggerContext as trigger}}
   </div>
 </div>
 {{/if}}
@@ -61,6 +61,7 @@
     constructor(opts) { super(opts); }
 
     position(node) {
+      // TODO: use right position rather than left for vertical end-aligned popovers?
       const source = node || this.source;
       const popped = this.get('popped');
       if (!source || !popped) return;
@@ -68,6 +69,9 @@
       const wrapper = this.find('div');
 
       if (source && wrapper && wrapper.offsetParent) {
+        if (source) this.set('triggerContext', Ractive.getContext(source));
+        else this.set('triggerContext', null);
+
         const parent = wrapper.offsetParent;
         const offset = parent.getBoundingClientRect();
         const local = wrapper.getBoundingClientRect();
