@@ -85,7 +85,7 @@ export function numeric(options = {}) {
       if (o.bind || o.number) {
         if (leave) setTimeout(writeBack, 5);
         else if (!o.lazy) writeBack();
-      }
+      } else if (leave || !o.lazy) ctx.raise('changed', {}, write);
 
       next = `${o.prefix || ''}${number(next)}${o.suffix || ''}`;
 
@@ -109,6 +109,7 @@ export function numeric(options = {}) {
     }
 
     function writeBack() {
+      ctx.raise('changed', {}, write);
       if (o.twoway === false) return;
       lock = true;
       if (o.bind) {
@@ -171,6 +172,15 @@ export function numeric(options = {}) {
           leave = false;
         }, 1);
       }, { defer: true }).cancel);
+    }
+
+    if (o.value) {
+      setTimeout(() => {
+        node.value = o.value;
+        leave = true;
+        update();
+        leave = false;
+      }, 1);
     }
 
     return {
