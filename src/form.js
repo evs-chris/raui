@@ -576,7 +576,7 @@ export function field(node) {
     setDisabled(v) {
       const children = node.querySelectorAll('input,button,select,textarea');
       children.forEach(c => c.disabled = v);
-      rez.invalidate();
+      this.invalidate();
     },
   }
 
