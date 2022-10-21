@@ -554,10 +554,11 @@ export function field(node) {
 
   invalidate.call(this);
 
-  return {
+  const res = {
     update: noop,
     invalidate: invalidate.bind(this),
     teardown() {
+      ctx.ractive.fire('fieldUnregistered', ctx, node, res);
       let cls = setup();
       cls = cls.replace(/\bfocus\b/g, '').trim();
 
@@ -571,8 +572,17 @@ export function field(node) {
       }
 
       node.className = cls;
-    }
+    },
+    setDisabled(v) {
+      const children = node.querySelectorAll('input,button,select,textarea');
+      children.forEach(c => c.disabled = v);
+      rez.invalidate();
+    },
   }
+
+  ctx.ractive.fire('fieldRegistered', ctx, node, res);
+
+  return res;
 }
 
 field.style = style;
