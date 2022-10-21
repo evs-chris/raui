@@ -154,10 +154,11 @@ System.register(['./chunk2.js', 'ractive'], function (exports, module) {
 
         invalidate.call(this);
 
-        return {
+        var res = {
           update: noop,
           invalidate: invalidate.bind(this),
           teardown: function teardown() {
+            ctx.ractive.fire('fieldUnregistered', ctx, node, res);
             var cls = setup();
             cls = cls.replace(/\bfocus\b/g, '').trim();
 
@@ -171,8 +172,17 @@ System.register(['./chunk2.js', 'ractive'], function (exports, module) {
             }
 
             node.className = cls;
-          }
-        }
+          },
+          setDisabled: function setDisabled(v) {
+            var children = node.querySelectorAll('input,button,select,textarea');
+            children.forEach(function (c) { return c.disabled = v; });
+            rez.invalidate();
+          },
+        };
+
+        ctx.ractive.fire('fieldRegistered', ctx, node, res);
+
+        return res;
       }
 
       field$1.style = style;

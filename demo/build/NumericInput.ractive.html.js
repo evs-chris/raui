@@ -99,7 +99,7 @@ System.register(['./chunk2.js'], function (exports, module) {
             if (o.bind || o.number) {
               if (leave) { setTimeout(writeBack, 5); }
               else if (!o.lazy) { writeBack(); }
-            }
+            } else if (leave || !o.lazy) { ctx.raise('changed', {}, write); }
 
             next = "" + (o.prefix || '') + (number(next)) + (o.suffix || '');
 
@@ -123,6 +123,7 @@ System.register(['./chunk2.js'], function (exports, module) {
           }
 
           function writeBack() {
+            ctx.raise('changed', {}, write);
             if (o.twoway === false) { return; }
             lock = true;
             if (o.bind) {
@@ -185,6 +186,15 @@ System.register(['./chunk2.js'], function (exports, module) {
                 leave = false;
               }, 1);
             }, { defer: true }).cancel);
+          }
+
+          if (o.value) {
+            setTimeout(function () {
+              node.value = o.value;
+              leave = true;
+              update();
+              leave = false;
+            }, 1);
           }
 
           return {
