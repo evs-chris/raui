@@ -9,12 +9,12 @@ export class Popover<T extends Popover<T> = Popover<any>> extends Ractive<T> {
   /**
    * Show the popover relative to the given node.
    */
-  show(node: HTMLElement): void;
+  show(node: HTMLElement): Promise<void>;
 
   /**
    * Hide the popover.
    */
-  hide(): void;
+  hide(): Promise<void>;
 }
 
 export interface TriggerOpts {
