@@ -32,7 +32,10 @@ export const defaults = {
     const now = new Date();
     const tm = defaults.time;
     return new Date(now.getFullYear(), now.getMonth(), now.getDate(), tm[0], tm[1], tm[2], tm[3]);
-  }
+  },
+  parseDate(dt) {
+    return new Date(dt);
+  },
 }
 
 function timeArray(value) {
@@ -68,6 +71,8 @@ export default function plugin(options = {}) {
         typeof optsin === 'string' ? { value: optsin } : optsin,
         typeof other === 'string' ? { mask: other } : other,
       );
+
+      if (!opts.parseDate) opts.parseDate = options.parseDate || defaults.parseDate;
 
       let defdt = opts.date || defaultDate;
       const deftm = timeArray(opts.time || defaultTime);
@@ -108,7 +113,7 @@ export default function plugin(options = {}) {
         handles.observers.push(ctx.observe(opts.value, v => {
           if (!v && opts.null === false) v = defdt();
           groups.value = v;
-          receiveValue(groups, v);
+          receiveValue(groups, v, opts.parseDate);
           groups.last = v;
           updateDisplay(groups, node);
           if (opts.min && v < opts.min || opts.max && v > opts.max) {
@@ -129,7 +134,7 @@ export default function plugin(options = {}) {
       }
 
       if (!opts.display && !opts.value) {
-        if (opts.date || opts.null === false) groups.value = getDateValue(opts.date || defdt());
+        if (opts.date || opts.null === false) groups.value = getDateValue(opts.date || defdt(), opts.parseDate);
         updateDisplay(groups, node);
       }
 
@@ -138,13 +143,13 @@ export default function plugin(options = {}) {
 
         if (focused && opts.lazy !== false) return;
 
-        if (opts.null === false && groups.value === null) return receiveValue(groups, groups.last) && 1 || 1;
+        if (opts.null === false && groups.value === null) return receiveValue(groups, groups.last, opts.parseDate) && 1 || 1;
 
         if (opts.min && groups.value < opts.min) {
-          receiveValue(groups, opts.min);
+          receiveValue(groups, opts.min, opts.parseDate);
           updateDisplay(groups, node);
         } else if (opts.max && groups.value > opts.max) {
-          receiveValue(groups, opts.max);
+          receiveValue(groups, opts.max, opts.parseDate);
           updateDisplay(groups, node);
         }
 
@@ -182,7 +187,7 @@ export default function plugin(options = {}) {
       }));
 
       handles.listeners.push(ctx.listen('blur', () => {
-        if (sendValue(false)) receiveValue(groups, groups.value);
+        if (sendValue(false)) receiveValue(groups, groups.value, opts.parseDate);
         updateDisplay(groups, node);
       }));
 
@@ -322,8 +327,8 @@ function updateValues(groups, target, pos = 0, leave = false) {
   return accepted;
 }
 
-function receiveValue(groups, v) {
-  v = groups.value = v && getDateValue(v);
+function receiveValue(groups, v, parseDate) {
+  v = groups.value = v && getDateValue(v, parseDate);
   const parts = v ? [v.getFullYear(), v.getMonth(), v.getDate(), v.getHours(), v.getMinutes(), v.getSeconds(), v.getMilliseconds()] : [null, null, null, null, null, null, null];
   groups.forEach(g => {
     g.value = parts[map[g.type]];
@@ -495,10 +500,16 @@ function lastDay(date) {
 }
 
 const origin = new Date('0000-01-01T00:00:00');
-function getDateValue(thing) {
+function getDateValue(thing, parseDate) {
   let v = thing;
   if (typeof v === 'function') v = thing();
-  if (typeof v === 'string') try { v = new Date(v); } catch (e) { return defaultDate(); }
+  if (typeof v === 'string') {
+    if (typeof parseDate === 'function') {
+      try { v = parseDate(v); } catch (e) { return defaultDate(); }
+    } else {
+      try { v = new Date(v); } catch (e) { return defaultDate(); }
+    }
+  }
   if (v instanceof Date) return v;
   else return origin;
 }

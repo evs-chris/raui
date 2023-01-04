@@ -68,7 +68,7 @@
       instance.components['rdi-picker'] = DatePicker;
       instance.components['rdi-pop'] = Popover;
       trigger({ name: 'rdi-pop' })({ instance });
-      date({ name: 'rdi-date' })({ instance });
+      date({ name: 'rdi-date', parseDate: opts.parseDate })({ instance });
       instance.partials[opts.name || 'date-input'] = DateInput;
       instance.decorators['rdi-reg'] = function(node, name) {
         this.getContext(node).set(`rdi.${name}`, () => node);

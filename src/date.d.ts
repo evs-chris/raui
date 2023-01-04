@@ -6,6 +6,7 @@ export const defaults: {
   mask: string;
   time: string;
   date: () => Date;
+  parseDate?: (dt: string) => Date;
 }
 
 export interface PluginOpts {
@@ -13,6 +14,7 @@ export interface PluginOpts {
   mask?: string;
   time?: string;
   date?: string;
+  parseDate?: (dt: string) => Date;
 }
 
 export default function(options?: PluginOpts): Plugin;
