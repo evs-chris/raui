@@ -61,7 +61,7 @@ System.register(['./chunk18.js', './chunk10.js', './chunk9.js', './chunk2.js'], 
           instance.components['rdi-picker'] = DatePicker;
           instance.components['rdi-pop'] = Popover;
           trigger({ name: 'rdi-pop' })({ instance: instance });
-          date({ name: 'rdi-date' })({ instance: instance });
+          date({ name: 'rdi-date', parseDate: opts.parseDate })({ instance: instance });
           instance.partials[opts.name || 'date-input'] = DateInput;
           instance.decorators['rdi-reg'] = function(node, name) {
             this.getContext(node).set(("rdi." + name), function () { return node; });

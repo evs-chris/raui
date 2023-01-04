@@ -176,7 +176,7 @@ System.register(['./chunk2.js', 'ractive'], function (exports, module) {
           setDisabled: function setDisabled(v) {
             var children = node.querySelectorAll('input,button,select,textarea');
             children.forEach(function (c) { return c.disabled = v; });
-            rez.invalidate();
+            this.invalidate();
           },
         };
 

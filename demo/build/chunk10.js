@@ -228,10 +228,12 @@ System.register(['./chunk2.js', 'ractive', './chunk5.js', './chunk11.js'], funct
         Popover.prototype.show = function show (node) {
           this.source = node;
           this.set('popped', true);
+          return this._transdone;
         };
 
         Popover.prototype.hide = function hide () {
           this.set('popped', false);
+          return this._transdone;
         };
 
         return Popover;
@@ -262,7 +264,11 @@ System.register(['./chunk2.js', 'ractive', './chunk5.js', './chunk11.js'], funct
               if (source) { this.source = source; }
               if (tailSource) { this.tailSource = tailSource; }
             }
+            var ok;
+            var done = this._transdone = new Promise(function (o) { return ok = o; });
+            done.resolve = ok;
             setTimeout(function () {
+              this$1._transdone = done;
               if (this$1.get('popped') === v) { this$1.set('_popped', v); }
             }, 1);
           },
@@ -270,6 +276,7 @@ System.register(['./chunk2.js', 'ractive', './chunk5.js', './chunk11.js'], funct
             handler: function handler(v) {
               var this$1 = this;
 
+              var done = this._transdone.resolve;
               if (v) {
                 var mobile = this.get('@style.raui.pop.mobile');
                 if (mobile && window.matchMedia(("(max-width: " + mobile + ")")).matches) {
@@ -278,7 +285,7 @@ System.register(['./chunk2.js', 'ractive', './chunk5.js', './chunk11.js'], funct
                   }
                   var context = this.getContext().getParent(true);
                   context.isContext = 1;
-                  this.set('__popped', false);
+                  this.set('__popped', false).then(done);
                   mobilePop.unshift('contents', { content: this.partials.content, context: context, attrs: this.partials['extra-attributes'] || [], clickClose: this.get('clickClose'), noClickout: this.get('noClickout'), done: function () { this$1.set('popped', false); } });
                 } else {
                   this.set('__popped', true);
@@ -286,8 +293,9 @@ System.register(['./chunk2.js', 'ractive', './chunk5.js', './chunk11.js'], funct
               } else {
                 if (mobilePopped) {
                   mobilePop.shift('contents');
+                  done();
                 } else {
-                  this.set('__popped', false);
+                  this.set('__popped', false).then(done);
                 }
               }
             },
@@ -296,6 +304,7 @@ System.register(['./chunk2.js', 'ractive', './chunk5.js', './chunk11.js'], funct
           },
           __popped: {
             handler: function handler(v) {
+              var done = this._transdone.resolve;
               if (v) {
                 var el = this.find('div');
                 var node = el;
@@ -327,7 +336,7 @@ System.register(['./chunk2.js', 'ractive', './chunk5.js', './chunk11.js'], funct
                   }
                 }
                 this.position();
-                this.transition('pop', node, { intro: true, dir: this.get('where') || 'below' });
+                this.transition('pop', node, { intro: true, dir: this.get('where') || 'below' }).then(done);
               } else {
                 this.source = null;
                 this.tailSource = null;

@@ -42,7 +42,10 @@ System.register([], function (exports, module) {
           var now = new Date();
           var tm = defaults.time;
           return new Date(now.getFullYear(), now.getMonth(), now.getDate(), tm[0], tm[1], tm[2], tm[3]);
-        }
+        },
+        parseDate: function parseDate(dt) {
+          return new Date(dt);
+        },
       };
 
       function timeArray(value) {
@@ -85,6 +88,8 @@ System.register([], function (exports, module) {
               typeof other === 'string' ? { mask: other } : other
             );
 
+            if (!opts.parseDate) { opts.parseDate = options.parseDate || defaults.parseDate; }
+
             var defdt = opts.date || defaultDate;
             var deftm = timeArray(opts.time || defaultTime);
             if (typeof defdt !== 'function') {
@@ -124,7 +129,7 @@ System.register([], function (exports, module) {
               handles.observers.push(ctx.observe(opts.value, function (v) {
                 if (!v && opts.null === false) { v = defdt(); }
                 groups.value = v;
-                receiveValue(groups, v);
+                receiveValue(groups, v, opts.parseDate);
                 groups.last = v;
                 updateDisplay(groups, node);
                 if (opts.min && v < opts.min || opts.max && v > opts.max) {
@@ -145,7 +150,7 @@ System.register([], function (exports, module) {
             }
 
             if (!opts.display && !opts.value) {
-              if (opts.date || opts.null === false) { groups.value = getDateValue(opts.date || defdt()); }
+              if (opts.date || opts.null === false) { groups.value = getDateValue(opts.date || defdt(), opts.parseDate); }
               updateDisplay(groups, node);
             }
 
@@ -154,13 +159,13 @@ System.register([], function (exports, module) {
 
               if (focused && opts.lazy !== false) { return; }
 
-              if (opts.null === false && groups.value === null) { return receiveValue(groups, groups.last) && 1 || 1; }
+              if (opts.null === false && groups.value === null) { return receiveValue(groups, groups.last, opts.parseDate) && 1 || 1; }
 
               if (opts.min && groups.value < opts.min) {
-                receiveValue(groups, opts.min);
+                receiveValue(groups, opts.min, opts.parseDate);
                 updateDisplay(groups, node);
               } else if (opts.max && groups.value > opts.max) {
-                receiveValue(groups, opts.max);
+                receiveValue(groups, opts.max, opts.parseDate);
                 updateDisplay(groups, node);
               }
 
@@ -198,7 +203,7 @@ System.register([], function (exports, module) {
             }));
 
             handles.listeners.push(ctx.listen('blur', function () {
-              if (sendValue(false)) { receiveValue(groups, groups.value); }
+              if (sendValue(false)) { receiveValue(groups, groups.value, opts.parseDate); }
               updateDisplay(groups, node);
             }));
 
@@ -343,8 +348,8 @@ System.register([], function (exports, module) {
         return accepted;
       }
 
-      function receiveValue(groups, v) {
-        v = groups.value = v && getDateValue(v);
+      function receiveValue(groups, v, parseDate) {
+        v = groups.value = v && getDateValue(v, parseDate);
         var parts = v ? [v.getFullYear(), v.getMonth(), v.getDate(), v.getHours(), v.getMinutes(), v.getSeconds(), v.getMilliseconds()] : [null, null, null, null, null, null, null];
         groups.forEach(function (g) {
           g.value = parts[map[g.type]];
@@ -516,10 +521,16 @@ System.register([], function (exports, module) {
       }
 
       var origin = new Date('0000-01-01T00:00:00');
-      function getDateValue(thing) {
+      function getDateValue(thing, parseDate) {
         var v = thing;
         if (typeof v === 'function') { v = thing(); }
-        if (typeof v === 'string') { try { v = new Date(v); } catch (e) { return defaultDate(); } }
+        if (typeof v === 'string') {
+          if (typeof parseDate === 'function') {
+            try { v = parseDate(v); } catch (e) { return defaultDate(); }
+          } else {
+            try { v = new Date(v); } catch (e) { return defaultDate(); }
+          }
+        }
         if (v instanceof Date) { return v; }
         else { return origin; }
       }
