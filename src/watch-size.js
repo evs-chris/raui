@@ -63,11 +63,11 @@ function initEmEl() {
     emEl = document.createElement('div');
     emEl.setAttribute('style', 'position: absolute; left: -2em; width: 1em; height: 1em;')
 
-    initObject(emEl, () => setEmSize(emEl.clientWidth));
+    initObject(emEl, () => setEmSize(emEl.getBoundingClientRect().width));
 
     window.addEventListener('resize', () => {
       initEmEl();
-      setEmSize(emEl.clientWidth);
+      setEmSize(emEl.getBoundingClientRect().width);
     });
   }
 
