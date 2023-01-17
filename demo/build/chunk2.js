@@ -107,11 +107,11 @@ System.register(['ractive'], function (exports, module) {
           emEl = document.createElement('div');
           emEl.setAttribute('style', 'position: absolute; left: -2em; width: 1em; height: 1em;');
 
-          initObject(emEl, function () { return setEmSize(emEl.clientWidth); });
+          initObject(emEl, function () { return setEmSize(emEl.getBoundingClientRect().width); });
 
           window.addEventListener('resize', function () {
             initEmEl();
-            setEmSize(emEl.clientWidth);
+            setEmSize(emEl.getBoundingClientRect().width);
           });
         }
 
