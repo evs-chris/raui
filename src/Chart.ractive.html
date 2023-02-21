@@ -14,34 +14,44 @@
         {{/each}}
       </svg>
     </div>
-  {{elseif .type === 'bar' }}
+  {{elseif .type === 'bar'}}
     <svg viewBox="0 0 {{graph.horiz ? ~/span : graph.span}} {{graph.horiz ? graph.span : ~/span}}" {{#if graph.horiz}}style-min-height="{{graph.span}}px"{{else}}style-min-width="{{graph.span}}px"{{/if}}>
-      {{#if !graph.horiz}}
-      	<path d="M 0,{{graph.bottom}} {{graph.span}},{{graph.bottom}} Z" stroke="#000" stroke-width="1" />
-        {{#each graph.points}}
+      {{#if graph.horiz}}
+        <path d="M {{graph.bottom}},0 {{graph.bottom}},{{graph.span}} Z" stroke="#000" stroke-width="1" />
+        {{#each graph.groups}}
+      	{{#each .points}}
+          <path d="M {{.y}},{{.x}} {{.y}},{{.x2}}, {{.y2}},{{.x2}} {{.y2}},{{.x}} Z" style-fill="{{.color}}" {{#if .click}}on-click=".click(@context, @.get('data.' + .idx), @.readLink('data.' + idx).keypath, .)"{{/if}} on-click="['select', @.get('data.' + .idx), @.readLink('data.' + idx).keypath, ., 'data.' + idx]">
+            <title>{{#if .label}}{{.label}} ({{.value}}){{else}}{{.value}}{{/if}}</title>
+          </path>
+        {{/each}}
+        {{/each}}
+      {{else}}
+        <path d="M 0,{{graph.bottom}} {{graph.span}},{{graph.bottom}} Z" stroke="#000" stroke-width="1" />
+        {{#each graph.groups}}
+        {{#each .points}}
           <path d="M {{.x}},{{.y}} {{.x}},{{.y2}}, {{.x2}},{{.y2}} {{.x2}},{{.y}} Z" style-fill="{{.color}}" {{#if .click}}on-click=".click(@context, @.get('data.' + .idx), @.readLink('data.' + idx).keypath, .)"{{/if}} on-click="['select', @.get('data.' + .idx), @.readLink('data.' + idx).keypath, ., 'data.' + idx]">
             <title>{{#if .label}}{{.label}} ({{.value}}){{else}}{{.value}}{{/if}}</title>
           </path>
         {{/each}}
-     	{{else}}
-      	<path d="M {{graph.bottom}},0 {{graph.bottom}},{{graph.span}} Z" stroke="#000" stroke-width="1" />
-      	{{#each graph.points}}
-          <path d="M {{.y}},{{.x}} {{.y}},{{.x2}}, {{.y2}},{{.x2}} {{.y2}},{{.x}} Z" style-fill="{{.color}}" {{#if .click}}on-click=".click(@context, @.get('data.' + .idx), @.readLink('data.' + idx).keypath, .)"{{/if}} on-click="['select', @.get('data.' + .idx), @.readLink('data.' + idx).keypath, ., 'data.' + idx]">
-            <title>{{#if .label}}{{.label}} ({{.value}}){{else}}{{.value}}{{/if}}</title>
-          </path>
-     		{{/each}}
+        {{/each}}
       {{/if}}
     </svg>
   {{elseif .type === 'line'}}
   	<svg viewBox="0 -{{~/dot}} {{graph.span}} {{~/span + (2 * ~/dot)}}" style-min-width="{{graph.span}}px">
       <path d="M 0,{{graph.bottom}} {{graph.span}},{{graph.bottom}} Z" stroke="#000" stroke-width="1" />
+      {{#each graph.groups}}
       <path d="M {{graph.minX}},{{graph.bottom}}
-        {{#each graph.points}}{{#if 'sx' in .}}{{#if ~/project}}S {{.sx}},{{.sy}} {{.x}},{{.y2}}{{else}}C {{.sx}},{{.sy}} {{.ex}},{{.ey}} {{.x}},{{.y2}}{{/if}}{{else}}L {{.x}},{{.y2}}{{/if}}{{' '}}{{/each}}
-      L {{graph.maxX}},{{graph.bottom}} Z" fill="blue" opacity="0.8" stroke="#000" stroke-width="1" />
-      {{#each graph.points}}
-        <circle r={{~/dot}} cx="{{.x}}" cy="{{.y2}}" fill="{{.color}}"{{#if .click}}on-click=".click(@context, @.get('data.' + .idx), @.readLink('data.' + .idx, @.parent), .)"{{/if}} on-click="['select', @.get('data.' + .idx), @.readLink('data.' + idx).keypath, ., 'data.' + idx]">
+        {{#each .points}}{{#if 'sx' in .}}{{#if ~/project}}S {{.sx}},{{.sy}} {{.x}},{{.y2}}{{else}}C {{.sx}},{{.sy}} {{.ex}},{{.ey}} {{.x}},{{.y2}}{{/if}}{{else}}L {{.x}},{{.y2}}{{/if}}{{' '}}{{/each}}
+      L {{~/graph.maxX}},{{~/graph.bottom}} Z" fill="{{^^/color}}" opacity="0.8" stroke="#000" stroke-width="1" />
+      {{#each .points}}
+        <circle r={{~/dot}} cx="{{.x}}" cy="{{.y2}}" fill="{{^^/color}}"{{#if .click}}on-click=".click(@context, @.get('data.' + .idx), @.readLink('data.' + .idx, @.parent), .)"{{/if}} on-click="['select', @.get('data.' + .idx), @.readLink('data.' + idx).keypath, ., 'data.' + idx]">
           <title>{{#if .label}}{{.label}} ({{.value}}){{else}}{{.value}}{{/if}}</title>
         </circle>
+        <circle r=3 cx={{.sx}} cy={{.sy}} fill=red><title>{{.value}}</title></circle>
+        <line x1={{.x}} y1={{.y2}} x2={{.sx}} y2={{.sy}} stroke=red stroke-width=1 />
+        <circle r=3 cx={{.ex}} cy={{.ey}} fill=blue><title>{{.value}}</title></circle>
+        <line x1={{.x}} y1={{.y2}} x2={{.ex}} y2={{.ey}} stroke=blue stroke-width=1 />
+      {{/each}}
       {{/each}}
   	</svg>
   {{/if}}
@@ -56,6 +66,7 @@
     const cos1 = Math.cos(t1);
     const sin1 = Math.sin(t1);
     if (pct > 1) pct /= 100;
+    if (pct >= 1) pct = 0.99995;
     const t2 = (pct * 360) * (Math.PI / 180);
     const cos2 = Math.cos(t2);
     const sin2 = Math.sin(t2);
@@ -94,12 +105,27 @@
     constructor(opts) { super(opts); }
   }
 
+  /**
+   * data: { value, label, color}[] || { values: { value, label }[], label, color }[]
+   * type: line|bar|pie|donut|tire|hoop
+   * horizontal: boolean (for bars - default false)
+   * colors: string[] (list of colors to assign to uncolored data points)
+   * point: number (width of data points - default 30)
+   * space: number (distance between bars bar graph - default 5)
+   * flip: boolean (invert graph - line, bar - default false)
+   * dot: number (radius of line graph points - default 3)
+   * smooth: number (apply smoothing rate (0.2 recommended) to line chart beziers - default none)
+   * project: boolean (allow line chart to project when smoothed - default false)
+   * span: number (target height of the viewbox for line, bar - default 200)
+   * sub: cluster|stack (sub type for bar graphs - default cluster)
+   */
+
   Ractive.extendWith(Chart, {
     template: $TEMPLATE,
     css: $CSS,
     cssId: 'rchart',
     noCssTransform: true,
-    attributes: ['data', 'type', 'horizontal', 'colors', 'point', 'space', 'flip', 'dot', 'smooth', 'project', 'span'],
+    attributes: ['data', 'type', 'horizontal', 'colors', 'point', 'space', 'flip', 'dot', 'smooth', 'project', 'span', 'sub'],
     computed: {
       chonks() {
         const data = this.get('data');
@@ -168,6 +194,9 @@
             [p.ex, p.ey] = bezierControl(false, p, points[i - 1], points[i + 1], smooth);
           });
         }
+
+        const groups = [{ points }];
+        if (type === 'line') groups.forEach((g, i) => g.color = colors[i % colors.length]);
         
         return {
           bottom: flip ? bar - (bottom / range) * bar : (bottom / range) * bar,
@@ -176,7 +205,7 @@
           span: (type === 'line' ? data.length - 1 : data.length) * point + (data.length + 2) * space + (type === 'line' ? dot * 2 : 0),
           minX: points[0].x,
           maxX: points[points.length - 1].x,
-          points
+          groups
         };
       }
     },
@@ -186,7 +215,8 @@
         point: 30,
         space: 5,
         dot: 3,
-        span: 200
+        span: 200,
+        color: '#1f5b93'
       }
     },
     on: {
@@ -220,6 +250,8 @@
   }
   .rg-graph-circular svg {
     position: absolute;
+    left: 0;
+    top: 0;
   }
   .rg-graph svg {
     box-sizing: border-box;
