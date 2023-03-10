@@ -273,6 +273,17 @@ System.register(['ractive', './chunk7.js', './chunk8.js', './chunk2.js', './chun
           if (!~src.indexOf(this.get('selection'))) { this.set('selected', undefined); }
         };
 
+        Table.prototype.replaceColumns = function replaceColumns (columns) {
+          // TODO: have a more friendly API for this
+          var ref = makeRows(columns);
+          var headerCols = ref[0];
+          var rowCols = ref[1];
+
+          this.set('columns', columns);
+          this.resetPartial('grid-row-cols', rowCols);
+          this.resetPartial('grid-head-cols', headerCols);
+        };
+
         Object.defineProperties( Table.prototype, prototypeAccessors );
 
         return Table;
@@ -773,6 +784,102 @@ System.register(['ractive', './chunk7.js', './chunk8.js', './chunk2.js', './chun
         return list;
       }
 
+      function makeRows(columns) {
+        var z = [
+          { n: 'gridValue', x: { r: '~/gridValue' } },
+          { n: 'gridName', x: { r: '~/gridName' } },
+          { n: 'gridSize', x: { r: '~/tableWidth' } },
+          { n: 'gridMax', x: { r: '~/gridMax' } },
+          { n: 'table', x: { r: '@this' } } ];
+
+        var headerCols = columns.filter(function (c) { return c.hidden !== true; }).map(function (c, cidx) {
+          c.attrsHP = c.attrs.filter(function (a) { return a.n !== 'title'; });
+          var div = { t: 7, e: 'div', f: [{ t: 7, e: 'div', f: [{ t: 16, r: ("~/columns." + cidx + ".label"), c: { r: '.' }, z: z }] }], m: [{ t: 13, n: 'title', f: c.title || c.label }, { t: 16, r: ("~/columns." + cidx + ".attrsHP"), z: z }] };
+          if (c.type) { div.m.push({ t: 13, n: ("class-rtable-" + (c.type) + "-column") }); }
+          if (c.filter || c.sort) { div.m.push({ t: 13, n: 'class-rtable-sortable' }, { t: 4, n: 53, r: ("~/columns." + cidx), f: [{ t: 70, n: ['click'], f: { r: ['@this', '.index', '@event'], s: sortKey } }] }); }
+
+          div.m.push({ t: 13, n: 'class-rtable-column' });
+          if (c.fixed) {
+            var path = c.fixed.path || ("~/columns." + cidx + ".fixed");
+            div.m.push({ t: 13, n: 'class-rtable-fixed-column', f: [{ t: 2, r: path }] });
+            div.m.push({ t: 4, n: 50, x: { r: ["~/noWrap", path], s: "_0&&typeof _1==='string'" }, f: [{ t: 13, n: 'style-left', f: [{ t: 2, r: path }] }] });
+          }
+          var res = div;
+
+          if (c.hidden && c.hidden.r) {
+            res = { t: 4, n: 51, r: c.hidden.r, f: [div] };
+          }
+
+          return res;
+        });
+
+        var rowCols = columns.filter(function (c) { return c.hidden !== true; }).map(function (c, cidx) {
+          var content = [{ t: 7, e: 'div', f: [{ t: 16, r: ("~/columns." + cidx + ".content"), c: { r: '.' }, z: z }] }];
+          if (c.attrs.length) {
+            c.attrsP = c.attrs;
+            c.attrs = [{ t: 16, r: ("~/columns." + cidx + ".attrsP"), c: { r: '.' }, z: z }];
+          } else {
+            c.attrs = [];
+          }
+          var attrs = c.attrs;
+          if (c.fixed) {
+            var path = c.fixed.path || ("~/columns." + cidx + ".fixed");
+            attrs.push({ t: 13, n: 'class-rtable-fixed-column', f: [{ t: 2, r: path }] });
+            attrs.push({ t: 4, n: 50, x: { r: ["~/noWrap", path], s: "_0&&typeof _1==='string'" }, f: [{ t: 13, n: 'style-left', f: [{ t: 2, r: path }] }] });
+          }
+          if (c.editable && (c.filter || c.editP)) {
+            // TODO: moar types - pick, date, maybe custom via edit tag
+            var noclicky = { t: 70, n: ['click', 'mousedown', 'pointerdown', 'MSPointerDown', 'touchstart'], f: { r: ['@event'], s: '[_0.stopPropagation()]' } };
+            var editor = [
+              { t: 4, n: 50, x: { r: [("~/columns." + cidx + ".editP")], s: "Array.isArray(_0)" }, f: [{ t: 7, e: 'div', m: [{ t: 13, n: 'class-rtable-edit' }, noclicky], f: [{ t: 16, r: ("~/columns." + cidx + ".editP") }] }] },
+              { t: 4, n: 50, l:1, x: { r: [("~/columns." + cidx + ".type")], s: "_0==='boolean'" }, f: [{ t: 7, e: 'input', m: [{ t: 13, n: 'type', f: 'checkbox' }, { t: 13, n: 'checked', f: [{ t: 2, r: c.filter }] }, noclicky] }] },
+              { t: 4, n: 51, l: 1, f: [{ t: 7, e: 'input', m: [{ t: 13, n: 'value', f: [{ t: 2, r: c.filter }] }, noclicky] }] }
+            ];
+            if (typeof c.editable === 'object') {
+              attrs.push({ t: 13, n: 'class-rtable-editing', f: c.editable });
+              content = [
+                Object.assign({}, c.editable, { t: 4, n: 50, f: editor }),
+                { t: 4, n: 51, l: 1, f: content }
+              ];
+            } else {
+              attrs.push({ t: 13, n: 'class-rtable-editing' });
+              content = editor;
+            }
+          }
+
+          if (c.valign) {
+            attrs.push(
+              { t: 13, n: 'class-rtable-valign-col-top', f: [{ t: 2, x: { r: [("~/columns." + cidx + ".valign")], s: "_0==='top'" } }] },
+              { t: 13, n: 'class-rtable-valign-col-bottom', f: [{ t: 2, x: { r: [("~/columns." + cidx + ".valign")], s: "_0==='bottom'" } }] },
+              { t: 13, n: 'class-rtable-valign-col-center', f: [{ t: 2, x: { r: [("~/columns." + cidx + ".valign")], s: "_0==='center'" } }] }
+            );
+          }
+
+          var div = { t: 7, e: 'div', f: content, m: attrs };
+          if (c.type) { attrs.unshift({ t: 13, n: ("class-rtable-" + (c.type) + "-column") }); }
+          attrs.push({ t: 13, n: 'class-rtable-column' });
+
+          var title = c.attrsP && c.attrsP.find(function (a) { return a.n === 'title'; });
+          if (!title) { attrs.unshift({ t: 4, n: 50, r: '~/autoTitles', f: [{ t: 13, n: 'title', f: c.content.find(function (e) { return e.e; }) ? c.label : c.content }] }); }
+          else if (!title.f) {
+            attrs.unshift({ t: 13, n: 'title', f: c.content.find(function (e) { return e.e; }) ? c.label : c.content });
+            c.attrsP.splice(attrs.indexOf(title), 1);
+          }
+
+          if (c.noPad === 0) { attrs.push({ t: 13, n: 'class-rtable-no-pad' }); }
+          else if (c.noPad) { attrs.push({ t: 13, n: 'class-rtable-no-pad', f: c.noPad }); }
+          var res = div;
+
+          if (c.hidden && c.hidden.r) {
+            res = { t: 4, n: 51, r: c.hidden.r, f: [div] };
+          }
+
+          return res;
+        });
+
+        return [headerCols, rowCols, z];
+      }
+
       var colAttrs = ['label', 'type', 'filter', 'hidden', 'sort', 'no-pad', 'id', 'editable', 'fixed'];
       var cell = /^[a-z]{1,3}[0-9]+(?:-[0-9]+)?$/;
       var empty = [];
@@ -960,15 +1067,10 @@ System.register(['ractive', './chunk7.js', './chunk8.js', './chunk2.js', './chun
         this._init.sets['meta.bottom'] = bottomEl && bottomEl.f && bottomEl.f.length && bottomEl.f;
         this._init.sets['meta.bottomAttrs'] = bottomEl && bottomEl.m;
 
-        var sortKey = '[_0._setSort(_1,_2)]';
-
-        // aliases for yielders
-        var z = [
-          { n: 'gridValue', x: { r: '~/gridValue' } },
-          { n: 'gridName', x: { r: '~/gridName' } },
-          { n: 'gridSize', x: { r: '~/tableWidth' } },
-          { n: 'gridMax', x: { r: '~/gridMax' } },
-          { n: 'table', x: { r: '@this' } } ];
+        var ref = makeRows(columns);
+        var headerCols = ref[0];
+        var rowCols = ref[1];
+        var z = ref[2];
 
         // build header partial
         var header = [{ t: 7, e: 'div', m: [
@@ -977,26 +1079,7 @@ System.register(['ractive', './chunk7.js', './chunk8.js', './chunk2.js', './chun
           { t: 13, n: 'class-rtable-header' },
           { t: 4, f: [{ n: 'style-opacity', f: '0', t: 13 }], n: 50, x: { r: ['~/fixedHeader', '~/virtual.offset'] , s: '!_0&&_1>0' } },
           { t: 4, n: 50, r: '~/fixedHeader', f: [{ t: 13, n: 'style-padding-right', f: [{ t: 2, r: '~/scrollOffset' }, 'px'] }] }
-        ], f: [{ t: 7, e: 'div', f: columns.filter(function (c) { return c.hidden !== true; }).map(function (c, cidx) {
-          c.attrsHP = c.attrs.filter(function (a) { return a.n !== 'title'; });
-          var div = { t: 7, e: 'div', f: [{ t: 7, e: 'div', f: [{ t: 16, r: ("~/columns." + cidx + ".label"), c: { r: '.' }, z: z }] }], m: [{ t: 13, n: 'title', f: c.title || c.label }, { t: 16, r: ("~/columns." + cidx + ".attrsHP"), z: z }] };
-          if (c.type) { div.m.push({ t: 13, n: ("class-rtable-" + (c.type) + "-column") }); }
-          if (c.filter || c.sort) { div.m.push({ t: 13, n: 'class-rtable-sortable' }, { t: 4, n: 53, r: ("~/columns." + cidx), f: [{ t: 70, n: ['click'], f: { r: ['@this', '.index', '@event'], s: sortKey } }] }); }
-
-          div.m.push({ t: 13, n: 'class-rtable-column' });
-          if (c.fixed) {
-            var path = c.fixed.path || ("~/columns." + cidx + ".fixed");
-            div.m.push({ t: 13, n: 'class-rtable-fixed-column', f: [{ t: 2, r: path }] });
-            div.m.push({ t: 4, n: 50, x: { r: ["~/noWrap", path], s: "_0&&typeof _1==='string'" }, f: [{ t: 13, n: 'style-left', f: [{ t: 2, r: path }] }] });
-          }
-          var res = div;
-
-          if (c.hidden && c.hidden.r) {
-            res = { t: 4, n: 51, r: c.hidden.r, f: [div] };
-          }
-
-          return res;
-        }), 
+        ], f: [{ t: 7, e: 'div', f: [{ t: 8, r: 'grid-head-cols' }], 
         m: [
           { t: 13, n: 'class-row' }
         ] }] }];
@@ -1006,7 +1089,7 @@ System.register(['ractive', './chunk7.js', './chunk8.js', './chunk2.js', './chun
           t: 4, n: 50, r: '~/allowSelect', f: [{ t: 7, e: 'div', m: [{ t: 13, n: 'class-rtable-select-header' }, { t: 13, n: 'class-rtable-column' }, { t: 13, n: 'title', f: [{ t: 2, r: 'selections.length' }, ' items selected']}, { t: 13, n: 'class-rtable-all-selected', f: [{ t: 2, x: { r: ['@this'], s: '_0._allSelected()' } }] }], f: [{ t: 7, e: 'div', f: [{ t: 4, n: 50, r: '~/allowSelectAll', f: [{ t: 7, e: 'input', m: [{ t: 73, v: 't', f: 'false' }, { t: 13, n: 'type', f: 'checkbox' }, { t: 13, n: 'checked', f: [{ t: 2, x: { r: ['@this'], s: '_0._allSelected()' } }] }, { t: 13, n: 'class-rtable-select' }, { t: 70, n: ['click'], f: 'selectAll' }] }] }], m: [{ t: 70, n: ['clickd'], f: 'selectAll' }] }] }]
         });
 
-        // buld row partial
+        // build row partial
         var row = [{ t: 7, e: 'div', m: [
           { t: 13, n: 'class-rtable-row-wrap' },
           { t: 13, n: 'class-rtable-odd', f: [{ t: 2, x: { r: ['@index','~/virtual.offset'], s: '(_0+_1)%2===1' } }] },
@@ -1016,69 +1099,7 @@ System.register(['ractive', './chunk7.js', './chunk8.js', './chunk2.js', './chun
         ], f: [{ t: 7, e: 'div', m: [
           { t: 13, n: 'class-row-wrap' },
           { t: 13, n: 'class-rtable-inner-row-wrap' }
-        ], f: [{ t: 7, e: 'div', f: columns.filter(function (c) { return c.hidden !== true; }).map(function (c, cidx) {
-          var content = [{ t: 7, e: 'div', f: [{ t: 16, r: ("~/columns." + cidx + ".content"), c: { r: '.' }, z: z }] }];
-          if (c.attrs.length) {
-            c.attrsP = c.attrs;
-            c.attrs = [{ t: 16, r: ("~/columns." + cidx + ".attrsP"), c: { r: '.' }, z: z }];
-          } else {
-            c.attrs = [];
-          }
-          var attrs = c.attrs;
-          if (c.fixed) {
-            var path = c.fixed.path || ("~/columns." + cidx + ".fixed");
-            attrs.push({ t: 13, n: 'class-rtable-fixed-column', f: [{ t: 2, r: path }] });
-            attrs.push({ t: 4, n: 50, x: { r: ["~/noWrap", path], s: "_0&&typeof _1==='string'" }, f: [{ t: 13, n: 'style-left', f: [{ t: 2, r: path }] }] });
-          }
-          if (c.editable && (c.filter || c.editP)) {
-            // TODO: moar types - pick, date, maybe custom via edit tag
-            var noclicky = { t: 70, n: ['click', 'mousedown', 'pointerdown', 'MSPointerDown', 'touchstart'], f: { r: ['@event'], s: '[_0.stopPropagation()]' } };
-            var editor = [
-              { t: 4, n: 50, x: { r: [("~/columns." + cidx + ".editP")], s: "Array.isArray(_0)" }, f: [{ t: 7, e: 'div', m: [{ t: 13, n: 'class-rtable-edit' }, noclicky], f: [{ t: 16, r: ("~/columns." + cidx + ".editP") }] }] },
-              { t: 4, n: 50, l:1, x: { r: [("~/columns." + cidx + ".type")], s: "_0==='boolean'" }, f: [{ t: 7, e: 'input', m: [{ t: 13, n: 'type', f: 'checkbox' }, { t: 13, n: 'checked', f: [{ t: 2, r: c.filter }] }, noclicky] }] },
-              { t: 4, n: 51, l: 1, f: [{ t: 7, e: 'input', m: [{ t: 13, n: 'value', f: [{ t: 2, r: c.filter }] }, noclicky] }] }
-            ];
-            if (typeof c.editable === 'object') {
-              attrs.push({ t: 13, n: 'class-rtable-editing', f: c.editable });
-              content = [
-                Object.assign({}, c.editable, { t: 4, n: 50, f: editor }),
-                { t: 4, n: 51, l: 1, f: content }
-              ];
-            } else {
-              attrs.push({ t: 13, n: 'class-rtable-editing' });
-              content = editor;
-            }
-          }
-
-          if (c.valign) {
-            attrs.push(
-              { t: 13, n: 'class-rtable-valign-col-top', f: [{ t: 2, x: { r: [("~/columns." + cidx + ".valign")], s: "_0==='top'" } }] },
-              { t: 13, n: 'class-rtable-valign-col-bottom', f: [{ t: 2, x: { r: [("~/columns." + cidx + ".valign")], s: "_0==='bottom'" } }] },
-              { t: 13, n: 'class-rtable-valign-col-center', f: [{ t: 2, x: { r: [("~/columns." + cidx + ".valign")], s: "_0==='center'" } }] }
-            );
-          }
-
-          var div = { t: 7, e: 'div', f: content, m: attrs };
-          if (c.type) { attrs.unshift({ t: 13, n: ("class-rtable-" + (c.type) + "-column") }); }
-          attrs.push({ t: 13, n: 'class-rtable-column' });
-
-          var title = c.attrsP && c.attrsP.find(function (a) { return a.n === 'title'; });
-          if (!title) { attrs.unshift({ t: 4, n: 50, r: '~/autoTitles', f: [{ t: 13, n: 'title', f: c.content.find(function (e) { return e.e; }) ? c.label : c.content }] }); }
-          else if (!title.f) {
-            attrs.unshift({ t: 13, n: 'title', f: c.content.find(function (e) { return e.e; }) ? c.label : c.content });
-            c.attrsP.splice(attrs.indexOf(title), 1);
-          }
-
-          if (c.noPad === 0) { attrs.push({ t: 13, n: 'class-rtable-no-pad' }); }
-          else if (c.noPad) { attrs.push({ t: 13, n: 'class-rtable-no-pad', f: c.noPad }); }
-          var res = div;
-
-          if (c.hidden && c.hidden.r) {
-            res = { t: 4, n: 51, r: c.hidden.r, f: [div] };
-          }
-
-          return res;
-        }), m: [
+        ], f: [{ t: 7, e: 'div', f: [{ t: 8, r: 'grid-row-cols' }], m: [
           { t: 13, n: 'class-row' }, { t: 13, n: 'class-rtable-row' },
           { t: 70, n: (expandEl && expandEl.f ? ['dblclickd'] : ['click', 'dblclick']), f: { r: ['@this', '~/rows', '~/visibleRows', '.'], s: "[_0._open(_3,_1.indexOf(_3),_2.indexOf(_3))]" } }
         ] }] }] }];
@@ -1178,7 +1199,9 @@ System.register(['ractive', './chunk7.js', './chunk8.js', './chunk2.js', './chun
         }
 
         this._init.partials['grid-row'] = row;
+        this._init.partials['grid-row-cols'] = rowCols;
         this._init.partials['grid-head'] = header;
+        this._init.partials['grid-head-cols'] = headerCols;
 
         if (mappings && this.component) { this.component.mappings = mappings; }
       }
@@ -1195,7 +1218,7 @@ System.register(['ractive', './chunk7.js', './chunk8.js', './chunk2.js', './chun
         }
       }
 
-      globalRegister('RMTable', 'components', Table);
+      globalRegister('RauiTable', 'components', Table);
 
       var data = [];
       var src = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';

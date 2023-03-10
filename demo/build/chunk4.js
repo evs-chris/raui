@@ -55,7 +55,7 @@ System.register(['ractive', './chunk2.js'], function (exports, module) {
         }
       });
 
-      globalRegister('RMAppBar', 'components', AppBar);
+      globalRegister('RauiAppBar', 'components', AppBar);
 
       function plugin(opts) {
         if ( opts === void 0 ) opts = {};

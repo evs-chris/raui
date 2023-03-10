@@ -237,7 +237,7 @@ System.register(['ractive', './chunk2.js'], function (exports, module) {
         }
       }
 
-      globalRegister('RMJSONEditor', 'components', JSONEditor);
+      globalRegister('RauiJSONEditor', 'components', JSONEditor);
       exports('default', plugin);
 
     }

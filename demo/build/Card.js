@@ -123,6 +123,6 @@ export function plugin(opts) {
   };
 }
 
-globalRegister('RMCard', 'partials', Card);
+globalRegister('RauiCard', 'partials', Card);
 
 export default plugin;

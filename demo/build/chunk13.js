@@ -491,7 +491,7 @@ System.register(['ractive', './chunk12.js', './chunk2.js'], function (exports, m
         }
       }
 
-      globalRegister('RMTabs', 'components', Tabs);
+      globalRegister('RauiTabs', 'components', Tabs);
       exports('default', plugin);
 
     }

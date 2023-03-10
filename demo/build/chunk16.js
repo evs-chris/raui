@@ -311,7 +311,7 @@ System.register(['ractive', './chunk2.js'], function (exports, module) {
         }
       }
 
-      globalRegister('RMSplit', 'components', Split);
+      globalRegister('RauiSplit', 'components', Split);
       exports('default', plugin);
 
     }

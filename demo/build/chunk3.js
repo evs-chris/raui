@@ -253,7 +253,7 @@ System.register(['ractive', './chunk1.js', './chunk2.js'], function (exports, mo
         }
       }
 
-      globalRegister('RMShell', 'components', Shell);
+      globalRegister('RauiShell', 'components', Shell);
       exports('default', plugin);
 
     }
