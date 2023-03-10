@@ -58,4 +58,4 @@ export function tab(instance) {
   }
 }
 
-globalRegister('RMKeyEvent', 'events', keys().event);
+globalRegister('RauiKeyEvent', 'events', keys().event);

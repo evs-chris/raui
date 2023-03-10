@@ -5,7 +5,7 @@ const buble = require('rollup-plugin-buble');
 const uglify = require('rollup-plugin-uglify');
 const resolver = require('rollup-plugin-import-resolver');
 
-const prefix = 'RM';
+const prefix = 'Raui';
 
 const components = fs.readdirSync('./src')
   .filter(f => /\.ractive\.html$/.test(f))
