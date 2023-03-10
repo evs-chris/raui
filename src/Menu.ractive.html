@@ -4,11 +4,7 @@
   </div></div>
 </div>
 
-<template id="items">
-  {{#if .shrink}}
-    <div class-rmenu-popout-close on-click="@.popAllIn(@keypath), false">&#x274c;  Close</div>
-  {{/if}}
-  {{#each .items}}
+<template id="item-outer">
   {{#if .condition === undefined || (typeof .condition === 'boolean' && .condition) || (typeof .condition === 'string' && ~/[.condition]) || (typeof .condition === 'function' && .condition())}}
     <div
       class-rmenu-entry
@@ -29,7 +25,17 @@
       {{#if !.type || .type === 'item'}}{{@._itemRendered(@context)}}{{/if}}
     </div>
   {{/if}}
-  {{/each}}
+</template>
+
+<template id="items">
+  {{#if .shrink}}
+    <div class-rmenu-popout-close on-click="@.popAllIn(@keypath), false">&#x274c; Close</div>
+  {{/if}}
+  {{#if typeof .items === 'string'}}
+    {{#each ~/[.items]}}{{>item-outer}}{{/each}}
+  {{else}}
+    {{#each .items}}{{>item-outer}}{{/each}}
+  {{/if}}
 </template>
 
 <template id="arrow">
@@ -46,12 +52,13 @@
       class-rmenu-title
       {{#unless .disabled || (.disabledRef && ~/[.disabledRef])}}{{#if typeof .action === 'function'}}on-click=".action(), @._actioned()"
       {{elseif .actionPartial}}{{yield .actionPartial}} on-click="@._actioned()"
-      {{elseif .items.length}}on-click=".popout && @.popSiblingsIn(@context), @context.toggle('.open'), false"{{/if}}{{/unless}}
+      {{elseif @.itemsFor(.).length}}on-click=".popout && @.popSiblingsIn(@context), @context.toggle('.open'), false"
+      {{else}}on-click="@._actioned()"{{/if}}{{/unless}}
     >
       {{#if .title}}{{{.title}}}{{elseif .titlePartial}}{{yield .titlePartial}}{{/if}}
     </div>
     {{#if .right}}<div class-menu-right>{{{.right}}}</div>{{elseif .rightPartial}}<div class-rmenu-right>{{yield .rightPartial}}</div>{{/if}}
-    {{#if .items && .items.length && @.visibleItems(.items)}}
+    {{#if @.visibleItemsFor(.)}}
     <div class-rmenu-expand on-click=".popout && @.popSiblingsIn(@context), @context.toggle('.open'), false" expand-in-out={ axis: 'x' }>{{>arrow}}</div>
     {{/if}}
   </div>
@@ -59,7 +66,7 @@
 </template>
 
 <template id="children">
-  {{#if .items.length && (.open || .type === 'section')}}
+  {{#if @.itemsFor(.).length && (.open || .type === 'section')}}
   <div class-rmenu-items {{#if !.popout}}expand-in-out{{else}}pop-in-out{{/if}} class-rmenu-shrink=".shrink">
     {{#if .popout}}<div class-rmenu-popitems>{{>items}}</div>{{else}}{{>items}}{{/if}}
   </div>
@@ -112,6 +119,10 @@
       }
 
       return new Handle(this, null, item);
+    }
+
+    visibleItemsFor(item) {
+      return this.visibleItems(this.itemsFor(item));
     }
 
     visibleItems(items) {
@@ -197,6 +208,12 @@
           if (this.get(`${path}.items.${i}.active`) === true || (typeof item.items[i].active === 'function' && item.items[i].active()) || (this.get(`${path}.items.${i}.activeRef`) && this.get(item.items[i].activeRef)) || this.childActive(`${path}.items.${i}`)) return true;
         }
       }
+    }
+
+    itemsFor(child) {
+      if (child && Array.isArray(child.items)) return child.items;
+      else if (child && typeof child.items === 'string') return this.get(child.items) || [];
+      return [];
     }
   }
 
@@ -351,6 +368,10 @@
           } else if (a.f === 0) {
             res.disabled = true;
           }
+        } else if ((el.e === 'item' || el.e === 'section') && a.n === 'items') {
+          const cnd = `_items${attrs.length}`;
+          res.items = cnd;
+          attrs.push({ t: 13, n: cnd, f: a.f });
         } else {
           as.push(a);
         }
