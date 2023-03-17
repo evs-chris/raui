@@ -792,7 +792,10 @@ System.register(['ractive', './chunk7.js', './chunk8.js', './chunk2.js', './chun
           { n: 'gridMax', x: { r: '~/gridMax' } },
           { n: 'table', x: { r: '@this' } } ];
 
+        var sortKey = '[_0._setSort(_1,_2)]';
+
         var headerCols = columns.filter(function (c) { return c.hidden !== true; }).map(function (c, cidx) {
+          if (c.index == null) { c.index = cidx; }
           c.attrsHP = c.attrs.filter(function (a) { return a.n !== 'title'; });
           var div = { t: 7, e: 'div', f: [{ t: 7, e: 'div', f: [{ t: 16, r: ("~/columns." + cidx + ".label"), c: { r: '.' }, z: z }] }], m: [{ t: 13, n: 'title', f: c.title || c.label }, { t: 16, r: ("~/columns." + cidx + ".attrsHP"), z: z }] };
           if (c.type) { div.m.push({ t: 13, n: ("class-rtable-" + (c.type) + "-column") }); }
