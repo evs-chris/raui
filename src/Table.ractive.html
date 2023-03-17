@@ -840,7 +840,10 @@
       { n: 'table', x: { r: '@this' } },
     ];
 
+    const sortKey = '[_0._setSort(_1,_2)]';
+
     const headerCols = columns.filter(c => c.hidden !== true).map((c, cidx) => {
+      if (c.index == null) c.index = cidx;
       c.attrsHP = c.attrs.filter(a => a.n !== 'title');
       const div = { t: 7, e: 'div', f: [{ t: 7, e: 'div', f: [{ t: 16, r: `~/columns.${cidx}.label`, c: { r: '.' }, z }] }], m: [{ t: 13, n: 'title', f: c.title || c.label }, { t: 16, r: `~/columns.${cidx}.attrsHP`, z }] };
       if (c.type) div.m.push({ t: 13, n: `class-rtable-${c.type}-column` });
@@ -1114,8 +1117,6 @@
     this._init.sets['meta.topAttrs'] = topEl && topEl.m;
     this._init.sets['meta.bottom'] = bottomEl && bottomEl.f && bottomEl.f.length && bottomEl.f;
     this._init.sets['meta.bottomAttrs'] = bottomEl && bottomEl.m;
-
-    const sortKey = '[_0._setSort(_1,_2)]';
 
     const [headerCols, rowCols, z] = makeRows(columns);
 
