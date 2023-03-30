@@ -67,9 +67,9 @@
   <div class-rwindow-content as-tracked=`content` class-rwindow-pad="~/control.pad" class-rwindow-flex="~/control.flex" {{#if ~/control.autosize}}style-overflow=visible{{/if}}>{{>contents}}</div>
   {{#if ~/buttons}}
     <div class-rwindow-buttons class-no-buttons="!~/visibleButtons">
-      <div class-rwindow-left-buttons>{{#each ~/leftButtons}}{{#if .partial}}{{>.partial}}{{else}}<button as-button on-click=".action.call(@)" {{#if .class}}class="{{.class}}"{{/if}}>{{.label}}</button>{{/if}}{{/each}}</div>
-      <div class-rwindow-center-buttons>{{#each ~/centerButtons}}{{#if .partial}}{{>.partial}}{{else}}<button as-button on-click=".action.call(@)" {{#if .class}}class="{{.class}}"{{/if}}>{{.label}}</button>{{/if}}{{/each}}</div>
-      <div class-rwindow-right-buttons>{{#each ~/rightButtons}}{{#if .partial}}{{>.partial}}{{else}}<button as-button on-click=".action.call(@)" {{#if .class}}class="{{.class}}"{{/if}}>{{.label}}</button>{{/if}}{{/each}}</div>
+      <div class-rwindow-left-buttons>{{#each ~/leftButtons}}{{#if .partial}}{{>.partial}}{{else}}<button as-button on-click=".action.call(@)" {{#if .class}}class="{{.class}}"{{/if}} {{#if .title}}title="{{.title}}"{{/if}}>{{.label}}</button>{{/if}}{{/each}}</div>
+      <div class-rwindow-center-buttons>{{#each ~/centerButtons}}{{#if .partial}}{{>.partial}}{{else}}<button as-button on-click=".action.call(@)" {{#if .class}}class="{{.class}}"{{/if}} {{#if .title}}title="{{.title}}"{{/if}}>{{.label}}</button>{{/if}}{{/each}}</div>
+      <div class-rwindow-right-buttons>{{#each ~/rightButtons}}{{#if .partial}}{{>.partial}}{{else}}<button as-button on-click=".action.call(@)" {{#if .class}}class="{{.class}}"{{/if}} {{#if .title}}title="{{.title}}"{{/if}}>{{.label}}</button>{{/if}}{{/each}}</div>
     </div>
   {{/if}}
   <div class-rwindow-pane-bottom>
