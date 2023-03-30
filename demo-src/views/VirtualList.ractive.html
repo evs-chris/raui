@@ -8,6 +8,8 @@
 
     The content of a virtual list will be used as the partial for each rendered item.
 
+    * `header` - a template to render above the list that is rendered with the context of the current top element. When combined with some extra templating in the item, this can be used to simulate sticky headers within the list.
+    * `item` - the item template, which if supplied, will be used rather than the content of the component template. Attributes from the item element are rendered in the individual list item wrapper elements in the context of their item.
     * `else` - a template to render if there are no items to render in the list.
     * `index` is provided as an alias to the content partial, and is set to the current index of the virtual item in the base list.
 

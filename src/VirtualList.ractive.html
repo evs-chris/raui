@@ -1,9 +1,12 @@
+{{#if header}}
+  {{yield 'header' with ~/items[~/virtual.target]}}
+{{/if}}
 <div class=rvlist {{yield extra-attributes}} as-scrolled as-sized="{ offsetHeight: 'virtual.height', offsetWidth: 'virtual.width' }" as-scroller>
   <div class=rvlwindow style="padding-top: {{~/virtual.padTop + ~/virtual.adjust}}px; padding-bottom: {{~/virtual.padBottom}}px;">
     <div class="rvlblock">
       {{#if ~/virtual.items.length}}
       {{#each ~/virtual.items}}{{#with ~/items[~/virtual.offsetIndex + @index]}}
-        <div class="rvlitem rvlitem-{{~/virtual.offsetIndex + @index}}" data-index="{{~/virtual.offsetIndex + @index}}">
+      <div class="rvlitem rvlitem-{{~/virtual.offsetIndex + @index}}" data-index="{{~/virtual.offsetIndex + @index}}" {{yield 'item-attrs' with ., ~/virtual.offsetIndex + @index as index}}>
           {{yield 'item' with ., ~/virtual.offsetIndex + @index as index}}
         </div>
       {{/with}}{{/each}}
@@ -162,14 +165,27 @@
         const init = {};
 
         const alt = tpl.find(t => typeof t === 'object' && 'e' in t && t.e === 'else');
-        init.item = cmp.template.f = tpl.filter(t => t !== alt);
+        if (alt) init.else = alt.f;
 
-        if (alt) init.else = cmp.template.p.else = alt.f;
+        const header = init.header = tpl.find(t => typeof t === 'object' && 'e' in t && t.e === 'header');
+        if (header) init.header = header.f;
+
+        const item = init.item = tpl.find(t => typeof t === 'object' && 'e' in t && t.e === 'item');
+        cmp.template.f = tpl.filter(t => t !== alt && t !== item && t !== header);
+
+        if (!item) {
+          init.item = cmp.template.f;
+          init['item-attrs'] = [];
+        } else {
+          init['item-attrs'] = init.item.m || [];
+          init.item = init.item.f;
+        }
 
         this._init = init;
       },
       config() {
         if (this._init) Object.assign(this.partials, this._init);
+        if (this.partials.header) this.set('header', true);
       },
       render() {
         this.scroller = this.find('.rvlist');
