@@ -1,0 +1,90 @@
+<tabs flat pad class-alt fill height=dynamic>
+  <tab title=Intro><marked>
+    This is a virtual scroll list that can scroll through thousands of items by only rendering a few viewports worth of elements at a time and adjusting the estimated space above and below the viewport to keep the scrollbar relatively stable. Items should be full width, but height can be variable.
+
+    The area outside the viewport is assumed to have items of a uniform height, so the closer to average size the size is, the more accurate the scrollbar. The list will adjust to keep items from jumping around as they enter and leave the viewport, but once an adjustment threshhold is reached, the adjustment will be zeroed out and the scrollTop will be adjusted to match. This will result in the scroll handle jumping a bit occasionally in highly varied content.
+
+    ### Children
+
+    The content of a virtual list will be used as the partial for each rendered item.
+
+    * `else` - a template to render if there are no items to render in the list.
+    * `index` is provided as an alias to the content partial, and is set to the current index of the virtual item in the base list.
+
+    ### Attributes
+
+    * `items` - the list of items to render
+    * `size` - the minimum height in px of items that will be rendered. This is used to determine how many items need to be rendered to keep the viewport full.
+
+    ### API
+
+    There isn't really an appreciable API for now.
+  </marked></tab>
+  <tab title=Example>
+    <div>
+      <label as-field>
+        Count<input type=number lazy value="{{.count}}" />
+        Random Height Min<input type=number lazy value="{{.minHeight}}" />
+        Random Height Max<input type=number lazy value="{{.maxHeight}}" />
+      </label>
+    </div>
+    <marked>
+      ### Template:
+      ```handlebars
+      <virtual-list items="{{list}}" size=16>
+        <div class-odd="index % 2 == 0" style-height="{{.height}}px">{{name}} - {{index}}</div>
+        <else>Nothing to see here.</else>
+      </virtual-list>
+      ```
+      ### Result:  
+    </marked>
+    <virtual-list items="{{list}}" size=16>
+      <div class-odd="index % 2 == 0" style-height="{{.height}}px">{{name}} - {{index}}</div>
+      <else>Nothing to see here.</else>
+    </virtual-list>
+  </tab>
+</tabs>
+
+<script>
+  import { Window } from 'cmp/Window';
+  import VirtualList from 'cmp/VirtualList';
+
+  export default Window.extend({
+    template: $TEMPLATE, css: $CSS,
+    cssId: 'demo-virtual-list',
+    use: [VirtualList()],
+    data() {
+      return { count: 1000, minHeight: 16, maxHeight: 48, minHeight: 16 };
+    },
+    options: {
+      title: 'Component :: Virtual List',
+      resizable: true, flex: true,
+      width: '48em', height: '30em'
+    },
+    observe: {
+      'count minHeight maxHeight'() {
+        const count = Math.max(this.get('count'), 0);
+        const min = Math.max(Math.min(this.get('minHeight'), 200), 16);
+        const max = Math.min(Math.max(this.get('maxHeight'), min), 200);
+        if (count !== this.get('count') || min !== this.get('minHeight') || max !== this.get('maxHeight')) {
+          setTimeout(() => {
+            this.set({
+              count, minHeight: min, maxHeight: max,
+            });
+          });
+          return;
+        }
+        const list = [];
+        for (let i = 0; i < count; i++) list.push({ name: `Item ${i}`, height: Math.floor(Math.random() * (max - min)) + min });
+        this.set('list', list);
+      }
+    }
+  });
+</script>
+
+<style>
+  .odd {
+    background-color: #eee;
+  }
+</style>
+

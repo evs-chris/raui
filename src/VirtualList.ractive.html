@@ -1,0 +1,202 @@
+<div class=rvlist {{yield extra-attributes}} as-scrolled as-sized="{ offsetHeight: 'virtual.height', offsetWidth: 'virtual.width' }" as-scroller>
+  <div class=rvlwindow style="padding-top: {{~/virtual.padTop + ~/virtual.adjust}}px; padding-bottom: {{~/virtual.padBottom}}px;">
+    <div class="rvlblock">
+      {{#if ~/virtual.items.length}}
+      {{#each ~/virtual.items}}{{#with ~/items[~/virtual.offsetIndex + @index]}}
+        <div class="rvlitem rvlitem-{{~/virtual.offsetIndex + @index}}" data-index="{{~/virtual.offsetIndex + @index}}">
+          {{yield 'item' with ., ~/virtual.offsetIndex + @index as index}}
+        </div>
+      {{/with}}{{/each}}
+      {{else}}
+        {{yield 'else'}}
+      {{/if}}
+    </div>
+  </div>
+</div>
+
+<script>
+  import Ractive from 'ractive';
+  import scrolled from './scrolled';
+  import { sized } from './watch-size';
+  import globalRegister from './globalRegister';
+
+  export class VirtualList extends Ractive {
+    constructor(opts) { super(opts); }
+    adjust() {
+      if (!this.rendered) return;
+      const items = this.get('items') || [];
+      const size = this.get('size') || 16;
+      const top = this.get('virtual.top') || 0;
+      const vheight = this.get('virtual.height') || 100;
+
+      if (!items.length) {
+        this.set({
+          'virtual.padTop': 0,
+          'virtual.padBottom': 0,
+          'virtual.adjust': 0,
+          'virtual.items': [],
+        });
+        return;
+      }
+
+      let targetEl = this.findAll('.rvlitem').find(e => top <= e.offsetTop + e.offsetHeight && top >= e.offsetTop);
+
+      let idx, targetTop;
+      if (targetEl) {
+        idx = +targetEl.getAttribute('data-index');
+        targetTop = targetEl.offsetTop;
+      } else {
+        idx = idx = Math.min(Math.max(Math.floor(top / size), 0), items.length - 1);
+      }
+      if (!~idx) idx = Math.min(Math.max(Math.floor(top / size), 0), items.length - 1);
+
+      const count = Math.ceil(vheight / size);
+
+      if (idx === this.get('virtual.target') && count === this.get('virtual.count')) return;
+
+      let lidx = idx - count;
+      let uidx = idx + 2 * count;
+
+      // make sure there are three pages available
+      if (lidx < 0) {
+        uidx += Math.abs(lidx);
+        lidx = 0;
+      }
+      if (uidx > items.length) {
+        lidx -= uidx - items.length - 1;
+        uidx = items.length - 1
+      }
+      if (uidx > items.length - 5) {
+        uidx = items.length;
+        lidx = uidx - 3 * count;
+      }
+      if (lidx < 0) lidx = 0;
+
+      const next = items.slice(lidx, uidx);
+
+      this.set({
+        'virtual.count': count,
+        'virtual.size': size,
+        'virtual.items': next,
+        'virtual.offsetIndex': lidx,
+        'virtual.adjust': 0,
+        'virtual.target': idx,
+      });
+
+      const above = lidx * size;
+      const below = uidx === items.length ? 0 : (items.length - uidx - 1) * size;
+
+      const refEl = this.find(`.rvlitem-${idx}`);
+
+      this.set({
+        'virtual.padTop': above,
+        'virtual.padBottom': below,
+      });
+      let adjust = ~targetTop ? targetTop - refEl.offsetTop : size * idx - refEl.offsetTop;
+      this.set('virtual.adjust', adjust);
+
+      if (Math.abs(adjust) > 2 * count * size || above + adjust < 0 || above === 0 && adjust < 0 || below === 0 && adjust > 0) {
+        this.set('virtual.adjust', 0);
+        this.scroller.scrollTop -= adjust;
+      }
+    }
+  }
+  Ractive.extendWith(VirtualList, {
+    template: $TEMPLATE,
+    css: $CSS,
+    cssId: 'rvlist',
+    noCssTransform: true,
+    attributes: ['items', 'size'],
+    data() {
+      return {
+        virtual: {
+          offsetIndex: 0,
+          items: [],
+          top: 0,
+          adjust: 0,
+          count: 0,
+          padTop: 0,
+          padBottom: 0,
+        },
+      };
+    },
+    decorators: {
+      sized,
+      scroller(node) {
+        const ctx = Ractive.getContext(node);
+        const handler = ev => {
+          if (ev.target !== node) return;
+          ctx.set({
+            '~/virtual.top': node.scrollTop,
+            '~/virtual.bottom': node.scrollBottom,
+          });
+        };
+        node.addEventListener('scroll', handler, { passive: true });
+        return {
+          teardown() {
+            node.removeEventListener('scroll', handler, { passive: true });
+          }
+        }
+      },
+    },
+    use: [scrolled()],
+    observe: {
+      'items.length virtual.height virtual.top'() {
+        if (this._throttle) return;
+        this._throttle = setTimeout(() => {
+          requestAnimationFrame(() => {
+            this.adjust();
+            this._throttle = 0;
+          });
+        }, 60);
+      },
+    },
+    on: {
+      construct() {
+        const cmp = this.component;
+        if (!cmp) return;
+
+        const tpl = cmp.template.f || [];
+        const t = cmp.template;
+        cmp.template = { e: t.e, f: t.f, t: t.t, m: t.m, p: t.p || {} };
+        const init = {};
+
+        const alt = tpl.find(t => typeof t === 'object' && 'e' in t && t.e === 'else');
+        init.item = cmp.template.f = tpl.filter(t => t !== alt);
+
+        if (alt) init.else = cmp.template.p.else = alt.f;
+
+        this._init = init;
+      },
+      config() {
+        if (this._init) Object.assign(this.partials, this._init);
+      },
+      render() {
+        this.scroller = this.find('.rvlist');
+        this.window = this.find('.rvlwindow');
+      },
+    },
+  });
+
+  export function plugin(opts = {}) {
+    return function({ instance }) {
+      instance.components[opts.name || 'virtual-list'] = VirtualList;
+    };
+  }
+
+  globalRegister('RauiVirtualList', 'components', VirtualList);
+
+  export default plugin;
+</script>
+
+<style>
+  .rvlist {
+    display: block;
+    min-height: 16px;
+    overflow: auto;
+  }
+
+  .rvlitem {
+    display: block;
+  }
+</style>

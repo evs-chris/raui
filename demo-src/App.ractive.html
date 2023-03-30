@@ -23,6 +23,7 @@
         <item ref=Table>Table</item>
         <item ref=Tabs>Tabs</item>
         <item ref=Toggle>Toggle</item>
+        <item ref=VirtualList>Virtual List</item>
         <item ref=Window>Window</item>
       </item>
       <item open><h3>Decorators</h3>
@@ -95,7 +96,7 @@
 
         host.set('userMax', true);
 
-        const builtins = ['Hello', 'AceEditor', 'AppBar', 'Autocomplete', 'Button', 'Card', 'Click', 'CodeMirror', 'Date', 'DateInput', 'DatePicker', 'Expand', 'Fade', 'Form', 'Grid', 'JSONEditor', 'Keys', 'Marked', 'MaskedInput', 'Menu', 'NumericInput', 'Popover', 'ScrollSpy', 'Shell', 'SideBar', 'Split', 'Swipe', 'Table', 'Tabs', 'Toast', 'Toggle', 'Validate', 'Window'];
+        const builtins = ['Hello', 'AceEditor', 'AppBar', 'Autocomplete', 'Button', 'Card', 'Click', 'CodeMirror', 'Date', 'DateInput', 'DatePicker', 'Expand', 'Fade', 'Form', 'Grid', 'JSONEditor', 'Keys', 'Marked', 'MaskedInput', 'Menu', 'NumericInput', 'Popover', 'ScrollSpy', 'Shell', 'SideBar', 'Split', 'Swipe', 'Table', 'Tabs', 'Toast', 'Toggle', 'Validate', 'VirtualList', 'Window'];
 
         menu.on('item', (ctx, handle) => {
           if (~builtins.indexOf(handle.ref)) {
