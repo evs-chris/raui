@@ -28,7 +28,7 @@
     adjust() {
       if (!this.rendered) return;
       const items = this.get('items') || [];
-      const size = this.get('size') || 16;
+      let size = this.get('size');
       const top = this.get('virtual.top') || 0;
       const vheight = this.get('virtual.height') || 100;
 
@@ -40,6 +40,16 @@
           'virtual.items': [],
         });
         return;
+      }
+
+      if (!size) {
+        this.set({
+          'virtual.items': items.slice(0, 10),
+          'virtual.offsetIndex': 0,
+        });
+        const els = this.findAll('.rvlitem'); 
+        size = Math.max(Math.floor(els.reduce((a, c) => a + c.offsetHeight, 0) / els.length), 16);
+        this.set('size', size);
       }
 
       let targetEl = this.findAll('.rvlitem').find(e => top <= e.offsetTop + e.offsetHeight && top >= e.offsetTop);
@@ -102,6 +112,11 @@
         this.set('virtual.adjust', 0);
         this.scroller.scrollTop -= adjust;
       }
+    }
+
+    estimateSize() {
+      this.set('size', undefined);
+      requestAnimationFrame(() => this.adjust());
     }
   }
   Ractive.extendWith(VirtualList, {

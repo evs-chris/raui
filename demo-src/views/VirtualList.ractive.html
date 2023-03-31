@@ -16,31 +16,38 @@
     ### Attributes
 
     * `items` - the list of items to render
-    * `size` - the minimum height in px of items that will be rendered. This is used to determine how many items need to be rendered to keep the viewport full.
+    * `size` - the minimum height in px of items that will be rendered. This is used to determine how many items need to be rendered to keep the viewport full. If size is not provided it will be calcuated and cached.
 
     ### API
 
-    There isn't really an appreciable API for now.
+    * `estimateSize()` - renders a few items and uses the average of their size to provide the minimum target size for unrendered items.
   </marked></tab>
   <tab title=Example>
     <div>
       <label as-field>
         Count<input type=number lazy value="{{.count}}" />
+      </label>
+      <label as-field>
         Random Height Min<input type=number lazy value="{{.minHeight}}" />
+      </label>
+      <label as-field>
         Random Height Max<input type=number lazy value="{{.maxHeight}}" />
+      </label>
+      <label as-field>
+        Size<input type=number disabled value="{{.size}}" />
       </label>
     </div>
     <marked>
       ### Template:
       ```handlebars
-      <virtual-list items="{{list}}" size=16>
+      <virtual-list items="{{list}}">
         <div class-odd="index % 2 == 0" style-height="{{.height}}px">{{name}} - {{index}}</div>
         <else>Nothing to see here.</else>
       </virtual-list>
       ```
       ### Result:  
     </marked>
-    <virtual-list items="{{list}}" size=16>
+    <virtual-list items="{{list}}" bind-size>
       <div class-odd="index % 2 == 0" style-height="{{.height}}px">{{name}} - {{index}}</div>
       <else>Nothing to see here.</else>
     </virtual-list>
@@ -79,6 +86,8 @@
         const list = [];
         for (let i = 0; i < count; i++) list.push({ name: `Item ${i}`, height: Math.floor(Math.random() * (max - min)) + min });
         this.set('list', list);
+        const cmp = this.findComponent('virtual-list');
+        if (cmp) cmp.estimateSize();
       }
     }
   });
