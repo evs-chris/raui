@@ -54,7 +54,7 @@
 
       let targetEl = this.findAll('.rvlitem').find(e => top <= e.offsetTop + e.offsetHeight && top >= e.offsetTop);
 
-      let idx, targetTop;
+      let idx, targetTop = -1;
       if (targetEl) {
         idx = +targetEl.getAttribute('data-index');
         targetTop = targetEl.offsetTop;
@@ -65,7 +65,7 @@
 
       const count = Math.ceil(vheight / size);
 
-      if (idx === this.get('virtual.target') && count === this.get('virtual.count')) return;
+      if (idx === this.get('virtual.target') && count === this.get('virtual.count') && items.length === this.get('virtual.length')) return;
 
       let lidx = idx - count;
       let uidx = idx + 2 * count;
@@ -76,7 +76,7 @@
         lidx = 0;
       }
       if (uidx > items.length) {
-        lidx -= uidx - items.length - 1;
+        lidx -= uidx - (items.length - 1);
         uidx = items.length - 1
       }
       if (uidx > items.length - 5) {
@@ -84,6 +84,7 @@
         lidx = uidx - 3 * count;
       }
       if (lidx < 0) lidx = 0;
+      if (lidx > idx) lidx = idx;
 
       const next = items.slice(lidx, uidx);
 
@@ -94,6 +95,7 @@
         'virtual.offsetIndex': lidx,
         'virtual.adjust': 0,
         'virtual.target': idx,
+        'virtual.length': items.length,
       });
 
       const above = lidx * size;
