@@ -43,6 +43,7 @@
         * `active: boolean | Handle -> boolean` - whether or not the item is currently active. This lets your application notify the menu when something changes states without involving the menu.
         * `open` - if preset, the item will start in an open state if it has children
         * `disabled: boolean = true` - whether or not the menu item should be disabled
+        * `marquee: boolean` - if true, will detect long titles and animate them as a marquee on hover
       * #### Children
         * `title` - any children are collected into a partial and yielded in the title section of the item
         * `left` - any children are collected into a partial and yielded in the left section of the item
@@ -106,6 +107,7 @@
       </label>
       <label as-field><input type="checkbox" checked="{{.disabled}}" /> Disable the Dinosaur?</label>
       <label as-field><input type=checkbox checked="{{.alt}}" /> Alternate style?</label>
+      <label as-field><input type=checkbox checked="{{.marquee}}" /> Marquee the second long item?</label>
     </div>
     <marked>
       ### Template:
@@ -138,6 +140,8 @@
             <left>L</left>
             <right>R</right>
           </item>
+          <item title="I am the very model of a modern major general. I've information vegetable, animal, and mineral" marquee />
+          <item title="I know the kings of England and all the fights historical." marquee="{{~/marquee}}" />
           <item popout>
             <title>With Children</title>
             <right>#</right>
@@ -181,6 +185,8 @@
           <left>L</left>
           <right>R</right>
         </item>
+        <item title="I am the very model of a modern major general. I've information vegetable, animal, and mineral." marquee />
+        <item title="I know the kings of England and all the fights historical." marquee="{{~/marquee}}" />
         <item popout>
           <title>With Children</title>
           <right>#</right>

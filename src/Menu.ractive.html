@@ -20,6 +20,10 @@
       {{#if .refPartial}}{{>.refPartial}}{{elseif typeof .ref === 'string'}}as-ref=".ref"{{/if}}
       {{#if .extra}}{{yield .extra}}{{/if}}
       {{#if .local}}{{>.local}}{{/if}}
+      {{#if (.marquee || ~/[.marqueeRef]) && .title && .title.length > 34}}
+        class-marquee
+        style-animation-duration="{{Math.floor((.title.length - 30) / 7) + 5}}s"
+      {{/if}}
     >
       {{>.type || 'item'}}
       {{#if !.type || .type === 'item'}}{{@._itemRendered(@context)}}{{/if}}
@@ -372,6 +376,14 @@
           const cnd = `_items${attrs.length}`;
           res.items = cnd;
           attrs.push({ t: 13, n: cnd, f: a.f });
+        } else if (el.e === 'item' && a.n === 'marquee') {
+          if (a.f && a.f.length === 1 && a.f[0].t === 2) {
+            const cnd = `_cnd${attrs.length}`;
+            res.marqueeRef = cnd;
+            attrs.push({ t: 13, n: cnd, f: a.f });
+          } else if (a.f === 0) {
+            res.marquee = true;
+          }
         } else {
           as.push(a);
         }
@@ -804,6 +816,36 @@
 
   .rmenu-container-pad {
     padding: 0.3em 0.3em 0.8em 0.3em;
+  }
+
+  @keyframes rmenu-marquee {
+    0% {
+      transform: translateX(0);
+    }
+    10% {
+      transform: translateX(0);
+    }
+    50% {
+      transform: translateX(calc(-100% + 18em));
+    }
+    60% {
+      transform: translateX(calc(-100% + 18em));
+    }
+    100% {
+      transform: translateX(0);
+    }
+  }
+  .rmenu-entry.marquee > .rmenu-main {
+    animation-duration: inherit;
+  }
+  .rmenu-entry.marquee > .rmenu-main > .rmenu-title {
+    transition: transform 2s linear;
+    transform: translateX(0);
+  }
+  .rmenu-entry.marquee > .rmenu-main > .rmenu-title:hover {
+    overflow: initial;
+    animation: rmenu-marquee 5s linear infinite;
+    animation-duration: inherit;
   }
   `;
   // TODO: other themes
