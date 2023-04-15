@@ -475,6 +475,92 @@
         });
       });
     }
+
+    placeAll() {
+      if (!(this.fragment && this.fragment.rendered)) return;
+
+      const winids = Object.keys(this.get('windows') || {}).filter(k => this.get(`windows.${Ractive.escapeKey(k)}.show`));
+
+      const host = this.find('.rwhost');
+      return new Promise(ok => {
+        requestAnimationFrame(() => {
+          const maxw = host.clientWidth;
+          const maxh = host.clientHeight;
+
+          let winid;
+
+          while (winid = winids[0]) {
+            const wnd = this.getWindow(winid);
+            const local = wnd.get('control');
+            if (local.width === undefined && !local.dialog) wnd.size('auto');
+            let left = 0;
+            let top = 0;
+
+            let lw = local.width;
+            let lh = local.height;
+
+            if (local.dialog && (!local.size || local.size === 'auto' || !local.width || !local.height)) {
+              lw = sizeInEm(wnd.pane.clientWidth);
+              lh = sizeInEm(wnd.pane.clientHeight);
+            }
+
+            // if it's blocking, center on blocked
+            const blocking = local.blocking;
+            if (blocking) {
+              const key = `windows.${escape(blocking)}`;
+              const blocked = this.get(key);
+              const max = local.max || (!local.dialog && (this.get('max') || this.get('userMax')));
+              const bmax = blocked.max || this.get('userMax') || this.get('max');
+              const bw = bmax ? this.host.clientWidth : sizeInPx(`${blocked.width}em`);
+              const bh = bmax ? this.host.clientHeight : sizeInPx(`${blocked.height}em`);
+              const bl = bmax ? 0 : blocked.left;
+              const bt = bmax ? 0 : blocked.top;
+
+              left = (max ? maxw : bw / 2) + (max ? 0 : bl) - (sizeInPx(lw) / 2);
+              top = (max ? maxh : bh / 2) + (max ? 0 : bt) - (sizeInPx(lh) / 2);
+            }
+
+            // place in 3x3 grid
+            else {
+              const place = this.get('placement');
+              let pos;
+              if (typeof place === 'function') {
+                try {
+                  pos = place(this, host, local, winids);
+                } catch (e) {
+                  pos = placeGrid(this, host, local, winids);
+                }
+              } else if (typeof place === 'string') {
+                switch (place) {
+                  case 'smart':
+                    pos = placeSmart(this, host, local, winids);
+                    break;
+                  default:
+                    pos = placeGrid(this, host, local, winids);
+                    break;
+                }
+              } else {
+                pos = placeGrid(this, host, local, winids);
+              }
+              top = pos.top;
+              left = pos.left;
+            }
+
+            if (isNaN(left) || left < 0) left = 10;
+            if (isNaN(top) || top < 0) top = 10;
+
+            wnd.set({
+              'control.top': top,
+              'control.left': left
+            });
+
+            winids.shift();
+          }
+
+          ok();
+        });
+      });
+    }
   }
 
   function placeGrid(host, target, node) {
@@ -521,7 +607,7 @@
     return { top, left };
   }
 
-  function placeSmart(host, target, node) {
+  function placeSmart(host, target, node, ignore) {
     const maxw = target.clientWidth - 10;
     const maxh = target.clientHeight - 10;
     let i, j;
@@ -539,6 +625,7 @@
     let win, t, l, w, h, wins = 0;
     const windows = host.get('windows');
     for (const k in windows) {
+      if (ignore && ~ignore.indexOf(k)) continue;
       wins++;
       win = windows[k];
       t = Math.floor(win.top / cell); l = Math.floor(win.left / cell); h = Math.ceil(sizeInPx(win.height) / cell); w = Math.ceil(sizeInPx(win.width) / cell);

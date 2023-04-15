@@ -56,7 +56,10 @@
   <center class-app-center style-overflow="{{win.max ? 'hidden' : 'auto'}}">
     {{#unless win.max}}
       <app-bar>
-        <left><div class-hamburger on-click="@.toggle('menu.hidden')">&#9776;</div></left>
+        <left>
+          <div class-hamburger title="Toggle menu" on-click="@.toggle('menu.hidden')">&#9776;</div>
+          <div class-hamburger title="Auto arrange windows" style="margin-left: 1em;" on-click="@.host.placeAll()">&#9638;</div>
+        </left>
       </app-bar>
     {{/unless}}
     <host bind-windows placement=smart>
