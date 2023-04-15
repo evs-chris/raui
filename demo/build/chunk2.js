@@ -838,6 +838,94 @@ System.register(['ractive'], function (exports, module) {
           });
         };
 
+        Host.prototype.placeAll = function placeAll () {
+          var this$1 = this;
+
+          if (!(this.fragment && this.fragment.rendered)) { return; }
+
+          var winids = Object.keys(this.get('windows') || {}).filter(function (k) { return this$1.get(("windows." + (Ractive$2.escapeKey(k)) + ".show")); });
+
+          var host = this.find('.rwhost');
+          return new Promise(function (ok) {
+            requestAnimationFrame(function () {
+              var maxw = host.clientWidth;
+              var maxh = host.clientHeight;
+
+              var winid;
+
+              while (winid = winids[0]) {
+                var wnd = this$1.getWindow(winid);
+                var local = wnd.get('control');
+                if (local.width === undefined && !local.dialog) { wnd.size('auto'); }
+                var left = 0;
+                var top = 0;
+
+                var lw = local.width;
+                var lh = local.height;
+
+                if (local.dialog && (!local.size || local.size === 'auto' || !local.width || !local.height)) {
+                  lw = sizeInEm(wnd.pane.clientWidth);
+                  lh = sizeInEm(wnd.pane.clientHeight);
+                }
+
+                // if it's blocking, center on blocked
+                var blocking = local.blocking;
+                if (blocking) {
+                  var key = "windows." + (escape(blocking));
+                  var blocked = this$1.get(key);
+                  var max = local.max || (!local.dialog && (this$1.get('max') || this$1.get('userMax')));
+                  var bmax = blocked.max || this$1.get('userMax') || this$1.get('max');
+                  var bw = bmax ? this$1.host.clientWidth : sizeInPx(((blocked.width) + "em"));
+                  var bh = bmax ? this$1.host.clientHeight : sizeInPx(((blocked.height) + "em"));
+                  var bl = bmax ? 0 : blocked.left;
+                  var bt = bmax ? 0 : blocked.top;
+
+                  left = (max ? maxw : bw / 2) + (max ? 0 : bl) - (sizeInPx(lw) / 2);
+                  top = (max ? maxh : bh / 2) + (max ? 0 : bt) - (sizeInPx(lh) / 2);
+                }
+
+                // place in 3x3 grid
+                else {
+                  var place = this$1.get('placement');
+                  var pos = (void 0);
+                  if (typeof place === 'function') {
+                    try {
+                      pos = place(this$1, host, local, winids);
+                    } catch (e) {
+                      pos = placeGrid(this$1, host, local, winids);
+                    }
+                  } else if (typeof place === 'string') {
+                    switch (place) {
+                      case 'smart':
+                        pos = placeSmart(this$1, host, local, winids);
+                        break;
+                      default:
+                        pos = placeGrid(this$1, host, local, winids);
+                        break;
+                    }
+                  } else {
+                    pos = placeGrid(this$1, host, local, winids);
+                  }
+                  top = pos.top;
+                  left = pos.left;
+                }
+
+                if (isNaN(left) || left < 0) { left = 10; }
+                if (isNaN(top) || top < 0) { top = 10; }
+
+                wnd.set({
+                  'control.top': top,
+                  'control.left': left
+                });
+
+                winids.shift();
+              }
+
+              ok();
+            });
+          });
+        };
+
         Object.defineProperties( Host.prototype, prototypeAccessors );
 
         return Host;
@@ -887,7 +975,7 @@ System.register(['ractive'], function (exports, module) {
         return { top: top, left: left };
       }
 
-      function placeSmart(host, target, node) {
+      function placeSmart(host, target, node, ignore) {
         var maxw = target.clientWidth - 10;
         var maxh = target.clientHeight - 10;
         var i, j;
@@ -905,6 +993,7 @@ System.register(['ractive'], function (exports, module) {
         var win, t, l, w, h, wins = 0;
         var windows = host.get('windows');
         for (var k in windows) {
+          if (ignore && ~ignore.indexOf(k)) { continue; }
           wins++;
           win = windows[k];
           t = Math.floor(win.top / cell); l = Math.floor(win.left / cell); h = Math.ceil(sizeInPx(win.height) / cell); w = Math.ceil(sizeInPx(win.width) / cell);
