@@ -1,5 +1,5 @@
 {{#if header}}
-  {{yield 'header' with ~/items[~/virtual.target]}}
+  {{yield 'header' with ~/items[~/virtual.target], ~/virtual.target as index}}
 {{/if}}
 <div class=rvlist {{yield extra-attributes}} as-scrolled as-sized="{ offsetHeight: 'virtual.height', offsetWidth: 'virtual.width' }" as-scroller>
   <div class=rvlwindow style="padding-top: {{~/virtual.padTop + ~/virtual.adjust}}px; padding-bottom: {{~/virtual.padBottom}}px;">
