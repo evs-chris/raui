@@ -58,9 +58,9 @@
   <div class-rwindow-pane-top as-tracked=`top`>
     {{>title}}
     <div class-rwindow-controls>
-      {{#if !~/control.dialog && ~/control.minimize}}<div class-rwindow-minimize on-click="@.hide()"></div>{{/if}}
-      {{#if !~/control.dialog && ~/control.maximize}}<div class-rwindow-maximize on-click="@.maximize()"></div>{{/if}}
-      {{#if ~/control.close}}<div class-rwindow-close on-click="@.close()"></div>{{/if}}
+      {{#if !~/control.dialog && ~/control.minimize}}<div class-rwindow-minimize title="Minimize window" on-click="@.hide()"></div>{{/if}}
+      {{#if !~/control.dialog && ~/control.maximize}}<div class-rwindow-maximize title="Maximize window" on-click="@.maximize()"></div>{{/if}}
+      {{#if ~/control.close}}<div class-rwindow-close title="Close window" on-click="@.close()"></div>{{/if}}
     </div>
   </div>
   {{/if}}
@@ -79,9 +79,9 @@
 
 <template id="windowControls">
   <div class-rwindow-controls>
-    {{#if !window.dialog && window.minimize}}<div class-rwindow-minimize on-click="host.getWindow(window.id).hide()"></div>{{/if}}
-    {{#if !window.dialog && window.maximize && host.data.userMax}}<div class-rwindow-maximize on-click="host.getWindow(window.id).maximize()"></div>{{/if}}
-    {{#if window.close}}<div class-rwindow-close on-click="host.getWindow(window.id).close()"></div>{{/if}}
+    {{#if !window.dialog && window.minimize}}<div class-rwindow-minimize title="Minimize window" on-click="host.getWindow(window.id).hide()"></div>{{/if}}
+    {{#if !window.dialog && window.maximize && host.data.userMax}}<div class-rwindow-maximize title="Maximize window" on-click="host.getWindow(window.id).maximize()"></div>{{/if}}
+    {{#if window.close}}<div class-rwindow-close title="Close window" on-click="host.getWindow(window.id).close()"></div>{{/if}}
   </div>
 </template>
 
@@ -1591,6 +1591,8 @@
   .rwindow-title {
     overflow: hidden;
     text-overflow: ellipsis;
+    user-select: none;
+    cursor: default;
     padding: 0.5em;
     white-space: nowrap;
     box-sizing: border-box;
