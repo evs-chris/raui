@@ -1,5 +1,7 @@
-{{#if ~/_toast}}{{#with ~/_toast}}
-<div class-rtoast class-rtoast-expanded=".showMore" class-rtoast-bottom=".bottom" class-rtoast-left=".left" class-rtoast-right=".right">
+{{#if ~/_toast}}
+<div class-rtoast-wrapper class-rtoast-bottom="@.toastDefaults.bottom" class-rtoast-left="@.toastDefaults.left" class-rtoast-right="@.toastDefaults.right">
+{{#each ~/_toast, true as shuffle}}
+<div class-rtoast class-rtoast-expanded=".showMore">
   <div toast-in-out class="rtoast-body{{#if .type}} rtoast-{{.type}}{{/if}}{{#if .class}}{{.class}}{{/if}}" {{#if .dismissable !== false}}on-click=".close()"{{/if}}>
     <div class-rtoast-upper>
       <div class-rtoast-message>
@@ -35,20 +37,23 @@
           {{>.more}}
         {{/if}}
       {{else}}
-        <div class-rtoast-string>{{.more}}</div>
+      <div class-rtoast-string>{{.more}}</div>
       {{/if}}
       </div>
     {{/if}}
   </div>
 </div>
-{{/with}}{{/if}}
+{{/each}}
+</div>
+{{/if}}
 
 <script>
   import { Ractive } from 'ractive';
 
   const DEFAULTS = {
     timeout: 6000,
-    top: true
+    top: true,
+    stack: false,
   };
 
   export default function plugin(opts = {}) {
@@ -66,14 +71,15 @@
       Object.defineProperty(proto, 'toastDefaults', {
         value: defaults,
         writable: false,
-        configurable: true
+        configurable: true,
       });
 
       proto.toast = function toast(message, options) {
+        delete options.top, delete options.bottom, delete options.left, delete options.right;
         const opts = Object.assign({ message, instance: this }, defaults, this.toastDefaults, options);
         opts.close = () => closeToast(opts, this);
         opts.expand = () => {
-          if (holder.active !== opts) return;
+          if (!opts.stack && holder.active !== opts) return;
           if (holder.tm) {
             clearTimeout(holder.tm);
             holder.tm = null;
@@ -87,34 +93,46 @@
           }
         };
         toasts.push(opts);
-        if (!active) showToast();
+        if (!active || opts.stack) showToast(opts.stack);
         return new Handle(holder, opts);
       }
 
       function closeToast(which, instance) {
+        const o = Object.assign(opts, instance.toastDefaults);
+
         if (active !== which) {
-          toasts.splice(toasts.indexOf(opts), 1);
-          if (typeof which.onclose === 'function') which.onclose();
+          toasts.splice(toasts.indexOf(which), 1);
+          instance.set('_toast', active ? (o.stack ? [active].concat(toasts) : [active]) : null).then(() => {
+            if (typeof which.onclose === 'function') which.onclose();
+          });
         } else {
           if (holder.tm) {
             clearTimeout(holder.tm);
             holder.tm = null;
           }
 
-          active.instance.set('_toast', null).then(() => {
-            holder.active = active = null;
-            if (typeof which.onclose === 'function') which.onclose();
-            if (toasts.length) showToast();
+          const next = toasts.shift();
+          instance.shift('_toast').then(() => {
+            instance.set('_toast', next ? (o.stack ? [next].concat(toasts) : [next]) : null).then(() => {
+              instance && instance.fire('toasted', null, which);
+              if (typeof which.onclose === 'function') which.onclose();
+              holder.active = active = next;
+              if (active && active.timeout && !active.showMore) {
+                if (holder.tm) clearTimeout(holder.tm);
+                holder.tm = setTimeout(() => {
+                  active.close();
+                  holder.tm = null;
+                }, active.timeout);
+              }
+            });
           });
         }
-
-        instance && instance.fire('toasted', null, which);
       };
 
-      function showToast() {
-        holder.active = active = toasts.shift();
-        active.instance.set('_toast', active).then(() => {
-          if (active.timeout) {
+      function showToast(stack) {
+        if (!active) holder.active = active = toasts.shift();
+        active.instance.set('_toast', stack ? [active].concat(toasts) : [active]).then(() => {
+          if (active.timeout && !active.showMore) {
             if (holder.tm) clearTimeout(holder.tm);
             holder.tm = setTimeout(() => {
               active.close();
@@ -226,63 +244,49 @@
       }
     }
 
-    updateButtons() { this.data === this.holder.active && this.data.instance.update('_toast.buttons'); }
+    updateButtons() { this.data.instance.update('_toast'); }
 
     set(key, value) {
       if (typeof key === 'object') {
         for (const k in key) {
           this.data[k] = key[k];
         }
-        if (this.data === this.holder.active) return this.data.instance.update('_toast');
-        else return Promise.resolve();
+        return this.data.instance.update('_toast');
       } else {
         this.data[key] = value;
-        if (this.data === this.holder.active) return this.data.instance.update(`_toast.${Ractive.escapeKey(key)}`);
-        else return Promise.resolve();
+        return this.data.instance.update(`_toast`);
       }
     }
 
     get message() { return this.data.message; }
-    set message(v) { this.data.message = v; this.data === this.holder.active && this.data.instance.update('_toast.message'); }
+    set message(v) { this.data.message = v; this.data.instance.update('_toast'); }
 
     get more() { return this.data.more; }
-    set more(v) { this.data.more = v; this.data === this.holder.active && this.data.instance.update('_toast.more'); }
+    set more(v) { this.data.more = v; this.data.instance.update('_toast'); }
 
     get showMore() { return this.data.showMore; }
-    set showMore(v) { this.data.showMore = v; this.data === this.holder.active && this.data.instance.update('_toast.showMore'); }
+    set showMore(v) { this.data.showMore = v; this.data.instance.update('_toast'); }
 
     get left() { return this.data.left; }
-    set left(v) { this.data.left = v; this.data.right = false; this.data === this.holder.active && this.data.instance.update('_toast.left') && this.data.instance.update('_toast.right') }
-
-    get right() { return this.data.right; }
-    set right(v) { this.data.right = v; this.data.left = false; this.data === this.holder.active && this.data.instance.update('_toast.right') && this.data.instance.update('_toast.left'); }
-
-    get top() { return !this.data.bottom; }
-    set top(v) { this.data.bottom = !v; this.data === this.holder.active && this.data.instance.update('_toast.bottom'); }
-
-    get bottom() { return this.data.bottom; }
-    set bottom(v) { this.data.bottom = v; this.data === this.holder.active && this.data.instance.update('_toast.bottom'); }
-
-    get center() { return !this.data.left && !this.data.right; }
-    set center(v) { this.data.left = false; this.data.right = false; this.data === this.holder.active && this.data.instance.update('_toast.right'); this.data.instance.update('_toast.left') }
+    set left(v) { this.data.left = v; this.data.right = false; this.data.instance.update('_toast'); }
 
     get context() { return this.data.context; }
-    set context(v) { this.data.context = v; this.data === this.holder.active && this.data.instance.update('_toast.context'); }
+    set context(v) { this.data.context = v; this.data.instance.update('_toast'); }
 
     get type() { return this.data.type; }
-    set type(v) { this.data.type = v; this.data === this.holder.active && this.data.instance.update('_toast.type'); }
+    set type(v) { this.data.type = v; this.data.instance.update('_toast'); }
 
     get class() { return this.data.class; }
-    set class(v) { this.data.class = v; this.data === this.holder.active && this.data.instance.update('_toast.class'); }
+    set class(v) { this.data.class = v; this.data.instance.update('_toast'); }
 
     get dismissable() { return this.data.dismissable; }
-    set dismissable(v) { this.data.dismissable = v; this.data === this.holder.active && this.data.instance.update('_toast.dismissable'); }
+    set dismissable(v) { this.data.dismissable = v; this.data.instance.update('_toast'); }
 
     get closeButton() { return this.data.closeButton; }
-    set closeButton(v) { this.data.closeButton = v; this.data === this.holder.active && this.data.instance.update('_toast.closeButton'); }
+    set closeButton(v) { this.data.closeButton = v; this.data.instance.update('_toast'); }
 
     get buttons() { return this.data.buttons; }
-    set buttons(v) { this.data.buttons = v; this.data === this.holder.active && this.data.instance.update('_toast.buttons'); }
+    set buttons(v) { this.data.buttons = v; this.data.instance.update('_toast'); }
 
     get live() { return this.data === this.holder.active || ~this.holder.toasts.indexOf(this.data); }
     get closed() {
@@ -299,19 +303,27 @@
 <script rel="css">
   const primary = Object.assign({}, data('raui.primary'), data('raui.toast.primary'));
   return `
-  .rtoast {
+  .rtoast-wrapper {
     position: absolute;
     display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    left: 1em;
-    right: 1em;
-    top: 1em;
+    flex-direction: column;
+    flex-wrap: no-wrap;
+    align-items: center;
+    overflow: hidden;
+    top: 0.8em;
+    left: 0.8em;
+    right: 0.8em;
     bottom: auto;
     z-index: 5;
     pointer-events: none;
-    overflow: hidden;
+    overflow: auto;
     max-height: 80%;
+  }
+  .rtoast {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin: 0.2em;
   }
   .rtoast-message {
     flex-grow: 2;
@@ -379,14 +391,14 @@
     top: calc(50% - 0.1em);
   }
   .rtoast-bottom {
-    bottom: 1em;
+    bottom: 0.8em;
     top: auto;
   }
   .rtoast-left {
-    justify-content: flex-start;
+    align-items: flex-start;
   }
   .rtoast-right {
-    justify-content: flex-end;
+    align-items: flex-end;
   }
   .rtoast-body {
     border-radius: 0.2em;
@@ -404,13 +416,19 @@
   .rtoast-upper {
     display: flex;
     flex-shrink: 2;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
     justify-content: space-between;
   }
 
   .rtoast-expand {
-    margin-top: 1em;
+    padding-top: 1em;
+  }
+  
+  .rtoast-expand .rtoast-string {
+    max-height: 15em;
+    overflow: auto;
     border-radius: 0.2em;
+    padding: 0.5em;
     background-color: ${primary.bg || '#fff'};
     color: ${primary.fg || '#222'};
     overflow: auto;

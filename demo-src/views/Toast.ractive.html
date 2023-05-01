@@ -1,4 +1,3 @@
-{{>toast}}
 <tabs flat pad class-alt fill height=dynamic>
   <tab title=Intro><marked>
     Nearly every app needs to give user feedback when some actions occur, and one reasonably good Material-ish way to achieve that is with toast and/or snackbar messages. To that end, raui provides a helper to add toasting to any old instance, though it is particularly suited to things like the shell and window host.
@@ -25,32 +24,52 @@
       * `class: string` - additional class(es) to add to the button
       * `label: string` - the label to display on the button
       * `action: () => void` - a function to call when the button is activated
+    * `stack: boolean` - if true, multiple messages will be displayed at once
 
     ### API
 
-    Message location defaults to the top center of the container. The left or right option can be combined with the opt or bottom option so that you can hit the four corners or top or bottom center.
+    Message location defaults to the top center of the container. The left or right option can be combined with the top or bottom option so that you can hit the four corners or top or bottom center.
 
     * `toastDefaults = { timeout: 6000, top: true }` - plus any other options you passed to the plugin
     * `toast(message, options)` - queue a message to displayed in the toast area in the order queued
       * options are assigned over the defaults above
   </marked></tab>
   <tab title=Example>
+    {{>toast}}
     <label as-field>Message<input value="{{.message}}" /></label>
-    <label as-field><button on-click="@.toast(.message || 'This is a toast', .options)">Toast</button></label>
+    <label as-field>More<textarea>{{.options.more}}</textarea></label>
+    <div>
+      <label as-field class=inline><button on-click="@.set('@global.lastToast', @.toast(.message || 'This is a toast', .options))">Toast</button></label>
+      <em><strong>*</strong></em> The most recently added toast is set to the global variable <em>lastToast</em> if you want to play with the handle interface in the console.
+    </div>
     <h3>Options</h3>
-    <json-editor root="{{.options}}" />
+    <div>
+      <label as-field><input type="checkbox" checked="{{@.toastDefaults.left}}" /> Left?</label>
+      <label as-field><input type="checkbox" checked="{{@.toastDefaults.right}}" /> Right?</label>
+      <label as-field><input type="checkbox" checked="{{@.toastDefaults.top}}" /> Top?</label>
+      <label as-field><input type="checkbox" checked="{{@.toastDefaults.bottom}}" /> Bottom?</label>
+      <label as-field><input type="checkbox" checked="{{.options.dismissable}}" /> Dismissable?</label>
+      <label as-field>Timeout<input type=number value="{{.options.timeout}}" /></label>
+      <label as-field>Type<select value="{{.options.type}}">
+        <option value="{{undefined}}">None</option>
+        <option>success</option>
+        <option>info</option>
+        <option>warn</option>
+        <option>error</option>
+      </select></label>
+      <label as-field><input type=checkbox checked="{{@.toastDefaults.stack}}" /> Stack?</label>
+    </div>
   </tab>
 </tabs>
 
 <script>
   import { Window } from 'cmp/Window';
   import toast from 'cmp/Toast';
-  import json from 'cmp/JSONEditor';
 
   export default Window.extend({
     template: $TEMPLATE, css: $CSS,
     cssId: 'toast-demo',
-    use: [toast(), json()],
+    use: [toast()],
     options: {
       title: 'Helper :: Toast',
       resizable: true, flex: true,
@@ -60,7 +79,11 @@
       return {
         options: {
           timeout: 6000,
-          top: true
+          top: true,
+          bottom: false,
+          left: false,
+          right: false,
+          dismissable: true,
         }
       }
     }
