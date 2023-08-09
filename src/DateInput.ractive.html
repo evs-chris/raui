@@ -39,8 +39,9 @@
     if (ctx.attributes.string) ctx.strObserver = ctx.observe('rdi.val', v => ctx.set(ctx.attributes.string, v ? v.toString() : ''));
 
     const opts = {};
-    ['null', 'lazy', 'mask', 'min', 'max', 'mask', 'no-pick', 'time'].forEach(k => {
+    ['null', 'lazy', 'eager', 'mask', 'min', 'max', 'mask', 'no-pick', 'time'].forEach(k => {
       if (k in ctx.attributes) opts[k.replace(/-/g, '')] = ctx.attributes[k];
+      if (k === 'eager' && k in ctx.attributes) opts.lazy = !ctx.attributes.eager;
     });
     if (ctx.attributes.value) opts.value = 'rdi.val';
     if (ctx.attributes.display) opts.display = 'rdi.display';
@@ -60,7 +61,7 @@
     css: $CSS,
     cssId: 'rdi',
     noCssTransform: true,
-    attributes: ['value', 'null', 'lazy', 'mask', 'string', 'display', 'min', 'max', 'no-pick', 'time']
+    attributes: ['value', 'null', 'lazy', 'eager', 'mask', 'string', 'display', 'min', 'max', 'no-pick', 'time']
   });
 
   export default function plugin(opts = {}) {
