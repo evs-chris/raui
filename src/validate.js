@@ -317,6 +317,7 @@ export class Validator {
         if (k.startsWith(start)) delete this.state[k];
       });
     }
+    this.notify(key, true, recurse);
   }
 
   level(key, recurse = true) {
