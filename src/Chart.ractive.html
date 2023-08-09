@@ -6,54 +6,69 @@
         <div class-rg-content>{{yield with ~/selected as selected, ~/hovered as hovered}}</div>
       </div>
       {{/if}}
-      <svg width="100%" height="100%" viewBox="-55 -55 110 110" on-mouseout="@.unlink('hovered')">
+      <svg width="100%" height="100%" viewBox="-55 -55 110 110" {{#if ~/svgA}}{{yield svgA}}{{/if}}>
         {{#each chonks}}
-          <path d="{{.d}}" class="rg-chonk rg-chonk-{{@index}}" {{#if .click}}on-click=".click(@context, @.get('data.' + .idx), @.readLink('data.' + idx).keypath, .)"{{/if}} on-click="['select', @.get('data.' + .idx), @.readLink('data.' + idx).keypath, ., 'data.' + idx]" style-fill="{{.color}}" on-mouseover="@.link('data.' + idx, 'hovered')">
-            {{#if .label}}<title>{{.label}}</title>{{/if}}
+          <path d="{{.d}}" class="rg-chonk rg-chonk-{{@index}}" {{#if .click}}on-click=".click(@context, .value, .label, .point)"{{/if}} on-click="['select', .value, .label, .point]" style-fill="{{.color}}" on-mouseenter="['hover', .value, .label, .point]">
+          {{#if .label}}<title>{{.label}} {{#unless ~/nolabelvalue}} ({{.value}}){{/unless}}{{#if .sublabel}}{{'\n' + .sublabel}}{{/if}}</title>{{/if}}
           </path>
         {{/each}}
       </svg>
     </div>
   {{elseif .type === 'bar'}}
-    <svg viewBox="0 0 {{graph.horiz ? ~/span : graph.span}} {{graph.horiz ? graph.span : ~/span}}" {{#if graph.horiz}}style-min-height="{{graph.span}}px"{{else}}style-min-width="{{graph.span}}px"{{/if}}>
+    <svg viewBox="0 0 {{graph.horiz ? ~/span : graph.span}} {{graph.horiz ? graph.span : ~/span}}" {{#if graph.horiz}}style-min-height="{{graph.span}}px"{{else}}style-min-width="{{graph.span}}px"{{/if}} {{#if ~/svgA}}{{yield svgA}}{{/if}}>
       {{#if graph.horiz}}
+        {{#each graph.groups: grp}}
+          {{#each .points: idx}}
+            <path d="M {{.y}},{{.x}} {{.y}},{{.x2}}, {{.y2}},{{.x2}} {{.y2}},{{.x}} Z" style-fill="{{.color}}" {{#if .click}}on-click=".click(@context, .value, .label, .point)"{{/if}} on-click="['select', .value, .label, .point]" on-mouseenter="['hover', .value, .label, .point]">
+              <title>{{#if .label}}{{.label}}{{#unless ~/nolabelvalue}} ({{.value}}){{/unless}}{{#if .sublabel}}{{'\n' + .sublabel}}{{/if}}{{else}}{{.value}}{{/if}}</title>
+            </path>
+          {{/each}}
+        {{/each}}
         <path d="M {{graph.bottom}},0 {{graph.bottom}},{{graph.span}} Z" stroke="#000" stroke-width="1" />
-        {{#each graph.groups}}
-      	{{#each .points}}
-          <path d="M {{.y}},{{.x}} {{.y}},{{.x2}}, {{.y2}},{{.x2}} {{.y2}},{{.x}} Z" style-fill="{{.color}}" {{#if .click}}on-click=".click(@context, @.get('data.' + .idx), @.readLink('data.' + idx).keypath, .)"{{/if}} on-click="['select', @.get('data.' + .idx), @.readLink('data.' + idx).keypath, ., 'data.' + idx]">
-            <title>{{#if .label}}{{.label}} ({{.value}}){{else}}{{.value}}{{/if}}</title>
-          </path>
-        {{/each}}
-        {{/each}}
       {{else}}
-        <path d="M 0,{{graph.bottom}} {{graph.span}},{{graph.bottom}} Z" stroke="#000" stroke-width="1" />
         {{#each graph.groups}}
-        {{#each .points}}
-          <path d="M {{.x}},{{.y}} {{.x}},{{.y2}}, {{.x2}},{{.y2}} {{.x2}},{{.y}} Z" style-fill="{{.color}}" {{#if .click}}on-click=".click(@context, @.get('data.' + .idx), @.readLink('data.' + idx).keypath, .)"{{/if}} on-click="['select', @.get('data.' + .idx), @.readLink('data.' + idx).keypath, ., 'data.' + idx]">
-            <title>{{#if .label}}{{.label}} ({{.value}}){{else}}{{.value}}{{/if}}</title>
-          </path>
+          {{#each .points}}
+            <path d="M {{.x}},{{.y}} {{.x}},{{.y2}}, {{.x2}},{{.y2}} {{.x2}},{{.y}} Z" style-fill="{{.color}}" {{#if .click}}on-click=".click(@context, .value, .label, .point)"{{/if}} on-click="['select', .value, .label, .point]" on-mouseenter="['hover', .value, .label, .point]">
+              <title>{{#if .label}}{{.label}}{{#unless ~/nolabelvalue}} ({{.value}}){{/unless}}{{#if .sublabel}}{{'\n' + .sublabel}}{{/if}}{{else}}{{.value}}{{/if}}</title>
+            </path>
+          {{/each}}
         {{/each}}
-        {{/each}}
+        <path d="M 0,{{graph.bottom}} {{graph.span}},{{graph.bottom}} Z" stroke="#000" stroke-width="1" />
       {{/if}}
     </svg>
   {{elseif .type === 'line'}}
-  	<svg viewBox="0 -{{~/dot}} {{graph.span}} {{~/span + (2 * ~/dot)}}" style-min-width="{{graph.span}}px">
+  <svg viewBox="{{-~/dot}} {{Math.min(~/dot * -2, ((~/span + (2 * ~/dot)) - graph.maxY) - (2 * ~/dot))}} {{graph.span + (2 * ~/dot)}} {{Math.max(~/span + (4 * ~/dot), graph.maxY + (-1 * Math.min(graph.minY, 0)) + (4 * ~/dot))}}" style-min-width="{{graph.span}}px" {{#if ~/svgA}}{{yield svgA}}{{/if}}>
       <path d="M 0,{{graph.bottom}} {{graph.span}},{{graph.bottom}} Z" stroke="#000" stroke-width="1" />
       {{#each graph.groups}}
-      <path d="M {{graph.minX}},{{graph.bottom}}
-        {{#each .points}}{{#if 'sx' in .}}{{#if ~/project}}S {{.sx}},{{.sy}} {{.x}},{{.y2}}{{else}}C {{.sx}},{{.sy}} {{.ex}},{{.ey}} {{.x}},{{.y2}}{{/if}}{{else}}L {{.x}},{{.y2}}{{/if}}{{' '}}{{/each}}
-      L {{~/graph.maxX}},{{~/graph.bottom}} Z" fill="{{^^/color}}" opacity="0.8" stroke="#000" stroke-width="1" />
-      {{#each .points}}
-        <circle r={{~/dot}} cx="{{.x}}" cy="{{.y2}}" fill="{{^^/color}}"{{#if .click}}on-click=".click(@context, @.get('data.' + .idx), @.readLink('data.' + .idx, @.parent), .)"{{/if}} on-click="['select', @.get('data.' + .idx), @.readLink('data.' + idx).keypath, ., 'data.' + idx]">
-          <title>{{#if .label}}{{.label}} ({{.value}}){{else}}{{.value}}{{/if}}</title>
-        </circle>
-        <circle r=3 cx={{.sx}} cy={{.sy}} fill=red><title>{{.value}}</title></circle>
-        <line x1={{.x}} y1={{.y2}} x2={{.sx}} y2={{.sy}} stroke=red stroke-width=1 />
-        <circle r=3 cx={{.ex}} cy={{.ey}} fill=blue><title>{{.value}}</title></circle>
-        <line x1={{.x}} y1={{.y2}} x2={{.ex}} y2={{.ey}} stroke=blue stroke-width=1 />
+        <path d="M {{graph.minX + ~/dot}},{{graph.bottom}}
+          {{#each .points}}{{#if 'sx' in .}}{{#if ~/project}}S {{.sx}},{{.sy}} {{.x}},{{.y2}}{{else}}C {{.sx}},{{.sy}} {{.ex}},{{.ey}} {{.x}},{{.y2}}{{/if}}{{else}}L {{.x}},{{.y2}}{{/if}}{{' '}}{{/each}}
+          L {{~/graph.maxX}},{{~/graph.bottom}} Z" fill="{{.color}}" {{#if ~/graph.groups.length > 1}}opacity="0.6"{{else}}opacity="0.8"{{/if}} stroke="#000" stroke-width="1" />
       {{/each}}
+      {{#each graph.groups}}
+        {{#each .points}}
+        <circle r={{~/dot}} cx="{{.x}}" cy="{{.y2}}" fill="{{#if ~/graph.groups.length === 1}}{{.color}}{{else}}{{^^/color}}{{/if}}"{{#if .click}}on-click=".click(@context, .value, .label, .point)"{{/if}} on-click="['select', .value, .label, .point]" stroke-width=1 stroke="#000" on-mouseenter="['hover', .value, .label, .point]">
+          <title>{{#if .label}}{{.label}}{{#unless ~/nolabelvalue}} ({{.value}}){{/unless}}{{#if .sublabel}}{{'\n' + .sublabel}}{{/if}}{{else}}{{.value}}{{/if}}</title>
+          </circle>
+        {{/each}}
       {{/each}}
   	</svg>
+  {{/if}}
+  {{#if ~/legend}}
+    <div class="rg-legend">
+      {{#if .type !== 'bar' && .type !== 'line'}}
+        {{#each chonks}}
+          <div class=rg-legend-entry><div class=rg-legend-color style="background-color: {{.color}};" /> {{.label}}</div>
+        {{/each}}
+      {{elseif .type === 'line' && graph.groups.length === 1}}
+        {{#each graph.groups[0].points}}
+          <div class=rg-legend-entry><div class=rg-legend-color style="background-color: {{.color}};" /> {{.label}}</div>
+        {{/each}}
+      {{else}}
+        {{#each graph.groups}}
+          <div class=rg-legend-entry><div class=rg-legend-color style="background-color: {{.color}};" /> {{.label}}</div>
+        {{/each}}
+      {{/if}}
+    </div>
   {{/if}}
 </div>
 
@@ -125,21 +140,24 @@
     css: $CSS,
     cssId: 'rchart',
     noCssTransform: true,
-    attributes: ['data', 'type', 'horizontal', 'colors', 'point', 'space', 'flip', 'dot', 'smooth', 'project', 'span', 'sub'],
+    attributes: ['data', 'type', 'horizontal', 'colors', 'point', 'space', 'flip', 'dot', 'smooth', 'project', 'span', 'sub', 'legend', 'hole', 'clustergap', 'nolabelvalue'],
     computed: {
       chonks() {
-        const data = this.get('data');
-        const total = data.reduce((a, c) => a + c.value, 0);
+        let data = this.get('data');
+        if (!Array.isArray(data)) data = [];
+        else if (Array.isArray(data[0])) data = data[0];
+        const total = data.reduce((a, c) => a + Math.abs(c.value), 0);
         const type = this.get('type');
         const colors = this.get('colors');
         const inner = this.get('hole') || (type === 'pie' ? 0 : type === 'donut' ? 15 : type === 'tire' ? 25 : 40);
         let agg = 0;
         return data.map((d, i) => {
-          const percent = d.value / total;
+          const percent = Math.abs(d.value) / total;
           const datum = Object.assign({
             idx: i,
             percent,
-            d: chonk(inner, 50, agg, percent)
+            d: chonk(inner, 50, agg, percent),
+            point: d,
           }, d);
           if (!datum.color) datum.color = colors[i % colors.length]
           agg += percent;
@@ -147,13 +165,19 @@
         });
       },
       graph() {
-        const data = this.get('data');
+        let data = this.get('data');
+        if (!Array.isArray(data)) data = [[]];
+        if (!Array.isArray(data[0])) data = [data];
+
         const type = this.get('type');
-        const [min, max] = data.reduce((a, c) => {
-          if (c.value < a[0]) a[0] = c.value;
-          if (c.value > a[1]) a[1] = c.value;
-          return a;
-        }, [0, 0]);
+        let [min, max] = data.reduce((a, c) => {
+          return c.reduce((aa, cc) => {
+            if (cc.value < a[0]) a[0] = cc.value;
+            if (cc.value > a[1]) a[1] = cc.value;
+            return a;
+          }, 0);
+        }, [0, 0]);sub
+
         const dot = this.get('dot') || 1;
         const range = max - min;
         let bottom = min < 0 ? min * -1 : -min;
@@ -165,46 +189,113 @@
         const flip = horiz ? this.get('flip') : !this.get('flip');
         
         let bar = this.get('span');
-        
-        const points = data.map((d, i) => {
-          const p = Object.assign({
-            x: i * point + i * space + space,
-            y: (bottom / range) * bar,
-            y2: ((d.value + bottom) / range) * bar,
-            idx: i
-          }, d);
-          p.x2 = p.x + point;
-          if (type === 'line') {
-            p.x += dot;
-            p.x2 += dot;
-          }
-          if (flip) {
-            p.y = bar - p.y;
-            p.y2 = bar - p.y2;
-          }
-          if (!p.color) p.color = colors[i % colors.length];
-          return p;
-        });
-        
         const smooth = type === 'line' && this.get('smooth');
-        if (smooth) {
-          points.forEach((p, i) => {
-            if (i === 0) return;
-           	[p.sx, p.sy] = bezierControl(true, points[i - 1], points[i - 2], p, smooth);
-            [p.ex, p.ey] = bezierControl(false, p, points[i - 1], points[i + 1], smooth);
+        const project = this.get('project');
+        
+        let points;
+        if (type === 'line') {
+          points = data.map(ps => {
+            return ps.map((d, i) => {
+              const p = Object.assign({
+                x: i * point + i * space + space,
+                y: (bottom / range) * bar,
+                y2: ((d.value + bottom) / range) * bar,
+                idx: i,
+                point: d,
+              }, d);
+              p.x2 = p.x + point;
+              p.comp = p.y2;
+              p.x += dot;
+              p.x2 += dot;
+              if (smooth && project && i > 0 && i + 1 < ps.length) {
+                const prev = ((ps[i - 1].value + bottom) / range) * bar;
+                const next = ((ps[i + 1].value + bottom) / range) * bar;
+                const off = (prev + next + p.comp) / 6;
+                if (prev > p.comp) p.comp = p.comp - off;
+                else p.comp = p.comp + off;
+              }
+              if (flip) {
+                p.y = bar - p.y;
+                p.y2 = bar - p.y2;
+              }
+              if (!p.color) p.color = colors[i % colors.length];
+              return p;
+            });
+          });
+          
+          if (smooth) {
+            points.forEach((points, i) => {
+              points.forEach((p, i) => {
+                if (i === 0) return;
+                [p.sx, p.sy] = bezierControl(true, points[i - 1], points[i - 2], p, smooth);
+                [p.ex, p.ey] = bezierControl(false, p, points[i - 1], points[i + 1], smooth);
+              });
+            });
+          }
+        } else {
+          let single = false;
+          const orig = data;
+          if (data.length === 1 && Array.isArray(data[0])) {
+            single = true;
+            data = data[0].map(d => data[0]);
+          }
+          const off = point / data.length;
+          const sub = this.get('sub') || 'cluster';
+          const gap = this.get('clustergap') || 0;
+          points = data.map((ds, i) => {
+            const ps = ds.map((_, ii) => data[ii] && data[ii][i] || { value: 0 });
+            const res = ps.map((d, ii) => {
+              const p = Object.assign({
+                x: i * point + i * space + space,
+                y: (bottom / range) * bar,
+                y2: ((d.value + bottom) / range) * bar,
+                idx: i,
+                point: d,
+                }, d, { label: single ? orig[0][i].label : d.label });
+              p.x2 = p.x + point;
+              p.comp = p.y2;
+              if (!single && sub === 'cluster') {
+                p.x += off * ii;
+                p.x2 = p.x + off - gap;
+              }
+              if (flip) {
+                p.y = bar - p.y;
+                p.y2 = bar - p.y2;
+              }
+              if (!p.color) p.color = colors[(single ? i : ii) % colors.length];
+              return p;
+            });
+            if (sub === 'stack') res.sort((l, r) => l.value > r.value ? -1 : l.value < r.value ? 1 : 0);
+            return res;
           });
         }
 
-        const groups = [{ points }];
-        if (type === 'line') groups.forEach((g, i) => g.color = colors[i % colors.length]);
-        
+        const groups = points.map((points, i) => {
+          const g = { points, color: colors[i % colors.length] };
+          const base = type === 'bar' && this.get('sub') === 'stack' ? data[i] : points;
+          if (base && base[i] && base[i].label) g.label = base[i].label;
+          return g;
+        });
+        if (type === 'line') {
+          groups.sort((l, r) => {
+            const avgl = l.points.reduce((a, c) => a + c.value, 0) / l.points.length;
+            const avgr = r.points.reduce((a, c) => a + c.value, 0) / r.points.length;
+            return (avgl < avgr ? 1 : avgl > avgr ? -1 : 0);
+          });
+          groups.forEach((g, i) => g.color = colors[i % colors.length]);
+        }
+
+        const len = data.reduce((a, c) => c.length > a ? c.length : a, 0);
+
         return {
           bottom: flip ? bar - (bottom / range) * bar : (bottom / range) * bar,
           min, max,
-          horiz, flip,
-          span: (type === 'line' ? data.length - 1 : data.length) * point + (data.length + 2) * space + (type === 'line' ? dot * 2 : 0),
-          minX: points[0].x,
-          maxX: points[points.length - 1].x,
+          horiz: type === 'line' ? false : horiz, flip,
+          span: (type === 'line' ? len - 1 : len) * point + (len + 2) * space + (type === 'line' ? dot * 2 : 0),
+          minX: points.reduce((a, ps) => ps.reduce((aa, c) => c.x < aa ? c.x : aa, a), 0),
+          maxX: points.reduce((a, ps) => ps.reduce((aa, c) => c.x > aa ? c.x : aa, a), 0),
+          minY: points.reduce((a, ps) => ps.reduce((aa, c) => c.comp < aa ? c.comp : aa, a), 0),
+          maxY: points.reduce((a, ps) => ps.reduce((aa, c) => c.comp > aa ? c.comp : aa, a), 0),
           groups
         };
       }
@@ -220,9 +311,17 @@
       }
     },
     on: {
-      select(ctx, val, parentpath, local, srcpath) {
-        this.link(srcpath, 'selected');
-      } 
+      construct() {
+        const cmp = this.component;
+        if (!cmp) return;
+
+        const tpl = cmp.template.f || [];
+        const svg = tpl.find(e => e.e === 'svg');
+        if (svg) this._svgA = svg.m;
+      },
+      config() {
+        if (this._svgA) this.set('svgA', this._svgA);
+      },
     }
   });
 
@@ -240,6 +339,12 @@
 <style>
   .rg-graph {
     position: relative;
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    box-sizing: border-box;
   }
 
   .rg-graph-circular {
@@ -319,5 +424,23 @@
   }
   .rg-graph-bar.rg-graph-v svg, .rg-graph-line svg {
     height: 100%;
+  }
+
+  .rg-legend {
+    display: flex;
+    flex-direction: column;
+    padding-left: 0.5em;
+    justify-content: center;
+  }
+
+  .rg-legend-entry {
+    padding: 0.25em 0 0.25em 0;
+    line-height: 0.9em;
+  }
+
+  .rg-legend-color {
+    display: inline-block;
+    width: 1em;
+    height: 1em;
   }
 </style>

@@ -1,0 +1,129 @@
+<tabs flat pad class-alt fill height=dynamic>
+  <tab title=Intro><marked>
+    The `chart` component allows displaying specially formatted data as a configurable `svg` chart, optionally
+    with a legend. Data points are required to have a `value` property, and may optionally specify a `label`, `sublabel`, and `color`. 
+
+    Pie, donut, tire, and hoop charts can display single-dimension data, and bar and line charts can display both
+    single- and two-dimension data. Bar charts displaying two-dimension data can display as stacks or as
+    clustered mini bars.
+  </marked></tab>
+  <tab title=Usage><marked>
+    ### Plugin Options
+
+    * `name: string = 'chart'` - the name to use when registering the plugin as a component
+
+    ### Attributes
+
+    All attributes are optional.
+
+    * `data: { value, label, color, sublabel, ... }[] | { value, label, color, sublabel, ... }[][]` - The base data for the chart to display
+    * `type: pie|donut|tire|hoop|line|bar` - The type of chart to render
+    * `horizontal: booean = false` - For bar charts, switch from vertical bars to horizontal bars
+    * `colors: string[]` - A list of colors to assign to uncolored data points
+    * `point: number = 30` - The with of data points on bar charts
+    * `space: number = 5` - The distance between bars on bar charts
+    * `flip: boolean = false` - Invert line or bar graphs such that the negative y-axis is at the top
+    * `nolabelvalue: boolean = false` - Leave the value out of the label title on data points
+    * `dot: number = 3` - The radius of points on line charts
+    * `smooth: number` - Apply smoothing to line charts using a bezier (0.2 is recommended if you want smoothing)
+    * `project: boolean = false` - Allow line charts to project when smoothed
+    * `span: number = 200` - Target height of the viewbox for line and bar charts
+    * `sub: cluster|stack = cluster` - Sub-type for bar charts, where cluster groups bars from parallel data points and stack overlays them
+    * `legend: boolean = false` - Include a legend
+    * `hole: number` - For circular charts, override the size of the central hole (defaults are pie: 0, donut: 15, tire: 25, and hoop: 40)
+    * `clustergap: number` - The gap between individual bars in a clustered bar chart
+
+    ### Events
+
+    * `select` - Fires when a value (segment, bar, or line point) is clicked with the value and label as the two arguments
+    * `hover` - Fires when a value (segment, bar, or line point) receives a mouseover event with the value and label as the two arguments
+
+    ### Children
+
+    * `<svg>` - Attributes added to an option svg child element are passed through to the internal svg element.
+  </marked></tab>
+  <tab as-grid title=Example>
+    <div class="row row-s1-2 row-m1-4">
+      <label as-field>
+        Type<select value="{{.type}}">
+          <option>pie</option><option>donut</option><option>tire</option><option>hoop</option>
+          <option>bar</option>
+          <option>line</option>
+        </select>
+      </label>
+      <label as-field><input type=checkbox checked="{{.legend}}" /> Legend?</label>
+      <label as-field><input type=checkbox checked="{{.nolabelvalue}}" /> No label value?</label>
+      {{#if .type === 'bar' || .type === 'line'}}
+        <label as-field><input type=checkbox checked="{{.flip}}" /> Flip?</label>
+        <label as-field>Span<input type=number value="{{.span}}" step="1" /></label>
+        <label as-field>Point<input type=number value="{{.point}}" step="1" /></label>
+        <label as-field>Space<input type=number value="{{.space}}" step="1" /></label>
+      {{/if}}
+      {{#if .type === 'line'}}
+        <label as-field>Smooth<input type=number value="{{.smooth}}" step="0.1" /></label>
+        {{#if +.smooth}}<label as-field><input type=checkbox checked="{{.project}}" /> Project?</label>{{/if}}
+        <label as-field>Dot<input type=number value="{{.dot}}" step="1" /></label>
+      {{/if}}
+      {{#if .type === 'bar'}}
+        <label as-field><input type=checkbox checked="{{.horizontal}}" /> Horizontal?</label>
+        <label as-field>Sub<select value="{{.sub}}"><option>cluster</option><option>stack</option></select></label>
+        {{#if .sub === 'cluster'}}<label as-field>Cluster Gap<input type="number" value="{{.clustergap}}" step=1 /></label>{{/if}}
+      {{/if}}
+      {{#if .type !== 'bar' && .type !== 'line'}}
+        <label as-field>Hole<input type=number value="{{.hole}}" step="1" /></label>
+      {{/if}}
+      <label as-field>
+        Source<select value="{{.source}}">
+          <option>cars</option>
+          <option value="temps">temperatures</option>
+        </select>
+      </label>
+    </div>
+    
+    <marked>
+      ### Template:
+      ```handlebars
+        <chart type="{{.type}}" data="{{sources[.source]}}" bind-horizontal bind-flip bind-smooth bind-project bind-sub bind-legend bind-hole bind-clustergap bind-point bind-space bind-span bind-nolabelvalue bind-dot on-select="@.set('selected', `${$1} ${$2}`)" on-hover="@.set('hovered', `${$1} ${$2} ${JSON.stringify($3)}`)" />
+      ```
+      ### Result:
+    </marked>
+    <div style="min-width: 20em; width: 50vw; height: 20em; margin: 2em auto;">
+      <chart type="{{.type}}" data="{{sources[.source]}}" bind-horizontal bind-flip bind-smooth bind-project bind-sub bind-legend bind-hole bind-clustergap bind-point bind-space bind-span bind-nolabelvalue bind-dot on-select="@.set('selected', `${$1} ${$2}`)" on-hover="@.set('hovered', `${$1} ${$2} ${JSON.stringify($3)})`)" />
+      <div style="margin-top: 8em;">
+        Selected: {{.selected || '(none)'}}<br/>
+        Hovered: {{.hovered || '(none)'}}
+      </div>
+    </div>
+  </tab>
+</tabs>
+
+<script>
+  import { Window } from 'cmp/Window';
+  import chart from 'cmp/Chart';
+
+  export default Window.extend({
+    template: $TEMPLATE,
+    use: [chart()],
+    options: {
+      title: 'Component :: Chart',
+      resizable: true, flex: true,
+      width: '48em', height: '30em'
+    },
+    data() {
+      return {
+        sources: {
+          cars: [{ value: 23, label: 'Chevrolet' }, { value: 12, label: 'Ford' }, { value: 29, label: 'Honda' }, { value: 2, label: 'Lexus' }],
+          temps: [
+            [{ value: 97, label: 'Atlanta', sublabel: 'Jun 2022' }, { value: 91, label: 'Atlanta' }, { value: 65, label: 'Atlanta' }, { value: -5, label: 'Atlanta' }],
+            [{ value: 45, label: 'Toronto' }, { value: 33, label: 'Toronto' }, { value: 12, label: 'Toronto' }, { value: 67, label: 'Toronto' }],
+            [{ value: 44, label: 'Phoenix' }, { value: 112, label: 'Phoenix' }, { value: 88, label: 'Phoenix' }, { value: 102, label: 'Phoenix' }],
+            [{ value: 39, label: 'New York' }, { value: 77, label: 'New York' }, { value: 79, label: 'New York' }, { value: 68, label: 'New York' }],
+          ],
+        },
+        point: 30, space: 5, span: 200,
+      };
+    }
+  });
+</script>
+  
+

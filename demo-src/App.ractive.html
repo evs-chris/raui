@@ -12,6 +12,7 @@
         <item ref=AppBar>AppBar</item>
         <item ref=Autocomplete>Autocomplete</item>
         <item ref=Card>Card</item>
+        <item ref=Chart>Chart</item>
         <item ref=DateInput>Date Input</item>
         <item ref=DatePicker>Date Picker</item>
         <item ref=JSONEditor>JSON Editor</item>
@@ -99,7 +100,7 @@
 
         host.set('userMax', true);
 
-        const builtins = ['Hello', 'AceEditor', 'AppBar', 'Autocomplete', 'Button', 'Card', 'Click', 'CodeMirror', 'Date', 'DateInput', 'DatePicker', 'Expand', 'Fade', 'Form', 'Grid', 'JSONEditor', 'Keys', 'Marked', 'MaskedInput', 'Menu', 'NumericInput', 'Popover', 'ScrollSpy', 'Shell', 'SideBar', 'Split', 'Swipe', 'Table', 'Tabs', 'Toast', 'Toggle', 'Validate', 'VirtualList', 'Window'];
+        const builtins = ['Hello', 'AceEditor', 'AppBar', 'Autocomplete', 'Button', 'Card', 'Chart', 'Click', 'CodeMirror', 'Date', 'DateInput', 'DatePicker', 'Expand', 'Fade', 'Form', 'Grid', 'JSONEditor', 'Keys', 'Marked', 'MaskedInput', 'Menu', 'NumericInput', 'Popover', 'ScrollSpy', 'Shell', 'SideBar', 'Split', 'Swipe', 'Table', 'Tabs', 'Toast', 'Toggle', 'Validate', 'VirtualList', 'Window'];
 
         menu.on('item', (ctx, handle) => {
           if (~builtins.indexOf(handle.ref)) {
