@@ -19,7 +19,7 @@ System.register(['ractive', './chunk10.js', './chunk15.js', './chunk2.js'], func
         return path.reduce(function (a, c) { return a ? a[c] : a; }, obj)
       }
 
-      var formNodes = ['INPUT', 'SELECT', 'TEXTAREA', 'BUTTON'];
+      var formNodes = ['INPUT', 'SELECT', 'TEXTAREA', 'BUTTON', 'BODY'];
 
       var Autocomplete = Ractive$1.macro(function (h) {
         var tm;
@@ -256,7 +256,7 @@ System.register(['ractive', './chunk10.js', './chunk15.js', './chunk2.js'], func
             var member = h.get('rac._member');
             var which = h.get('rac.list').find(function (i) { return member(i) === v; });
             if (which !== h.get('rac.value')) { h.set('rac.value', which); }
-            if (!which && v && h.get('rac.valueBound')) {
+            if (!which && v != null && h.get('rac.valueBound')) {
               h.set('rac.display', v);
               refresh();
             }

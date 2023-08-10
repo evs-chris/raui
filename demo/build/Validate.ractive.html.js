@@ -398,6 +398,7 @@ System.register(['ractive', './chunk2.js', './chunk13.js'], function (exports, m
             if (k.startsWith(start)) { delete this$1.state[k]; }
           });
         }
+        this.notify(key, true, recurse);
       };
 
       Validator.prototype.level = function level (key, recurse) {

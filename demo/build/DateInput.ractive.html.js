@@ -26,8 +26,9 @@ System.register(['./chunk18.js', './chunk10.js', './chunk9.js', './chunk2.js'], 
         if (ctx.attributes.string) { ctx.strObserver = ctx.observe('rdi.val', function (v) { return ctx.set(ctx.attributes.string, v ? v.toString() : ''); }); }
 
         var opts = {};
-        ['null', 'lazy', 'mask', 'min', 'max', 'mask', 'no-pick', 'time'].forEach(function (k) {
+        ['null', 'lazy', 'eager', 'mask', 'min', 'max', 'mask', 'no-pick', 'time'].forEach(function (k) {
           if (k in ctx.attributes) { opts[k.replace(/-/g, '')] = ctx.attributes[k]; }
+          if (k === 'eager' && k in ctx.attributes) { opts.lazy = !ctx.attributes.eager; }
         });
         if (ctx.attributes.value) { opts.value = 'rdi.val'; }
         if (ctx.attributes.display) { opts.display = 'rdi.display'; }
@@ -49,7 +50,7 @@ System.register(['./chunk18.js', './chunk10.js', './chunk9.js', './chunk2.js'], 
       }).call(this, data)].join(' '); },
         cssId: 'rdi',
         noCssTransform: true,
-        attributes: ['value', 'null', 'lazy', 'mask', 'string', 'display', 'min', 'max', 'no-pick', 'time']
+        attributes: ['value', 'null', 'lazy', 'eager', 'mask', 'string', 'display', 'min', 'max', 'no-pick', 'time']
       });
 
       function plugin(opts) {
