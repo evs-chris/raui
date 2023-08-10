@@ -24,7 +24,7 @@
     return path.reduce((a, c) => a ? a[c] : a, obj)
   }
 
-  const formNodes = ['INPUT', 'SELECT', 'TEXTAREA', 'BUTTON'];
+  const formNodes = ['INPUT', 'SELECT', 'TEXTAREA', 'BUTTON', 'BODY'];
 
   export const Autocomplete = Ractive.macro(h => {
     let tm;
@@ -261,7 +261,7 @@
         const member = h.get('rac._member')
         const which = h.get('rac.list').find(i => member(i) === v);
         if (which !== h.get('rac.value')) h.set('rac.value', which);
-        if (!which && v && h.get('rac.valueBound')) {
+        if (!which && v != null && h.get('rac.valueBound')) {
           h.set('rac.display', v);
           refresh();
         }
