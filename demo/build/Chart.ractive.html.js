@@ -121,6 +121,7 @@ System.register(['./chunk2.js', 'ractive'], function (exports, module) {
             }, [0, 0]);
             var min = ref[0];
             var max = ref[1];
+
             var dot = this.get('dot') || 1;
             var range = max - min;
             var bottom = min < 0 ? min * -1 : -min;
@@ -185,7 +186,7 @@ System.register(['./chunk2.js', 'ractive'], function (exports, module) {
                 data = data[0].map(function (d) { return data[0]; });
               }
               var off = point / data.length;
-              var sub$1 = this.get('sub') || 'cluster';
+              var sub = this.get('sub') || 'cluster';
               var gap = this.get('clustergap') || 0;
               points = data.map(function (ds, i) {
                 var ps = ds.map(function (_, ii) { return data[ii] && data[ii][i] || { value: 0 }; });
@@ -199,7 +200,7 @@ System.register(['./chunk2.js', 'ractive'], function (exports, module) {
                     }, d, { label: single ? orig[0][i].label : d.label });
                   p.x2 = p.x + point;
                   p.comp = p.y2;
-                  if (!single && sub$1 === 'cluster') {
+                  if (!single && sub === 'cluster') {
                     p.x += off * ii;
                     p.x2 = p.x + off - gap;
                   }
@@ -210,7 +211,7 @@ System.register(['./chunk2.js', 'ractive'], function (exports, module) {
                   if (!p.color) { p.color = colors[(single ? i : ii) % colors.length]; }
                   return p;
                 });
-                if (sub$1 === 'stack') { res.sort(function (l, r) { return l.value > r.value ? -1 : l.value < r.value ? 1 : 0; }); }
+                if (sub === 'stack') { res.sort(function (l, r) { return l.value > r.value ? -1 : l.value < r.value ? 1 : 0; }); }
                 return res;
               });
             }
