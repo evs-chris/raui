@@ -404,7 +404,7 @@ System.register(['ractive', './chunk2.js', './chunk13.js'], function (exports, m
       Validator.prototype.level = function level (key, recurse) {
           if ( recurse === void 0 ) recurse = true;
 
-        if (key && key.group) { key = keysForGroup(this, key.group); }
+        if (key && key.group && typeof key.group !== 'function') { key = keysForGroup(this, key.group); }
         if (typeof key === 'boolean') {
           recurse = key;
           key = /.*/;
@@ -453,7 +453,7 @@ System.register(['ractive', './chunk2.js', './chunk13.js'], function (exports, m
       Validator.prototype.messages = function messages (key, recurse) {
           var this$1 = this;
 
-        if (key.group) { key = keysForGroup(this, key.group); }
+        if (key.group && typeof key.group !== 'function') { key = keysForGroup(this, key.group); }
         var keys = Array.isArray(key) ? key : [key];
         var res = [];
         keys.forEach(function (key) {
@@ -479,7 +479,7 @@ System.register(['ractive', './chunk2.js', './chunk13.js'], function (exports, m
       Validator.prototype.hook = function hook (keys, fn, opts) {
           var this$1 = this;
 
-        if (keys && keys.group) {
+        if (keys && keys.group && typeof keys.group !== 'function') {
           var gs = Array.isArray(keys.group) ? keys.group : [keys.group];
           gs.forEach(function (g) { return (this$1.groupHooks[g] || (this$1.groupHooks[g] = [])).push(fn); });
         } else {
@@ -507,7 +507,7 @@ System.register(['ractive', './chunk2.js', './chunk13.js'], function (exports, m
           var this$1 = this;
 
         if (disposer) { dispose(this, disposer); }
-        if (keys && keys.group) {
+        if (keys && keys.group && typeof keys.group !== 'function') {
           var gs = Array.isArray(keys.group) ? keys.group : [keys.group];
           gs.forEach(function (key) {
             var arr = this$1.groupHooks[key] || [];
