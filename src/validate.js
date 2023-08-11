@@ -321,7 +321,7 @@ export class Validator {
   }
 
   level(key, recurse = true) {
-    if (key && key.group) key = keysForGroup(this, key.group);
+    if (key && key.group && typeof key.group !== 'function') key = keysForGroup(this, key.group);
     if (typeof key === 'boolean') {
       recurse = key;
       key = /.*/;
@@ -368,7 +368,7 @@ export class Validator {
   }
 
   messages(key, recurse) {
-    if (key.group) key = keysForGroup(this, key.group);
+    if (key.group && typeof key.group !== 'function') key = keysForGroup(this, key.group);
     const keys = Array.isArray(key) ? key : [key];
     const res = [];
     keys.forEach(key => {
@@ -392,7 +392,7 @@ export class Validator {
   }
 
   hook(keys, fn, opts) {
-    if (keys && keys.group) {
+    if (keys && keys.group && typeof keys.group !== 'function') {
       const gs = Array.isArray(keys.group) ? keys.group : [keys.group];
       gs.forEach(g => (this.groupHooks[g] || (this.groupHooks[g] = [])).push(fn));
     } else {
@@ -418,7 +418,7 @@ export class Validator {
 
   unhook(keys, fn, disposer) {
     if (disposer) dispose(this, disposer);
-    if (keys && keys.group) {
+    if (keys && keys.group && typeof keys.group !== 'function') {
       const gs = Array.isArray(keys.group) ? keys.group : [keys.group];
       gs.forEach(key => {
         const arr = this.groupHooks[key] || [];
