@@ -384,7 +384,7 @@ export function style(data) {
 
   /* inline fields (no labels) */
   label.field.inline {
-    height: 3.3em;
+    min-height: 3.3em;
   }
 
   label.field.button.inline {
@@ -598,6 +598,7 @@ function findDeep(els, el) {
 
 export const macro = Ractive.macro(handle => {
   let body = [];
+  let label = [];
   const attrs = (handle.template.m || []).slice();
   const content = handle.template.f || [];
 
@@ -643,30 +644,36 @@ export const macro = Ractive.macro(handle => {
     }
   } else { // mostly passthru
     // check for button wrapping
+    content.forEach(e => {
+      if (e.e === 'label') {
+        if (e.f && e.f.length) label.push.apply(label, e.f);
+      } else {
+        body.push(e);
+      }
+    });
     const els = content.filter(e => e.e);
     if (els.find(e => e.e === 'button') && els.length > 1) {
       body = [{
         t: 7, e: 'span', m: [
           { t: 13, n: 'class', f: 'field-wrapper with-buttons', g: 1 }
         ],
-        f: content
+        f: body
       }];
-    } else {
-      body.push.apply(body, content);
     }
   }
 
-  const label = attrs.find(a => a.n === 'label');
+  const labelattr = attrs.find(a => a.n === 'label');
+  if (labelattr && labelattr.f && labelattr.f.length) label.push.apply(label, Array.isArray(labelattr.f) ? labelattr.f : [labelattr.f]);
   if (tip) body.unshift({
     t: 7, e: 'span', m: [
-      { t: 13, n: 'class', f: `field-tip${!label ? ' field-solo-tip' : ''}`, g: 1 },
+      { t: 13, n: 'class', f: `field-tip${!label.length ? ' field-solo-tip' : ''}`, g: 1 },
       { t: 13, n: 'title', f: tip.f },
       { t: 70, n: ['click'], f: { r: [], s: '[false]' } }
     ],
     f: '?'
   });
   const inline = attrs.find(a => a.n === 'inline');
-  if (label && !inline) body.unshift.apply(body, Array.isArray(label.f) ? label.f : [label.f]);
+  if (label && !inline) body.unshift.apply(body, label);
   else if (!inline) body.unshift('\xa0');
 
   const outer = {
