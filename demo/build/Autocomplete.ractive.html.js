@@ -237,6 +237,7 @@ System.register(['ractive', './chunk10.js', './chunk15.js', './chunk2.js'], func
           }, 14);
         }
 
+        var justPopped = false;
         var opts = { init: false, defer: true };
         var watches = [
           h.observe('rac.displayprop', refresh, opts),
@@ -261,12 +262,17 @@ System.register(['ractive', './chunk10.js', './chunk15.js', './chunk2.js'], func
               refresh();
             }
           }),
-          h.observe('rac.selected', scrollView) ];
+          h.observe('rac.selected', scrollView),
+          h.observe('rac.popped', function (v) {
+            if (v) { setTimeout(function () { return justPopped = false; }, 300); }
+            justPopped = true;
+          }) ];
 
         h.set('rac.checkBlur', function checkBlur(node) {
+          if (justPopped) { return false; }
           var active = document.activeElement;
           if (!~formNodes.indexOf(active.nodeName) && !active.getAttribute('tabindex')) { return; }
-          var inputs = h.findAll('input');
+          var inputs = h.findAll('input').concat(h.get('rac.pop').popFindAll('input'));
           if (document.activeElement && !~inputs.indexOf(document.activeElement)) { h.get('rac.key')({ which: 9 }); }
         });
 
@@ -285,7 +291,8 @@ System.register(['ractive', './chunk10.js', './chunk15.js', './chunk2.js'], func
         css: function(data) { return [(function(data) {
          var primary = Object.assign({}, data("raui.primary"), data("raui.autocomplete"), data("raui.autocomplete.primary"));
          var drop = Object.assign({}, data('raui.autocomplete.drop'), data('raui.autocomplete.primary.drop'));
-         return (".rautocomplete {\n     position: relative;\n     display: inline-block;\n   }\n   \n   .rac-drop {\n     width: 2em;\n     height: 100%;\n     position: absolute;\n     top: 0;\n     right: 2px;\n     cursor: pointer;\n   }\n   .rac-drop:after {\n     font-family: " + (drop.font || 'sans-serif') + ";\n     content: " + (drop.string || '\'\u25be\'') + ";\n     position: absolute;\n     top: calc(50% - 0.5em);\n     height: 1em;\n     line-height: 1em;\n     width: 100%;\n     text-align: center;\n     font-weight: " + (drop.weight || 'normal') + ";\n     color: " + (drop.color || primary.bc || '#ccc') + ";\n   }\n   \n   .rac-pop {\n     min-width: 100%;\n   }\n \n   .rac-pop > .rpop {\n     padding: 0;\n   }\n \n   .rac-list {\n     display: flex;\n     flex-direction: column;\n     max-height: 50vh;\n     min-height: 2.125em;\n     max-width: 100%;\n     overflow: auto;\n   }\n   \n   .rac-item {\n     color: " + (primary.fg || '#222') + ";\n     background-color: " + (primary.bg || '#fff') + ";\n     padding: 0.25em;\n     cursor: pointer;\n   }\n   \n   .rac-selected {\n     color: " + (primary.bg || '#fff') + ";\n     background-color: " + (primary.fga || '#07e') + ";\n   }\n \n   .rac-hover {\n     color: " + (primary.fg || '#222') + ";\n     background-color: " + (primary.bc || '#ccc') + ";\n   }\n \n   .rac-selected.rac-hover {\n     background-color: " + (primary.bc || '#ccc') + ";\n     color: " + (primary.fga || '#07e') + ";\n   }\n   \n   .rac-invalid {\n     cursor: not-allowed;\n   }\n   \n   input.rac-modal {\n     width: 100%;\n     box-sizing: border-box;\n   }");
+         var boxy = data('raui.form.boxy');
+         return (".rautocomplete {\n     position: relative;\n     display: inline-block;\n   }\n   \n   .rac-drop {\n     width: 2em;\n     height: 100%;\n     position: absolute;\n     top: 0;\n     right: 2px;\n     cursor: pointer;\n   }\n   .rac-drop:after {\n     font-family: " + (drop.font || 'sans-serif') + ";\n     content: " + (drop.string || '\'\u25be\'') + ";\n     position: absolute;\n     top: calc(50% - 0.5em);\n     height: 1em;\n     line-height: 1em;\n     width: 100%;\n     text-align: center;\n     font-weight: " + (drop.weight || 'normal') + ";\n     color: " + (drop.color || primary.bc || '#ccc') + ";\n   }\n   \n   .rac-pop {\n     min-width: 100%;\n   }\n \n   .rac-pop > .rpop {\n     padding: 0;\n   }\n \n   .rac-list {\n     display: flex;\n     flex-direction: column;\n     max-height: 50vh;\n     min-height: 2.125em;\n     max-width: 100%;\n     overflow: auto;\n   }\n   \n   .rac-item {\n     color: " + (primary.fg || '#222') + ";\n     background-color: " + (primary.bg || '#fff') + ";\n     padding: 0.25em;\n     cursor: pointer;\n   }\n   \n   .rac-selected {\n     color: " + (primary.bg || '#fff') + ";\n     background-color: " + (primary.fga || '#07e') + ";\n   }\n \n   .rac-hover {\n     color: " + (primary.fg || '#222') + ";\n     background-color: " + (primary.bc || '#ccc') + ";\n   }\n \n   .rac-selected.rac-hover {\n     background-color: " + (primary.bc || '#ccc') + ";\n     color: " + (primary.fga || '#07e') + ";\n   }\n   \n   .rac-invalid {\n     cursor: not-allowed;\n   }\n   \n   input.rac-modal {\n     width: 100%;\n     box-sizing: border-box;\n     display: block;\n     border-width: " + (boxy ? '0.0625em' : '0 0 0.0625em 0') + ";\n     border-color: " + (primary.bc || '#ccc') + ";\n     border-style: solid;\n     box-sizing: border-box;\n     background-color: " + (boxy ? primary.bg || '#fff' : 'transparent') + ";\n     transition: 0.2s ease-in-out;\n     transition-property: box-shadow, color;\n     outline: none;\n     box-shadow: none;\n     width: 100%;\n     margin-bottom: 0.8em;\n     font-size: 1.1em;" + (boxy ? ("\n  border-radius: " + (primary.radius || '0.2em') + ";") : '') + "\n     font-weight: 400;\n     font-family: inherit;\n   }");
       }).call(this, data)].join(' '); },
         cssId: 'rautocomplete',
         noCssTransform: true

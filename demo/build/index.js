@@ -167,6 +167,8 @@ System.register(['./chunk3.js', './chunk4.js', './chunk6.js', './chunk2.js', './
         tabs()
       );
 
+      Ractive$1.styleSet('raui.pop.mobile', '48em');
+
       var app = window.app = new App({ target: '#target' });
 
       var el;
