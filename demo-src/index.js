@@ -10,6 +10,8 @@ Ractive.use(
   tabs()
 );
 
+Ractive.styleSet('raui.pop.mobile', '48em');
+
 var app = window.app = new App({ target: '#target' });
 
 var el;
