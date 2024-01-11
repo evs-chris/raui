@@ -85,6 +85,8 @@ export default function plugin(options = {}) {
       const mask = opts.mask || defaultMask;
       const handles = { observers: [], listeners: [] };
 
+      let lastBackspace = false;
+
       if (node.tagName !== 'INPUT') {
         console.warn(`Attempted to add a date decorator a ${node.tagName}`);
         return noop;
@@ -168,6 +170,20 @@ export default function plugin(options = {}) {
         }
       }
 
+      const selectGroup = (group, pos) => {
+        if (pos === undefined) pos = node.selectionStart;
+        if (group && group.target) group = undefined;
+        if (!group) {
+          if (pos === node.value.length && node.selectionEnd === node.value.length) group = groups[0];
+          else group = groupForPos(groups, pos);
+        }
+        if (lastBackspace) {
+          lastBackspace = false;
+          if (pos < group.start) group = groups[groups.indexOf(group) - 1];
+        }
+        document.activeElement === node && node.setSelectionRange(group.start, group.end);
+      };
+
       handles.listeners.push(ctx.listen('input', () => {
         const pos = node.selectionStart;
         const start = node.value;
@@ -180,27 +196,25 @@ export default function plugin(options = {}) {
 
         if (active && ((start.length >= mask.length && pos === active.end) || accepted) && active !== groups[groups.length - 1]) {
           const next = groups[groups.indexOf(active) + 1];
-          node.setSelectionRange(next.start, next.end);
+          selectGroup(next, pos);
         } else {
           node.setSelectionRange(pos, pos);
         }
       }));
 
       handles.listeners.push(ctx.listen('blur', () => {
+        lastBackspace = false;
         if (sendValue(false)) receiveValue(groups, groups.value, opts.parseDate);
+        if (groups.value === null) groups.forEach(g => g.value = null);
+        groups.forEach(g => g.display = displayForGroup(g));
         updateDisplay(groups, node);
       }));
 
-      const selectGroup = () => {
-        let group;
-        if (node.selectionStart === node.value.length && node.selectionEnd === node.value.length) group = groups[0];
-        else group = groupForPos(groups, node.selectionStart);
-        document.activeElement === node && node.setSelectionRange(group.start, group.end);
-      };
       handles.listeners.push(ctx.listen('click', selectGroup));
       handles.listeners.push(ctx.listen('focus', selectGroup));
 
       handles.listeners.push(ctx.listen('keydown', (/** @type { KeyboardEvent } */ ev) => {
+        lastBackspace = false;
         switch (ev.key) {
           case 'Enter':
           case 'Tab': {
@@ -211,16 +225,20 @@ export default function plugin(options = {}) {
               applyValues(groups, sendValue, ev.shiftKey && idx > 0 || !ev.shiftKey && idx + 1 < groups.length, defdt, deftm);
             }
             if (ev.shiftKey && idx > 0) {
-              node.setSelectionRange(groups[idx - 1].start, groups[idx - 1].end);
+              selectGroup(groups[idx - 1]);
               ev.preventDefault();
               ev.stopPropagation();
             } else if (!ev.shiftKey && idx + 1 < groups.length) {
-              node.setSelectionRange(groups[idx + 1].start, groups[idx + 1].end);
+              selectGroup(groups[idx + 1]);
               ev.preventDefault();
               ev.stopPropagation();
             }
             break;
           }
+
+          case 'Backspace': 
+            lastBackspace = true;
+            break;
 
           case 'ArrowUp':
           case 'ArrowDown': {
@@ -293,6 +311,9 @@ function updateValues(groups, target, pos = 0, leave = false) {
       g.value = 0;
       g.input = g.display = padl(g.value, g.length);
       accepted = true;
+    } else if (g.type === 'd' && v.length !== g.length && leave) {
+      g.value = +v;
+      g.display = displayForGroup(g);
     } else if (v === '') {
       g.value = null;
       g.display = displayForGroup(g);
