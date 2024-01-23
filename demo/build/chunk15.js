@@ -288,8 +288,11 @@ System.register(['./chunk2.js', 'ractive'], function (exports, module) {
 
       macro.types = {};
 
-      function autofocus(node) {
-        if (typeof node.focus === 'function') { node.focus(); }
+      function autofocus(node, opts) {
+        if (typeof node.focus === 'function' && !node.disabled) {
+          if (opts && opts.immediate) { node.focus(); }
+          else { setTimeout(function () { return !node.disabled && node.focus(); }, (opts || {}).timeout || 250); }
+        }
         return { teardown: noop };
       }
 
