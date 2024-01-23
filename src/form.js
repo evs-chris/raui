@@ -688,8 +688,11 @@ export const macro = Ractive.macro(handle => {
 
 macro.types = {};
 
-export function autofocus(node) {
-  if (typeof node.focus === 'function') node.focus();
+export function autofocus(node, opts) {
+  if (typeof node.focus === 'function' && !node.disabled) {
+    if (opts && opts.immediate) node.focus();
+    else setTimeout(() => !node.disabled && node.focus(), (opts || {}).timeout || 250);
+  }
   return { teardown: noop };
 }
 
