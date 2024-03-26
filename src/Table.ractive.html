@@ -613,11 +613,13 @@
       },
       'scrollOffset tableHeight': {
         handler() {
-          requestAnimationFrame(() => {
-            const top = this.find('.rtable-top');
-            const ctx = top && this.getContext(top);
-            if (ctx && ctx.decorators && ctx.decorators.scrolled) ctx.decorators.scrolled.refresh();
-          });
+          if (this.rendered) {
+            requestAnimationFrame(() => {
+              const top = this.find('.rtable-top');
+              const ctx = top && this.getContext(top);
+              if (ctx && ctx.decorators && ctx.decorators.scrolled) ctx.decorators.scrolled.refresh();
+            });
+          }
         },
         init: false
       },
