@@ -238,12 +238,12 @@ System.register(['./chunk2.js', 'ractive', './chunk5.js', './chunk11.js'], funct
 
         Popover.prototype.popFind = function popFind (pattern) {
           if (mobilePopped) { return mobilePop.find(pattern); }
-          else { return this.find(pattenr); }
+          else { return this.find(pattern); }
         };
 
         Popover.prototype.popFindAll = function popFindAll (pattern) {
           if (mobilePopped) { return mobilePop.findAll(pattern); }
-          else { return this.findAll(pattenr); }
+          else { return this.findAll(pattern); }
         };
 
         return Popover;

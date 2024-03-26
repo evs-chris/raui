@@ -563,11 +563,13 @@ System.register(['ractive', './chunk7.js', './chunk8.js', './chunk2.js', './chun
             handler: function handler() {
               var this$1 = this;
 
-              requestAnimationFrame(function () {
-                var top = this$1.find('.rtable-top');
-                var ctx = top && this$1.getContext(top);
-                if (ctx && ctx.decorators && ctx.decorators.scrolled) { ctx.decorators.scrolled.refresh(); }
-              });
+              if (this.rendered) {
+                requestAnimationFrame(function () {
+                  var top = this$1.find('.rtable-top');
+                  var ctx = top && this$1.getContext(top);
+                  if (ctx && ctx.decorators && ctx.decorators.scrolled) { ctx.decorators.scrolled.refresh(); }
+                });
+              }
             },
             init: false
           },
