@@ -11,7 +11,6 @@ export function style(data) {
     display: inline-block;
     font-size: 0.9em;
     font-weight: 500;
-    color: ${primary.fg || '#222'};
     transition: 0.2s ease-in-out;
     transition-property: color;
     vertical-align: top;
@@ -34,6 +33,7 @@ export function style(data) {
     margin: 0.8em 0.2em;
     min-height: auto;
     background-color: ${boxy ? primary.bg || '#fff' : 'transparent'};
+    color: ${primary.fg || '#222'};
   }
 
   label.field.focus {
@@ -59,6 +59,7 @@ export function style(data) {
     border-style: solid;
     box-sizing: border-box;
     background-color: ${boxy ? primary.bg || '#fff' : 'transparent'};
+    color: ${primary.fg || '#222'};
     transition: 0.2s ease-in-out;
     transition-property: box-shadow, color;
     outline: none;
