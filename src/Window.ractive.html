@@ -1385,6 +1385,7 @@
   primary.action = Object.assign({}, data('raui.window.action'), data('raui.window.primary.action'));
   primary.host = Object.assign({}, data('raui.window.host'), data('raui.window.primary.host'));
   primary.title = Object.assign({ inactive: {} }, data('raui.window.title'), data('raui.window.primary.title'));
+  primary.topmost = Object.assign({}, data('raui.primary'), data('raui.window.primary'), data('raui.window.primary.topmost'));
   return `
   .rwhost {
     position: relative;
@@ -1465,7 +1466,7 @@
   }
 
   .rwindow-topmost > .rwindow {
-    box-shadow: 0 6px 10px 0 rgba(0, 0, 0, 0.14), 0 1px 18px 0 rgba(0, 0, 0, 0.12), 0 3px 5px -1px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 6px 10px 0 ${primary.topmost.shadow || 'rgba(0, 0, 0, 0.14)'}, 0 1px 18px 0 ${primary.topmost.shadow || 'rgba(0, 0, 0, 0.12)'}, 0 3px 5px -1px ${primary.topmost.shadow || 'rgba(0, 0, 0, 0.3)'};
     opacity: 1;
   }
 
@@ -1494,7 +1495,7 @@
     box-sizing: border-box;
     background-color: ${primary.bg || '#fff'};
     color: ${primary.fg || '#222'};
-    box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.14), 0 1px 5px 0 rgba(0, 0, 0, 0.12), 0 3px 1px -2px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 2px 2px 0 ${primary.shadow || 'rgba(0, 0, 0, 0.14)'}, 0 1px 5px 0 ${primary.shadow || 'rgba(0, 0, 0, 0.12)'}, 0 3px 1px -2px ${primary.shadow || 'rgba(0, 0, 0, 0.2)'};
     border-radius: 2px;
     overflow: hidden;
     width: 100%;
