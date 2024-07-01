@@ -34,6 +34,8 @@
 
     For content children that have an attribute version, the attribute takes precedent over the child e.g. `<item title=Foo><title>Bar</title></item>` will result in an item titled `Foo`.
 
+    For the left, right, and title sections, the menu item data is available as `menu`, so things like the `ref` are accessible without having to copy the string in.
+
     * `item` - a menu item
       * #### Attributes
         * `title: string` - the title to display in the item. THis is rendered 
@@ -42,7 +44,7 @@
         * `ref: string` - the id for this item. You can get an API handle to items using their `ref`, if supplied. If this is an expression, it will automatically be mapped into the containing menu.
         * `active: boolean | Handle -> boolean` - whether or not the item is currently active. This lets your application notify the menu when something changes states without involving the menu.
         * `open` - if preset, the item will start in an open state if it has children
-        * `disabled: boolean = true` - whether or not the menu item should be disabled
+        * `disabled: boolean | () => boolean = false` - whether or not the menu item should be disabled
         * `marquee: boolean` - if true, will detect long titles and animate them as a marquee on hover
       * #### Children
         * `title` - any children are collected into a partial and yielded in the title section of the item

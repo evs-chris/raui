@@ -5,6 +5,7 @@ export interface MenuItem {
   type?: 'item' | 'section' | 'container';
   ref?: string;
   active?: (handle: Handle) => boolean;
+  disabled?: boolean | (() => boolean);
   action?: () => void;
   left?: string;
   title?: string;
