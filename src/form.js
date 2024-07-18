@@ -608,6 +608,7 @@ export const macro = Ractive.macro(handle => {
   const type = attrs.find(a => a.n === 'type');
   const tip = attrs.find(a => a.n === 'tip');
   const disabled = attrs.find(a => a.n === 'disabled');
+  const maxlength = attrs.find(a => a.n === 'maxlength');
   if (tip) attrs.splice(attrs.indexOf(tip), 1);
 
   if (type && typeof macro.types[type.f] === 'function') {
@@ -617,6 +618,7 @@ export const macro = Ractive.macro(handle => {
       t: 7, e: 'input', m: [value]
     };
     if (disabled) el.m.push(disabled);
+    if (maxlength) el.m.push(maxlength);
     // watch for select
     if (findDeep(content, 'option')) {
       el.e = 'select';
