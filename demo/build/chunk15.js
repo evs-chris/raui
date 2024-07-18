@@ -207,6 +207,7 @@ System.register(['./chunk2.js', 'ractive'], function (exports, module) {
         var type = attrs.find(function (a) { return a.n === 'type'; });
         var tip = attrs.find(function (a) { return a.n === 'tip'; });
         var disabled = attrs.find(function (a) { return a.n === 'disabled'; });
+        var maxlength = attrs.find(function (a) { return a.n === 'maxlength'; });
         if (tip) { attrs.splice(attrs.indexOf(tip), 1); }
 
         if (type && typeof macro.types[type.f] === 'function') {
@@ -216,6 +217,7 @@ System.register(['./chunk2.js', 'ractive'], function (exports, module) {
             t: 7, e: 'input', m: [value]
           };
           if (disabled) { el.m.push(disabled); }
+          if (maxlength) { el.m.push(maxlength); }
           // watch for select
           if (findDeep(content, 'option')) {
             el.e = 'select';
