@@ -613,13 +613,13 @@
       },
       'scrollOffset tableHeight': {
         handler() {
-          if (this.rendered) {
-            requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            if (this.rendered) {
               const top = this.find('.rtable-top');
               const ctx = top && this.getContext(top);
               if (ctx && ctx.decorators && ctx.decorators.scrolled) ctx.decorators.scrolled.refresh();
-            });
-          }
+            }
+          });
         },
         init: false
       },
