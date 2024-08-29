@@ -237,6 +237,8 @@
       }
 
       if (!window.id) window.set('@.id', options.id || `window${id++}`);
+      const cur = this.getWindow(window.id);
+      if (cur && cur !== window) throw new Error('duplicate window id', window.id);
       if (!this.get(`windows.${escape(window.id)}`)) {
         this.set(`windows.${escape(window.id)}`, Object.assign({ show: options.show !== false, autosize: true, id: window.id, blockers: [], close: true, minimize: true, maximize: true, minWidth: '5em', minHeight: '5em' }, options, { id: window.id }));
       }
@@ -302,6 +304,17 @@
       this.fire('add', {}, { window, options });
 
       return promise.then(() => window);
+    }
+
+    changeWindowId(id, newId) {
+      const wnd = this.getWindow(id);
+      if (!wnd) return;
+      wnd.set('@.id', newId);
+      this.set(`windows.${escape(newId)}`, this.get(`windows.${escape(id)}`));
+      wnd.link(`windows.${escape(newId)}`, 'control', { instance: this });
+      this.set(`windows.${escape(id)}`, undefined);
+      delete this.get('windows')[id];
+      this.set(`windows.${escape(newId)}.id`, newId);
     }
 
     getWindow(id) {
