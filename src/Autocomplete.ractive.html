@@ -271,6 +271,16 @@
       h.observe('rac.popped', v => {
         if (v) setTimeout(() => justPopped = false, 300);
         justPopped = true;
+        const pop = h.get('rac.pop');
+        if (v && pop) {
+          setTimeout(() => {
+            const root = pop.find('div');
+            if (root && !root._completeevent) {
+              root.addEventListener('mousedown', keepFocus);
+              root._completeevent = 'added';
+            }
+          }, 300);
+        }
       }),
     ];
 
@@ -281,6 +291,13 @@
       const inputs = h.findAll('input').concat(h.get('rac.pop').popFindAll('input'));
       if (document.activeElement && !~inputs.indexOf(document.activeElement)) h.get('rac.key')({ which: 9 });
     });
+
+    function keepFocus(ev) {
+      const input = h.find('input');
+      if (input) input.focus();
+      ev.preventDefault();
+      return false;
+    }
 
     function teardown() {
       h.unlink('rac.items');
