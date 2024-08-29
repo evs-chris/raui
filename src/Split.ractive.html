@@ -91,6 +91,15 @@
       else this.toggle(`splits.${idx}.min`);
       this._adjustSizes();
     }
+
+    size(idx, size) {
+      if (this.get(`splits.${idx}`)) {
+        const sets = {};
+        sets[`splits.${idx}.lastSet`] = sets[`splits.${idx}.curSize`] = sets[`splits.${idx}.size`] = size;
+        this.set(sets);
+        this._adjustSizes();
+      }
+    }
   }
 
   Ractive.extendWith(Split, {
