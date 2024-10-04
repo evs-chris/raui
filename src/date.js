@@ -342,6 +342,7 @@ function updateValues(groups, target, pos = 0, leave = false) {
       } else {
         g.display = padr(v, g.length, blankChar);
         g.value = +v;
+        if (g.type === 'M') g.value--;
       }
     }
   }
