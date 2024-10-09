@@ -38,24 +38,40 @@ export default function makeAceEditor(opts = {}) {
       editor.moveCursorTo(pos.row, pos.column, false);
       lock = false;
     }
+    editor.commands.addCommand({
+      name: 'save',
+      bindKey: { win: 'Ctrl-S', mac: 'Command-S', sender: 'editor|cli' }, 
+      exec: function() {
+        ctx.raise('save');
+      }
+    });
 
     handle.update = function(options) {
       if (!options) return;
       if (options.syntax) editor.getSession().setMode('ace/mode/' + options.syntax);
       if (options.theme) editor.setTheme('ace/theme/' + options.theme);
       session.setTabSize(options.tabSize || 2);
-      if (typeof options.margin === 'boolean') editor.setShowPrintMargin(options.margin);
-      if (typeof options.wrap === 'boolean') session.setUseWrapMode(options.wrap);
-      if (typeof options.highlightActive === 'boolean') editor.setHighlightActiveLine(options.highlightActive);
+      if (typeof options.margin === 'boolean') { editor.setShowPrintMargin(options.margin); }
+      if (typeof options.wrap === 'boolean') { session.setUseWrapMode(options.wrap); }
+      if (typeof options.highlightActive === 'boolean') { editor.setHighlightActiveLine(options.highlightActive); }
+      if (typeof options.highlightSelected === 'boolean') { editor.setHighlightSelectedWord(options.highlightSelected); }
+      if (options.font) editor.setOptions({ fontFamily: options.font });
+      if (options.fontSize) editor.setOptions({ fontSize: options.fontSize });
+      if ('printMargin' in options) editor.setOption('showPrintMargin', options.printMargin);
+      if (typeof options.lineNumbers === 'boolean') editor.setOption('showLineNumbers', options.lineNumbers);
+      if (typeof options.relativeLineNumbers === 'boolean') editor.setOption('relativeLineNumbers', options.relativeLineNumbers);
 
-      if ('keymode' in options) editor.setKeyboardHandler(options.keymode);
+
+      if ('keymode' in options && options.keymode) editor.setKeyboardHandler(`ace/keyboard/${options.keymode}`);
       else editor.setKeyboardHandler(null)
 
       if (options.bind !== binding) {
-        if (observer) observer.cancel();
+        var old = observer;
+        if (old) observer.cancel();
         if (options.bind) {
           binding = options.bind;
           observer = ctx.observe(binding, observed, { init: false });
+          if (old) setTimeout(function() { observed(ctx.get(options.bind)); });
         }
       }
     };
