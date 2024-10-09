@@ -401,6 +401,7 @@ export function style(data) {
     top: 1.${boxy ? '15' : '1'}em;
   }
 
+  .just-the.field-tip,
   label.field .field-tip {
     display: inline-block;
     width: 1em;
@@ -411,9 +412,17 @@ export function style(data) {
     user-select: none;
     border-radius: 1em;
     margin-left: 0.5em;
-    line-height: 1.2em;
+    line-height: 1em;
+    font-family: monospace;
     text-align: center;
     margin-top: -0.2em;
+    cursor: help;
+  }
+  .just-the.field-tip.field-tip-error {
+    background-color: ${primary.error || '#ca3c3c'};
+  }
+  .just-the.field-tip.field-tip-warn {
+    background-color: ${primary.warn || '#f79e0b'};
   }
 
   label.field .field-solo-tip {
@@ -673,7 +682,7 @@ export const macro = Ractive.macro(handle => {
       { t: 13, n: 'title', f: tip.f },
       { t: 70, n: ['click'], f: { r: [], s: '[false]' } }
     ],
-    f: '?'
+    f: '?',
   });
   const inline = attrs.find(a => a.n === 'inline');
   if (label && !inline) body.unshift.apply(body, label);
@@ -690,6 +699,30 @@ export const macro = Ractive.macro(handle => {
 });
 
 macro.types = {};
+
+const tip = Ractive.macro(handle => {
+  handle.aliasLocal('__rtip');
+  const body = [{
+    t: 7, e: 'span', m: (handle.template.m || []).concat([
+      { t: 13, n: 'class', f: [`just-the field-tip`, { t: 4, f: [' field-tip-error'], x: { r: ['__rtip.attrs.type'], s: '_0==="error"' } }, { t: 4, f: [' field-tip-warn'], x: { r: ['__rtip.attrs.type'], s: '_0==="warn"' } }] },
+      { t: 13, n: 'title', f: Array.isArray(handle.template.f) || typeof handle.template.f === 'string' ? handle.template.f : [handle.template.f] },
+      { t: 70, n: ['click'], f: { r: [], s: '[false]' } }
+    ]),
+    f: [{ t: 4, f: [{ t: 3, r: '__rtip.attrs.sign' }], n: 50, r: '__rtip.attrs.sign' }, { t: 4, f: ['!'], n: 50, x: { r: ['__rtip.attrs.type'], s: '_0==="error"||_0==="warn"' }, l: 1 }, { t: 4, f: ['?'], n: 51, l: 1 }],
+  }];
+
+  handle.set('__rtip.attrs', handle.attributes);
+
+  handle.setTemplate(body);
+
+  return {
+    update() {
+      handle.set('__rtip.attrs', handle.attributes);
+    }
+  };
+}, {
+  attributes: ['sign', 'type'],
+});
 
 export function autofocus(node, opts) {
   if (typeof node.focus === 'function' && !node.disabled) {
@@ -718,6 +751,7 @@ export function plugin(opts = {}) {
     }
 
     instance.partials[opts.name || 'field'] = macro;
+    instance.partials[opts.tipName || 'tip'] = tip;
     instance.decorators[opts.name || 'field'] = field;
     instance.decorators[opts.autofocusName || 'autofocus'] = autofocus;
   }
@@ -725,6 +759,7 @@ export function plugin(opts = {}) {
 
 globalRegister('field', 'decorators', field);
 globalRegister('field', 'partials', macro);
+globalRegister('tip', 'partials', tip);
 globalRegister('autofocus', 'decorators', autofocus);
 
 export default plugin;

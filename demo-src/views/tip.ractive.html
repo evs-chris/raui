@@ -1,0 +1,46 @@
+<tabs flat pad class-alt fill height=dynamic>
+  <tab title=Intro><marked>
+    A tooltip indicator that places its content in a title attribute for a hover message and rejects clicks. A top level click handler that checks for class `just-the` can be used to display the tip in something like a message or toast if desired.
+  </marked></tab>
+  <tab title=Usage><marked>
+    ### Attributes
+
+    * `type: 'error'|'warn'|'info'` - how the tip should be styled, with the default being info
+    * `sign: html` - what should be rendered as the content of the tip sigil
+  </marked></tab>
+  <tab title=Example>
+    <div>
+      <label as-field>Tip<textarea value="{{tip}}" /></label>
+      <label as-field>Type<select value="{{type}}">
+        <option value="{{undefined}}">(Default)</option>
+        <option>error</option>
+        <option>warn</option>
+        <option>info</option>
+      </select></label>
+      <label as-field>Sign<input value="{{sign}}" /></label>
+    </div>
+    <marked>
+      ### Template:
+      ```hbs
+      Check out this <tip bind-type bind-sign>{{tip}}</tip>
+      ```
+      ### Result:
+    </marked>
+    <div style="margin: 0 auto;">Check out this <tip type="{{type}}" sign="{{sign}}">{{tip}}</tip></div>
+  </tab>
+</tabs>
+
+<script>
+  import { Window } from 'cmp/Window';
+
+  export default Window.extend({
+    template: $TEMPLATE,
+    options: {
+      title: 'Component :: Tip',
+      resizable: true, flex: true,
+      width: '48em', height: '30em'
+    }
+  });
+</script>
+
+
