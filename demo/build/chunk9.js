@@ -363,6 +363,7 @@ System.register([], function (exports, module) {
             } else {
               g.display = padr(v, g.length, blankChar);
               g.value = +v;
+              if (g.type === 'M') { g.value--; }
             }
           }
         }

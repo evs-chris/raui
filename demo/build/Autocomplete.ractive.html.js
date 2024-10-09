@@ -266,6 +266,16 @@ System.register(['ractive', './chunk10.js', './chunk15.js', './chunk2.js'], func
           h.observe('rac.popped', function (v) {
             if (v) { setTimeout(function () { return justPopped = false; }, 300); }
             justPopped = true;
+            var pop = h.get('rac.pop');
+            if (v && pop) {
+              setTimeout(function () {
+                var root = pop.find('div');
+                if (root && !root._completeevent) {
+                  root.addEventListener('mousedown', keepFocus);
+                  root._completeevent = 'added';
+                }
+              }, 300);
+            }
           }) ];
 
         h.set('rac.checkBlur', function checkBlur(node) {
@@ -275,6 +285,13 @@ System.register(['ractive', './chunk10.js', './chunk15.js', './chunk2.js'], func
           var inputs = h.findAll('input').concat(h.get('rac.pop').popFindAll('input'));
           if (document.activeElement && !~inputs.indexOf(document.activeElement)) { h.get('rac.key')({ which: 9 }); }
         });
+
+        function keepFocus(ev) {
+          var input = h.find('input');
+          if (input) { input.focus(); }
+          ev.preventDefault();
+          return false;
+        }
 
         function teardown() {
           h.unlink('rac.items');

@@ -595,6 +595,8 @@ System.register(['ractive'], function (exports, module) {
           }
 
           if (!window.id) { window.set('@.id', options.id || ("window" + (id$1++))); }
+          var cur = this.getWindow(window.id);
+          if (cur && cur !== window) { throw new Error('duplicate window id', window.id); }
           if (!this.get(("windows." + (escape(window.id))))) {
             this.set(("windows." + (escape(window.id))), Object.assign({ show: options.show !== false, autosize: true, id: window.id, blockers: [], close: true, minimize: true, maximize: true, minWidth: '5em', minHeight: '5em' }, options, { id: window.id }));
           }
@@ -660,6 +662,17 @@ System.register(['ractive'], function (exports, module) {
           this.fire('add', {}, { window: window, options: options });
 
           return promise.then(function () { return window; });
+        };
+
+        Host.prototype.changeWindowId = function changeWindowId (id, newId) {
+          var wnd = this.getWindow(id);
+          if (!wnd) { return; }
+          wnd.set('@.id', newId);
+          this.set(("windows." + (escape(newId))), this.get(("windows." + (escape(id)))));
+          wnd.link(("windows." + (escape(newId))), 'control', { instance: this });
+          this.set(("windows." + (escape(id))), undefined);
+          delete this.get('windows')[id];
+          this.set(("windows." + (escape(newId)) + ".id"), newId);
         };
 
         Host.prototype.getWindow = function getWindow (id) {
@@ -1527,14 +1540,14 @@ System.register(['ractive'], function (exports, module) {
             // resizing from top/left requires top/left/width/height adjustments
             var set = {};
 
-            if (iy <= size) {
+            if (iy <= min) {
               set['control.top'] = oy + dy;
               set['control.height'] = oh - dy;
             } else {
               set['control.height'] = oh + dy;
             }
 
-            if (ix <= size) {
+            if (ix <= min) {
               set['control.left'] = ox + dx;
               set['control.width'] = ow - dx;
             } else {

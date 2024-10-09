@@ -87,6 +87,15 @@ System.register(['ractive', './chunk2.js'], function (exports, module) {
           this._adjustSizes();
         };
 
+        Split.prototype.size = function size (idx, size$1) {
+          if (this.get(("splits." + idx))) {
+            var sets = {};
+            sets[("splits." + idx + ".lastSet")] = sets[("splits." + idx + ".curSize")] = sets[("splits." + idx + ".size")] = size$1;
+            this.set(sets);
+            this._adjustSizes();
+          }
+        };
+
         return Split;
       }(Ractive$1));
 
