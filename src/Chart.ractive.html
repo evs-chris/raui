@@ -37,7 +37,7 @@
       {{/if}}
     </svg>
   {{elseif .type === 'line'}}
-  <svg viewBox="{{-~/dot}} {{Math.min(~/dot * -2, ((~/span + (2 * ~/dot)) - graph.maxY) - (2 * ~/dot))}} {{graph.span + (2 * ~/dot)}} {{Math.max(~/span + (4 * ~/dot), graph.maxY + (-1 * Math.min(graph.minY, 0)) + (4 * ~/dot))}}" style-min-width="{{graph.span}}px" {{#if ~/svgA}}{{yield svgA}}{{/if}}>
+    <svg viewBox="{{-~/dot}} {{Math.min(~/dot * -2, ((~/span + (2 * ~/dot)) - graph.maxY) - (2 * ~/dot))}} {{graph.span + (2 * ~/dot)}} {{Math.max(~/span + (4 * ~/dot), graph.maxY + (-1 * Math.min(graph.minY, 0)) + (4 * ~/dot))}}" style-min-width="{{graph.span}}px" {{#if ~/svgA}}{{yield svgA}}{{/if}}>
       <path d="M 0,{{graph.bottom}} {{graph.span}},{{graph.bottom}} Z" stroke="#000" stroke-width="1" />
       {{#each graph.groups}}
         <path d="M {{graph.minX + ~/dot}},{{graph.bottom}}
@@ -51,7 +51,7 @@
           </circle>
         {{/each}}
       {{/each}}
-  	</svg>
+    </svg>
   {{/if}}
   {{#if ~/legend}}
     <div class="rg-legend">
@@ -359,8 +359,7 @@
   }
   .rg-graph svg {
     box-sizing: border-box;
-    margin-left: auto;
-    margin-right: auto;
+    margin: auto;
   }
   .rg-graph-pie .rg-chonk, .rg-graph-donut .rg-chonk, .rg-graph-tire .rg-chonk {
     transition: transform 0.3s ease, opacity 0.3s ease;
