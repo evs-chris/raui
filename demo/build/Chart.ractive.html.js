@@ -57,6 +57,149 @@ System.register(['./chunk2.js', 'ractive'], function (exports, module) {
         Chart.prototype = Object.create( Ractive && Ractive.prototype );
         Chart.prototype.constructor = Chart;
 
+        Chart.prototype._graph = function _graph () {
+          var this$1 = this;
+
+          this._graphtm = undefined;
+          var data = this.get('data');
+          if (!Array.isArray(data)) { data = [[]]; }
+          if (!Array.isArray(data[0])) { data = [data]; }
+
+          var type = this.get('type');
+          var ref = data.reduce(function (a, c) {
+            return c.reduce(function (aa, cc) {
+              if (cc.value < a[0]) { a[0] = cc.value; }
+              if (cc.value > a[1]) { a[1] = cc.value; }
+              return a;
+            }, 0);
+          }, [0, 0]);
+          var min = ref[0];
+          var max = ref[1];
+
+          var dot = this.get('dot') || 1;
+          var range = max - min;
+          var bottom = min < 0 ? min * -1 : -min;
+          var colors = this.get('colors');
+          var point = this.get('point');
+          var space = type === 'line' ? 0 : this.get('space');
+          
+          var horiz = this.get('horizontal');
+          var flip = horiz ? this.get('flip') : !this.get('flip');
+          
+          var bar = this.get('span');
+          var smooth = type === 'line' && this.get('smooth');
+          var project = this.get('project');
+          
+          var points;
+          if (type === 'line') {
+            points = data.map(function (ps) {
+              return ps.map(function (d, i) {
+                var p = Object.assign({
+                  x: i * point + i * space + space,
+                  y: (bottom / range) * bar,
+                  y2: ((d.value + bottom) / range) * bar,
+                  idx: i,
+                  point: d,
+                }, d);
+                p.x2 = p.x + point;
+                p.comp = p.y2;
+                p.x += dot;
+                p.x2 += dot;
+                if (smooth && project && i > 0 && i + 1 < ps.length) {
+                  var prev = ((ps[i - 1].value + bottom) / range) * bar;
+                  var next = ((ps[i + 1].value + bottom) / range) * bar;
+                  var off = (prev + next + p.comp) / 6;
+                  if (prev > p.comp) { p.comp = p.comp - off; }
+                  else { p.comp = p.comp + off; }
+                }
+                if (flip) {
+                  p.y = bar - p.y;
+                  p.y2 = bar - p.y2;
+                }
+                if (!p.color) { p.color = colors[i % colors.length]; }
+                return p;
+              });
+            });
+            
+            if (smooth) {
+              points.forEach(function (points, i) {
+                points.forEach(function (p, i) {
+                  var assign, assign$1;
+
+                  if (i === 0) { return; }
+                  (assign = bezierControl(true, points[i - 1], points[i - 2], p, smooth), p.sx = assign[0], p.sy = assign[1]);
+                  (assign$1 = bezierControl(false, p, points[i - 1], points[i + 1], smooth), p.ex = assign$1[0], p.ey = assign$1[1]);
+                });
+              });
+            }
+          } else {
+            var single = false;
+            var orig = data;
+            if (data.length === 1 && Array.isArray(data[0])) {
+              single = true;
+              data = data[0].map(function (d) { return data[0]; });
+            }
+            var off = point / data.length;
+            var sub = this.get('sub') || 'cluster';
+            var gap = this.get('clustergap') || 0;
+            points = data.map(function (ds, i) {
+              var ps = ds.map(function (_, ii) { return data[ii] && data[ii][i] || { value: 0 }; });
+              var res = ps.map(function (d, ii) {
+                var p = Object.assign({
+                  x: i * point + i * space + space,
+                  y: (bottom / range) * bar,
+                  y2: ((d.value + bottom) / range) * bar,
+                  idx: i,
+                  point: d,
+                  }, d, { label: single ? orig[0][i].label : d.label });
+                p.x2 = p.x + point;
+                p.comp = p.y2;
+                if (!single && sub === 'cluster') {
+                  p.x += off * ii;
+                  p.x2 = p.x + off - gap;
+                }
+                if (flip) {
+                  p.y = bar - p.y;
+                  p.y2 = bar - p.y2;
+                }
+                if (!p.color) { p.color = colors[(single ? i : ii) % colors.length]; }
+                return p;
+              });
+              if (sub === 'stack') { res.sort(function (l, r) { return l.value > r.value ? -1 : l.value < r.value ? 1 : 0; }); }
+              return res;
+            });
+          }
+
+          var groups = points.map(function (points, i) {
+            var g = { points: points, color: colors[i % colors.length] };
+            var base = type === 'bar' && this$1.get('sub') === 'stack' ? data[i] : points;
+            if (base && base[i] && base[i].label) { g.label = base[i].label; }
+            return g;
+          });
+          if (type === 'line') {
+            groups.sort(function (l, r) {
+              var avgl = l.points.reduce(function (a, c) { return a + c.value; }, 0) / l.points.length;
+              var avgr = r.points.reduce(function (a, c) { return a + c.value; }, 0) / r.points.length;
+              return (avgl < avgr ? 1 : avgl > avgr ? -1 : 0);
+            });
+            groups.forEach(function (g, i) { return g.color = colors[i % colors.length]; });
+          }
+
+          var len = data.reduce(function (a, c) { return c.length > a ? c.length : a; }, 0);
+
+          this.set('graph', {
+            bottom: flip ? bar - (bottom / range) * bar : (bottom / range) * bar,
+            min: min, max: max,
+            horiz: type === 'line' ? false : horiz, flip: flip,
+            span: (type === 'line' ? len - 1 : len) * point + (len + 2) * space + (type === 'line' ? dot * 2 : 0),
+            minX: points.reduce(function (a, ps) { return ps.reduce(function (aa, c) { return c.x < aa ? c.x : aa; }, a); }, 0),
+            maxX: points.reduce(function (a, ps) { return ps.reduce(function (aa, c) { return c.x > aa ? c.x : aa; }, a); }, 0),
+            minY: points.reduce(function (a, ps) { return ps.reduce(function (aa, c) { return c.comp < aa ? c.comp : aa; }, a); }, 0),
+            maxY: points.reduce(function (a, ps) { return ps.reduce(function (aa, c) { return c.comp > aa ? c.comp : aa; }, a); }, 0),
+            groups: groups
+          });
+        };
+
         return Chart;
       }(Ractive$1));
 
@@ -77,7 +220,7 @@ System.register(['./chunk2.js', 'ractive'], function (exports, module) {
 
       Ractive$1.extendWith(Chart, {
         template: {v:4,t:[{t:7,e:"div",m:[{n:"class",f:["rg-graph rg-graph-",{t:2,r:".type"}],t:13},{t:4,f:[{n:"class-rg-graph-h",t:13,f:[{t:2,r:"graph.horiz"}]},{n:"class-rg-graph-v",t:13,f:[{t:2,x:{r:["graph.horiz"],s:"!_0"}}]}],n:50,x:{r:[".type"],s:"_0===\"bar\""}},{t:16,r:"extra-attributes"}],f:[{t:4,f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rg-graph-circular",g:1}],f:[{t:4,f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rg-graph-middle",g:1}],f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rg-content",g:1}],f:[{t:16,z:[{n:"selected",x:{r:"~/selected"}},{n:"hovered",x:{r:"~/hovered"}}]}]}]}],n:50,x:{r:[".type","@this.partials.content"],s:"(_0===\"donut\"||_0===\"tire\"||_0===\"hoop\")&&_1"}}," ",{t:7,e:"svg",m:[{n:"width",f:"100%",t:13,g:1},{n:"height",f:"100%",t:13,g:1},{n:"viewBox",f:"-55 -55 110 110",t:13,g:1},{t:4,f:[{t:16,r:"svgA"}],n:50,r:"~/svgA"}],f:[{t:4,f:[{t:7,e:"path",m:[{n:"d",f:[{t:2,r:".d"}],t:13},{n:"class",f:["rg-chonk rg-chonk-",{t:2,r:"@index"}],t:13},{t:4,f:[{n:["click"],t:70,f:{r:[".","@context",".value",".label",".point"],s:"[_0.click((_1),_2,_3,_4)]"}}],n:50,r:".click"},{n:["click"],t:70,f:{r:[".value",".label",".point"],s:"[[\"select\",_0,_1,_2]]"}},{n:"style-fill",f:[{t:2,r:".color"}],t:13},{n:["mouseenter"],t:70,f:{r:[".value",".label",".point"],s:"[[\"hover\",_0,_1,_2]]"}}],f:[{t:4,f:[{t:7,e:"title",f:[{t:2,r:".label"}," ",{t:4,f:["(",{t:2,r:".value"},")"],n:51,r:"~/nolabelvalue"},{t:4,f:[{t:2,x:{r:[".sublabel"],s:"\"\\n\"+_0"}}],n:50,r:".sublabel"}]}],n:50,r:".label"}]}],n:52,r:"chonks"}]}]}],n:50,x:{r:[".type"],s:"_0===\"pie\"||_0===\"donut\"||_0===\"tire\"||_0===\"hoop\""}},{t:4,f:[{t:7,e:"svg",m:[{n:"viewBox",f:["0 0 ",{t:2,x:{r:["graph.horiz","~/span","graph.span"],s:"_0?_1:_2"}}," ",{t:2,x:{r:["graph.horiz","graph.span","~/span"],s:"_0?_1:_2"}}],t:13},{t:4,f:[{n:"style-min-height",f:[{t:2,r:"graph.span"},"px"],t:13}],n:50,r:"graph.horiz"},{t:4,f:[{n:"style-min-width",f:[{t:2,r:"graph.span"},"px"],t:13}],n:51,l:1},{t:4,f:[{t:16,r:"svgA"}],n:50,r:"~/svgA"}],f:[{t:4,f:[{t:4,f:[{t:4,f:[{t:7,e:"path",m:[{n:"d",f:["M ",{t:2,r:".y"},",",{t:2,r:".x"}," ",{t:2,r:".y"},",",{t:2,r:".x2"},", ",{t:2,r:".y2"},",",{t:2,r:".x2"}," ",{t:2,r:".y2"},",",{t:2,r:".x"}," Z"],t:13},{n:"style-fill",f:[{t:2,r:".color"}],t:13},{t:4,f:[{n:["click"],t:70,f:{r:[".","@context",".value",".label",".point"],s:"[_0.click((_1),_2,_3,_4)]"}}],n:50,r:".click"},{n:["click"],t:70,f:{r:[".value",".label",".point"],s:"[[\"select\",_0,_1,_2]]"}},{n:["mouseenter"],t:70,f:{r:[".value",".label",".point"],s:"[[\"hover\",_0,_1,_2]]"}}],f:[{t:7,e:"title",f:[{t:4,f:[{t:2,r:".label"},{t:4,f:[" (",{t:2,r:".value"},")"],n:51,r:"~/nolabelvalue"},{t:4,f:[{t:2,x:{r:[".sublabel"],s:"\"\\n\"+_0"}}],n:50,r:".sublabel"}],n:50,r:".label"},{t:4,f:[{t:2,r:".value"}],n:51,l:1}]}]}],n:52,i:"idx",r:".points"}],n:52,i:"grp",r:"graph.groups"}," ",{t:7,e:"path",m:[{n:"d",f:["M ",{t:2,r:"graph.bottom"},",0 ",{t:2,r:"graph.bottom"},",",{t:2,r:"graph.span"}," Z"],t:13},{n:"stroke",f:"#000",t:13,g:1},{n:"stroke-width",f:"1",t:13,g:1}]}],n:50,r:"graph.horiz"},{t:4,f:[{t:4,f:[{t:4,f:[{t:7,e:"path",m:[{n:"d",f:["M ",{t:2,r:".x"},",",{t:2,r:".y"}," ",{t:2,r:".x"},",",{t:2,r:".y2"},", ",{t:2,r:".x2"},",",{t:2,r:".y2"}," ",{t:2,r:".x2"},",",{t:2,r:".y"}," Z"],t:13},{n:"style-fill",f:[{t:2,r:".color"}],t:13},{t:4,f:[{n:["click"],t:70,f:{r:[".","@context",".value",".label",".point"],s:"[_0.click((_1),_2,_3,_4)]"}}],n:50,r:".click"},{n:["click"],t:70,f:{r:[".value",".label",".point"],s:"[[\"select\",_0,_1,_2]]"}},{n:["mouseenter"],t:70,f:{r:[".value",".label",".point"],s:"[[\"hover\",_0,_1,_2]]"}}],f:[{t:7,e:"title",f:[{t:4,f:[{t:2,r:".label"},{t:4,f:[" (",{t:2,r:".value"},")"],n:51,r:"~/nolabelvalue"},{t:4,f:[{t:2,x:{r:[".sublabel"],s:"\"\\n\"+_0"}}],n:50,r:".sublabel"}],n:50,r:".label"},{t:4,f:[{t:2,r:".value"}],n:51,l:1}]}]}],n:52,r:".points"}],n:52,r:"graph.groups"}," ",{t:7,e:"path",m:[{n:"d",f:["M 0,",{t:2,r:"graph.bottom"}," ",{t:2,r:"graph.span"},",",{t:2,r:"graph.bottom"}," Z"],t:13},{n:"stroke",f:"#000",t:13,g:1},{n:"stroke-width",f:"1",t:13,g:1}]}],n:51,l:1}]}," "],n:50,x:{r:[".type"],s:"_0===\"bar\""},l:1},{t:4,f:[" ",{t:7,e:"svg",m:[{n:"viewBox",f:[{t:2,x:{r:["~/dot"],s:"-_0"}}," ",{t:2,x:{r:["~/span","graph.maxY","~/dot"],s:"Math.min(_2*-2,((_0+(2*_2))-_1)-(2*_2))"}}," ",{t:2,x:{r:["graph.span","~/dot"],s:"_0+(2*_1)"}}," ",{t:2,x:{r:["~/span","graph.maxY","graph.minY","~/dot"],s:"Math.max(_0+(4*_3),_1+(-1*Math.min(_2,0))+(4*_3))"}}],t:13},{n:"style-min-width",f:[{t:2,r:"graph.span"},"px"],t:13},{t:4,f:[{t:16,r:"svgA"}],n:50,r:"~/svgA"}],f:[{t:7,e:"path",m:[{n:"d",f:["M 0,",{t:2,r:"graph.bottom"}," ",{t:2,r:"graph.span"},",",{t:2,r:"graph.bottom"}," Z"],t:13},{n:"stroke",f:"#000",t:13,g:1},{n:"stroke-width",f:"1",t:13,g:1}]}," ",{t:4,f:[{t:7,e:"path",m:[{n:"d",f:["M ",{t:2,x:{r:["graph.minX","~/dot"],s:"_0+_1"}},",",{t:2,r:"graph.bottom"}," ",{t:4,f:[{t:4,f:[{t:4,f:["S ",{t:2,r:".sx"},",",{t:2,r:".sy"}," ",{t:2,r:".x"},",",{t:2,r:".y2"}],n:50,r:"~/project"},{t:4,f:["C ",{t:2,r:".sx"},",",{t:2,r:".sy"}," ",{t:2,r:".ex"},",",{t:2,r:".ey"}," ",{t:2,r:".x"},",",{t:2,r:".y2"}],n:51,l:1}],n:50,x:{r:["."],s:"\"sx\" in _0"}},{t:4,f:["L ",{t:2,r:".x"},",",{t:2,r:".y2"}],n:51,l:1},{t:2,x:{r:[],s:"\" \""}}],n:52,r:".points"}," L ",{t:2,r:"~/graph.maxX"},",",{t:2,r:"~/graph.bottom"}," Z"],t:13},{n:"fill",f:[{t:2,r:".color"}],t:13},{t:4,f:[{n:"opacity",f:"0.6",t:13}],n:50,x:{r:["~/graph.groups.length"],s:"_0>1"}},{t:4,f:[{n:"opacity",f:"0.8",t:13}],n:51,l:1},{n:"stroke",f:"#000",t:13,g:1},{n:"stroke-width",f:"1",t:13,g:1}]}],n:52,r:"graph.groups"}," ",{t:4,f:[{t:4,f:[{t:7,e:"circle",m:[{n:"r",f:[{t:2,r:"~/dot"}],t:13},{n:"cx",f:[{t:2,r:".x"}],t:13},{n:"cy",f:[{t:2,r:".y2"}],t:13},{n:"fill",f:[{t:4,f:[{t:2,r:".color"}],n:50,x:{r:["~/graph.groups.length"],s:"_0===1"}},{t:4,f:[{t:2,r:"^^/color"}],n:51,l:1}],t:13},{t:4,f:[{n:["click"],t:70,f:{r:[".","@context",".value",".label",".point"],s:"[_0.click((_1),_2,_3,_4)]"}}],n:50,r:".click"},{n:["click"],t:70,f:{r:[".value",".label",".point"],s:"[[\"select\",_0,_1,_2]]"}},{n:"stroke-width",f:"1",t:13,g:1},{n:"stroke",f:"#000",t:13,g:1},{n:["mouseenter"],t:70,f:{r:[".value",".label",".point"],s:"[[\"hover\",_0,_1,_2]]"}}],f:[{t:7,e:"title",f:[{t:4,f:[{t:2,r:".label"},{t:4,f:[" (",{t:2,r:".value"},")"],n:51,r:"~/nolabelvalue"},{t:4,f:[{t:2,x:{r:[".sublabel"],s:"\"\\n\"+_0"}}],n:50,r:".sublabel"}],n:50,r:".label"},{t:4,f:[{t:2,r:".value"}],n:51,l:1}]}]}],n:52,r:".points"}],n:52,r:"graph.groups"}]}],n:50,x:{r:[".type"],s:"_0===\"line\""},l:1}," ",{t:4,f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rg-legend",g:1}],f:[{t:4,f:[{t:4,f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rg-legend-entry",g:1}],f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rg-legend-color",g:1},{n:"style",f:["background-color: ",{t:2,r:".color"},";"],t:13}]}," ",{t:2,r:".label"}]}],n:52,r:"chonks"}],n:50,x:{r:[".type"],s:"_0!==\"bar\"&&_0!==\"line\""}},{t:4,f:[{t:4,f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rg-legend-entry",g:1}],f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rg-legend-color",g:1},{n:"style",f:["background-color: ",{t:2,r:".color"},";"],t:13}]}," ",{t:2,r:".label"}]}],n:52,r:"graph.groups.0.points"}," "],n:50,x:{r:[".type","graph.groups.length"],s:"_0===\"line\"&&_1===1"},l:1},{t:4,f:[" ",{t:4,f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rg-legend-entry",g:1}],f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rg-legend-color",g:1},{n:"style",f:["background-color: ",{t:2,r:".color"},";"],t:13}]}," ",{t:2,r:".label"}]}],n:52,r:"graph.groups"}],n:51,l:1}]}],n:50,r:"~/legend"}]}],e:{"!_0":function (_0){return(!_0);},"_0===\"bar\"":function (_0){return(_0==="bar");},"(_0===\"donut\"||_0===\"tire\"||_0===\"hoop\")&&_1":function (_0,_1){return((_0==="donut"||_0==="tire"||_0==="hoop")&&_1);},"[_0.click((_1),_2,_3,_4)]":function (_0,_1,_2,_3,_4){return([_0.click((_1),_2,_3,_4)]);},"[[\"select\",_0,_1,_2]]":function (_0,_1,_2){return([["select",_0,_1,_2]]);},"[[\"hover\",_0,_1,_2]]":function (_0,_1,_2){return([["hover",_0,_1,_2]]);},"\"\\n\"+_0":function (_0){return("\n"+_0);},"_0===\"pie\"||_0===\"donut\"||_0===\"tire\"||_0===\"hoop\"":function (_0){return(_0==="pie"||_0==="donut"||_0==="tire"||_0==="hoop");},"_0?_1:_2":function (_0,_1,_2){return(_0?_1:_2);},"-_0":function (_0){return(-_0);},"Math.min(_2*-2,((_0+(2*_2))-_1)-(2*_2))":function (_0,_1,_2){return(Math.min(_2*-2,((_0+(2*_2))-_1)-(2*_2)));},"_0+(2*_1)":function (_0,_1){return(_0+(2*_1));},"Math.max(_0+(4*_3),_1+(-1*Math.min(_2,0))+(4*_3))":function (_0,_1,_2,_3){return(Math.max(_0+(4*_3),_1+(-1*Math.min(_2,0))+(4*_3)));},"_0+_1":function (_0,_1){return(_0+_1);},"\"sx\" in _0":function (_0){return("sx" in _0);},"\" \"":function (){return(" ");},"_0>1":function (_0){return(_0>1);},"_0===1":function (_0){return(_0===1);},"_0===\"line\"":function (_0){return(_0==="line");},"_0!==\"bar\"&&_0!==\"line\"":function (_0){return(_0!=="bar"&&_0!=="line");},"_0===\"line\"&&_1===1":function (_0,_1){return(_0==="line"&&_1===1);}}},
-        css: " .rg-graph { position: relative; display: flex; flex-direction: row; width: 100%; height: 100%; box-sizing: border-box; } .rg-graph-circular { position: relative; width: 100%; height: 0; padding-bottom: 100%; } .rg-graph-circular svg { position: absolute; left: 0; top: 0; } .rg-graph svg { box-sizing: border-box; margin-left: auto; margin-right: auto; } .rg-graph-pie .rg-chonk, .rg-graph-donut .rg-chonk, .rg-graph-tire .rg-chonk { transition: transform 0.3s ease, opacity 0.3s ease; } .rg-chonk { opacity: 0.8; user-select: none; } .rg-chonk.clicky { cursor: pointer; } .rg-graph-pie .rg-chonk:hover, .rg-graph-donut .rg-chonk:hover, .rg-graph-tire .rg-chonk:hover { transform: scale(1.1); opacity: 1; } .rg-graph-pie .rg-chonk:active, .rg-graph-donut .rg-chonk:active, .rg-graph-tire .rg-chonk:active { transform: none; } .rg-graph-hoop .rg-chonk:hover { opacity: 1; } .rg-graph-middle { position: absolute; display: flex; align-items: center; justify-content: space-around; text-align: center; } .rg-graph-middle .rg-content { display: inline-block; } .rg-graph-donut .rg-graph-middle { top: 36%; left: 36%; width: 28%; height: 28%; } .rg-graph-tire .rg-graph-middle { left: 28%; top: 28%; height: 43%; width: 43%; } .rg-graph-hoop .rg-graph-middle { left: 14%; top: 14%; width: 72%; height: 72%; } /* bar */ .rg-graph-bar.rg-graph-h { overflow-y: auto; } .rg-graph-bar.rg-graph-h svg { width: 100%; } .rg-graph-bar.rg-graph-v, .rg-graph-line { overflow-x: auto; } .rg-graph-bar.rg-graph-v svg, .rg-graph-line svg { height: 100%; } .rg-legend { display: flex; flex-direction: column; padding-left: 0.5em; justify-content: center; } .rg-legend-entry { padding: 0.25em 0 0.25em 0; line-height: 0.9em; } .rg-legend-color { display: inline-block; width: 1em; height: 1em; }",
+        css: " .rg-graph { position: relative; display: flex; flex-direction: row; width: 100%; height: 100%; box-sizing: border-box; } .rg-graph-circular { position: relative; width: 100%; height: 0; padding-bottom: 100%; } .rg-graph-circular svg { position: absolute; left: 0; top: 0; } .rg-graph svg { box-sizing: border-box; margin: auto; } .rg-graph-pie .rg-chonk, .rg-graph-donut .rg-chonk, .rg-graph-tire .rg-chonk { transition: transform 0.3s ease, opacity 0.3s ease; } .rg-chonk { opacity: 0.8; user-select: none; } .rg-chonk.clicky { cursor: pointer; } .rg-graph-pie .rg-chonk:hover, .rg-graph-donut .rg-chonk:hover, .rg-graph-tire .rg-chonk:hover { transform: scale(1.1); opacity: 1; } .rg-graph-pie .rg-chonk:active, .rg-graph-donut .rg-chonk:active, .rg-graph-tire .rg-chonk:active { transform: none; } .rg-graph-hoop .rg-chonk:hover { opacity: 1; } .rg-graph-middle { position: absolute; display: flex; align-items: center; justify-content: space-around; text-align: center; } .rg-graph-middle .rg-content { display: inline-block; } .rg-graph-donut .rg-graph-middle { top: 36%; left: 36%; width: 28%; height: 28%; } .rg-graph-tire .rg-graph-middle { left: 28%; top: 28%; height: 43%; width: 43%; } .rg-graph-hoop .rg-graph-middle { left: 14%; top: 14%; width: 72%; height: 72%; } /* bar */ .rg-graph-bar.rg-graph-h { overflow-y: auto; } .rg-graph-bar.rg-graph-h svg { width: 100%; } .rg-graph-bar.rg-graph-v, .rg-graph-line { overflow-x: auto; } .rg-graph-bar.rg-graph-v svg, .rg-graph-line svg { height: 100%; } .rg-legend { display: flex; flex-direction: column; padding-left: 0.5em; justify-content: center; } .rg-legend-entry { padding: 0.25em 0 0.25em 0; line-height: 0.9em; } .rg-legend-color { display: inline-block; width: 1em; height: 1em; }",
         cssId: 'rchart',
         noCssTransform: true,
         attributes: ['data', 'type', 'horizontal', 'colors', 'point', 'space', 'flip', 'dot', 'smooth', 'project', 'span', 'sub', 'legend', 'hole', 'clustergap', 'nolabelvalue'],
@@ -104,146 +247,13 @@ System.register(['./chunk2.js', 'ractive'], function (exports, module) {
               return datum;
             });
           },
-          graph: function graph() {
+        },
+        observe: {
+          'data type line point colors space horizontal flip smooth project sub clustergap': function datatypelinepointcolorsspacehorizontalflipsmoothprojectsubclustergap() {
             var this$1 = this;
 
-            var data = this.get('data');
-            if (!Array.isArray(data)) { data = [[]]; }
-            if (!Array.isArray(data[0])) { data = [data]; }
-
-            var type = this.get('type');
-            var ref = data.reduce(function (a, c) {
-              return c.reduce(function (aa, cc) {
-                if (cc.value < a[0]) { a[0] = cc.value; }
-                if (cc.value > a[1]) { a[1] = cc.value; }
-                return a;
-              }, 0);
-            }, [0, 0]);
-            var min = ref[0];
-            var max = ref[1];
-
-            var dot = this.get('dot') || 1;
-            var range = max - min;
-            var bottom = min < 0 ? min * -1 : -min;
-            var colors = this.get('colors');
-            var point = this.get('point');
-            var space = type === 'line' ? 0 : this.get('space');
-            
-            var horiz = this.get('horizontal');
-            var flip = horiz ? this.get('flip') : !this.get('flip');
-            
-            var bar = this.get('span');
-            var smooth = type === 'line' && this.get('smooth');
-            var project = this.get('project');
-            
-            var points;
-            if (type === 'line') {
-              points = data.map(function (ps) {
-                return ps.map(function (d, i) {
-                  var p = Object.assign({
-                    x: i * point + i * space + space,
-                    y: (bottom / range) * bar,
-                    y2: ((d.value + bottom) / range) * bar,
-                    idx: i,
-                    point: d,
-                  }, d);
-                  p.x2 = p.x + point;
-                  p.comp = p.y2;
-                  p.x += dot;
-                  p.x2 += dot;
-                  if (smooth && project && i > 0 && i + 1 < ps.length) {
-                    var prev = ((ps[i - 1].value + bottom) / range) * bar;
-                    var next = ((ps[i + 1].value + bottom) / range) * bar;
-                    var off = (prev + next + p.comp) / 6;
-                    if (prev > p.comp) { p.comp = p.comp - off; }
-                    else { p.comp = p.comp + off; }
-                  }
-                  if (flip) {
-                    p.y = bar - p.y;
-                    p.y2 = bar - p.y2;
-                  }
-                  if (!p.color) { p.color = colors[i % colors.length]; }
-                  return p;
-                });
-              });
-              
-              if (smooth) {
-                points.forEach(function (points, i) {
-                  points.forEach(function (p, i) {
-                    var assign, assign$1;
-
-                    if (i === 0) { return; }
-                    (assign = bezierControl(true, points[i - 1], points[i - 2], p, smooth), p.sx = assign[0], p.sy = assign[1]);
-                    (assign$1 = bezierControl(false, p, points[i - 1], points[i + 1], smooth), p.ex = assign$1[0], p.ey = assign$1[1]);
-                  });
-                });
-              }
-            } else {
-              var single = false;
-              var orig = data;
-              if (data.length === 1 && Array.isArray(data[0])) {
-                single = true;
-                data = data[0].map(function (d) { return data[0]; });
-              }
-              var off = point / data.length;
-              var sub = this.get('sub') || 'cluster';
-              var gap = this.get('clustergap') || 0;
-              points = data.map(function (ds, i) {
-                var ps = ds.map(function (_, ii) { return data[ii] && data[ii][i] || { value: 0 }; });
-                var res = ps.map(function (d, ii) {
-                  var p = Object.assign({
-                    x: i * point + i * space + space,
-                    y: (bottom / range) * bar,
-                    y2: ((d.value + bottom) / range) * bar,
-                    idx: i,
-                    point: d,
-                    }, d, { label: single ? orig[0][i].label : d.label });
-                  p.x2 = p.x + point;
-                  p.comp = p.y2;
-                  if (!single && sub === 'cluster') {
-                    p.x += off * ii;
-                    p.x2 = p.x + off - gap;
-                  }
-                  if (flip) {
-                    p.y = bar - p.y;
-                    p.y2 = bar - p.y2;
-                  }
-                  if (!p.color) { p.color = colors[(single ? i : ii) % colors.length]; }
-                  return p;
-                });
-                if (sub === 'stack') { res.sort(function (l, r) { return l.value > r.value ? -1 : l.value < r.value ? 1 : 0; }); }
-                return res;
-              });
-            }
-
-            var groups = points.map(function (points, i) {
-              var g = { points: points, color: colors[i % colors.length] };
-              var base = type === 'bar' && this$1.get('sub') === 'stack' ? data[i] : points;
-              if (base && base[i] && base[i].label) { g.label = base[i].label; }
-              return g;
-            });
-            if (type === 'line') {
-              groups.sort(function (l, r) {
-                var avgl = l.points.reduce(function (a, c) { return a + c.value; }, 0) / l.points.length;
-                var avgr = r.points.reduce(function (a, c) { return a + c.value; }, 0) / r.points.length;
-                return (avgl < avgr ? 1 : avgl > avgr ? -1 : 0);
-              });
-              groups.forEach(function (g, i) { return g.color = colors[i % colors.length]; });
-            }
-
-            var len = data.reduce(function (a, c) { return c.length > a ? c.length : a; }, 0);
-
-            return {
-              bottom: flip ? bar - (bottom / range) * bar : (bottom / range) * bar,
-              min: min, max: max,
-              horiz: type === 'line' ? false : horiz, flip: flip,
-              span: (type === 'line' ? len - 1 : len) * point + (len + 2) * space + (type === 'line' ? dot * 2 : 0),
-              minX: points.reduce(function (a, ps) { return ps.reduce(function (aa, c) { return c.x < aa ? c.x : aa; }, a); }, 0),
-              maxX: points.reduce(function (a, ps) { return ps.reduce(function (aa, c) { return c.x > aa ? c.x : aa; }, a); }, 0),
-              minY: points.reduce(function (a, ps) { return ps.reduce(function (aa, c) { return c.comp < aa ? c.comp : aa; }, a); }, 0),
-              maxY: points.reduce(function (a, ps) { return ps.reduce(function (aa, c) { return c.comp > aa ? c.comp : aa; }, a); }, 0),
-              groups: groups
-            };
+            if (this._graphtm) { clearTimeout(this._graphtm); }
+            this._graphtm = setTimeout(function () { return this$1._graph(); }, 200);
           }
         },
         data: function data() {

@@ -254,6 +254,7 @@ System.register(['ractive', './chunk7.js', './chunk8.js', './chunk2.js', './chun
         };
 
         Table.prototype._rows = function _rows () {
+          this._rowbounce = undefined;
           var src = (this.get('items') || []).slice();
           var filter = this.get('filter');
           var sort = this.get('sort');
@@ -384,7 +385,7 @@ System.register(['ractive', './chunk7.js', './chunk8.js', './chunk2.js', './chun
             var this$1 = this;
 
             if (this._rowbounce) { clearTimeout(this._rowbounce); }
-            setTimeout(function () { return this$1._rows(); }, this.get('@style.raui.table.debounce') || 160);
+            this._rowbounce = setTimeout(function () { return this$1._rows(); }, this.get('@style.raui.table.debounce') || 160);
           },
           paginate: {
             handler: function handler(v) {

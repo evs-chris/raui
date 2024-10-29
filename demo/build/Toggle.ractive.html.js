@@ -10,14 +10,14 @@ System.register(['ractive', './chunk2.js'], function (exports, module) {
     }],
     execute: function () {
 
-      var template = {v:4,t:[{t:7,e:"div",m:[{t:13,n:"class",f:"rtoggle",g:1},{t:8,r:"extra-attributes"},{n:"class-rtoggle-disabled",t:13,f:[{t:2,r:"__toggle.disabled"}]},{n:"class-rtoggle-true",t:13,f:[{t:2,r:"__toggle._value"}]},{n:"class-rtoggle-false",t:13,f:[{t:2,x:{r:["__toggle.nullable","__toggle._value"],s:"_1===false||(!_0&&(_1===null||_1===undefined))"}}]},{n:"class-rtoggle-null",t:13,f:[{t:2,x:{r:["__toggle.nullable","__toggle._value"],s:"_0&&(_1===null||_1===undefined)"}}]},{t:4,f:[{n:["click"],t:70,f:{r:["__toggle"],s:"[_0.toggle()]"}}],n:51,r:"__toggle.disabled"}],f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rtoggle-rail",g:1}]}," ",{t:7,e:"div",m:[{t:13,n:"class",f:"rtoggle-nubbin",g:1}]}]}],e:{"_1===false||(!_0&&(_1===null||_1===undefined))":function (_0,_1){return(_1===false||(!_0&&(_1===null||_1===undefined)));},"_0&&(_1===null||_1===undefined)":function (_0,_1){return(_0&&(_1===null||_1===undefined));},"[_0.toggle()]":function (_0){return([_0.toggle()]);}}};
+      var template = {v:4,t:[{t:7,e:"div",m:[{t:13,n:"class",f:"rtoggle",g:1},{t:8,r:"extra-attributes"},{n:"class-rtoggle-disabled",t:13,f:[{t:2,r:"__toggle.disabled"}]},{n:"class-rtoggle-true",t:13,f:[{t:2,x:{r:["__toggle._value","__toggle.on"],s:"_0==_1"}}]},{n:"class-rtoggle-false",t:13,f:[{t:2,x:{r:["__toggle.off","__toggle.nullable","__toggle._value"],s:"_2===_0||(!_1&&(_2===null||_2===undefined))"}}]},{n:"class-rtoggle-null",t:13,f:[{t:2,x:{r:["__toggle.nullable","__toggle._value"],s:"_0&&(_1===null||_1===undefined)"}}]},{t:4,f:[{n:["click"],t:70,f:{r:["__toggle"],s:"[_0.toggle()]"}}],n:51,r:"__toggle.disabled"}],f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rtoggle-rail",g:1}]}," ",{t:7,e:"div",m:[{t:13,n:"class",f:"rtoggle-nubbin",g:1}]}]}],e:{"_0==_1":function (_0,_1){return(_0==_1);},"_2===_0||(!_1&&(_2===null||_2===undefined))":function (_0,_1,_2){return(_2===_0||(!_1&&(_2===null||_2===undefined)));},"_0&&(_1===null||_1===undefined)":function (_0,_1){return(_0&&(_1===null||_1===undefined));},"[_0.toggle()]":function (_0){return([_0.toggle()]);}}};
 
       var Toggle = Ractive$1.macro(
         function (handle, attrs) {
           var obj = {
             observers: [],
             update: function update(attrs) {
-              handle.set('@local', attrs, { deep: true });
+              handle.set('@local', Object.assign({ on: true, off: false }, attrs), { deep: true });
               if ('value' in attrs && typeof attrs.value !== 'string') {
                 change(attrs.value);
               }
@@ -27,6 +27,7 @@ System.register(['ractive', './chunk2.js'], function (exports, module) {
             }
           };
 
+          handle.set('@local', { on: 'on' in attrs ? attrs.on : true, off: 'off' in attrs ? attrs.off : false }, { deep: true });
           handle.aliasLocal('__toggle');
 
           var lock = false;
@@ -67,14 +68,16 @@ System.register(['ractive', './chunk2.js'], function (exports, module) {
             var ref = handle.get('@local');
             var _value = ref._value;
             var nullable = ref.nullable;
+            var on = ref.on;
+            var off = ref.off;
             var value;
 
-            if (_value) { value = false; }
-            else if (_value === false) {
+            if (_value === on) { value = off; }
+            else if (_value === off) {
               if (nullable) { value = handle.get('@local.undefined') ? undefined : null; }
-              else { value = true; }
+              else { value = on; }
             } else {
-              value = true;
+              value = on;
             }
 
             change(value);
@@ -92,7 +95,7 @@ System.register(['ractive', './chunk2.js'], function (exports, module) {
          var toggle = Object.assign({}, data('raui.toggle'));
          return (".rtoggle {\n     display: inline-block;\n     position: relative;\n     width: 2.5em;\n     height: 1.5em;\n     vertical-align: middle;\n     font-size: 1.1em;\n   }\n \n   .rtoggle-rail {\n     height: 1.25em;\n     top: 0.125em;\n     width: 100%;\n     position: absolute;\n     background-color: " + (toggle.railOff || primary.fg || '#222') + ";\n     border-radius: " + (toggle.square ? '2px' : '0.7em') + ";\n     transition: background-color 0.3s ease-in-out;\n   }\n \n   .rtoggle-true .rtoggle-rail {\n     background-color: " + (toggle.railOn || primary.fga || '#07e') + ";\n   }\n \n   .rtoggle-null .rtoggle-rail {\n     background-color: " + (toggle.railNull || primary.bga || '#e2e2e2') + ";\n   }\n \n   .rtoggle-true .rtoggle-nubbin {\n     background-color: " + (toggle.on || primary.bg || '#fff') + ";\n     left: 1.4em;\n   }\n \n   .rtoggle-null .rtoggle-nubbin {\n     background-color: " + (toggle.null || primary.bg || '#fff') + ";\n     left: 0.75em;\n   }\n \n \n   .rtoggle-disabled .rtoggle-rail {\n     background-color: " + (toggle.railDisabled || primary.bc || '#ccc') + ";\n   }\n \n   .rtoggle-nubbin {\n     position: absolute;\n     top: 0.25em;\n     left: 0.1em;\n     display: inline-block;\n     width: 1em;\n     height: 1em;\n     border-radius: " + (toggle.square ? '2px' : '1em') + ";\n     transition: left 0.3s ease-in-out, background-color 0.2s ease-in-out;\n     background-color: " + (toggle.off || primary.bg || '#fff') + ";\n     box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.14),\n       0 1px 5px 0 rgba(0, 0, 0, 0.12),\n       0 3px 1px -2px rgba(0, 0, 0, 0.2);\n     cursor: pointer;\n   }\n \n   .rtoggle-disabled .rtoggle-nubbin {\n     background-color: " + (toggle.railDisabled || primary.bc || '#ccc') + ";\n     cursor: not-allowed;\n   }\n   ");
       }).call(this, data)].join(' '); },
-          attributes: ['value', 'nullable', 'disabled', 'undefined']
+          attributes: ['value', 'nullable', 'disabled', 'undefined', 'on', 'off']
         }
       );
 
