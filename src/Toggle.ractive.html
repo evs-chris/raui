@@ -2,8 +2,8 @@
   class-rtoggle
   {{>extra-attributes}}
   class-rtoggle-disabled="__toggle.disabled"
-  class-rtoggle-true="__toggle._value"
-  class-rtoggle-false="__toggle._value === false || (!__toggle.nullable && (__toggle._value === null || __toggle._value === undefined))"
+  class-rtoggle-true="__toggle._value == __toggle.on"
+  class-rtoggle-false="__toggle._value === __toggle.off || (!__toggle.nullable && (__toggle._value === null || __toggle._value === undefined))"
   class-rtoggle-null="__toggle.nullable && (__toggle._value === null || __toggle._value === undefined)"
   {{#unless __toggle.disabled}}on-click="__toggle.toggle()"{{/unless}}
 >
@@ -22,7 +22,7 @@
       const obj = {
         observers: [],
         update(attrs) {
-          handle.set('@local', attrs, { deep: true });
+          handle.set('@local', Object.assign({ on: true, off: false }, attrs), { deep: true });
           if ('value' in attrs && typeof attrs.value !== 'string') {
             change(attrs.value);
           }
@@ -32,6 +32,7 @@
         }
       };
 
+      handle.set('@local', { on: 'on' in attrs ? attrs.on : true, off: 'off' in attrs ? attrs.off : false }, { deep: true });
       handle.aliasLocal('__toggle');
 
       let lock = false;
@@ -69,15 +70,15 @@
       }
 
       handle.set('@local.toggle', function () {
-        const { _value, nullable } = handle.get('@local');
+        const { _value, nullable, on, off } = handle.get('@local');
         let value;
 
-        if (_value) value = false;
-        else if (_value === false) {
+        if (_value === on) value = off;
+        else if (_value === off) {
           if (nullable) value = handle.get('@local.undefined') ? undefined : null;
-          else value = true;
+          else value = on;
         } else {
-          value = true;
+          value = on;
         }
 
         change(value);
@@ -91,7 +92,7 @@
       noCssTransform: true,
       cssId: 'rtoggle',
       css: $CSS,
-      attributes: ['value', 'nullable', 'disabled', 'undefined']
+      attributes: ['value', 'nullable', 'disabled', 'undefined', 'on', 'off']
     }
   );
 
