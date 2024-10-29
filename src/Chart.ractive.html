@@ -118,6 +118,143 @@
   
   export class Chart extends Ractive {
     constructor(opts) { super(opts); }
+
+    _graph() {
+      this._graphtm = undefined;
+      let data = this.get('data');
+      if (!Array.isArray(data)) data = [[]];
+      if (!Array.isArray(data[0])) data = [data];
+
+      const type = this.get('type');
+      let [min, max] = data.reduce((a, c) => {
+        return c.reduce((aa, cc) => {
+          if (cc.value < a[0]) a[0] = cc.value;
+          if (cc.value > a[1]) a[1] = cc.value;
+          return a;
+        }, 0);
+      }, [0, 0]);
+
+      const dot = this.get('dot') || 1;
+      const range = max - min;
+      let bottom = min < 0 ? min * -1 : -min;
+      const colors = this.get('colors');
+      const point = this.get('point');
+      const space = type === 'line' ? 0 : this.get('space');
+      
+      const horiz = this.get('horizontal');
+      const flip = horiz ? this.get('flip') : !this.get('flip');
+      
+      let bar = this.get('span');
+      const smooth = type === 'line' && this.get('smooth');
+      const project = this.get('project');
+      
+      let points;
+      if (type === 'line') {
+        points = data.map(ps => {
+          return ps.map((d, i) => {
+            const p = Object.assign({
+              x: i * point + i * space + space,
+              y: (bottom / range) * bar,
+              y2: ((d.value + bottom) / range) * bar,
+              idx: i,
+              point: d,
+            }, d);
+            p.x2 = p.x + point;
+            p.comp = p.y2;
+            p.x += dot;
+            p.x2 += dot;
+            if (smooth && project && i > 0 && i + 1 < ps.length) {
+              const prev = ((ps[i - 1].value + bottom) / range) * bar;
+              const next = ((ps[i + 1].value + bottom) / range) * bar;
+              const off = (prev + next + p.comp) / 6;
+              if (prev > p.comp) p.comp = p.comp - off;
+              else p.comp = p.comp + off;
+            }
+            if (flip) {
+              p.y = bar - p.y;
+              p.y2 = bar - p.y2;
+            }
+            if (!p.color) p.color = colors[i % colors.length];
+            return p;
+          });
+        });
+        
+        if (smooth) {
+          points.forEach((points, i) => {
+            points.forEach((p, i) => {
+              if (i === 0) return;
+              [p.sx, p.sy] = bezierControl(true, points[i - 1], points[i - 2], p, smooth);
+              [p.ex, p.ey] = bezierControl(false, p, points[i - 1], points[i + 1], smooth);
+            });
+          });
+        }
+      } else {
+        let single = false;
+        const orig = data;
+        if (data.length === 1 && Array.isArray(data[0])) {
+          single = true;
+          data = data[0].map(d => data[0]);
+        }
+        const off = point / data.length;
+        const sub = this.get('sub') || 'cluster';
+        const gap = this.get('clustergap') || 0;
+        points = data.map((ds, i) => {
+          const ps = ds.map((_, ii) => data[ii] && data[ii][i] || { value: 0 });
+          const res = ps.map((d, ii) => {
+            const p = Object.assign({
+              x: i * point + i * space + space,
+              y: (bottom / range) * bar,
+              y2: ((d.value + bottom) / range) * bar,
+              idx: i,
+              point: d,
+              }, d, { label: single ? orig[0][i].label : d.label });
+            p.x2 = p.x + point;
+            p.comp = p.y2;
+            if (!single && sub === 'cluster') {
+              p.x += off * ii;
+              p.x2 = p.x + off - gap;
+            }
+            if (flip) {
+              p.y = bar - p.y;
+              p.y2 = bar - p.y2;
+            }
+            if (!p.color) p.color = colors[(single ? i : ii) % colors.length];
+            return p;
+          });
+          if (sub === 'stack') res.sort((l, r) => l.value > r.value ? -1 : l.value < r.value ? 1 : 0);
+          return res;
+        });
+      }
+
+      const groups = points.map((points, i) => {
+        const g = { points, color: colors[i % colors.length] };
+        const base = type === 'bar' && this.get('sub') === 'stack' ? data[i] : points;
+        if (base && base[i] && base[i].label) g.label = base[i].label;
+        return g;
+      });
+      if (type === 'line') {
+        groups.sort((l, r) => {
+          const avgl = l.points.reduce((a, c) => a + c.value, 0) / l.points.length;
+          const avgr = r.points.reduce((a, c) => a + c.value, 0) / r.points.length;
+          return (avgl < avgr ? 1 : avgl > avgr ? -1 : 0);
+        });
+        groups.forEach((g, i) => g.color = colors[i % colors.length]);
+      }
+
+      const len = data.reduce((a, c) => c.length > a ? c.length : a, 0);
+
+      this.set('graph', {
+        bottom: flip ? bar - (bottom / range) * bar : (bottom / range) * bar,
+        min, max,
+        horiz: type === 'line' ? false : horiz, flip,
+        span: (type === 'line' ? len - 1 : len) * point + (len + 2) * space + (type === 'line' ? dot * 2 : 0),
+        minX: points.reduce((a, ps) => ps.reduce((aa, c) => c.x < aa ? c.x : aa, a), 0),
+        maxX: points.reduce((a, ps) => ps.reduce((aa, c) => c.x > aa ? c.x : aa, a), 0),
+        minY: points.reduce((a, ps) => ps.reduce((aa, c) => c.comp < aa ? c.comp : aa, a), 0),
+        maxY: points.reduce((a, ps) => ps.reduce((aa, c) => c.comp > aa ? c.comp : aa, a), 0),
+        groups
+      });
+    }
   }
 
   /**
@@ -164,140 +301,11 @@
           return datum;
         });
       },
-      graph() {
-        let data = this.get('data');
-        if (!Array.isArray(data)) data = [[]];
-        if (!Array.isArray(data[0])) data = [data];
-
-        const type = this.get('type');
-        let [min, max] = data.reduce((a, c) => {
-          return c.reduce((aa, cc) => {
-            if (cc.value < a[0]) a[0] = cc.value;
-            if (cc.value > a[1]) a[1] = cc.value;
-            return a;
-          }, 0);
-        }, [0, 0]);
-
-        const dot = this.get('dot') || 1;
-        const range = max - min;
-        let bottom = min < 0 ? min * -1 : -min;
-        const colors = this.get('colors');
-        const point = this.get('point');
-        const space = type === 'line' ? 0 : this.get('space');
-        
-        const horiz = this.get('horizontal');
-        const flip = horiz ? this.get('flip') : !this.get('flip');
-        
-        let bar = this.get('span');
-        const smooth = type === 'line' && this.get('smooth');
-        const project = this.get('project');
-        
-        let points;
-        if (type === 'line') {
-          points = data.map(ps => {
-            return ps.map((d, i) => {
-              const p = Object.assign({
-                x: i * point + i * space + space,
-                y: (bottom / range) * bar,
-                y2: ((d.value + bottom) / range) * bar,
-                idx: i,
-                point: d,
-              }, d);
-              p.x2 = p.x + point;
-              p.comp = p.y2;
-              p.x += dot;
-              p.x2 += dot;
-              if (smooth && project && i > 0 && i + 1 < ps.length) {
-                const prev = ((ps[i - 1].value + bottom) / range) * bar;
-                const next = ((ps[i + 1].value + bottom) / range) * bar;
-                const off = (prev + next + p.comp) / 6;
-                if (prev > p.comp) p.comp = p.comp - off;
-                else p.comp = p.comp + off;
-              }
-              if (flip) {
-                p.y = bar - p.y;
-                p.y2 = bar - p.y2;
-              }
-              if (!p.color) p.color = colors[i % colors.length];
-              return p;
-            });
-          });
-          
-          if (smooth) {
-            points.forEach((points, i) => {
-              points.forEach((p, i) => {
-                if (i === 0) return;
-                [p.sx, p.sy] = bezierControl(true, points[i - 1], points[i - 2], p, smooth);
-                [p.ex, p.ey] = bezierControl(false, p, points[i - 1], points[i + 1], smooth);
-              });
-            });
-          }
-        } else {
-          let single = false;
-          const orig = data;
-          if (data.length === 1 && Array.isArray(data[0])) {
-            single = true;
-            data = data[0].map(d => data[0]);
-          }
-          const off = point / data.length;
-          const sub = this.get('sub') || 'cluster';
-          const gap = this.get('clustergap') || 0;
-          points = data.map((ds, i) => {
-            const ps = ds.map((_, ii) => data[ii] && data[ii][i] || { value: 0 });
-            const res = ps.map((d, ii) => {
-              const p = Object.assign({
-                x: i * point + i * space + space,
-                y: (bottom / range) * bar,
-                y2: ((d.value + bottom) / range) * bar,
-                idx: i,
-                point: d,
-                }, d, { label: single ? orig[0][i].label : d.label });
-              p.x2 = p.x + point;
-              p.comp = p.y2;
-              if (!single && sub === 'cluster') {
-                p.x += off * ii;
-                p.x2 = p.x + off - gap;
-              }
-              if (flip) {
-                p.y = bar - p.y;
-                p.y2 = bar - p.y2;
-              }
-              if (!p.color) p.color = colors[(single ? i : ii) % colors.length];
-              return p;
-            });
-            if (sub === 'stack') res.sort((l, r) => l.value > r.value ? -1 : l.value < r.value ? 1 : 0);
-            return res;
-          });
-        }
-
-        const groups = points.map((points, i) => {
-          const g = { points, color: colors[i % colors.length] };
-          const base = type === 'bar' && this.get('sub') === 'stack' ? data[i] : points;
-          if (base && base[i] && base[i].label) g.label = base[i].label;
-          return g;
-        });
-        if (type === 'line') {
-          groups.sort((l, r) => {
-            const avgl = l.points.reduce((a, c) => a + c.value, 0) / l.points.length;
-            const avgr = r.points.reduce((a, c) => a + c.value, 0) / r.points.length;
-            return (avgl < avgr ? 1 : avgl > avgr ? -1 : 0);
-          });
-          groups.forEach((g, i) => g.color = colors[i % colors.length]);
-        }
-
-        const len = data.reduce((a, c) => c.length > a ? c.length : a, 0);
-
-        return {
-          bottom: flip ? bar - (bottom / range) * bar : (bottom / range) * bar,
-          min, max,
-          horiz: type === 'line' ? false : horiz, flip,
-          span: (type === 'line' ? len - 1 : len) * point + (len + 2) * space + (type === 'line' ? dot * 2 : 0),
-          minX: points.reduce((a, ps) => ps.reduce((aa, c) => c.x < aa ? c.x : aa, a), 0),
-          maxX: points.reduce((a, ps) => ps.reduce((aa, c) => c.x > aa ? c.x : aa, a), 0),
-          minY: points.reduce((a, ps) => ps.reduce((aa, c) => c.comp < aa ? c.comp : aa, a), 0),
-          maxY: points.reduce((a, ps) => ps.reduce((aa, c) => c.comp > aa ? c.comp : aa, a), 0),
-          groups
-        };
+    },
+    observe: {
+      'data type line point colors space horizontal flip smooth project sub clustergap'() {
+        if (this._graphtm) clearTimeout(this._graphtm);
+        this._graphtm = setTimeout(() => this._graph(), 200);
       }
     },
     data() {
