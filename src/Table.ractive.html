@@ -327,6 +327,7 @@
     }
 
     _rows() {
+      this._rowbounce = undefined;
       const src = (this.get('items') || []).slice();
       const filter = this.get('filter');
       const sort = this.get('sort');
@@ -440,7 +441,7 @@
     observe: {
       _rows() {
         if (this._rowbounce) clearTimeout(this._rowbounce);
-        setTimeout(() => this._rows(), this.get('@style.raui.table.debounce') || 160);
+        this._rowbounce = setTimeout(() => this._rows(), this.get('@style.raui.table.debounce') || 160);
       },
       paginate: {
         handler(v) {
