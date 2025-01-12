@@ -673,6 +673,7 @@ System.register(['ractive'], function (exports, module) {
           this.set(("windows." + (escape(id))), undefined);
           delete this.get('windows')[id];
           this.set(("windows." + (escape(newId)) + ".id"), newId);
+          if (this.get('topLevel') === id) { this.set('topLevel', newId); }
         };
 
         Host.prototype.getWindow = function getWindow (id) {
