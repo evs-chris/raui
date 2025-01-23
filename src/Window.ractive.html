@@ -440,15 +440,18 @@
           if (blocking) {
             const key = `windows.${escape(blocking)}`;
             const blocked = this.get(key);
+            const pane = (this.getWindow(blocking) || {}).pane || this.find('.rwhost-pane') || this.host;
             const max = local.max || (!local.dialog && (this.get('max') || this.get('userMax')));
             const bmax = blocked.max || this.get('userMax') || this.get('max');
-            const bw = bmax ? this.host.clientWidth : sizeInPx(`${blocked.width}em`);
-            const bh = bmax ? this.host.clientHeight : sizeInPx(`${blocked.height}em`);
+            const bw = bmax ? pane.clientWidth : sizeInPx(`${blocked.width}em`);
+            const bh = bmax ? pane.clientHeight : sizeInPx(`${blocked.height}em`);
             const bl = bmax ? 0 : blocked.left;
             const bt = bmax ? 0 : blocked.top;
 
-            left = (max ? maxw : bw / 2) + (max ? 0 : bl) - (sizeInPx(lw) / 2);
-            top = (max ? maxh : bh / 2) + (max ? 0 : bt) - (sizeInPx(lh) / 2);
+            left = (max ? maxw : bw / 2) + (max ? 0 : bl) - ((sizeInPx(lw) + (local.resizable ? 14 : 0)) / 2);
+            top = (max ? maxh : bh / 2) + (max ? 0 : bt) - ((sizeInPx(lh) + (local.resizable ? 14 : 0)) / 2);
+            if (left < 0) left = 0;
+            if (top < 0) top = 0;
           }
 
           // place in 3x3 grid
