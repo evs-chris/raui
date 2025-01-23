@@ -494,7 +494,7 @@
     }
 
     placeAll() {
-      if (!(this.fragment && this.fragment.rendered)) return;
+      if (!(this.fragment && this.fragment.rendered)) return Promise.resolve();
 
       const winids = Object.keys(this.get('windows') || {}).filter(k => this.get(`windows.${Ractive.escapeKey(k)}.show`));
 

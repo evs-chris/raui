@@ -94,16 +94,22 @@ export class Host<T extends Host<T> = Host<any>> extends Ractive<Host> implement
   readonly toastDefaults: ToastOptions;
   placement?: Placement;
 
-  readonly windows: string[];
   readonly topmost?: Window;
+  readonly windows: string[];
 
   addWindow<T extends Window>(window: T, opts?: WindowOpts): Promise<T>;
+  changeWindowId(id: string, newId: string): void;
   getWindow(id: string): Window;
+  place(window: Window): Promise<void>;
+  placeAll(): Promise<void>;
   raise(window: string | Window, show: boolean): void;
   sizeInPx(size: number | string): number;
   sizeInEm(size: number | string): number;
 
   toast(message: string, options?: ToastOptions): Handle;
+
+  windowGet(id: string, path: string): any;
+  windowSet(id: string, path: string, value: any): Promise<any>;
 }
 
 export interface PluginOpts {
