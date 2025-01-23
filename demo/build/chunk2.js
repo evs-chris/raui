@@ -802,15 +802,18 @@ System.register(['ractive'], function (exports, module) {
               if (blocking) {
                 var key = "windows." + (escape(blocking));
                 var blocked = this$1.get(key);
+                var pane = (this$1.getWindow(blocking) || {}).pane || this$1.find('.rwhost-pane') || this$1.host;
                 var max = local.max || (!local.dialog && (this$1.get('max') || this$1.get('userMax')));
                 var bmax = blocked.max || this$1.get('userMax') || this$1.get('max');
-                var bw = bmax ? this$1.host.clientWidth : sizeInPx(((blocked.width) + "em"));
-                var bh = bmax ? this$1.host.clientHeight : sizeInPx(((blocked.height) + "em"));
+                var bw = bmax ? pane.clientWidth : sizeInPx(((blocked.width) + "em"));
+                var bh = bmax ? pane.clientHeight : sizeInPx(((blocked.height) + "em"));
                 var bl = bmax ? 0 : blocked.left;
                 var bt = bmax ? 0 : blocked.top;
 
-                left = (max ? maxw : bw / 2) + (max ? 0 : bl) - (sizeInPx(lw) / 2);
-                top = (max ? maxh : bh / 2) + (max ? 0 : bt) - (sizeInPx(lh) / 2);
+                left = (max ? maxw : bw / 2) + (max ? 0 : bl) - ((sizeInPx(lw) + (local.resizable ? 14 : 0)) / 2);
+                top = (max ? maxh : bh / 2) + (max ? 0 : bt) - ((sizeInPx(lh) + (local.resizable ? 14 : 0)) / 2);
+                if (left < 0) { left = 0; }
+                if (top < 0) { top = 0; }
               }
 
               // place in 3x3 grid
@@ -855,7 +858,7 @@ System.register(['ractive'], function (exports, module) {
         Host.prototype.placeAll = function placeAll () {
           var this$1 = this;
 
-          if (!(this.fragment && this.fragment.rendered)) { return; }
+          if (!(this.fragment && this.fragment.rendered)) { return Promise.resolve(); }
 
           var winids = Object.keys(this.get('windows') || {}).filter(function (k) { return this$1.get(("windows." + (Ractive$1.escapeKey(k)) + ".show")); });
 
