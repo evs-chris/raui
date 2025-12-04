@@ -32,6 +32,8 @@
       <date-input value=".date" mask="MM/dd/yyyy" string=".dateString" />
       <date-input value=".minDate" min="{{.min}}" />
       <date-input value=".maxDate" max="{{.max}}" />
+      <date-input value=".datetime" mask="MM/dd/yyyy HH:mm" />
+      <date-input value=".datetime" mask="MM/dd/yyyy hh:mm a" />
       ```
       ### Result:
     </marked>
@@ -42,6 +44,8 @@
       <date-input value=".date" mask="MM/dd/yyyy" string=".dateString" />
       <date-input value=".minDate" min="{{.min}}" />
       <date-input value=".maxDate" max="{{.max}}" />
+      <date-input value=".datetime" mask="MM/dd/yyyy HH:mm" />
+      <date-input value=".datetime" mask="MM/dd/yyyy hh:mm a" />
     </div>
 
     <code><pre>
@@ -49,6 +53,7 @@
       Min Date: {{.minDate}}
       Max Date: {{.maxDate}}
       Date String: {{.dateString}}
+      Date Time: {{.datetime}}
     </pre></code>
   </tab>
 </tabs>
