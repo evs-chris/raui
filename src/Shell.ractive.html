@@ -125,7 +125,7 @@
             setTimeout(() => {
               this._media && this._media.listener && this._media.listener.silence();
               this._media && this._media.observer && this._media.observer.silence();
-              this.fire('resize')
+              this._media.notify();
               this._media && this._media.listener && this._media.listener.resume();
               this._media && this._media.observer && this._media.observer.resume();
             }, (this.get('shell.slide.ms') || 400) + 10);
@@ -191,6 +191,12 @@
     let inited = 0;
     let tm;
 
+    function notify(sizes) {
+      if (!sizes) sizes = { width: sizeInEm(r.outer.clientWidth), height: sizeInEm(r.outer.clientHeight) }
+      if (!sizes.center && r.center) sizes.center = { width: sizeInEm(r.center.clientWidth), height: sizeInEm(r.center.clientHeight) };
+      r.fire('resize', {}, sizes);
+    };
+
     const media = {
       fn() {
         const outer = sizeInEm(r.outer.clientWidth);
@@ -243,11 +249,12 @@
         if (tm) clearTimeout(tm);
         tm = setTimeout(() => {
           if (media.listener) media.listener.silence();
-            r.fire('resize', {}, { width: outer, height: outerH });
+          notify({ width: outer, height: outerH });
           if (media.listener) media.listener.resume();
           tm = 0;
         }, (r.get('shell.slide.ms') || 400) + 100);
       },
+      notify,
       cancel() {
         r._media = null;
         window.removeEventListener('resize', media.fn);
