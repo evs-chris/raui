@@ -247,8 +247,9 @@
             }
             this.set('transition', trans);
           });
+          else if (v > 0 && v < tabs.length && this.get('selectedContent') !== v) this.set('selectedContent', v);
         },
-        init: false
+        init: false, defer: true,
       },
       clientWidth() {
         this.updateIndicator();
