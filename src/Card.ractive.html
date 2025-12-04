@@ -322,6 +322,7 @@
     transition-timing-function: ${primary.easing || 'ease-in-out'};
     transition-property: box-shadow, border, background-color, color, margin, padding;
     height: 100%;
+    box-sizing: border-box;
   }
 
   .rcard > div {
@@ -332,6 +333,9 @@
   }
   .rcard > div:last-of-type {
     margin-bottom: 1em;
+  }
+  .rcard.rcard-section.rcard-no-pad > div:last-of-type {
+    margin: 0;
   }
   .rcard > .rcard-actions:last-of-type {
     margin-bottom: 0;
