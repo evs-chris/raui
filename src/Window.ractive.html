@@ -27,8 +27,9 @@
       {{#if ~/root.transition !== false}}modal-in-out{{/if}}
       {{#if ~/control.resizable}}
         class-rwindow-resizable
+        on-mousemove-mouseout="@._specialCursor(@event, 'handle')"
         on-mousedown-touchstart="@._startResize(@event)"
-        on-mousemove-mouseout="@._sizeHandle(@event)"
+        on-contextmenu="@event.ctrlKey ? @event.preventDefault() : true"
       {{/if}}
       {{#if ~/control.resizing}}class-rwindow-resizing{{/if}}
       style-top="{{~/control.top}}px" style-left="{{~/control.left}}px"
@@ -39,7 +40,7 @@
   >
     <div class-rwindow
       {{#if !(~/control.movable === false || ((~/root.max || ~/root.userMax) && !~/control.dialog) || ~/control.max) && (!~/control.dialog || ~/control.movable === true) && !~/control.slide}}
-        on-mousedown-touchstart="@._startMove(@event)"
+        on-mousedown-touchstart="@event.ctrlKey && @event.button === 2 ? @._startResize(@event) : @._startMove(@event)"
       {{elseif !~/control.topmost}}
         on-mousedown-touchstart="@.raise()"
       {{/if}}
@@ -1073,11 +1074,10 @@
         if (event.targetTouches && event.targetTouches.length === 1 && event.target !== this.content && event.target !== this.top && !this.top.contains(event.target)) return;
       }
 
+      this._specialCursor(event, 'moving');
       this.set('moving', true);
 
       const wnd = this.pane;
-      const cursor = wnd.style.cursor;
-      wnd.style.cursor = 'move';
       wnd.style.userSelect = 'none';
 
       let sx = event.x || event.clientX || (event.targetTouches && event.targetTouches[0].clientX) || 0;
@@ -1105,9 +1105,9 @@
 
         if (ev.type === 'touchend' || ev.type === 'mouseup') {
           moveEvents.forEach(e => document.removeEventListener(e, _move, { passive: false }));
-          wnd.style.cursor = cursor;
           wnd.style.userSelect = '';
           this.set('moving', false);
+          this._specialCursor(event, 'moving');
         } else {
           ev.preventDefault();
         }
@@ -1119,8 +1119,8 @@
     }
 
     _startResize(event) {
-      if (event.target !== this.wrapper) return;
-      if (event.type === 'mousedown' && event.button !== 0) return;
+      if (event.target !== this.wrapper && !event.ctrlKey) return;
+      if (event.type === 'mousedown' && ![0, 2].includes(event.button)) return;
 
       if (this.get('control.autosize')) {
         this.size('auto');
@@ -1129,20 +1129,16 @@
       if (!this.get('control.topmost')) this.raise();
 
       this.set('control.resizing', true);
-      this.set('moving', true);
 
       const el = this.wrapper;
-      const ix = event.offsetX || (event.targetTouches && (event.targetTouches[0].pageX - el.getBoundingClientRect().left));
-      const iy = event.offsetY || (event.targetTouches && (event.targetTouches[0].pageY - el.getBoundingClientRect().top));
-      const size = this.get('@style.window.handleSize') || handleSize;
-      const right = el.clientWidth - size * 2, bottom = el.clientHeight - size * 2;
-      const min = 2 * size;
-
-      const l = ix <= min || ix >= right;
-      const t = iy <= min || iy >= bottom;
 
       const sx = event.x || event.clientX || (event.targetTouches && event.targetTouches[0].clientX) || 0;
       const sy = event.y || event.clientY || (event.targetTouches && event.targetTouches[0].clientY) || 0;
+      const ix = sx - el.offsetLeft;
+      const iy = sy - el.offsetTop;
+
+      const l = ix <= el.clientWidth / 2;
+      const t = iy <= el.clientHeight / 2;
 
       const ox = this.get('control.left') || 0;
       const oy = this.get('control.top') || 0;
@@ -1158,20 +1154,20 @@
         const x = ev.x || ev.clientX || (ev.targetTouches && ev.targetTouches[0] && ev.targetTouches[0].clientX) || (ev.changedTouches && ev.changedTouches[0].clientX) || 0;
         const y = ev.y || ev.clientY || (ev.targetTouches && ev.targetTouches[0] && ev.targetTouches[0].clientY) || (ev.changedTouches && ev.changedTouches[0].clientY) || 0;
 
-        let dx = l ? x - sx : 0;
-        let dy = t ? y - sy : 0;
+        let dx = x - sx;
+        let dy = y - sy;
 
         // resizing from top/left requires top/left/width/height adjustments
         const set = {};
 
-        if (iy <= min) {
+        if (t) {
           set['control.top'] = oy + dy;
           set['control.height'] = oh - dy;
         } else {
           set['control.height'] = oh + dy;
         }
 
-        if (ix <= min) {
+        if (l) {
           set['control.left'] = ox + dx;
           set['control.width'] = ow - dx;
         } else {
@@ -1199,12 +1195,12 @@
         if (ev.type === 'touchend' || ev.type === 'mouseup') {
           moveEvents.forEach(e => document.removeEventListener(e, _resize, { passive: false }));
           this.set('control.resizing', false);
-          this.set('moving', false);
           if (ow !== this.get('control.width') || oh !== this.get('control.height')) {
             if (tm) clearTimeout(tm);
             tm = null;
             this.fire('resize');
           }
+          this._specialCursor(event, 'resizing');
         } else {
           if (!tm) {
             tm = setTimeout(() => {
@@ -1217,31 +1213,41 @@
 
       moveEvents.forEach(e => document.addEventListener(e, _resize, { passive: false }));
 
+      this._specialCursor(event, 'resizing');
+
       return false;
     }
 
-    _sizeHandle(event) {
-      if (event.target !== this.wrapper) return;
+    _specialCursor(event, which) {
       const el = this.wrapper;
-
-      if (event.type === 'mouseout') return el.style.cursor = 'auto';
-
-      const x = event.offsetX, y = event.offsetY;
-      const size = this.get('@style.window.handleSize') || handleSize;
-      const right = el.clientWidth - size, bottom = el.clientHeight - size;
-
       const style = el.style;
-      if ((x <= size + size && y <= size + size) || (x >= right - size && y >= bottom - size)) {
-        style.cursor = 'nwse-resize';
-      } else if ((x >= right - size && y <= size + size) || (x <= size + size && y >= bottom - size)) {
-        style.cursor = 'nesw-resize';
-      } else if ((x <= size || x >= right) && (y < bottom || y > size)) {
-        style.cursor = 'ew-resize';
-      } else if ((y <= size || y >= bottom) && (x < right || x > size)) {
-        style.cursor = 'ns-resize';
-      } else {
-        style.cursor = 'auto';
+
+      if ((which === 'resizing' || which === 'moving') && (event.type === 'touchend' || event.type === 'mouseup')) return style.cursor = 'auto';
+      if (which === 'moving' && (event.type === 'touchstart' || event.type === 'mousedown')) return style.cursor = 'move';
+
+      if (which === 'handle' && (this.get('moving') || this.get('control.resizing'))) return;
+      if (which === 'handle' && event.type === 'mouseout') return style.cursor = 'auto';
+
+      const sx = event.x || event.clientX || (event.targetTouches && event.targetTouches[0].clientX) || 0;
+      const sy = event.y || event.clientY || (event.targetTouches && event.targetTouches[0].clientY) || 0;
+      const pos = el.getBoundingClientRect();
+      const w = el.clientWidth;
+      const h = el.clientHeight;
+      const ix = sx - pos.left;
+      const iy = sy - pos.top;
+
+      const l = ix <= w / 2;
+      const t = iy <= h / 2;
+
+      if (which === 'handle') {
+        const size = this.get('@style.window.handleSize') || handleSize;
+        if (!(ix < size || ix > w - size || iy < size || iy > h - size)) return style.cursor = 'auto';
       }
+
+      if (l && t) style.cursor = 'nw-resize';
+      else if (l && !t) style.cursor = 'sw-resize';
+      else if (!l && t) style.cursor = 'ne-resize';
+      else style.cursor = 'se-resize';
     }
   }
 
