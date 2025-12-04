@@ -295,7 +295,7 @@
 
     const tabs = tpl.filter(n => n.e === 'tab').map(t => {
       const tab = {
-        template: { t: t.f.filter(n => n.e !== 'title') }
+        template: { t: (t.f || []).filter(n => n.e !== 'title') }
       };
       const extra = [];
       const extraTab = [];
@@ -326,7 +326,7 @@
       });
 
       let tmp;
-      tmp = t.f.find(n => n.e === 'title');
+      tmp = (t.f || []).find(n => n.e === 'title');
       if (tmp) {
         tab.title = tmp.f;
         if (tmp.m) {
