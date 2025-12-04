@@ -15,4 +15,6 @@ export interface TypeRegistry {
 export type TypePlugin = (attrs: any[], content: any[], handle: MacroHandle) => any[];
 export const macro: Macro & { types: TypeRegistry };
 
+export function style(data: (string) => any): string;
+
 export default function(options?: PluginOpts): Plugin;

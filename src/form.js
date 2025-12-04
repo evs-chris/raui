@@ -700,7 +700,7 @@ export const macro = Ractive.macro(handle => {
 
 macro.types = {};
 
-const tip = Ractive.macro(handle => {
+export const tip = Ractive.macro(handle => {
   handle.aliasLocal('__rtip');
   const body = [{
     t: 7, e: 'span', m: (handle.template.m || []).concat([
