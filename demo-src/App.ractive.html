@@ -23,7 +23,7 @@
         <item ref=Split>Split</item>
         <item ref=Table>Table</item>
         <item ref=Tabs>Tabs</item>
-        <item ref=Tip>Tip</item>
+        <item ref=tip>Tip</item>
         <item ref=Toggle>Toggle</item>
         <item ref=VirtualList>Virtual List</item>
         <item ref=Window>Window</item>
@@ -32,6 +32,7 @@
         <item ref=AceEditor>Ace Editor</item>
         <item ref=CodeMirror>CodeMirror</item>
         <item ref=Date>Date</item>
+        <item ref=drag>Drag</item>
         <item ref=Form>Form</item>
         <item ref=Grid>Grid</item>
         <item ref=Marked>Marked</item>
@@ -101,7 +102,7 @@
 
         host.set('userMax', true);
 
-        const builtins = ['Hello', 'AceEditor', 'AppBar', 'Autocomplete', 'Button', 'Card', 'Chart', 'Click', 'CodeMirror', 'Date', 'DateInput', 'DatePicker', 'Expand', 'Fade', 'Form', 'Grid', 'JSONEditor', 'Keys', 'Marked', 'MaskedInput', 'Menu', 'NumericInput', 'Popover', 'ScrollSpy', 'Shell', 'SideBar', 'Split', 'Swipe', 'Table', 'Tabs', 'Tip', 'Toast', 'Toggle', 'Validate', 'VirtualList', 'Window'];
+        const builtins = ['Hello', 'AceEditor', 'AppBar', 'Autocomplete', 'Button', 'Card', 'Chart', 'Click', 'CodeMirror', 'Date', 'DateInput', 'DatePicker', 'drag', 'Expand', 'Fade', 'Form', 'Grid', 'JSONEditor', 'Keys', 'Marked', 'MaskedInput', 'Menu', 'NumericInput', 'Popover', 'ScrollSpy', 'Shell', 'SideBar', 'Split', 'Swipe', 'Table', 'Tabs', 'tip', 'Toast', 'Toggle', 'Validate', 'VirtualList', 'Window'];
 
         menu.on('item', (ctx, handle) => {
           if (~builtins.indexOf(handle.ref)) {

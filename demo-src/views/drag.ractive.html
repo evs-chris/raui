@@ -1,0 +1,136 @@
+<tabs flat pad class-alt fill height=dynamic>
+  <tab title=Intro><marked>
+    <h2>Move</h2>
+    <p>A draggable list decorator set that allows moving items among arrays, and optionally within arrays. All elements with the same decoration will allow moving elements among them. Multiple namespaces can be set up by supplying a prefix to the plugin.</p>
+    <p>The move plugin can be configured as <code>eventsOnly</code>, which will defer the actual handling of drop actions to events raised on the moved item, source list, and/or destination list.</p>
+  </marked></tab>
+  <tab title=Usage><marked>
+    ### Plugin Options
+
+    * `suffix: string` - an optional suffix to add to the the default `move` name of the decorators
+    * `sort: boolean` - default true - allow sorting within lists
+    * `appendOnly: boolean` - default false - if true, only allow appending items to lists and not dropping at a specific index
+    * `eventsOnly: boolean` - default false - if true, items will not be moved from one list to another. This also allows the path to be any arbitrary string.
+
+    ### Decorator Options
+
+    There are two decorators available in the set: `move` and `moveItem`. If the suffix were set to `Things`, the decorators would be `moveThings` and `moveThingsItem`, respectively. Similarly, any events with a suffixed set of decorators will also have suffixed names e.g. `moveThings`, `moveThingsin`, and `moveThingsout`.
+
+    The raised events have an object argument with the source context (src), the source path (srcPath), the source index (srcIndex), the destination context (dest), the destination path (destPath), the destination index (destIndex), the item (item), and the item context (context). The source and destination contexts are the contexts that exist on the elements that have the move decorators applied to them, so the array will be available as a child e.g. `src.get(srcPath)`.
+
+    #### `move`
+
+    * `path: string` - what array in the element context is going to be managed - this may also be supplied as the only string argument to the decorator
+
+    ##### Events
+
+    * `movein` - fired when an item is dropped on this list
+    * `moveout` - fired when an item is dropped on this list
+
+    #### `moveItem`
+
+    ##### Events
+
+    * `move` - fired when an item is dropped
+  </marked></tab>
+  <tab title=Example>
+    <div>
+      <label as-field>List 1 Style<select value="{{list1style}}">
+        <option>vertical</option>
+        <option>vertical-overflow</option>
+        <option>horizontal</option>
+        <option>horizontal-overflow</option>
+        <option>vertical-grid</option>
+        <option>horizontal-grid</option>
+      </select></label>
+      <label as-field>List 2 Style<select value="{{list2style}}">
+        <option>vertical</option>
+        <option>vertical-overflow</option>
+        <option>horizontal</option>
+        <option>horizontal-overflow</option>
+        <option>vertical-grid</option>
+        <option>horizontal-grid</option>
+      </select></label>
+    </div>
+    <marked>
+      ### Template:
+      ```hbs
+      <div style="display: flex;">
+        <div as-move=`list1` class="move-list {{list2style}}">
+          {{#each list1}}
+            <div as-moveItem><span>{{.name}}</span><span>{{.age}}</span></div>
+          {{/each}}
+        </div>
+        <div as-move=`list2` class="move-list {{list2style}}">
+          {{#each list2}}
+            <div as-moveItem><span>{{.name}}</span><span>{{.age}}</span></div>
+          {{/each}}
+        </div>
+      </div>
+      ```
+      ### Result:
+    </marked>
+    <div style="display: flex;">
+      <div as-move=`list1` class="move-list {{list1style}}">
+        {{#each list1}}
+          <div as-moveItem><span>{{.name}}</span><span>{{.age}}</span></div>
+        {{/each}}
+      </div>
+      <div as-move=`list2` class="move-list {{list2style}}">
+        {{#each list2}}
+          <div as-moveItem><span>{{.name}}</span><span>{{.age}}</span></div>
+        {{/each}}
+      </div>
+    </div>
+  </tab>
+</tabs>
+
+<script>
+  import { Window } from 'cmp/Window';
+  import { move } from 'cmp/drag';
+
+  const alpha = 'abcdefghijklmnopqrstuvwxyz';
+  function rand(max) {
+    return Math.round(Math.random() * max);
+  }
+  function name() {
+    const len = rand(12) + 1;
+    let n = alpha[rand(25)].toUpperCase();
+    for (let i = 1; i <= len; i++) n += alpha[rand(25)];
+    return n;
+  }
+
+  export default Window.extend({
+    template: $TEMPLATE,
+    options: {
+      title: 'Decorator :: Drag',
+      resizable: true, flex: true,
+      width: '48em', height: '30em'
+    },
+    css: `
+      .move-list { background-color: rgba(128, 128, 128, 0.1); padding: 1em; margin: 1em; }
+      .move-list.moveing { background-color: rgba(128, 128, 128, 0.25); }
+      .move-list .moveItem { padding: 0.25em; border: 1px solid; margin: 0.25em; border-radius: 0.5em; width: 16em; display: flex; justify-content: space-between; }
+      .move-list .moveing { opacity: 0.5; }
+      .move-list.vertical {}
+      .move-list.horizontal { display: flex; }
+      .move-list.vertical-overflow { overflow: auto; height: 90vh; }
+      .move-list.horizontal-overflow { display: flex; overflow: auto; width: 80vw; }
+      .move-list.vertical-grid { display: flex; flex-direction: column; flex-wrap: wrap; width: 40vw; height: 45vh; overflow: auto; }
+      .move-list.horizontal-grid { display: flex; flex-wrap: wrap; width: 40vw; height: 45vh; overflow: auto; }
+    `,
+    data() {
+      const list1 = [], list2 = [];
+      for (let i = 0; i < 100; i++) list1.push({ name: name(), age: rand(100) });
+      for (let i = 0; i < 10; i++) list2.push({ name: name(), age: rand(100) });
+      return {
+        list1,
+        list2
+      };
+    },
+    use: [move().plugin],
+  });
+</script>
+
+
+
