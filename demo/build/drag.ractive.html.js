@@ -197,7 +197,7 @@ System.register(['./chunk2.js', 'ractive'], function (exports, module) {
             path: path,
             teardown: function teardown() {
               el.removeEventListener('dragenter', dragover);
-              el.removeEventListener('dragleave', dragout);
+              el.removeEventListener('dragleave', dragleave);
               el.removeEventListener('dragover', dragover);
               el.removeEventListener('drop', drop);
               el.style.position = pos;
