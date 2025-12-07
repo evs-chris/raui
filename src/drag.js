@@ -186,7 +186,7 @@ export function move(opts = {}) {
       path,
       teardown() {
         el.removeEventListener('dragenter', dragover);
-        el.removeEventListener('dragleave', dragout);
+        el.removeEventListener('dragleave', dragleave);
         el.removeEventListener('dragover', dragover);
         el.removeEventListener('drop', drop);
         el.style.position = pos;
