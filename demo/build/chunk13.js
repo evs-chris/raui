@@ -226,8 +226,9 @@ System.register(['ractive', './chunk12.js', './chunk2.js'], function (exports, m
                 }
                 this$1.set('transition', trans);
               }); }
+              else if (v > 0 && v < tabs.length && this.get('selectedContent') !== v) { this.set('selectedContent', v); }
             },
-            init: false
+            init: false, defer: true,
           },
           clientWidth: function clientWidth() {
             this.updateIndicator();
@@ -273,7 +274,7 @@ System.register(['ractive', './chunk12.js', './chunk2.js'], function (exports, m
 
         var tabs = tpl.filter(function (n) { return n.e === 'tab'; }).map(function (t) {
           var tab = {
-            template: { t: t.f.filter(function (n) { return n.e !== 'title'; }) }
+            template: { t: (t.f || []).filter(function (n) { return n.e !== 'title'; }) }
           };
           var extra = [];
           var extraTab = [];
@@ -304,7 +305,7 @@ System.register(['ractive', './chunk12.js', './chunk2.js'], function (exports, m
           });
 
           var tmp;
-          tmp = t.f.find(function (n) { return n.e === 'title'; });
+          tmp = (t.f || []).find(function (n) { return n.e === 'title'; });
           if (tmp) {
             tab.title = tmp.f;
             if (tmp.m) {

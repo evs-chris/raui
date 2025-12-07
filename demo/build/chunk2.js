@@ -1055,7 +1055,7 @@ System.register(['ractive'], function (exports, module) {
       }
 
       Base.extendWith(Host, {
-        template: {v:4,t:[{t:7,e:"div",m:[{t:13,n:"class",f:"rwhost",g:1},{n:"tracked",t:71,f:{r:[],s:"[\"host\"]"}},{t:16,r:"extra-attributes"}],f:[{t:4,f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rwindow-max-top",g:1},{t:4,f:[{t:16,r:"~/_maxAttrsP"}],n:50,r:"~/_maxAttrsP"}],f:[{t:16,r:"~/_maxP",z:[{n:"window",x:{r:"~/current"}},{n:"windowControls",x:{x:{r:["@this.partials.windowControls"],s:"{t:_0}"}}},{n:"host",x:{r:"@this"}}]}]}],n:50,x:{r:["~/currentMax","~/_maxP"],s:"_0&&_1"}}," ",{t:7,e:"div",m:[{t:13,n:"class",f:"rwhost-pane",g:1},{n:"class-rwhost-blocked",t:13,f:[{t:2,r:"~/blocked"}]}],f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rwhost-pane-content",g:1}],f:[{t:16}]}," ",{t:4,f:[{t:11,n:"window",m:[{n:"control",f:[{t:2,rx:{r:"~/windows",m:[{t:30,n:".instance.id"}]}}],t:13},{n:"moving",f:[{t:2,r:"~/moving"}],t:13},{n:"root",t:13,f:[{t:2,r:"~/"}]}]}],n:52,r:"@this.children.byName.window"}," ",{t:7,e:"div",m:[{t:13,n:"class",f:"rwhost-modal",g:1},{n:"tracked",t:71,f:{r:[],s:"[\"modalPane\"]"}},{t:4,f:[{n:"class-rwhost-modal-active",t:13},{n:"style-z-index",f:[{t:2,r:"~/blocked"}],t:13}],n:50,r:"~/blocked"}]}]}," ",{t:8,r:"toast"}]}],e:{"[\"host\"]":function (){return(["host"]);},"{t:_0}":function (_0){return({t:_0});},"_0&&_1":function (_0,_1){return(_0&&_1);},"[\"modalPane\"]":function (){return(["modalPane"]);},"[_0.getWindow(_1).hide()]":function (_0,_1){return([_0.getWindow(_1).hide()]);},"!_0&&_1":function (_0,_1){return(!_0&&_1);},"[_0.getWindow(_1).maximize()]":function (_0,_1){return([_0.getWindow(_1).maximize()]);},"!_0&&_1&&_2":function (_0,_1,_2){return(!_0&&_1&&_2);},"[_0.getWindow(_1).close()]":function (_0,_1){return([_0.getWindow(_1).close()]);},"[\"top\"]":function (){return(["top"]);},"[_0.hide()]":function (_0){return([_0.hide()]);},"[_0.maximize()]":function (_0){return([_0.maximize()]);},"[_0.close()]":function (_0){return([_0.close()]);},"!((_0||_1||_2)&&_3&&!_4)&&!_5&&!_6":function (_0,_1,_2,_3,_4,_5,_6){return(!((_0||_1||_2)&&_3&&!_4)&&!_5&&!_6);},"[\"content\"]":function (){return(["content"]);},"!_0":function (_0){return(!_0);},"[_0.call(_1)]":function (_0,_1){return([_0.call(_1)]);},"[\"wrapper\"]":function (){return(["wrapper"]);},"_0!==false":function (_0){return(_0!==false);},"_0||_1":function (_0,_1){return(_0||_1);},"(_0||_1||_2)&&!_3&&!_4":function (_0,_1,_2,_3,_4){return((_0||_1||_2)&&!_3&&!_4);},"[{from:_0}]":function (_0){return([{from:_0}]);},"[_0._startResize(_1)]":function (_0,_1){return([_0._startResize(_1)]);},"[_0._sizeHandle(_1)]":function (_0,_1){return([_0._sizeHandle(_1)]);},"[_0._startMove(_1)]":function (_0,_1){return([_0._startMove(_1)]);},"!(_4===false||((_0||_1)&&!_3)||_2)&&(!_3||_4===true)&&!_5":function (_0,_1,_2,_3,_4,_5){return(!(_4===false||((_0||_1)&&!_3)||_2)&&(!_3||_4===true)&&!_5);},"[_0.raise()]":function (_0){return([_0.raise()]);},"[\"pane\"]":function (){return(["pane"]);},"_0&&!_1":function (_0,_1){return(_0&&!_1);}},p:{title:[{t:4,f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rwindow-title",g:1}],f:[{t:3,r:"~/control.title"}]}],n:50,r:"~/control.title"}],windowControls:[{t:7,e:"div",m:[{t:13,n:"class",f:"rwindow-controls",g:1}],f:[{t:4,f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rwindow-minimize",g:1},{n:"title",f:"Minimize window",t:13,g:1},{n:["click"],t:70,f:{r:["host","window.id"],s:"[_0.getWindow(_1).hide()]"}}]}],n:50,x:{r:["window.dialog","window.minimize"],s:"!_0&&_1"}}," ",{t:4,f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rwindow-maximize",g:1},{n:"title",f:"Maximize window",t:13,g:1},{n:["click"],t:70,f:{r:["host","window.id"],s:"[_0.getWindow(_1).maximize()]"}}]}],n:50,x:{r:["window.dialog","window.maximize","host.data.userMax"],s:"!_0&&_1&&_2"}}," ",{t:4,f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rwindow-close",g:1},{n:"title",f:"Close window",t:13,g:1},{n:["click"],t:70,f:{r:["host","window.id"],s:"[_0.getWindow(_1).close()]"}}]}],n:50,r:"window.close"}]}],pane:[{t:4,f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rwindow-pane-top",g:1},{n:"tracked",t:71,f:{r:[],s:"[\"top\"]"}}],f:[{t:8,r:"title"}," ",{t:7,e:"div",m:[{t:13,n:"class",f:"rwindow-controls",g:1}],f:[{t:4,f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rwindow-minimize",g:1},{n:"title",f:"Minimize window",t:13,g:1},{n:["click"],t:70,f:{r:["@this"],s:"[_0.hide()]"}}]}],n:50,x:{r:["~/control.dialog","~/control.minimize"],s:"!_0&&_1"}}," ",{t:4,f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rwindow-maximize",g:1},{n:"title",f:"Maximize window",t:13,g:1},{n:["click"],t:70,f:{r:["@this"],s:"[_0.maximize()]"}}]}],n:50,x:{r:["~/control.dialog","~/control.maximize"],s:"!_0&&_1"}}," ",{t:4,f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rwindow-close",g:1},{n:"title",f:"Close window",t:13,g:1},{n:["click"],t:70,f:{r:["@this"],s:"[_0.close()]"}}]}],n:50,r:"~/control.close"}]}]}],n:50,x:{r:["~/control.max","~/root.userMax","~/root.max","~/root.hideTitleMax","~/control.dialog","~/control.hideTitle","~/control.slide"],s:"!((_0||_1||_2)&&_3&&!_4)&&!_5&&!_6"}}," ",{t:7,e:"div",m:[{t:13,n:"class",f:"rwindow-content",g:1},{n:"tracked",t:71,f:{r:[],s:"[\"content\"]"}},{n:"class-rwindow-pad",t:13,f:[{t:2,r:"~/control.pad"}]},{n:"class-rwindow-flex",t:13,f:[{t:2,r:"~/control.flex"}]},{t:4,f:[{n:"style-overflow",f:"visible",t:13}],n:50,r:"~/control.autosize"}],f:[{t:8,r:"contents"}]}," ",{t:4,f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rwindow-buttons",g:1},{n:"class-no-buttons",t:13,f:[{t:2,x:{r:["~/visibleButtons"],s:"!_0"}}]}],f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rwindow-left-buttons",g:1}],f:[{t:4,f:[{t:4,f:[{t:8,r:".partial"}],n:50,r:".partial"},{t:4,f:[{t:7,e:"button",m:[{n:"button",t:71},{n:["click"],t:70,f:{r:[".action","@"],s:"[_0.call(_1)]"}},{t:4,f:[{n:"class",f:[{t:2,r:".class"}],t:13}],n:50,r:".class"},{t:4,f:[{n:"title",f:[{t:2,r:".title"}],t:13}],n:50,r:".title"}],f:[{t:2,r:".label"}]}],n:51,l:1}],n:52,r:"~/leftButtons"}]}," ",{t:7,e:"div",m:[{t:13,n:"class",f:"rwindow-center-buttons",g:1}],f:[{t:4,f:[{t:4,f:[{t:8,r:".partial"}],n:50,r:".partial"},{t:4,f:[{t:7,e:"button",m:[{n:"button",t:71},{n:["click"],t:70,f:{r:[".action","@"],s:"[_0.call(_1)]"}},{t:4,f:[{n:"class",f:[{t:2,r:".class"}],t:13}],n:50,r:".class"},{t:4,f:[{n:"title",f:[{t:2,r:".title"}],t:13}],n:50,r:".title"}],f:[{t:2,r:".label"}]}],n:51,l:1}],n:52,r:"~/centerButtons"}]}," ",{t:7,e:"div",m:[{t:13,n:"class",f:"rwindow-right-buttons",g:1}],f:[{t:4,f:[{t:4,f:[{t:8,r:".partial"}],n:50,r:".partial"},{t:4,f:[{t:7,e:"button",m:[{n:"button",t:71},{n:["click"],t:70,f:{r:[".action","@"],s:"[_0.call(_1)]"}},{t:4,f:[{n:"class",f:[{t:2,r:".class"}],t:13}],n:50,r:".class"},{t:4,f:[{n:"title",f:[{t:2,r:".title"}],t:13}],n:50,r:".title"}],f:[{t:2,r:".label"}]}],n:51,l:1}],n:52,r:"~/rightButtons"}]}]}],n:50,r:"~/buttons"}," ",{t:7,e:"div",m:[{t:13,n:"class",f:"rwindow-pane-bottom",g:1}],f:[{t:8,r:"status"}]}],window:[{t:4,f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rwindow-wrapper",g:1},{n:"tracked",t:71,f:{r:[],s:"[\"wrapper\"]"}},{t:4,f:[" ",{t:4,f:[{n:"window",t:72,v:"t2"}],n:50,x:{r:["~/root.transition"],s:"_0!==false"}}," ",{t:4,f:[{n:"style-top",f:"0",t:13},{n:"style-left",f:"0",t:13},{n:"style-width",f:"100%",t:13},{n:"style-height",f:"100%",t:13}],n:51,x:{r:["~/control.autosize","~/control.dialog"],s:"_0||_1"}},{n:"class-rwindow-max",t:13}],n:50,x:{r:["~/root.max","~/root.userMax","~/control.max","~/control.dialog","~/control.slide"],s:"(_0||_1||_2)&&!_3&&!_4"}},{t:4,f:[{n:"class",f:["rwindow-slide rwindow-slide-",{t:2,r:"~/control.slide"}],t:13},{n:"slide",t:72,f:{r:["~/control.slide"],s:"[{from:_0}]"},v:"t0"}],n:50,r:"~/control.slide",l:1},{t:4,f:[" ",{t:4,f:[{n:"modal",t:72,v:"t0"}],n:50,x:{r:["~/root.transition"],s:"_0!==false"}}," ",{t:4,f:[{n:"class-rwindow-resizable",t:13},{n:["mousedown","touchstart"],t:70,f:{r:["@this","@event"],s:"[_0._startResize(_1)]"}},{n:["mousemove","mouseout"],t:70,f:{r:["@this","@event"],s:"[_0._sizeHandle(_1)]"}}],n:50,r:"~/control.resizable"}," ",{t:4,f:[{n:"class-rwindow-resizing",t:13}],n:50,r:"~/control.resizing"},{n:"style-top",f:[{t:2,r:"~/control.top"},"px"],t:13},{n:"style-left",f:[{t:2,r:"~/control.left"},"px"],t:13},{t:4,f:[{n:"style-width",f:[{t:2,r:"~/control.width"},"em"],t:13},{n:"style-height",f:[{t:2,r:"~/control.height"},"em"],t:13}],n:51,r:"~/control.autosize"}],n:51,l:1},{n:"style-z-index",f:[{t:2,r:"~/control.index"}],t:13},{n:"class-rwindow-topmost",t:13,f:[{t:2,r:"~/control.topmost"}]}],f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rwindow",g:1},{t:4,f:[{n:["mousedown","touchstart"],t:70,f:{r:["@this","@event"],s:"[_0._startMove(_1)]"}}],n:50,x:{r:["~/root.max","~/root.userMax","~/control.max","~/control.dialog","~/control.movable","~/control.slide"],s:"!(_4===false||((_0||_1)&&!_3)||_2)&&(!_3||_4===true)&&!_5"}},{t:4,f:[{n:["mousedown","touchstart"],t:70,f:{r:["@this"],s:"[_0.raise()]"}}],n:50,x:{r:["~/control.topmost"],s:"!_0"},l:1}],f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rwindow-modal",g:1},{n:"class-rwindow-blocked",t:13,f:[{t:2,x:{r:["~/control.blockers.length","~/control.blocked"],s:"_0||_1"}}]},{n:"class-rwindow-move",t:13,f:[{t:2,r:"~/moving"}]}]}," ",{t:7,e:"div",m:[{t:13,n:"class",f:"rwindow-pane",g:1},{n:"tracked",t:71,f:{r:[],s:"[\"pane\"]"}},{t:4,f:[{n:"class-rwindow-autosizing",t:13}],n:50,x:{r:["~/control.autosize","~/control.slide"],s:"_0&&!_1"}}],f:[{t:8,r:"pane"}]}]}]}],n:50,r:"~/control.show"}]}},
+        template: {v:4,t:[{t:7,e:"div",m:[{t:13,n:"class",f:"rwhost",g:1},{n:"tracked",t:71,f:{r:[],s:"[\"host\"]"}},{t:16,r:"extra-attributes"}],f:[{t:4,f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rwindow-max-top",g:1},{t:4,f:[{t:16,r:"~/_maxAttrsP"}],n:50,r:"~/_maxAttrsP"}],f:[{t:16,r:"~/_maxP",z:[{n:"window",x:{r:"~/current"}},{n:"windowControls",x:{x:{r:["@this.partials.windowControls"],s:"{t:_0}"}}},{n:"host",x:{r:"@this"}}]}]}],n:50,x:{r:["~/currentMax","~/_maxP"],s:"_0&&_1"}}," ",{t:7,e:"div",m:[{t:13,n:"class",f:"rwhost-pane",g:1},{n:"class-rwhost-blocked",t:13,f:[{t:2,r:"~/blocked"}]}],f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rwhost-pane-content",g:1}],f:[{t:16}]}," ",{t:4,f:[{t:11,n:"window",m:[{n:"control",f:[{t:2,rx:{r:"~/windows",m:[{t:30,n:".instance.id"}]}}],t:13},{n:"moving",f:[{t:2,r:"~/moving"}],t:13},{n:"root",t:13,f:[{t:2,r:"~/"}]}]}],n:52,r:"@this.children.byName.window"}," ",{t:7,e:"div",m:[{t:13,n:"class",f:"rwhost-modal",g:1},{n:"tracked",t:71,f:{r:[],s:"[\"modalPane\"]"}},{t:4,f:[{n:"class-rwhost-modal-active",t:13},{n:"style-z-index",f:[{t:2,r:"~/blocked"}],t:13}],n:50,r:"~/blocked"}]}]}," ",{t:8,r:"toast"}]}],e:{"[\"host\"]":function (){return(["host"]);},"{t:_0}":function (_0){return({t:_0});},"_0&&_1":function (_0,_1){return(_0&&_1);},"[\"modalPane\"]":function (){return(["modalPane"]);},"[_0.getWindow(_1).hide()]":function (_0,_1){return([_0.getWindow(_1).hide()]);},"!_0&&_1":function (_0,_1){return(!_0&&_1);},"[_0.getWindow(_1).maximize()]":function (_0,_1){return([_0.getWindow(_1).maximize()]);},"!_0&&_1&&_2":function (_0,_1,_2){return(!_0&&_1&&_2);},"[_0.getWindow(_1).close()]":function (_0,_1){return([_0.getWindow(_1).close()]);},"[\"top\"]":function (){return(["top"]);},"[_0.hide()]":function (_0){return([_0.hide()]);},"[_0.maximize()]":function (_0){return([_0.maximize()]);},"[_0.close()]":function (_0){return([_0.close()]);},"!((_0||_1||_2)&&_3&&!_4)&&!_5&&!_6":function (_0,_1,_2,_3,_4,_5,_6){return(!((_0||_1||_2)&&_3&&!_4)&&!_5&&!_6);},"[\"content\"]":function (){return(["content"]);},"!_0":function (_0){return(!_0);},"[_0.call(_1)]":function (_0,_1){return([_0.call(_1)]);},"[\"wrapper\"]":function (){return(["wrapper"]);},"_0!==false":function (_0){return(_0!==false);},"_0||_1":function (_0,_1){return(_0||_1);},"(_0||_1||_2)&&!_3&&!_4":function (_0,_1,_2,_3,_4){return((_0||_1||_2)&&!_3&&!_4);},"[{from:_0}]":function (_0){return([{from:_0}]);},"[_0._specialCursor(_1,\"handle\")]":function (_0,_1){return([_0._specialCursor(_1,"handle")]);},"[_0._startResize(_1)]":function (_0,_1){return([_0._startResize(_1)]);},"[_0?_1.preventDefault():true]":function (_0,_1){return([_0?_1.preventDefault():true]);},"[_0&&_1===2?_2._startResize(_3):_2._startMove(_3)]":function (_0,_1,_2,_3){return([_0&&_1===2?_2._startResize(_3):_2._startMove(_3)]);},"!(_4===false||((_0||_1)&&!_3)||_2)&&(!_3||_4===true)&&!_5":function (_0,_1,_2,_3,_4,_5){return(!(_4===false||((_0||_1)&&!_3)||_2)&&(!_3||_4===true)&&!_5);},"[_0.raise()]":function (_0){return([_0.raise()]);},"[\"pane\"]":function (){return(["pane"]);},"_0&&!_1":function (_0,_1){return(_0&&!_1);}},p:{title:[{t:4,f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rwindow-title",g:1}],f:[{t:3,r:"~/control.title"}]}],n:50,r:"~/control.title"}],windowControls:[{t:7,e:"div",m:[{t:13,n:"class",f:"rwindow-controls",g:1}],f:[{t:4,f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rwindow-minimize",g:1},{n:"title",f:"Minimize window",t:13,g:1},{n:["click"],t:70,f:{r:["host","window.id"],s:"[_0.getWindow(_1).hide()]"}}]}],n:50,x:{r:["window.dialog","window.minimize"],s:"!_0&&_1"}}," ",{t:4,f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rwindow-maximize",g:1},{n:"title",f:"Maximize window",t:13,g:1},{n:["click"],t:70,f:{r:["host","window.id"],s:"[_0.getWindow(_1).maximize()]"}}]}],n:50,x:{r:["window.dialog","window.maximize","host.data.userMax"],s:"!_0&&_1&&_2"}}," ",{t:4,f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rwindow-close",g:1},{n:"title",f:"Close window",t:13,g:1},{n:["click"],t:70,f:{r:["host","window.id"],s:"[_0.getWindow(_1).close()]"}}]}],n:50,r:"window.close"}]}],pane:[{t:4,f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rwindow-pane-top",g:1},{n:"tracked",t:71,f:{r:[],s:"[\"top\"]"}}],f:[{t:8,r:"title"}," ",{t:7,e:"div",m:[{t:13,n:"class",f:"rwindow-controls",g:1}],f:[{t:4,f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rwindow-minimize",g:1},{n:"title",f:"Minimize window",t:13,g:1},{n:["click"],t:70,f:{r:["@this"],s:"[_0.hide()]"}}]}],n:50,x:{r:["~/control.dialog","~/control.minimize"],s:"!_0&&_1"}}," ",{t:4,f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rwindow-maximize",g:1},{n:"title",f:"Maximize window",t:13,g:1},{n:["click"],t:70,f:{r:["@this"],s:"[_0.maximize()]"}}]}],n:50,x:{r:["~/control.dialog","~/control.maximize"],s:"!_0&&_1"}}," ",{t:4,f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rwindow-close",g:1},{n:"title",f:"Close window",t:13,g:1},{n:["click"],t:70,f:{r:["@this"],s:"[_0.close()]"}}]}],n:50,r:"~/control.close"}]}]}],n:50,x:{r:["~/control.max","~/root.userMax","~/root.max","~/root.hideTitleMax","~/control.dialog","~/control.hideTitle","~/control.slide"],s:"!((_0||_1||_2)&&_3&&!_4)&&!_5&&!_6"}}," ",{t:7,e:"div",m:[{t:13,n:"class",f:"rwindow-content",g:1},{n:"tracked",t:71,f:{r:[],s:"[\"content\"]"}},{n:"class-rwindow-pad",t:13,f:[{t:2,r:"~/control.pad"}]},{n:"class-rwindow-flex",t:13,f:[{t:2,r:"~/control.flex"}]},{t:4,f:[{n:"style-overflow",f:"visible",t:13}],n:50,r:"~/control.autosize"}],f:[{t:8,r:"contents"}]}," ",{t:4,f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rwindow-buttons",g:1},{n:"class-no-buttons",t:13,f:[{t:2,x:{r:["~/visibleButtons"],s:"!_0"}}]}],f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rwindow-left-buttons",g:1}],f:[{t:4,f:[{t:4,f:[{t:8,r:".partial"}],n:50,r:".partial"},{t:4,f:[{t:7,e:"button",m:[{n:"button",t:71},{n:["click"],t:70,f:{r:[".action","@"],s:"[_0.call(_1)]"}},{t:4,f:[{n:"class",f:[{t:2,r:".class"}],t:13}],n:50,r:".class"},{t:4,f:[{n:"title",f:[{t:2,r:".title"}],t:13}],n:50,r:".title"}],f:[{t:2,r:".label"}]}],n:51,l:1}],n:52,r:"~/leftButtons"}]}," ",{t:7,e:"div",m:[{t:13,n:"class",f:"rwindow-center-buttons",g:1}],f:[{t:4,f:[{t:4,f:[{t:8,r:".partial"}],n:50,r:".partial"},{t:4,f:[{t:7,e:"button",m:[{n:"button",t:71},{n:["click"],t:70,f:{r:[".action","@"],s:"[_0.call(_1)]"}},{t:4,f:[{n:"class",f:[{t:2,r:".class"}],t:13}],n:50,r:".class"},{t:4,f:[{n:"title",f:[{t:2,r:".title"}],t:13}],n:50,r:".title"}],f:[{t:2,r:".label"}]}],n:51,l:1}],n:52,r:"~/centerButtons"}]}," ",{t:7,e:"div",m:[{t:13,n:"class",f:"rwindow-right-buttons",g:1}],f:[{t:4,f:[{t:4,f:[{t:8,r:".partial"}],n:50,r:".partial"},{t:4,f:[{t:7,e:"button",m:[{n:"button",t:71},{n:["click"],t:70,f:{r:[".action","@"],s:"[_0.call(_1)]"}},{t:4,f:[{n:"class",f:[{t:2,r:".class"}],t:13}],n:50,r:".class"},{t:4,f:[{n:"title",f:[{t:2,r:".title"}],t:13}],n:50,r:".title"}],f:[{t:2,r:".label"}]}],n:51,l:1}],n:52,r:"~/rightButtons"}]}]}],n:50,r:"~/buttons"}," ",{t:7,e:"div",m:[{t:13,n:"class",f:"rwindow-pane-bottom",g:1}],f:[{t:8,r:"status"}]}],window:[{t:4,f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rwindow-wrapper",g:1},{n:"tracked",t:71,f:{r:[],s:"[\"wrapper\"]"}},{t:4,f:[" ",{t:4,f:[{n:"window",t:72,v:"t2"}],n:50,x:{r:["~/root.transition"],s:"_0!==false"}}," ",{t:4,f:[{n:"style-top",f:"0",t:13},{n:"style-left",f:"0",t:13},{n:"style-width",f:"100%",t:13},{n:"style-height",f:"100%",t:13}],n:51,x:{r:["~/control.autosize","~/control.dialog"],s:"_0||_1"}},{n:"class-rwindow-max",t:13}],n:50,x:{r:["~/root.max","~/root.userMax","~/control.max","~/control.dialog","~/control.slide"],s:"(_0||_1||_2)&&!_3&&!_4"}},{t:4,f:[{n:"class",f:["rwindow-slide rwindow-slide-",{t:2,r:"~/control.slide"}],t:13},{n:"slide",t:72,f:{r:["~/control.slide"],s:"[{from:_0}]"},v:"t0"}],n:50,r:"~/control.slide",l:1},{t:4,f:[" ",{t:4,f:[{n:"modal",t:72,v:"t0"}],n:50,x:{r:["~/root.transition"],s:"_0!==false"}}," ",{t:4,f:[{n:"class-rwindow-resizable",t:13},{n:["mousemove","mouseout"],t:70,f:{r:["@this","@event"],s:"[_0._specialCursor(_1,\"handle\")]"}},{n:["mousedown","touchstart"],t:70,f:{r:["@this","@event"],s:"[_0._startResize(_1)]"}},{n:["contextmenu"],t:70,f:{r:["@event.ctrlKey","@event"],s:"[_0?_1.preventDefault():true]"}}],n:50,r:"~/control.resizable"}," ",{t:4,f:[{n:"class-rwindow-resizing",t:13}],n:50,r:"~/control.resizing"},{n:"style-top",f:[{t:2,r:"~/control.top"},"px"],t:13},{n:"style-left",f:[{t:2,r:"~/control.left"},"px"],t:13},{t:4,f:[{n:"style-width",f:[{t:2,r:"~/control.width"},"em"],t:13},{n:"style-height",f:[{t:2,r:"~/control.height"},"em"],t:13}],n:51,r:"~/control.autosize"}],n:51,l:1},{n:"style-z-index",f:[{t:2,r:"~/control.index"}],t:13},{n:"class-rwindow-topmost",t:13,f:[{t:2,r:"~/control.topmost"}]}],f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rwindow",g:1},{t:4,f:[{n:["mousedown","touchstart"],t:70,f:{r:["@event.ctrlKey","@event.button","@this","@event"],s:"[_0&&_1===2?_2._startResize(_3):_2._startMove(_3)]"}}],n:50,x:{r:["~/root.max","~/root.userMax","~/control.max","~/control.dialog","~/control.movable","~/control.slide"],s:"!(_4===false||((_0||_1)&&!_3)||_2)&&(!_3||_4===true)&&!_5"}},{t:4,f:[{n:["mousedown","touchstart"],t:70,f:{r:["@this"],s:"[_0.raise()]"}}],n:50,x:{r:["~/control.topmost"],s:"!_0"},l:1}],f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rwindow-modal",g:1},{n:"class-rwindow-blocked",t:13,f:[{t:2,x:{r:["~/control.blockers.length","~/control.blocked"],s:"_0||_1"}}]},{n:"class-rwindow-move",t:13,f:[{t:2,r:"~/moving"}]}]}," ",{t:7,e:"div",m:[{t:13,n:"class",f:"rwindow-pane",g:1},{n:"tracked",t:71,f:{r:[],s:"[\"pane\"]"}},{t:4,f:[{n:"class-rwindow-autosizing",t:13}],n:50,x:{r:["~/control.autosize","~/control.slide"],s:"_0&&!_1"}}],f:[{t:8,r:"pane"}]}]}]}],n:50,r:"~/control.show"}]}},
         use: [plugin$2(), plugin$1()],
         cssId: 'window-host',
         noIntro: true,
@@ -1451,11 +1451,10 @@ System.register(['ractive'], function (exports, module) {
             if (event.targetTouches && event.targetTouches.length === 1 && event.target !== this.content && event.target !== this.top && !this.top.contains(event.target)) { return; }
           }
 
+          this._specialCursor(event, 'moving');
           this.set('moving', true);
 
           var wnd = this.pane;
-          var cursor = wnd.style.cursor;
-          wnd.style.cursor = 'move';
           wnd.style.userSelect = 'none';
 
           var sx = event.x || event.clientX || (event.targetTouches && event.targetTouches[0].clientX) || 0;
@@ -1483,9 +1482,9 @@ System.register(['ractive'], function (exports, module) {
 
             if (ev.type === 'touchend' || ev.type === 'mouseup') {
               moveEvents.forEach(function (e) { return document.removeEventListener(e, _move, { passive: false }); });
-              wnd.style.cursor = cursor;
               wnd.style.userSelect = '';
               this$1.set('moving', false);
+              this$1._specialCursor(event, 'moving');
             } else {
               ev.preventDefault();
             }
@@ -1499,8 +1498,8 @@ System.register(['ractive'], function (exports, module) {
         Window.prototype._startResize = function _startResize (event) {
           var this$1 = this;
 
-          if (event.target !== this.wrapper) { return; }
-          if (event.type === 'mousedown' && event.button !== 0) { return; }
+          if (event.target !== this.wrapper && !event.ctrlKey) { return; }
+          if (event.type === 'mousedown' && ![0, 2].includes(event.button)) { return; }
 
           if (this.get('control.autosize')) {
             this.size('auto');
@@ -1509,20 +1508,16 @@ System.register(['ractive'], function (exports, module) {
           if (!this.get('control.topmost')) { this.raise(); }
 
           this.set('control.resizing', true);
-          this.set('moving', true);
 
           var el = this.wrapper;
-          var ix = event.offsetX || (event.targetTouches && (event.targetTouches[0].pageX - el.getBoundingClientRect().left));
-          var iy = event.offsetY || (event.targetTouches && (event.targetTouches[0].pageY - el.getBoundingClientRect().top));
-          var size = this.get('@style.window.handleSize') || handleSize;
-          var right = el.clientWidth - size * 2, bottom = el.clientHeight - size * 2;
-          var min = 2 * size;
-
-          var l = ix <= min || ix >= right;
-          var t = iy <= min || iy >= bottom;
 
           var sx = event.x || event.clientX || (event.targetTouches && event.targetTouches[0].clientX) || 0;
           var sy = event.y || event.clientY || (event.targetTouches && event.targetTouches[0].clientY) || 0;
+          var ix = sx - el.offsetLeft;
+          var iy = sy - el.offsetTop;
+
+          var l = ix <= el.clientWidth / 2;
+          var t = iy <= el.clientHeight / 2;
 
           var ox = this.get('control.left') || 0;
           var oy = this.get('control.top') || 0;
@@ -1538,20 +1533,20 @@ System.register(['ractive'], function (exports, module) {
             var x = ev.x || ev.clientX || (ev.targetTouches && ev.targetTouches[0] && ev.targetTouches[0].clientX) || (ev.changedTouches && ev.changedTouches[0].clientX) || 0;
             var y = ev.y || ev.clientY || (ev.targetTouches && ev.targetTouches[0] && ev.targetTouches[0].clientY) || (ev.changedTouches && ev.changedTouches[0].clientY) || 0;
 
-            var dx = l ? x - sx : 0;
-            var dy = t ? y - sy : 0;
+            var dx = x - sx;
+            var dy = y - sy;
 
             // resizing from top/left requires top/left/width/height adjustments
             var set = {};
 
-            if (iy <= min) {
+            if (t) {
               set['control.top'] = oy + dy;
               set['control.height'] = oh - dy;
             } else {
               set['control.height'] = oh + dy;
             }
 
-            if (ix <= min) {
+            if (l) {
               set['control.left'] = ox + dx;
               set['control.width'] = ow - dx;
             } else {
@@ -1579,12 +1574,12 @@ System.register(['ractive'], function (exports, module) {
             if (ev.type === 'touchend' || ev.type === 'mouseup') {
               moveEvents.forEach(function (e) { return document.removeEventListener(e, _resize, { passive: false }); });
               this$1.set('control.resizing', false);
-              this$1.set('moving', false);
               if (ow !== this$1.get('control.width') || oh !== this$1.get('control.height')) {
                 if (tm) { clearTimeout(tm); }
                 tm = null;
                 this$1.fire('resize');
               }
+              this$1._specialCursor(event, 'resizing');
             } else {
               if (!tm) {
                 tm = setTimeout(function () {
@@ -1597,31 +1592,41 @@ System.register(['ractive'], function (exports, module) {
 
           moveEvents.forEach(function (e) { return document.addEventListener(e, _resize, { passive: false }); });
 
+          this._specialCursor(event, 'resizing');
+
           return false;
         };
 
-        Window.prototype._sizeHandle = function _sizeHandle (event) {
-          if (event.target !== this.wrapper) { return; }
+        Window.prototype._specialCursor = function _specialCursor (event, which) {
           var el = this.wrapper;
-
-          if (event.type === 'mouseout') { return el.style.cursor = 'auto'; }
-
-          var x = event.offsetX, y = event.offsetY;
-          var size = this.get('@style.window.handleSize') || handleSize;
-          var right = el.clientWidth - size, bottom = el.clientHeight - size;
-
           var style = el.style;
-          if ((x <= size + size && y <= size + size) || (x >= right - size && y >= bottom - size)) {
-            style.cursor = 'nwse-resize';
-          } else if ((x >= right - size && y <= size + size) || (x <= size + size && y >= bottom - size)) {
-            style.cursor = 'nesw-resize';
-          } else if ((x <= size || x >= right) && (y < bottom || y > size)) {
-            style.cursor = 'ew-resize';
-          } else if ((y <= size || y >= bottom) && (x < right || x > size)) {
-            style.cursor = 'ns-resize';
-          } else {
-            style.cursor = 'auto';
+
+          if ((which === 'resizing' || which === 'moving') && (event.type === 'touchend' || event.type === 'mouseup')) { return style.cursor = 'auto'; }
+          if (which === 'moving' && (event.type === 'touchstart' || event.type === 'mousedown')) { return style.cursor = 'move'; }
+
+          if (which === 'handle' && (this.get('moving') || this.get('control.resizing'))) { return; }
+          if (which === 'handle' && event.type === 'mouseout') { return style.cursor = 'auto'; }
+
+          var sx = event.x || event.clientX || (event.targetTouches && event.targetTouches[0].clientX) || 0;
+          var sy = event.y || event.clientY || (event.targetTouches && event.targetTouches[0].clientY) || 0;
+          var pos = el.getBoundingClientRect();
+          var w = el.clientWidth;
+          var h = el.clientHeight;
+          var ix = sx - pos.left;
+          var iy = sy - pos.top;
+
+          var l = ix <= w / 2;
+          var t = iy <= h / 2;
+
+          if (which === 'handle') {
+            var size = this.get('@style.window.handleSize') || handleSize;
+            if (!(ix < size || ix > w - size || iy < size || iy > h - size)) { return style.cursor = 'auto'; }
           }
+
+          if (l && t) { style.cursor = 'nw-resize'; }
+          else if (l && !t) { style.cursor = 'sw-resize'; }
+          else if (!l && t) { style.cursor = 'ne-resize'; }
+          else { style.cursor = 'se-resize'; }
         };
 
         Object.defineProperties( Window.prototype, prototypeAccessors$1 );
@@ -1631,7 +1636,7 @@ System.register(['ractive'], function (exports, module) {
 
       var buttonAttrs = [ 'left', 'right', 'center', 'condition' ];
       Base.extendWith(Window, {
-        template: {v:4,t:[{t:4,f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rwindow-wrapper",g:1},{n:"tracked",t:71,f:{r:[],s:"[\"wrapper\"]"}},{t:4,f:[" ",{t:4,f:[{n:"window",t:72,v:"t2"}],n:50,x:{r:["~/root.transition"],s:"_0!==false"}}," ",{t:4,f:[{n:"style-top",f:"0",t:13},{n:"style-left",f:"0",t:13},{n:"style-width",f:"100%",t:13},{n:"style-height",f:"100%",t:13}],n:51,x:{r:["~/control.autosize","~/control.dialog"],s:"_0||_1"}},{n:"class-rwindow-max",t:13}],n:50,x:{r:["~/root.max","~/root.userMax","~/control.max","~/control.dialog","~/control.slide"],s:"(_0||_1||_2)&&!_3&&!_4"}},{t:4,f:[{n:"class",f:["rwindow-slide rwindow-slide-",{t:2,r:"~/control.slide"}],t:13},{n:"slide",t:72,f:{r:["~/control.slide"],s:"[{from:_0}]"},v:"t0"}],n:50,r:"~/control.slide",l:1},{t:4,f:[" ",{t:4,f:[{n:"modal",t:72,v:"t0"}],n:50,x:{r:["~/root.transition"],s:"_0!==false"}}," ",{t:4,f:[{n:"class-rwindow-resizable",t:13},{n:["mousedown","touchstart"],t:70,f:{r:["@this","@event"],s:"[_0._startResize(_1)]"}},{n:["mousemove","mouseout"],t:70,f:{r:["@this","@event"],s:"[_0._sizeHandle(_1)]"}}],n:50,r:"~/control.resizable"}," ",{t:4,f:[{n:"class-rwindow-resizing",t:13}],n:50,r:"~/control.resizing"},{n:"style-top",f:[{t:2,r:"~/control.top"},"px"],t:13},{n:"style-left",f:[{t:2,r:"~/control.left"},"px"],t:13},{t:4,f:[{n:"style-width",f:[{t:2,r:"~/control.width"},"em"],t:13},{n:"style-height",f:[{t:2,r:"~/control.height"},"em"],t:13}],n:51,r:"~/control.autosize"}],n:51,l:1},{n:"style-z-index",f:[{t:2,r:"~/control.index"}],t:13},{n:"class-rwindow-topmost",t:13,f:[{t:2,r:"~/control.topmost"}]}],f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rwindow",g:1},{t:4,f:[{n:["mousedown","touchstart"],t:70,f:{r:["@this","@event"],s:"[_0._startMove(_1)]"}}],n:50,x:{r:["~/root.max","~/root.userMax","~/control.max","~/control.dialog","~/control.movable","~/control.slide"],s:"!(_4===false||((_0||_1)&&!_3)||_2)&&(!_3||_4===true)&&!_5"}},{t:4,f:[{n:["mousedown","touchstart"],t:70,f:{r:["@this"],s:"[_0.raise()]"}}],n:50,x:{r:["~/control.topmost"],s:"!_0"},l:1}],f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rwindow-modal",g:1},{n:"class-rwindow-blocked",t:13,f:[{t:2,x:{r:["~/control.blockers.length","~/control.blocked"],s:"_0||_1"}}]},{n:"class-rwindow-move",t:13,f:[{t:2,r:"~/moving"}]}]}," ",{t:7,e:"div",m:[{t:13,n:"class",f:"rwindow-pane",g:1},{n:"tracked",t:71,f:{r:[],s:"[\"pane\"]"}},{t:4,f:[{n:"class-rwindow-autosizing",t:13}],n:50,x:{r:["~/control.autosize","~/control.slide"],s:"_0&&!_1"}}],f:[{t:8,r:"pane"}]}]}]}],n:50,r:"~/control.show"}]},
+        template: {v:4,t:[{t:4,f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rwindow-wrapper",g:1},{n:"tracked",t:71,f:{r:[],s:"[\"wrapper\"]"}},{t:4,f:[" ",{t:4,f:[{n:"window",t:72,v:"t2"}],n:50,x:{r:["~/root.transition"],s:"_0!==false"}}," ",{t:4,f:[{n:"style-top",f:"0",t:13},{n:"style-left",f:"0",t:13},{n:"style-width",f:"100%",t:13},{n:"style-height",f:"100%",t:13}],n:51,x:{r:["~/control.autosize","~/control.dialog"],s:"_0||_1"}},{n:"class-rwindow-max",t:13}],n:50,x:{r:["~/root.max","~/root.userMax","~/control.max","~/control.dialog","~/control.slide"],s:"(_0||_1||_2)&&!_3&&!_4"}},{t:4,f:[{n:"class",f:["rwindow-slide rwindow-slide-",{t:2,r:"~/control.slide"}],t:13},{n:"slide",t:72,f:{r:["~/control.slide"],s:"[{from:_0}]"},v:"t0"}],n:50,r:"~/control.slide",l:1},{t:4,f:[" ",{t:4,f:[{n:"modal",t:72,v:"t0"}],n:50,x:{r:["~/root.transition"],s:"_0!==false"}}," ",{t:4,f:[{n:"class-rwindow-resizable",t:13},{n:["mousemove","mouseout"],t:70,f:{r:["@this","@event"],s:"[_0._specialCursor(_1,\"handle\")]"}},{n:["mousedown","touchstart"],t:70,f:{r:["@this","@event"],s:"[_0._startResize(_1)]"}},{n:["contextmenu"],t:70,f:{r:["@event.ctrlKey","@event"],s:"[_0?_1.preventDefault():true]"}}],n:50,r:"~/control.resizable"}," ",{t:4,f:[{n:"class-rwindow-resizing",t:13}],n:50,r:"~/control.resizing"},{n:"style-top",f:[{t:2,r:"~/control.top"},"px"],t:13},{n:"style-left",f:[{t:2,r:"~/control.left"},"px"],t:13},{t:4,f:[{n:"style-width",f:[{t:2,r:"~/control.width"},"em"],t:13},{n:"style-height",f:[{t:2,r:"~/control.height"},"em"],t:13}],n:51,r:"~/control.autosize"}],n:51,l:1},{n:"style-z-index",f:[{t:2,r:"~/control.index"}],t:13},{n:"class-rwindow-topmost",t:13,f:[{t:2,r:"~/control.topmost"}]}],f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rwindow",g:1},{t:4,f:[{n:["mousedown","touchstart"],t:70,f:{r:["@event.ctrlKey","@event.button","@this","@event"],s:"[_0&&_1===2?_2._startResize(_3):_2._startMove(_3)]"}}],n:50,x:{r:["~/root.max","~/root.userMax","~/control.max","~/control.dialog","~/control.movable","~/control.slide"],s:"!(_4===false||((_0||_1)&&!_3)||_2)&&(!_3||_4===true)&&!_5"}},{t:4,f:[{n:["mousedown","touchstart"],t:70,f:{r:["@this"],s:"[_0.raise()]"}}],n:50,x:{r:["~/control.topmost"],s:"!_0"},l:1}],f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rwindow-modal",g:1},{n:"class-rwindow-blocked",t:13,f:[{t:2,x:{r:["~/control.blockers.length","~/control.blocked"],s:"_0||_1"}}]},{n:"class-rwindow-move",t:13,f:[{t:2,r:"~/moving"}]}]}," ",{t:7,e:"div",m:[{t:13,n:"class",f:"rwindow-pane",g:1},{n:"tracked",t:71,f:{r:[],s:"[\"pane\"]"}},{t:4,f:[{n:"class-rwindow-autosizing",t:13}],n:50,x:{r:["~/control.autosize","~/control.slide"],s:"_0&&!_1"}}],f:[{t:8,r:"pane"}]}]}]}],n:50,r:"~/control.show"}]},
         cssId: 'window',
         partials: {
           pane: {v:4,t:[{t:4,f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rwindow-pane-top",g:1},{n:"tracked",t:71,f:{r:[],s:"[\"top\"]"}}],f:[{t:8,r:"title"}," ",{t:7,e:"div",m:[{t:13,n:"class",f:"rwindow-controls",g:1}],f:[{t:4,f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rwindow-minimize",g:1},{n:"title",f:"Minimize window",t:13,g:1},{n:["click"],t:70,f:{r:["@this"],s:"[_0.hide()]"}}]}],n:50,x:{r:["~/control.dialog","~/control.minimize"],s:"!_0&&_1"}}," ",{t:4,f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rwindow-maximize",g:1},{n:"title",f:"Maximize window",t:13,g:1},{n:["click"],t:70,f:{r:["@this"],s:"[_0.maximize()]"}}]}],n:50,x:{r:["~/control.dialog","~/control.maximize"],s:"!_0&&_1"}}," ",{t:4,f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rwindow-close",g:1},{n:"title",f:"Close window",t:13,g:1},{n:["click"],t:70,f:{r:["@this"],s:"[_0.close()]"}}]}],n:50,r:"~/control.close"}]}]}],n:50,x:{r:["~/control.max","~/root.userMax","~/root.max","~/root.hideTitleMax","~/control.dialog","~/control.hideTitle","~/control.slide"],s:"!((_0||_1||_2)&&_3&&!_4)&&!_5&&!_6"}}," ",{t:7,e:"div",m:[{t:13,n:"class",f:"rwindow-content",g:1},{n:"tracked",t:71,f:{r:[],s:"[\"content\"]"}},{n:"class-rwindow-pad",t:13,f:[{t:2,r:"~/control.pad"}]},{n:"class-rwindow-flex",t:13,f:[{t:2,r:"~/control.flex"}]},{t:4,f:[{n:"style-overflow",f:"visible",t:13}],n:50,r:"~/control.autosize"}],f:[{t:8,r:"contents"}]}," ",{t:4,f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rwindow-buttons",g:1},{n:"class-no-buttons",t:13,f:[{t:2,x:{r:["~/visibleButtons"],s:"!_0"}}]}],f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rwindow-left-buttons",g:1}],f:[{t:4,f:[{t:4,f:[{t:8,r:".partial"}],n:50,r:".partial"},{t:4,f:[{t:7,e:"button",m:[{n:"button",t:71},{n:["click"],t:70,f:{r:[".action","@"],s:"[_0.call(_1)]"}},{t:4,f:[{n:"class",f:[{t:2,r:".class"}],t:13}],n:50,r:".class"},{t:4,f:[{n:"title",f:[{t:2,r:".title"}],t:13}],n:50,r:".title"}],f:[{t:2,r:".label"}]}],n:51,l:1}],n:52,r:"~/leftButtons"}]}," ",{t:7,e:"div",m:[{t:13,n:"class",f:"rwindow-center-buttons",g:1}],f:[{t:4,f:[{t:4,f:[{t:8,r:".partial"}],n:50,r:".partial"},{t:4,f:[{t:7,e:"button",m:[{n:"button",t:71},{n:["click"],t:70,f:{r:[".action","@"],s:"[_0.call(_1)]"}},{t:4,f:[{n:"class",f:[{t:2,r:".class"}],t:13}],n:50,r:".class"},{t:4,f:[{n:"title",f:[{t:2,r:".title"}],t:13}],n:50,r:".title"}],f:[{t:2,r:".label"}]}],n:51,l:1}],n:52,r:"~/centerButtons"}]}," ",{t:7,e:"div",m:[{t:13,n:"class",f:"rwindow-right-buttons",g:1}],f:[{t:4,f:[{t:4,f:[{t:8,r:".partial"}],n:50,r:".partial"},{t:4,f:[{t:7,e:"button",m:[{n:"button",t:71},{n:["click"],t:70,f:{r:[".action","@"],s:"[_0.call(_1)]"}},{t:4,f:[{n:"class",f:[{t:2,r:".class"}],t:13}],n:50,r:".class"},{t:4,f:[{n:"title",f:[{t:2,r:".title"}],t:13}],n:50,r:".title"}],f:[{t:2,r:".label"}]}],n:51,l:1}],n:52,r:"~/rightButtons"}]}]}],n:50,r:"~/buttons"}," ",{t:7,e:"div",m:[{t:13,n:"class",f:"rwindow-pane-bottom",g:1}],f:[{t:8,r:"status"}]}]}.t,

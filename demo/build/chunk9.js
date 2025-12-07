@@ -5,14 +5,13 @@ System.register([], function (exports, module) {
 
       exports('default', plugin);
       // TODO: support for non-numeric formats?
-      // TODO: 12 hour time format and am/pm
 
       var nonDigits = /[^\d]+/;
       var nonDisplay = /[^\d_]+/;
       var blankChar = '_';
 
       var map = {
-        y: 0, M: 1, d: 2, H: 3, m: 4, s: 5, S: 6
+        y: 0, M: 1, d: 2, H: 3, h: 3, m: 4, s: 5, S: 6
       };
 
       function padl(str, total, char) {
@@ -262,8 +261,14 @@ System.register([], function (exports, module) {
                   var s = ref[0];
                   var e = ref[1];
                   var g$1 = groupForPos(groups, s);
-                  if (g$1.value === null) { g$1.value = 1; }
-                  bumpValue(g$1, ev.key === 'ArrowDown');
+                  if (g$1.value === null) {
+                    if (g$1.type === 'a') { g$1.value = 'AM'; }
+                    else { g$1.value = 1; }
+                  }
+
+                  if (g$1.type === 'a') { syncAP(groups, g$1.value === 'AM' ? 'PM' : 'AM', g$1); }
+                  else { bumpValue(g$1, ev.key === 'ArrowDown'); }
+
                   g$1.input = g$1.display = displayForGroup(g$1);
                   applyValues(groups, sendValue, true, defdt, deftm);
                   updateDisplay(groups, node);
@@ -285,6 +290,21 @@ System.register([], function (exports, module) {
         }
       }
 
+      function syncAP(groups, next, a, h) {
+        a = a || groups.find(function (g) { return g.type === 'a'; });
+        if (!a) { return; }
+        h = h || groups.find(function (g) { return g.type.toUpperCase() === 'H'; });
+        if (!h) { return; }
+
+        if (next && a.value !== next) {
+          if (h.value > 11 && next === 'AM') { h.value -= 12; }
+          else if (h.value < 12 && next === 'PM') { h.value += 12; }
+        }
+        if (h.value != null && h.value > 11) { a.value = a.display = a.input = 'PM'; }
+        else if (h.value != null && h.value < 12) { a.value = a.display = a.input = 'AM'; }
+        else { a.value = a.display = a.input = padl('', 2, blankChar); }
+      }
+
       function readInput(groups, node, mask) {
         var val = node.value;
         var pos = node.selectionStart;
@@ -295,7 +315,7 @@ System.register([], function (exports, module) {
         groups.forEach(function (g) { return g.input = ''; });
 
         for (var i = 0; i < val.length; i++) {
-          if (next && val[i] === next.prefix[0] && (active !== group || group.input.length >= group.length || val.length - i < (mask.length - group.end) + (group.length - group.input.length))) {
+          if (next && val[i] === next.prefix[0] && (group.type === 'h' || active !== group || group.input.length >= group.length || val.length - i < (mask.length - group.end) + (group.length - group.input.length))) {
             // skip separator
             if (next.prefix.length > 1) { i += next.prefix.length - 1; }
             // skip duped separator
@@ -305,6 +325,9 @@ System.register([], function (exports, module) {
             next = groups[gidx + 1];
           } else { group.input += val[i]; }
         }
+
+        var ap = groups.find(function (g) { return g.type === 'a'; });
+        ap && syncAP(groups, ((ap === active ? ap.input : ap.display) || 'AM').toUpperCase(), ap);
       }
 
       function updateValues(groups, target, pos, leave) {
@@ -335,23 +358,32 @@ System.register([], function (exports, module) {
           } else if (g.type === 'd' && v.length !== g.length && leave) {
             g.value = +v;
             g.display = displayForGroup(g);
-          } else if (v === '') {
+          } else if (v === '' && g.type !== 'a') {
             g.value = null;
             g.display = displayForGroup(g);
           } else if (g !== target) {
-            g.value = +v;
+            if (g.type !== 'h' && g.type !== 'a') { g.value = +v; }
             if (g.type === 'M') { g.value--; }
             g.display = displayForGroup(g);
+            if (g.type === 'h' && g !== target) { g.input = displayForGroup(g); }
           } else {
             if (
               (g.type === 'M' && +v > 1) ||
               (g.type === 'd' && +v > 3) ||
-              (g.type === 'H' && +v > 2) ||
+              (g.type.toUpperCase() === 'H' && +v > 2) ||
               ((g.type === 'm' || g.type === 's') && +v > 6)
             ) {
-              g.value = +v;
+              if (g.type === 'h') {
+                var ap = groups.find(function (g) { return g.type === 'a'; });
+                g.value = +v;
+                if (g.value < 12 && ap && ap.value && ap.value.toUpperCase() === 'PM') { g.value += 12; }
+                else if (g.value === 12 && ap && ap.value && ap.value.toUpperCase() === 'AM') { g.value = 0; }
+                if (g.value > 23) { g.value = 0; }
+              } else {
+                g.value = +v;
+              }
               if (g.type === 'M') { g.value--; }
-              g.display = padl(v, g.length);
+              g.display = displayForGroup(g);
               accepted = true;
             } else if (g.type === 'y' && v.length === 2 && (hasSep || leave)) {
               var n = (new Date()).getFullYear();
@@ -360,6 +392,8 @@ System.register([], function (exports, module) {
               g.value = val;
               g.input = g.display = padl(val, g.length);
               accepted = true;
+            } else if (g.type === 'a') {
+              g.display = g.input = g.value = displayForGroup(g);
             } else {
               g.display = padr(v, g.length, blankChar);
               g.value = +v;
@@ -377,13 +411,14 @@ System.register([], function (exports, module) {
           g.value = parts[map[g.type]];
           g.input = g.display = displayForGroup(g);
         });
+        syncAP(groups);
       }
 
       function applyValues(groups, send, focused, defaultDate, defaultTime) {
         var v = groups.value || defaultDate();
         var parts = [v.getFullYear(), v.getMonth(), v.getDate(), v.getHours(), v.getMinutes(), v.getSeconds(), v.getMilliseconds()];
 
-        if (!groups.find(function (p) { return p.type === 'm' || p.type === 's' || p.type === 'h' || p.type === 'S'; })) {
+        if (!groups.find(function (p) { return p.type === 'm' || p.type === 's' || p.type === 'H' || p.type === 'h' || p.type === 'S' || p.type === 'a'; })) {
           if (typeof defaultTime === 'function') { defaultTime = defaultTime(); }
           for (var i = 0; i < 4; i++) { parts[i + 3] = defaultTime[i]; }
         }
@@ -396,17 +431,14 @@ System.register([], function (exports, module) {
           } else if (vv !== null && (g.type === 'm' || g.type === 's')) {
             if (vv < 0) { vv = 0; }
             else if (vv > 59) { vv = 59; }
-          } else if (vv !== null && g.type === 'H') {
+          } else if (vv !== null && g.type.toUpperCase() === 'H') {
             if (vv < 0) { vv = 0; }
             else if (vv > 23) { vv = 23; }
-          } else if (vv !== null && g.type === 'h') {
-            if (vv < 1) { vv = 1; }
-            else if (vv > 12) { vv = 12; }
           }
 
           if (vv !== g.value) {
             g.value = vv;
-            g.display = displayForGroup(g);
+            g.input = g.display = displayForGroup(g);
           }
 
           parts[map[g.type]] = g.value;
@@ -426,9 +458,17 @@ System.register([], function (exports, module) {
               }
             }
           }
+
+          ['m', 's', 'h', 'H', 'S'].forEach(function (p) {
+            var g = groups.find(function (g) { return g.type === p; });
+            if (g && g.value === null) {
+              g.value = defaultTime[p === 'm' ? 1 : p.toUpperCase() === 'H' ? 0 : p === 's' ? 2 : 3];
+              g.display = displayForGroup(g);
+            }
+          });
         }
 
-        if (groups.find(function (g) { return g.value === null; }) || parts[0] === 0 || parts[1] > 11 || parts[1] < 0 || parts[2] === 0) {
+        if (groups.find(function (g) { return g.value === null && g.type !== 'a'; }) || parts[0] === 0 || parts[1] > 11 || parts[1] < 0 || parts[2] === 0) {
           groups.value = null;
         } else {
           parts.unshift(null);
@@ -449,7 +489,14 @@ System.register([], function (exports, module) {
       }
 
       function displayForGroup(group) {
-        if (group.value === null) { return padl('', group.length, blankChar); }
+        if (group.value === null || group.value === undefined) {
+          if (group.type === 'a') {
+            var h$1 = group.groups.find(function (g) { return g.type.toUpperCase() === 'H'; });
+            if (!h$1 || h$1.value === null || h$1.value === undefined) { return padl('', 2, blankChar); }
+          } else {
+            return padl('', group.length, blankChar);
+          }
+        }
         switch (group.type) {
           case 'y':
             if (!group.value) { return padl('', group.length, blankChar); }
@@ -470,19 +517,31 @@ System.register([], function (exports, module) {
             else { return days[group.groups.value.getDay()]; }
           
           case 'H':
-          case 'h':
           case 'm':
           case 's':
             if (group.length === 1) { return '' + group.value; }
             else { return padl(group.value, group.length); }
+
+          case 'h': {
+            var v = group.value;
+            if (v > 12) { v = v % 12; }
+            if (v === 0) { v = 12; }
+            return padl(v, group.length, ' ');
+          }
           
           case 'S':
             if (group.length === 1) { return '' + group.value; }
             else { return padl(group.value, 3); }
+
+          case 'a':
+            var h = group.groups.find(function (g) { return g.type === 'h' || g.type === 'H'; });
+            if (h && h.value != null && h.value > 11) { return 'PM'; }
+            else if (h && h.value != null && h.value < 12) { return 'AM'; }
+            else { return padl('', 2, blankChar); }
         }
       }
 
-      var dateRE = /y+|M+|d+|E+|H+|m+|s+|S+|k+|a+/g;
+      var dateRE = /y+|M+|d+|E+|H+|h+|m+|s+|S+|k+|a+/g;
       var months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
       var days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
@@ -512,15 +571,10 @@ System.register([], function (exports, module) {
           }
           
           case 'H':
+          case 'h':
             group.value = down ?
               group.value < 1 ? 23 : group.value - 1 :
               group.value > 22 ? 0 : group.value + 1;
-            break;
-          
-          case 'h':
-            group.value = down ?
-              group.value < 1 ? 12 : group.value - 1 :
-              group.value > 11 ? 1 : group.value + 1;
             break;
           
           case 'm':

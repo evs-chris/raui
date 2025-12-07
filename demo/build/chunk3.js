@@ -103,7 +103,7 @@ System.register(['ractive', './chunk1.js', './chunk2.js'], function (exports, mo
                 setTimeout(function () {
                   this$1._media && this$1._media.listener && this$1._media.listener.silence();
                   this$1._media && this$1._media.observer && this$1._media.observer.silence();
-                  this$1.fire('resize');
+                  this$1._media.notify();
                   this$1._media && this$1._media.listener && this$1._media.listener.resume();
                   this$1._media && this$1._media.observer && this$1._media.observer.resume();
                 }, (this.get('shell.slide.ms') || 400) + 10);
@@ -169,6 +169,11 @@ System.register(['ractive', './chunk1.js', './chunk2.js'], function (exports, mo
         var inited = 0;
         var tm;
 
+        function notify(sizes) {
+          if (!sizes) { sizes = { width: sizeInEm(r.outer.clientWidth), height: sizeInEm(r.outer.clientHeight) }; }
+          if (!sizes.center && r.center) { sizes.center = { width: sizeInEm(r.center.clientWidth), height: sizeInEm(r.center.clientHeight) }; }
+          r.fire('resize', {}, sizes);
+        }
         var media = {
           fn: function fn() {
             var outer = sizeInEm(r.outer.clientWidth);
@@ -221,11 +226,12 @@ System.register(['ractive', './chunk1.js', './chunk2.js'], function (exports, mo
             if (tm) { clearTimeout(tm); }
             tm = setTimeout(function () {
               if (media.listener) { media.listener.silence(); }
-                r.fire('resize', {}, { width: outer, height: outerH });
+              notify({ width: outer, height: outerH });
               if (media.listener) { media.listener.resume(); }
               tm = 0;
             }, (r.get('shell.slide.ms') || 400) + 100);
           },
+          notify: notify,
           cancel: function cancel() {
             r._media = null;
             window.removeEventListener('resize', media.fn);

@@ -25,24 +25,34 @@ System.register(['./chunk2.js', './chunk16.js'], function (exports, module) {
           var editor = handle.editor = Ace.edit(node);
           editor.$blockScrolling = Infinity;
           var session = editor.getSession();
+          var lazyTm;
 
           if (!node.classList.contains('ace-editor')) { node.classList.add('ace-editor'); }
 
           var binding;
           var observer;
           var lock = false;
+          var lazy = false;
 
           session.setUseSoftTabs(false);
           session.setTabSize(2);
 
-          editor.on('change', function() {
+          function send() {
             if (lock) { return; }
             lock = true;
+            lazyTm = undefined;
             if (binding) { ctx.set(binding, editor.getValue()); }
             if (ctx.hasListener('change')) {
               ctx.raise('change');
             }
             lock = false;
+          }
+
+          editor.on('change', function() {
+            if (lazy === true || typeof lazy === 'number') {
+              if (lazyTm) { clearTimeout(lazyTm); }
+              lazyTm = setTimeout(send, lazy === true ? 500 : lazy);
+            } else { send(); }
           });
           function observed(value) {
             if (lock) { return; }
@@ -75,6 +85,7 @@ System.register(['./chunk2.js', './chunk16.js'], function (exports, module) {
             if ('printMargin' in options) { editor.setOption('showPrintMargin', options.printMargin); }
             if (typeof options.lineNumbers === 'boolean') { editor.setOption('showLineNumbers', options.lineNumbers); }
             if (typeof options.relativeLineNumbers === 'boolean') { editor.setOption('relativeLineNumbers', options.relativeLineNumbers); }
+            lazy = options.lazy;
 
 
             if ('keymode' in options && options.keymode) { editor.setKeyboardHandler(("ace/keyboard/" + (options.keymode))); }
