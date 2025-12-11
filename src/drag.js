@@ -8,6 +8,14 @@ function findParent(el, fn) {
   }
 }
 
+let scrollInterval = null;
+function clearXScroll() {
+  if (scrollInterval) {
+    clearInterval(scrollInterval);
+    scrollInterval = null;
+  }
+}
+
 export function move(opts = {}) {
   const lists = [];
   const suffix = opts.suffix || '';
@@ -138,6 +146,25 @@ export function move(opts = {}) {
           indicator.style.top = `${t.offsetTop}px`;
         }
       }
+      // Horizontal auto-scroll logic
+      if (opts.xScroll) {
+        clearXScroll();
+        const wrapper = el.parentElement;
+        const containerRect = wrapper.getBoundingClientRect();
+        const speed = 10; // scroll amount per interval
+        const threshold = containerRect.width * 0.25; // when scrolling will trigger (.25 = 25% of wrapper width)
+        let dx = 0;
+        if (ev.clientX < containerRect.left + threshold) dx = -speed;
+        else if (ev.clientX > containerRect.right - threshold) dx = speed;
+        if (dx !== 0) {
+          scrollInterval = setInterval(() => {
+            wrapper.scroll({
+              left: wrapper.scrollLeft += dx,
+              behavior: 'smooth',
+            });
+          }, 10); // Adjust interval for smoothness (10ms)
+        }
+      }
     };
     const drop = ev => {
       ev.preventDefault();
@@ -171,6 +198,7 @@ export function move(opts = {}) {
         else dctx.splice(dpath, didx, 0, i);
       }
       checkVH();
+      clearXScroll();
     };
     el.addEventListener('dragenter', dragenter);
     el.addEventListener('dragleave', dragleave);
@@ -199,6 +227,7 @@ export function move(opts = {}) {
       if (moving && moving.classList.contains(`${prefix}ing`)) moving.classList.remove(`${prefix}ing`);
       moving = undefined;
       from = undefined;
+      clearXScroll();
     };
     const dragAttr = el.getAttribute('draggable');
     el.setAttribute('draggable', 'true');
