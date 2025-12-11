@@ -11,6 +11,8 @@ export interface MoveOptions {
   sort?: boolean;
   /** The color to use for the drop position indicator. This defaults to raui.primary.fga (or #07e) from the Ractive style data. */
   color?: string;
+  /** Allow horizontal scrolling on mouse drag */
+  xScroll?: boolean;
 }
 
 export function move(opts: MoveOptions = {}): {

@@ -1,4 +1,4 @@
-<tabs flat pad class-alt fill height=dynamic>
+<tabs flat pad class-alt height=dynamic>
   <tab title=Intro><marked>
     <h2>Move</h2>
     <p>A draggable list decorator set that allows moving items among arrays, and optionally within arrays. All elements with the same decoration will allow moving elements among them. Multiple namespaces can be set up by supplying a prefix to the plugin.</p>
@@ -12,6 +12,7 @@
     * `appendOnly: boolean` - default false - if true, only allow appending items to lists and not dropping at a specific index
     * `eventsOnly: boolean` - default false - if true, items will not be moved from one list to another. This also allows the path to be any arbitrary string.
     * `color: string` - default Ractive style data at `raui.primary.fga` or `#07e` - the color of the drop indicator
+    * `xScroll: boolean` - default false - if true, will allow the mouse to scroll horizontally within it's parent wrapper while dragging items
 
     ### Decorator Options
 
@@ -83,6 +84,34 @@
         {{/each}}
       </div>
     </div>
+    <h3>Horizontal Scroll</h3>
+    <div style="display: flex; overflow-x: auto; flex-grow: 1;">
+      <div as-move=`list3` class="move-list">
+        {{#each list3}}
+          <div as-moveItem><span>{{.name}}</span><span>{{.age}}</span></div>
+        {{/each}}
+      </div>
+      <div as-move=`list4` class="move-list">
+        {{#each list4}}
+          <div as-moveItem><span>{{.name}}</span><span>{{.age}}</span></div>
+        {{/each}}
+      </div>
+      <div as-move=`list5` class="move-list">
+        {{#each list5}}
+          <div as-moveItem><span>{{.name}}</span><span>{{.age}}</span></div>
+        {{/each}}
+      </div>
+      <div as-move=`list6` class="move-list">
+        {{#each list6}}
+          <div as-moveItem><span>{{.name}}</span><span>{{.age}}</span></div>
+        {{/each}}
+      </div>
+      <div as-move=`list7` class="move-list">
+        {{#each list7}}
+          <div as-moveItem><span>{{.name}}</span><span>{{.age}}</span></div>
+        {{/each}}
+      </div>
+    </div>
   </tab>
 </tabs>
 
@@ -121,17 +150,24 @@
       .move-list.horizontal-grid { display: flex; flex-wrap: wrap; width: 40vw; height: 45vh; overflow: auto; }
     `,
     data() {
-      const list1 = [], list2 = [];
-      for (let i = 0; i < 100; i++) list1.push({ name: name(), age: rand(100) });
+      const list1 = [], list2 = [], list3 = [], list4 = [], list5 = [], list6 = [], list7 = [];
+      for (let i = 0; i < 10; i++) list1.push({ name: name(), age: rand(100) });
       for (let i = 0; i < 10; i++) list2.push({ name: name(), age: rand(100) });
+      for (let i = 0; i < 10; i++) list3.push({ name: name(), age: rand(100) });
+      for (let i = 0; i < 10; i++) list4.push({ name: name(), age: rand(100) });
+      for (let i = 0; i < 10; i++) list5.push({ name: name(), age: rand(100) });
+      for (let i = 0; i < 10; i++) list6.push({ name: name(), age: rand(100) });
+      for (let i = 0; i < 10; i++) list7.push({ name: name(), age: rand(100) });
       return {
         list1,
-        list2
+        list2,
+        list3,
+        list4,
+        list5,
+        list6,
+        list7
       };
     },
-    use: [move().plugin],
+    use: [move({ xScroll: true }).plugin],
   });
 </script>
-
-
-
