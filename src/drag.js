@@ -8,8 +8,6 @@ function findParent(el, fn) {
   }
 }
 
-const noop = { teardown() {} };
-
 export function move(opts = {}) {
   const lists = [];
   const suffix = opts.suffix || '';
@@ -29,10 +27,6 @@ export function move(opts = {}) {
     }
     o = Object.assign({}, opts, o);
 
-    if (!path) {
-      console.error(`Move decorator requires either a path string or an object with a path property`);
-      return noop;
-    }
     const pos = el.style.position;
     if (pos === '' || pos === 'static') el.style.position = 'relative';
     let indicator;
@@ -66,6 +60,8 @@ export function move(opts = {}) {
         indicator.style.margin = '0';
         indicator.style.padding = '0';
         indicator.style.position = 'absolute';
+        indicator.classList.add(`${prefix}-indicator`);
+        indicator.style.color = o.color || Ractive.styleGet('raui.primary.fga') || '#07e';
         const e = el.children[0] || moving;
         if (vh === 'v') {
           indicator.style.width = `${e.offsetWidth}px`;
@@ -160,18 +156,16 @@ export function move(opts = {}) {
       const ictx = Ractive.getContext(m);
       if (!sctx || !dctx || !ictx) return;
       const spath = sctx.decorators[prefix].path;
-      const slist = sctx.get(spath);
-      if (!Array.isArray(slist) && !o.eventsOnly) return;
+      const slist = spath === undefined ? undefined : sctx.get(spath);
       const dpath = dctx.decorators[prefix].path;
-      const dlist = dctx.get(dpath);
-      if (!Array.isArray(dlist) && dlist !== undefined && !o.eventsOnly) return;
+      const dlist = dpath === undefined ? undefined : dctx.get(dpath);
       const i = ictx.get();
       if (f === el && sidx < didx && typeof didx === 'number') didx--;
       if (f == el && didx === sidx) return;
       ictx.raise(prefix, {}, { src: sctx, srcPath: spath, srcIndex: sidx, dest: dctx, destPath: dpath, destIndex: didx, item: i, context: ictx });
       sctx.raise(`${prefix}out`, {}, { src: sctx, srcPath: spath, srcIndex: sidx, dest: dctx, destPath: dpath, destIndex: didx, item: i, context: ictx });
       dctx.raise(`${prefix}in`, {}, { src: sctx, srcPath: spath, srcIndex: sidx, dest: dctx, destPath: dpath, destIndex: didx, item: i, context: ictx });
-      if (!o.eventsOnly) {
+      if (!o.eventsOnly && Array.isArray(slist) && (Array.isArray(dlist) || dlist === undefined)) {
         sctx.splice(spath, sidx, 1);
         if (o.appendOnly) dctx.push(dpath, i);
         else dctx.splice(dpath, didx, 0, i);

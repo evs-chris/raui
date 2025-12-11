@@ -11,6 +11,7 @@
     * `sort: boolean` - default true - allow sorting within lists
     * `appendOnly: boolean` - default false - if true, only allow appending items to lists and not dropping at a specific index
     * `eventsOnly: boolean` - default false - if true, items will not be moved from one list to another. This also allows the path to be any arbitrary string.
+    * `color: string` - default Ractive style data at `raui.primary.fga` or `#07e` - the color of the drop indicator
 
     ### Decorator Options
 
@@ -55,7 +56,7 @@
     <marked>
       ### Template:
       ```hbs
-      <div style="display: flex;">
+      <div style="display: flex; flex-wrap: wrap;">
         <div as-move=`list1` class="move-list {{list2style}}">
           {{#each list1}}
             <div as-moveItem><span>{{.name}}</span><span>{{.age}}</span></div>
@@ -70,7 +71,7 @@
       ```
       ### Result:
     </marked>
-    <div style="display: flex;">
+    <div style="display: flex; flex-wrap: wrap;">
       <div as-move=`list1` class="move-list {{list1style}}">
         {{#each list1}}
           <div as-moveItem><span>{{.name}}</span><span>{{.age}}</span></div>
@@ -114,7 +115,7 @@
       .move-list .moveing { opacity: 0.5; }
       .move-list.vertical {}
       .move-list.horizontal { display: flex; }
-      .move-list.vertical-overflow { overflow: auto; height: 90vh; }
+      .move-list.vertical-overflow { overflow: auto; height: 60vh; }
       .move-list.horizontal-overflow { display: flex; overflow: auto; width: 80vw; }
       .move-list.vertical-grid { display: flex; flex-direction: column; flex-wrap: wrap; width: 40vw; height: 45vh; overflow: auto; }
       .move-list.horizontal-grid { display: flex; flex-wrap: wrap; width: 40vw; height: 45vh; overflow: auto; }

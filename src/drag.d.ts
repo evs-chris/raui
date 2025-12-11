@@ -9,6 +9,8 @@ export interface MoveOptions {
   appendOnly?: boolean;
   /** Allow moving items within their source array. Defaults to true. */
   sort?: boolean;
+  /** The color to use for the drop position indicator. This defaults to raui.primary.fga (or #07e) from the Ractive style data. */
+  color?: string;
 }
 
 export function move(opts: MoveOptions = {}): {
