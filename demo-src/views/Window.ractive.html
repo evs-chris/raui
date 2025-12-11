@@ -15,6 +15,8 @@
     #### Window
 
     Windows are instantiated and attached to Host, where they are displayed within the Host's bounds. Windows may be movable, resizable, closable, maximizable, and minify-able.  Once a window is minimized, there's no built-in UI to restore it, but you can hook the Host's window list into a Menu fairly easily to provide access to raise and restore windows.
+
+    If a Window is movable, it can be dragged around by its title bar if one is available. It can also be moved from anywhere in its borders by holding ctrl and left-click/dragging. If it is resizable, it can be resized from handles around its perimeter. It can also be resized from any quadrant within its borders by holding ctrl and right-click/dragging, with the origin quadrant determining the resize direction.
   </marked></tab>
   <tab title=Usage><marked>
     ### Plugin options
