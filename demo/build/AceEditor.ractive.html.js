@@ -70,6 +70,13 @@ System.register(['./chunk2.js', './chunk16.js'], function (exports, module) {
               ctx.raise('save');
             }
           });
+          editor.commands.addCommand({
+            name: 'run',
+            bindKey: { win: 'Ctrl-Enter', mac: 'Command-Enter', sender: 'editor|cli' }, 
+            exec: function() {
+              ctx.raise('run');
+            }
+          });
 
           handle.update = function(options) {
             if (!options) { return; }
@@ -82,9 +89,11 @@ System.register(['./chunk2.js', './chunk16.js'], function (exports, module) {
             if (typeof options.highlightSelected === 'boolean') { editor.setHighlightSelectedWord(options.highlightSelected); }
             if (options.font) { editor.setOptions({ fontFamily: options.font }); }
             if (options.fontSize) { editor.setOptions({ fontSize: options.fontSize }); }
+            if ('showGutter' in options) { editor.setOptions({ showGutter: options.showGutter }); }
             if ('printMargin' in options) { editor.setOption('showPrintMargin', options.printMargin); }
             if (typeof options.lineNumbers === 'boolean') { editor.setOption('showLineNumbers', options.lineNumbers); }
             if (typeof options.relativeLineNumbers === 'boolean') { editor.setOption('relativeLineNumbers', options.relativeLineNumbers); }
+            if ('placeholder' in options) { editor.setOptions({ placeholder: options.placeholder }); }
             lazy = options.lazy;
 
 

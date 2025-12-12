@@ -64,9 +64,9 @@ System.register([], function (exports, module) {
               lib(tpl, function (err, res) {
                 if (!err) { handle.set('@local.content', res); }
               });
-              handle.setTemplate([{ t: 7, e: 'div', m: [{ t: 13, n: 'class-marked-container' }], f: [{ t: 7, e: 'div', m: [{ t: 13, n: 'class-marked-content' }], f: [{ t: 3, r: '_marked.content' }] }] }]);
+              handle.setTemplate([{ t: 7, e: 'div', m: [{ t: 13, n: 'class-marked-container' }].concat(handle.template.m || []), f: [{ t: 7, e: 'div', m: [{ t: 13, n: 'class-marked-content' }], f: [{ t: 3, r: '_marked.content' }] }] }]);
             } else {
-              handle.setTemplate([{ t: 7, e: 'div', m: [{ t: 71, n: 'marked' }], f: handle.template.f }]);
+              handle.setTemplate([{ t: 7, e: 'div', m: [{ t: 71, n: 'marked' }].concat(handle.template.m || []), f: handle.template.f }]);
             }
           }, {
             css: function css(data) { return (".marked-content { max-width: " + (data('marked.max') || '70em') + "; width: 100%; box-sizing: border-box; margin: 0 auto; }") },
