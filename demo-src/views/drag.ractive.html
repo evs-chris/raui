@@ -1,4 +1,4 @@
-<tabs flat pad class-alt height=dynamic>
+<tabs flat pad class-alt fill>
   <tab title=Intro><marked>
     <h2>Move</h2>
     <p>A draggable list decorator set that allows moving items among arrays, and optionally within arrays. All elements with the same decoration will allow moving elements among them. Multiple namespaces can be set up by supplying a prefix to the plugin.</p>
@@ -12,7 +12,12 @@
     * `appendOnly: boolean` - default false - if true, only allow appending items to lists and not dropping at a specific index
     * `eventsOnly: boolean` - default false - if true, items will not be moved from one list to another. This also allows the path to be any arbitrary string.
     * `color: string` - default Ractive style data at `raui.primary.fga` or `#07e` - the color of the drop indicator
-    * `xScroll: boolean` - default false - if true, will allow the mouse to scroll horizontally within it's parent wrapper while dragging items
+    * `scroll: false|options` - default options - if false, will not automatically scroll within it's parent wrapper while dragging items
+      * `threshold: number` - default 0.15 - distance mulltiplier from the axis edge to initiate scroll. The default is 15% of the axis size from either end.
+      * `initialDelay: number` - default 250 - number of milliseconds to wait before initiating auto-scroll
+      * `distance: number` - default 10 - number of pixels to move in a single step
+      * `repeatDelay: number` - default 16 - number of milliseconds to wait between scroll frames. The default is ~60fps, traveling about 600 pixels. Subsequent mouse movement will cancel the repeat and wait for the initialDelay again before resuming.
+      * `behavior: 'smooth'|'instant'|'auto'` - default 'instant' - how to scroll the scrollable parent. There seems to be some variation in browser implementation of 'smooth', so for best cross-compatibility, 'instant' with a relatively low distance and repeatDelay is recommended.
 
     ### Decorator Options
 
@@ -27,7 +32,7 @@
     ##### Events
 
     * `movein` - fired when an item is dropped on this list
-    * `moveout` - fired when an item is dropped on this list
+    * `moveout` - fired when an item is removed from this list
 
     #### `moveItem`
 
@@ -36,80 +41,117 @@
     * `move` - fired when an item is dropped
   </marked></tab>
   <tab title=Example>
-    <div>
-      <label as-field>List 1 Style<select value="{{list1style}}">
-        <option>vertical</option>
-        <option>vertical-overflow</option>
-        <option>horizontal</option>
-        <option>horizontal-overflow</option>
-        <option>vertical-grid</option>
-        <option>horizontal-grid</option>
-      </select></label>
-      <label as-field>List 2 Style<select value="{{list2style}}">
-        <option>vertical</option>
-        <option>vertical-overflow</option>
-        <option>horizontal</option>
-        <option>horizontal-overflow</option>
-        <option>vertical-grid</option>
-        <option>horizontal-grid</option>
-      </select></label>
-    </div>
-    <marked>
-      ### Template:
-      ```hbs
-      <div style="display: flex; flex-wrap: wrap;">
-        <div as-move=`list1` class="move-list {{list2style}}">
+    <div style="display: flex; flex-direction: column; box-sizing: border-box; height: 100%; overflow: auto;">
+      <div>
+        <label as-field><input type=checkbox checked="{{lots}}" /> Lots of lists?</label>
+        <label as-field>List 1 Style<select value="{{list1style}}">
+          <option>vertical</option>
+          <option>vertical-overflow</option>
+          <option>horizontal</option>
+          <option>horizontal-overflow</option>
+          <option>vertical-grid</option>
+          <option>horizontal-grid</option>
+        </select></label>
+        <label as-field>List 2 Style<select value="{{list2style}}">
+          <option>vertical</option>
+          <option>vertical-overflow</option>
+          <option>horizontal</option>
+          <option>horizontal-overflow</option>
+          <option>vertical-grid</option>
+          <option>horizontal-grid</option>
+        </select></label>
+        <label as-field><input type=checkbox checked="{{!scroll}}" twoway=false on-change="@.set('scroll', !@node.checked ? { distance: 10, initialDelay: 250, threshold: 0.15, repeatDelay: 16, behavior: 'instant' } : false)" /> Don't auto-scroll?</label>
+        {{#if scroll}}
+          <label as-field>Threshold<input type="number" value="{{scroll.threshold}}" /></label>
+          <label as-field>Initial Delay<input type="number" value="{{scroll.initialDelay}}" /></label>
+          <label as-field>Repeat Delay<input type="number" value="{{scroll.repeatDelay}}" /></label>
+          <label as-field>Distance<input type="number" value="{{scroll.distance}}" /></label>
+          <label as-field>Behavior<select value="{{scroll.behavior}}"><option>instant</option><option>smooth</option><option>auto</option></select></label>
+        {{/if}}
+      </div>
+      <marked style="max-height: 20em; overflow-x: auto; flex-shrink: 0;">
+        ### Template:
+        ```hbs
+        <div style="display: flex;">
+          <div as-move="{ path: 'list1', scroll }" class="move-list {{list1style}}">
+            {{#each list1}}
+              <div as-moveItem><span>{{.name}}</span><span>{{.age}}</span></div>
+            {{/each}}
+          </div>
+          <div as-move="{ path: 'list2', scroll }" class="move-list {{list2style}}">
+            {{#each list2}}
+              <div as-moveItem><span>{{.name}}</span><span>{{.age}}</span></div>
+            {{/each}}
+          </div>
+          {{#if lots}}
+            <div as-move="{ path: 'list3', color: 'red' }" class="move-list {{list1style}}">
+              {{#each list3}}
+                <div as-moveItem><span>{{.name}}</span><span>{{.age}}</span></div>
+              {{/each}}
+            </div>
+            <div as-move="{ path: 'list4', scroll }" class="move-list {{list1style}}">
+              {{#each list4}}
+                <div as-moveItem><span>{{.name}}</span><span>{{.age}}</span></div>
+              {{/each}}
+            </div>
+            <div as-move="{ path: 'list5', scroll }" class="move-list {{list1style}}">
+              {{#each list5}}
+                <div as-moveItem><span>{{.name}}</span><span>{{.age}}</span></div>
+              {{/each}}
+            </div>
+            <div as-move="{ path: 'list6', scroll }" class="move-list {{list1style}}">
+              {{#each list6}}
+                <div as-moveItem><span>{{.name}}</span><span>{{.age}}</span></div>
+              {{/each}}
+            </div>
+            <div as-move="{ path: 'list7', scroll }" class="move-list {{list1style}}">
+              {{#each list7}}
+                <div as-moveItem><span>{{.name}}</span><span>{{.age}}</span></div>
+              {{/each}}
+            </div>
+          {{/if}}
+        </div>
+        ```
+        ### Result:
+      </marked>
+      <div style="display: flex; flex-grow: 1; overflow-x: auto;">
+        <div as-move="{ path: 'list1', scroll }" class="move-list {{list1style}}">
           {{#each list1}}
             <div as-moveItem><span>{{.name}}</span><span>{{.age}}</span></div>
           {{/each}}
         </div>
-        <div as-move=`list2` class="move-list {{list2style}}">
+        <div as-move="{ path: 'list2', scroll }" class="move-list {{list2style}}">
           {{#each list2}}
             <div as-moveItem><span>{{.name}}</span><span>{{.age}}</span></div>
           {{/each}}
         </div>
-      </div>
-      ```
-      ### Result:
-    </marked>
-    <div style="display: flex; flex-wrap: wrap;">
-      <div as-move=`list1` class="move-list {{list1style}}">
-        {{#each list1}}
-          <div as-moveItem><span>{{.name}}</span><span>{{.age}}</span></div>
-        {{/each}}
-      </div>
-      <div as-move=`list2` class="move-list {{list2style}}">
-        {{#each list2}}
-          <div as-moveItem><span>{{.name}}</span><span>{{.age}}</span></div>
-        {{/each}}
-      </div>
-    </div>
-    <h3>Horizontal Scroll</h3>
-    <div style="display: flex; overflow-x: auto; flex-grow: 1;">
-      <div as-move=`list3` class="move-list">
-        {{#each list3}}
-          <div as-moveItem><span>{{.name}}</span><span>{{.age}}</span></div>
-        {{/each}}
-      </div>
-      <div as-move=`list4` class="move-list">
-        {{#each list4}}
-          <div as-moveItem><span>{{.name}}</span><span>{{.age}}</span></div>
-        {{/each}}
-      </div>
-      <div as-move=`list5` class="move-list">
-        {{#each list5}}
-          <div as-moveItem><span>{{.name}}</span><span>{{.age}}</span></div>
-        {{/each}}
-      </div>
-      <div as-move=`list6` class="move-list">
-        {{#each list6}}
-          <div as-moveItem><span>{{.name}}</span><span>{{.age}}</span></div>
-        {{/each}}
-      </div>
-      <div as-move=`list7` class="move-list">
-        {{#each list7}}
-          <div as-moveItem><span>{{.name}}</span><span>{{.age}}</span></div>
-        {{/each}}
+        {{#if lots}}
+          <div as-move="{ path: 'list3', color: 'red' }" class="move-list {{list1style}}">
+            {{#each list3}}
+              <div as-moveItem><span>{{.name}}</span><span>{{.age}}</span></div>
+            {{/each}}
+          </div>
+          <div as-move="{ path: 'list4', scroll }" class="move-list {{list1style}}">
+            {{#each list4}}
+              <div as-moveItem><span>{{.name}}</span><span>{{.age}}</span></div>
+            {{/each}}
+          </div>
+          <div as-move="{ path: 'list5', scroll }" class="move-list {{list1style}}">
+            {{#each list5}}
+              <div as-moveItem><span>{{.name}}</span><span>{{.age}}</span></div>
+            {{/each}}
+          </div>
+          <div as-move="{ path: 'list6', scroll }" class="move-list {{list1style}}">
+            {{#each list6}}
+              <div as-moveItem><span>{{.name}}</span><span>{{.age}}</span></div>
+            {{/each}}
+          </div>
+          <div as-move="{ path: 'list7', scroll }" class="move-list {{list1style}}">
+            {{#each list7}}
+              <div as-moveItem><span>{{.name}}</span><span>{{.age}}</span></div>
+            {{/each}}
+          </div>
+        {{/if}}
       </div>
     </div>
   </tab>
@@ -129,6 +171,11 @@
     for (let i = 1; i <= len; i++) n += alpha[rand(25)];
     return n;
   }
+  function fill(count, fn) {
+    const res = [];
+    for (let i = 0; i < count; i++) res.push(fn());
+    return res;
+  }
 
   export default Window.extend({
     template: $TEMPLATE,
@@ -138,34 +185,30 @@
       width: '48em', height: '30em'
     },
     css: `
-      .move-list { background-color: rgba(128, 128, 128, 0.1); padding: 1em; margin: 1em; }
+      .move-list { background-color: rgba(128, 128, 128, 0.1); padding: 1em; margin: 1em; flex-shrink: 0; }
       .move-list.moveing { background-color: rgba(128, 128, 128, 0.25); }
       .move-list .moveItem { padding: 0.25em; border: 1px solid; margin: 0.25em; border-radius: 0.5em; width: 16em; display: flex; justify-content: space-between; }
       .move-list .moveing { opacity: 0.5; }
       .move-list.vertical {}
       .move-list.horizontal { display: flex; }
-      .move-list.vertical-overflow { overflow: auto; height: 60vh; }
+      .move-list.vertical-overflow { overflow: auto; min-height: 10em; }
       .move-list.horizontal-overflow { display: flex; overflow: auto; width: 80vw; }
       .move-list.vertical-grid { display: flex; flex-direction: column; flex-wrap: wrap; width: 40vw; height: 45vh; overflow: auto; }
       .move-list.horizontal-grid { display: flex; flex-wrap: wrap; width: 40vw; height: 45vh; overflow: auto; }
     `,
     data() {
-      const list1 = [], list2 = [], list3 = [], list4 = [], list5 = [], list6 = [], list7 = [];
-      for (let i = 0; i < 10; i++) list1.push({ name: name(), age: rand(100) });
-      for (let i = 0; i < 10; i++) list2.push({ name: name(), age: rand(100) });
-      for (let i = 0; i < 10; i++) list3.push({ name: name(), age: rand(100) });
-      for (let i = 0; i < 10; i++) list4.push({ name: name(), age: rand(100) });
-      for (let i = 0; i < 10; i++) list5.push({ name: name(), age: rand(100) });
-      for (let i = 0; i < 10; i++) list6.push({ name: name(), age: rand(100) });
-      for (let i = 0; i < 10; i++) list7.push({ name: name(), age: rand(100) });
+      const thing = () => ({ name: name(), age: rand(100) });
       return {
-        list1,
-        list2,
-        list3,
-        list4,
-        list5,
-        list6,
-        list7
+        list1: fill(10, thing),
+        list2: fill(30, thing),
+        list3: fill(10, thing),
+        list4: fill(100, thing),
+        list5: fill(20, thing),
+        list6: fill(10, thing),
+        list7: fill(10, thing),
+        list1style: 'vertical-overflow',
+        list2style: 'vertical-overflow',
+        scroll: { distance: 10, initialDelay: 250, threshold: 0.15, repeatDelay: 16, behavior: 'instant' },
       };
     },
     use: [move({ xScroll: true }).plugin],

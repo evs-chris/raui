@@ -8,22 +8,18 @@ function findParent(el, fn) {
   }
 }
 
-let scrollInterval = null;
-function clearXScroll() {
-  if (scrollInterval) {
-    clearInterval(scrollInterval);
-    scrollInterval = null;
-  }
-}
-
 export function move(opts = {}) {
   const lists = [];
   const suffix = opts.suffix || '';
   const prefix = `move${suffix}`;
   let moving;
   let from;
+  let over;
   let sidx;
   let didx;
+
+  let xTimeout;
+  let yTimeout;
 
   function src(el, o = {}) {
     let path;
@@ -34,6 +30,7 @@ export function move(opts = {}) {
       path = o.path;
     }
     o = Object.assign({}, opts, o);
+    const scroll = o.scroll === false ? false : Object.assign({ repeatDelay: 16, distance: 10, initialDelay: 250, threshold: 0.15, behavior: 'instant' }, o.scroll);
 
     const pos = el.style.position;
     if (pos === '' || pos === 'static') el.style.position = 'relative';
@@ -61,6 +58,9 @@ export function move(opts = {}) {
     const dragenter = ev => {
       if (el === from && o.sort === false) return;
       if (el.contains(ev.target) && !el.classList.contains(`${prefix}ing`)) el.classList.add(`${prefix}ing`);
+      over = el;
+      // chrome doubles this somehow, so query first
+      indicator = indicator || el.querySelector(`:scope > .${prefix}-indicator`);
       if (!indicator) {
         checkVH();
         indicator = document.createElement('div');
@@ -81,16 +81,25 @@ export function move(opts = {}) {
         el.appendChild(indicator);
       }
     };
-    const dragleave = ev => {
-      if (el.contains(ev.relatedTarget)) return;
-      el.classList.remove(`${prefix}ing`);
+    function stop(leave) {
       if (indicator) {
-        indicator.remove();
+        if (indicator.remove) indicator.remove();
         indicator = undefined;
       }
+      if (!leave) {
+        if (xTimeout) clearTimeout(xTimeout), xTimeout = undefined;
+        if (yTimeout) clearTimeout(yTimeout), yTimeout = undefined;
+      }
+      if (el.classList.contains(`${prefix}ing`)) el.classList.remove(`${prefix}ing`);
+    }
+    const dragleave = ev => {
+      if (el.contains(ev.relatedTarget)) return;
+      stop(true);
     };
     const dragover = ev => {
       ev.preventDefault();
+      if (xTimeout) clearTimeout(xTimeout), xTimeout = undefined;
+      if (yTimeout) clearTimeout(yTimeout), yTimeout = undefined;
       if (indicator && ev.target !== el && ev.target !== indicator && !o.appendOnly) {
         let t = findParent(ev.target, e => e.parentElement === el);
         if (!t) return;
@@ -104,7 +113,7 @@ export function move(opts = {}) {
               top = p + ((n.offsetTop - p) / 2);
             } else {
               const p = t.offsetTop + t.offsetHeight;
-              top = p + ((el.offsetHeight - p) /2);
+              top = p + ((el.scrollHeight - p) / 2);
             }
           } else {
             const n = t.previousElementSibling;
@@ -129,7 +138,7 @@ export function move(opts = {}) {
               left = p + ((n.offsetLeft - p) / 2);
             } else {
               const p = t.offsetLeft + t.offsetWidth;
-              left = p + ((el.offsetWidth - p) /2);
+              left = p + ((el.scrollWidth - p) / 2);
             }
           } else {
             const n = t.previousElementSibling;
@@ -146,36 +155,54 @@ export function move(opts = {}) {
           indicator.style.top = `${t.offsetTop}px`;
         }
       }
-      // Horizontal auto-scroll logic
-      if (opts.xScroll) {
-        clearXScroll();
-        const wrapper = el.parentElement;
-        const containerRect = wrapper.getBoundingClientRect();
-        const speed = 10; // scroll amount per interval
-        const threshold = containerRect.width * 0.25; // when scrolling will trigger (.25 = 25% of wrapper width)
-        let dx = 0;
-        if (ev.clientX < containerRect.left + threshold) dx = -speed;
-        else if (ev.clientX > containerRect.right - threshold) dx = speed;
-        if (dx !== 0) {
-          scrollInterval = setInterval(() => {
-            wrapper.scroll({
-              left: wrapper.scrollLeft += dx,
-              behavior: 'smooth',
-            });
-          }, 10); // Adjust interval for smoothness (10ms)
+
+      if (scroll) {
+        const xscroll = findParent(el, e => e.offsetWidth < e.scrollWidth && ['auto', 'scroll'].includes(getComputedStyle(e).overflow));
+        const yscroll = findParent(el, e => e.offsetHeight < e.scrollHeight && ['auto', 'scroll'].includes(getComputedStyle(e).overflow));
+
+        if (xscroll) {
+          const rect = xscroll.getBoundingClientRect();
+          const x = ev.clientX;
+          const threshold = rect.width * scroll.threshold;
+          if (x < rect.left + threshold || x > rect.right - threshold) {
+            function go() {
+              if (x < rect.left + threshold && xscroll.scrollLeft === 0) return;
+              if (x > rect.right - threshold && xscroll.scrollLeft + xscroll.offsetWidth >= xscroll.scrollWidth) return;
+              xscroll.scroll({
+                left: xscroll.scrollLeft + (x < rect.left + threshold ? -scroll.distance: scroll.distance),
+                behavior: scroll.behavior,
+              });
+              xTimeout = setTimeout(go, scroll.repeatDelay);
+            };
+            xTimeout = setTimeout(go, scroll.initialDelay);
+          }
+        }
+        if (yscroll) {
+          const rect = yscroll.getBoundingClientRect();
+          const y = ev.clientY;
+          const threshold = rect.height * scroll.threshold;
+          if (y < rect.top + threshold || y > rect.bottom - threshold) {
+            function go() {
+              if (y < rect.top + threshold && yscroll.scrollTop === 0) return;
+              if (y > rect.bottom - threshold && yscroll.scrollTop + yscroll.offsetHeight >= yscroll.scrollHeight) return;
+              yscroll.scroll({
+                top: yscroll.scrollTop + (y < rect.top + threshold ? -scroll.distance: scroll.distance),
+                behavior: scroll.behavior,
+              });
+              yTimeout = setTimeout(go, scroll.repeatDelay);
+            };
+            yTimeout = setTimeout(go, scroll.initialDelay);
+          }
         }
       }
     };
     const drop = ev => {
       ev.preventDefault();
+      over = undefined;
       const m = moving, f = from;
       moving = undefined;
       from = undefined;
-      if (indicator) {
-        indicator.remove();
-        indicator = undefined;
-      }
-      el.classList.remove(`${prefix}ing`);
+      stop();
       if (m.classList.contains(`${prefix}ing`)) m.classList.remove(`${prefix}ing`);
       if (el === f && o.sort === false) return;
       const sctx = Ractive.getContext(f);
@@ -198,7 +225,6 @@ export function move(opts = {}) {
         else dctx.splice(dpath, didx, 0, i);
       }
       checkVH();
-      clearXScroll();
     };
     el.addEventListener('dragenter', dragenter);
     el.addEventListener('dragleave', dragleave);
@@ -206,7 +232,10 @@ export function move(opts = {}) {
     el.addEventListener('drop', drop);
     return {
       path,
+      stop,
       teardown() {
+        if (indicator && indicator.remove) indicator.remove();
+        indicator = undefined;
         el.removeEventListener('dragenter', dragover);
         el.removeEventListener('dragleave', dragleave);
         el.removeEventListener('dragover', dragover);
@@ -227,7 +256,11 @@ export function move(opts = {}) {
       if (moving && moving.classList.contains(`${prefix}ing`)) moving.classList.remove(`${prefix}ing`);
       moving = undefined;
       from = undefined;
-      clearXScroll();
+      if (over) {
+        const ctx = Ractive.getContext(over);
+        if (ctx && ctx.decorators && ctx.decorators[prefix]) ctx.decorators[prefix].stop();
+      }
+      over = undefined;
     };
     const dragAttr = el.getAttribute('draggable');
     el.setAttribute('draggable', 'true');
