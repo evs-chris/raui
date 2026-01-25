@@ -1,0 +1,277 @@
+<div class=rrunner-back class-rrunner-popped="~/popped" on-click="@.toggle('popped')" />
+<div class=rrunner-box class-rrunner-popped="~/popped">
+  <div class=command><input value="{{command}}" lazy=500 on-keys(13,27,38,40)="@.onKey(@event.which)" /></div>
+  <div class="results">
+    {{#each results}}
+      <div class="result" class-selected="@index === selected" on-click="@.onSelected(.)">
+        <div class="plugin">{{.plugin}}</div>
+        <div class="label">{{result.label}}</div>
+      </div>
+    {{/each}}
+  </div>
+</div>
+
+<script>
+  import Ractive from 'ractive';
+  import globalRegister from './globalRegister';
+  import keys from './event-keys';
+
+  export class Runner extends Ractive {
+    constructor(opts) {
+      super(opts);
+    }
+
+    show() {
+      this.set('popped', true);
+    }
+    hide() {
+      this.set('popped', false);
+    }
+    showHide() {
+      this.toggle('popped');
+    }
+
+    addPlugin(plugin) {
+      if (typeof plugin !== 'object' || !plugin.name || typeof plugin.run !== 'function') return;
+      this.push('plugins', plugin);
+    }
+
+    onSelected(result) {
+      const plugs = this.get('plugins');
+      const plug = plugs.find(p => p.name === result.plugin);
+      if (plug && typeof plug.action === 'function') {
+        const res = plug.action(result.result.value);
+        if (typeof res === 'boolean' && !res) return;
+        else if (typeof res === 'object' && res && typeof res.then === 'function') {
+          res.then(r => {
+            if (typeof r === 'boolean' && !res) return;
+            this.set('popped', false);
+          });
+        } else {
+          this.set('popped', false);
+        }
+      }
+    }
+
+    onKey(which) {
+      if (which === 27) this.set('popped', false);
+      else if (which === 13) {
+        const r = this.get('results')[this.get('selected')];
+        if (r) this.onSelected(r);
+      } else {
+        const dir = which === 38 ? -1 : 1;
+        let cur = this.get('selected');
+        const len = this.get('results.length') || 0;
+        cur += dir;
+        if (cur < 0) cur = len - 1;
+        if (cur < 0) cur = 0;
+        if (cur >= len) cur = 0;
+        this.set('selected', cur);
+        const el = this.find('.selected');
+        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
+    }
+  }
+  Ractive.extendWith(Runner, {
+    template: $TEMPLATE,
+    css: $CSS,
+    cssId: 'rrunner',
+    noCssTransform: true,
+    use: [keys()],
+    data() {
+      return { running: 0, run: 0, selected: 0 };
+    },
+    observe: {
+      command(v) {
+        if (!v) {
+          this.set('results', []);
+          return;
+        }
+        const plugs = this.get('plugins') || [];
+        const results = [];
+        this.add('running', 1);
+        this.add('run', 1);
+        const run = this.get('run');
+        for (let i = 0; i < plugs.length; i++) {
+          const p = plugs[i];
+          const r = p.run(v);
+          if (Array.isArray(r)) {
+            results.push(Promise.resolve(r.map(r => ({ result: handleResult(r), plugin: p.name }))));
+          } else if (r && typeof r === 'object' && typeof r.then === 'function') {
+            r.then(arr => {
+              if (Array.isArray(arr)) return arr.map(r => ({ result: handleResult(r), plugin: p.name }));
+            }, err => []);
+          }
+        }
+        Promise.all(results).then(results => {
+          this.subtract('running', 1);
+          if (this.get('run') === run) {
+            const arr = [];
+            this.set('results', arr.concat.apply(arr, results));
+          }
+        });
+      },
+      popped(v) {
+        if (v) setTimeout(() => {
+          const el = this.find('input');
+          if (el) {
+            el.focus();
+            const v = el.value;
+            el.selectionStart = 0;
+            el.selectionEnd = v.length;
+          }
+        }, 100);
+      },
+    },
+  });
+
+  function handleResult(r) {
+    if (Array.isArray(r) && r.length === 2) return { label: r[0], value: r[1] };
+    else if (typeof r === 'object' && 'label' in r && 'value' in r) return r;
+    else return { label: `${r}`, value:r };
+  }
+
+  export function plugin(opts = {}) {
+    return function({ instance }) {
+      instance.components[opts.name || 'runner'] = Runner;
+    };
+  }
+
+  globalRegister('RauiRunner', 'components', Runner);
+
+  export function WindowList(host) {
+    return {
+      run(name) {
+        const wins = Object.values(host.get('windows'));
+        const s = `${name}`.toLowerCase();
+        return wins.filter(w => (w.title || '').toLowerCase().includes(s)).map(w => ({ label: w.title, value: w.id }));
+      },
+      name: 'Window List',
+      action(win) {
+        host.getWindow(win).raise();
+      },
+    };
+  }
+
+  export function MenuList(menu, opts) {
+    opts = opts || {};
+    function path(el) {
+      let res = el.innerText;
+      if (opts.flat) return res;
+      while (el) {
+        while (el && el.classList && !el.classList.contains('rmenu-items')) el = el.parentNode;
+        if (el) el = el.parentNode;
+        if (el) {
+          const e = el.querySelector('.rmenu-item > .rmenu-main > .rmenu-title');
+          if (e) res = `${e.innerText} > ${res}`;
+        }
+      }
+      return res;
+    }
+    function getItems() {
+      const els = menu.findAll('.rmenu-title');
+      const res = [];
+      for (let i = 0; i < els.length; i++) {
+        const el = els[i];
+        if (!el.parentElement.classList.contains('rmenu-disabled')) {
+          const ctx = Ractive.getContext(el);
+          if (typeof ctx.get('.action') === 'function') {
+            res.push({ label: path(el), value: ctx });
+          }
+        }
+      }
+      return res;
+    }
+    const els = !opts.dynamic ? getItems() : undefined;
+
+    return {
+      name: opts.name || 'Menu List',
+      run(name) {
+        const es = els || getItems();
+        const s = `${name}`.toLowerCase();
+        return es.filter(e => (e.label || '').toLowerCase().includes(s));
+      },
+      action(ctx) {
+        const act = ctx.get('.action');
+        if (typeof act === 'function') act();
+      },
+    }
+  }
+
+  export default plugin;
+</script>
+
+<script rel=css>
+  const primary = Object.assign({}, data('raui.primary'), data('raui.runner.primary'));
+  return `.rrunner-back {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: rgba(0, 0, 0, 0.14);
+    z-index: -1;
+    opacity: 0;
+    transition: z-index 0s linear 0.5s, opacity 0.5s ease-in-out;
+    ${primary.blur || 'backdrop-filter: blur(2px);'}
+  }
+  .rrunner-back.rrunner-popped {
+    opacity: 1;
+    z-index: 999999;
+    transition: opacity 0.5s ease-in-out;
+  }
+  .rrunner-box {
+    position: absolute;
+    top: 1em;
+    left: calc(50% - 13em);
+    width: 26em;
+    z-index: -1;
+    opacity: 0;
+    padding: 0.5em;
+    color: ${primary.fg || '#222'};
+    border: ${primary.bodrder || 1}px solid ${primary.bc || '#ccc'};
+    box-shadow: ${primary.shadow || '0 1px 4px 0 rgba(0, 0, 0, 0.14)'};
+    border-radius: ${primary.radius || '0.2em'};
+    background-color: ${primary.bg || '#fff'};
+  }
+  .rrunner-box.rrunner-popped {
+    z-index: 1000000;
+    opacity: 1;
+  }
+  .rrunner-box .command {
+    border-radius: ${primary.radius || '0.2em'};
+    border: ${primary.border || 1}px solid ${primary.bc || '#ccc'};
+  }
+  .rrunner-box .command input {
+    width: 100%;
+    padding: 0 0.5em;
+    border: 0;
+    box-sizing: border-box;
+    outline: 0;
+  }
+  .rrunner-box .result:nth-child(1) {
+    margin-top: 0.5em;
+  }
+  .rrunner-box .result {
+    padding: 0.6em 0.3em 0.3em 0.3em;
+    border: ${primary.border || 1}px solid transparent;
+    border-radius: ${primary.radius || '0.2em'};
+    position: relative;
+  }
+  .rrunner-box .result .plugin {
+    font-size: 0.75em;
+    opacity: 0.8;
+    right: 0.3em;
+    top: 0;
+    position: absolute;
+  }
+  .rrunner-box .result.selected {
+    background-color: ${primary.bga || '#f4f4f4'};
+    color: ${primary.fga || '#07e'};
+    border-color: ${primary.bc || '#ccc'};
+  }
+  .rrunner-box .results {
+    max-height: 25em;
+    overflow: auto;
+  }`;
+</script>

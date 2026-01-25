@@ -18,6 +18,7 @@
         <item ref=JSONEditor>JSON Editor</item>
         <item ref=Menu>Menu</item>
         <item ref=Popover>Popover</item>
+        <item ref=Runner>Runner</item>
         <item ref=Shell>Shell</item>
         <item ref=SideBar>Side Bar</item>
         <item ref=Split>Split</item>
@@ -76,6 +77,7 @@
     </host>
   </center>
 </shell>
+<runner on-init="@.setupRunner($1)" />
 
 <script>
   import Shell from 'cmp/Shell';
@@ -84,6 +86,7 @@
   import Host from 'cmp/Window';
   import { style as gridStyle } from 'cmp/grid';
   import buttons from 'cmp/button';
+  import runner, { MenuList } from 'cmp/Runner';
 
   import Hello from './views/Hello';
 
@@ -91,7 +94,7 @@
 
   const App = Ractive.extend({
     template: $TEMPLATE,
-    use: [AppBar(), Host(), Menu(), Shell(), buttons()],
+    use: [AppBar(), Host(), Menu(), Shell(), buttons(), runner()],
     on: {
       init() {
         this.shell = this.findComponent('shell');
@@ -102,7 +105,7 @@
 
         host.set('userMax', true);
 
-        const builtins = ['Hello', 'AceEditor', 'AppBar', 'Autocomplete', 'Button', 'Card', 'Chart', 'Click', 'CodeMirror', 'Date', 'DateInput', 'DatePicker', 'drag', 'Expand', 'Fade', 'Form', 'Grid', 'JSONEditor', 'Keys', 'Marked', 'MaskedInput', 'Menu', 'NumericInput', 'Popover', 'ScrollSpy', 'Shell', 'SideBar', 'Split', 'Swipe', 'Table', 'Tabs', 'tip', 'Toast', 'Toggle', 'Validate', 'VirtualList', 'Window'];
+        const builtins = ['Hello', 'AceEditor', 'AppBar', 'Autocomplete', 'Button', 'Card', 'Chart', 'Click', 'CodeMirror', 'Date', 'DateInput', 'DatePicker', 'drag', 'Expand', 'Fade', 'Form', 'Grid', 'JSONEditor', 'Keys', 'Marked', 'MaskedInput', 'Menu', 'NumericInput', 'Popover', 'Runner', 'ScrollSpy', 'Shell', 'SideBar', 'Split', 'Swipe', 'Table', 'Tabs', 'tip', 'Toast', 'Toggle', 'Validate', 'VirtualList', 'Window'];
 
         menu.on('item', (ctx, handle) => {
           if (~builtins.indexOf(handle.ref)) {
@@ -147,6 +150,14 @@
             menu.set(`${wins.keypath}.condition`, items.length > 0);
           });
         }, { strict: true, defer: true });
+        
+        document.body.addEventListener('keydown', ev => {
+          if ((ev.which === 112 || ev.which === 80) && (ev.ctrlKey || ev.metaKey)) {
+            ev.preventDefault();
+            ev.stopPropagation();
+            this.run();
+          }
+        }, { capture: true });
       },
       complete: {
         handler() {
@@ -183,7 +194,13 @@
     },
     active(id) {
       return this.host && this.host.currentId === id;
-    }
+    },
+    setupRunner(run) {
+      setTimeout(() => {
+        run.addPlugin(new MenuList(this.findComponent('menu')));
+        this.run = () => run.showHide();
+      });
+    },
   });
 
   export default App;

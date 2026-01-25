@@ -1,0 +1,57 @@
+<tabs flat pad class-alt fill height=dynamic>
+  <tab title=Intro><marked>
+    A keyboard-centric way to interact with an application is often more convenient than any other way for more complex applications. To aid with that, Raui provides a Runner component that has an input that it passes to registered plugins and displays any plugin results in a list.
+
+    The runner input automatically focuses when the runner is shown, and it will handle Esc to hide, up and down arrows to select results, and Enter to select results.
+  </marked></tab>
+  <tab title=Usage><marked>
+    ### Plugin options
+
+    All options are optional.
+
+    * `name: string = 'runner'` - the name to use when registering the partial in the host
+
+    ### API
+
+    * `addPlugin(plugin)` - registers a plugin with the runner. Plugins are objects that have a string name and a function run, which should accept a string used to produce results. Results may be a string, a two-value array with a string first and arbitrary value second, or an object with a string label property and arbitrary value value property. Results may be returned as a Promise (or then-able object). The plugin may also provide an action function, which will be called with a result value when a result is selected. The action may return false or a Promise that resolves to false to prevent closing the runner upon selection.
+    * `show()` - shows the runner.
+    * `hide()` - hides the runner.
+    * `showHide()` - toggles the visibilty of the runner.
+    * `popped` - the binding that controls whether the runner is visible.
+  </marked></tab>
+  <tab title=Example>
+    <runner bind-popped=popped on-init="@.setup($1)" />
+    <label as-field class=inline><button on-click="@.toggle('popped')">Show Runner</button></label>
+    <div>
+      There is also a runner built into the demo application that gives access to all of the menu items. Press Ctrl+p or Cmd+p to activate the application's runner.
+    </div>
+  </tab>
+</tabs>
+
+<script>
+  import { Window } from 'cmp/Window';
+  import runner, { WindowList, MenuList } from 'cmp/Runner';
+
+  export default Window.extend({
+    template: $TEMPLATE, css: $CSS,
+    cssId: 'runner-demo',
+    use: [runner()],
+    options: {
+      title: 'Component :: Runner',
+      resizable: true, flex: true,
+      width: '48em', height: '30em'
+    },
+    data() {
+      return {
+        options: {
+        }
+      }
+    },
+    setup(run) {
+      run.addPlugin(WindowList(app.host));
+      run.addPlugin(MenuList(app.findComponent('menu'), { flat: true }));
+    },
+  });
+</script>
+  
+
