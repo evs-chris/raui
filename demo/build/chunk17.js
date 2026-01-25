@@ -1,243 +1,361 @@
-System.register(['ractive', './chunk2.js'], function (exports, module) {
+System.register(['./chunk2.js', 'ractive'], function (exports, module) {
   'use strict';
-  var Ractive$1, globalRegister;
+  var globalRegister, Ractive$1;
   return {
     setters: [function (module) {
-      Ractive$1 = module.default;
-    }, function (module) {
       globalRegister = module.default;
+    }, function (module) {
+      Ractive$1 = module.default;
     }],
     execute: function () {
 
-      function isArray(it) { return !!it && Object.prototype.toString.call(it) === '[object Array]'; }
-      function getType(it) {
-        if (it === null) { return 'null'; }
-        else if (typeof it === 'string') { return 'string'; }
-        else if (typeof it === 'number') { return 'number'; }
-        else if (typeof it === 'boolean') { return 'boolean'; }
-        else if (typeof it === 'function') { return 'function'; }
-        else if (typeof it === 'object' && isArray(it)) { return 'array'; }
-        else if (typeof it === 'object') { return 'object'; }
-        else { return 'wat'; }
-      }
-      function join(arr) {
-        return Ractive$1.joinKeys.apply(Ractive$1, arr);
+      exports('autofocus', autofocus);
+      function style(data) {
+        var primary = Object.assign({}, data('raui.primary'), data('raui.form.primary'));
+        var active = Object.assign({}, data('raui.primary.active'), data('raui.form.primary.active'));
+        var disabled = Object.assign({}, data('raui.primary.disabled'), data('raui.form.primary.disabled'));
+        var boxy = data('raui.form.boxy');
+        return ("\n  label.field, .field-manual {\n    display: inline-block;\n    font-size: 0.9em;\n    font-weight: 500;\n    transition: 0.2s ease-in-out;\n    transition-property: color;\n    vertical-align: top;\n    box-sizing: border-box;\n    padding: 0.25em 0.5em;\n    line-height: 1.5em;\n    overflow: hidden;\n    text-overflow: ellipsis;\n    white-space: nowrap;\n    font-family: inherit;\n  }\n\n  label.field.textarea {\n    display: block;\n    border: 0.0625em solid " + (primary.bc || '#ccc') + ";\n    padding: 0.5em 0.8em 0.8em 0.8em;\n    border-radius: " + (primary.radius || '0.2em') + ";\n    box-shadow: none;\n    transition-property: color, border-color, box-shadow;\n    margin: 0.8em 0.2em;\n    min-height: auto;\n    background-color: " + (boxy ? primary.bg || '#fff' : 'transparent') + ";\n    color: " + (primary.fg || '#222') + ";\n  }\n\n  label.field.focus {\n    color: " + (active.fg || primary.fga || '#07e') + ";\n  }\n\n  label.field.textarea.focus {\n    border-color: " + (active.fg || primary.fga || '#07e') + ";\n    " + (!boxy ? ("box-shadow: 0.0625em 0.0625em " + (active.fg || primary.fga || '#07e') + ",\n      -0.0625em 0.0625em " + (active.fg || primary.fga || '#07e') + ",\n      0.0625em -0.0625em " + (active.fg || primary.fga || '#07e') + ",\n      -0.0625em -0.0625em " + (active.fg || primary.fga || '#07e') + ";") : '') + "\n  }\n\n  label.field input,\n  label.field select,\n  label.field textarea,\n  .field-manual .field-body\n  {\n    display: block;\n    border-width: " + (boxy ? '0.0625em' : '0 0 0.0625em 0') + ";\n    border-color: " + (primary.bc || '#ccc') + ";\n    border-style: solid;\n    box-sizing: border-box;\n    background-color: " + (boxy ? primary.bg || '#fff' : 'transparent') + ";\n    color: " + (primary.fg || '#222') + ";\n    transition: 0.2s ease-in-out;\n    transition-property: box-shadow, color;\n    outline: none;\n    box-shadow: none;\n    width: 100%;\n    margin-bottom: 0.8em;\n    font-size: 1.1em;" + (boxy ? ("\n  border-radius: " + (primary.radius || '0.2em') + ";") : '') + "\n    font-weight: 400;\n    font-family: inherit;\n  }\n\n  label.field input" + (boxy ? '' : ':disabled') + ",\n  label.field select" + (boxy ? '' : ':disabled') + " {\n    padding: 0 0.75em;\n  }\n  label.field select" + (boxy ? '' : ':disabled') + " {\n    padding-right: 2em;\n  }\n\n  label.field input:disabled,\n  label.field input[readonly],\n  label.field select:disabled,\n  label.field textarea:disabled,\n  label.field textarea[readonly] {\n    background: " + (disabled.bg || '#f4f4f4') + ";\n    color: " + (disabled.fg || '#444') + ";\n  }\n\n  label.field textarea {\n    line-height: 1.2em;\n  }\n  label.field .field-wrapper {\n    display: block;\n  }\n  label.field > select, label.field > input,\n  label.field > .field-wrapper > input, label.field > .field-wrapper > select {\n    height: 2.5em;\n  }\n\n  " + (!boxy ? ("label.field:hover > input,\n  label.field:hover select,\n  label.field.file:hover:after {\n    box-shadow: 0 0.0625em 0 0 " + (primary.bc || '#ccc') + ";\n  }\n\n  label.field.textarea:hover {\n    box-shadow: 0.0625em 0.0625em " + (primary.bc || '#ccc') + ",\n      -0.0625em 0.0625em " + (primary.bc || '#ccc') + ",\n      0.0625em -0.0625em " + (primary.bc || '#ccc') + ",\n      -0.0625em -0.0625em " + (primary.bc || '#ccc') + ";\n  }\n\n  label.field.textarea.focus:hover {\n    box-shadow: 0.0625em 0.0625em " + (active.fg || primary.fga || '#07e') + ",\n      -0.0625em 0.0625em " + (active.fg || primary.fga || '#07e') + ",\n      0.0625em -0.0625em " + (active.fg || primary.fga || '#07e') + ",\n      -0.0625em -0.0625em " + (active.fg || primary.fga || '#07e') + ";\n  }") : '') + "\n\n  /**** CHECK BOXES ****/\n\n  label.field.check, label.field.radio {\n    position:relative;\n    z-index: 0;\n    overflow: visible;\n    cursor: pointer;\n    padding-top: 2.2em;\n    white-space: normal;\n  }\n  label.field.check.inline, label.field.radio.inline {\n    padding-top: 0.7em;\n  }\n\n  label.field.check input, label.field.radio input {\n    appearance: none;\n    -moz-appearance: none;\n    -webkit-appearance: none;\n    z-index: -1;\n    position: absolute;\n    left: -0.5em;\n    top: 1em;\n    display: block;\n    margin: 0;\n    border-radius: 50%;\n    width: 3.2em;\n    height: 3.2em;\n    background-color: " + (primary.bc || '#ccc') + ";\n    box-shadow: none;\n    outline: none;\n    opacity: 0;\n    transform: scale(1);\n    pointer-events: none;\n    transition: opacity 0.3s, transform 0.2s;\n  }\n  label.field.inline.check input, label.field.inline.radio input {\n    top: -0.45em;\n    left: -0.55em;\n  }\n\n  label.field.check input:checked, label.field.radio input:checked {\n    background-color: " + (primary.fga || '#07e') + ";\n  }\n\n  label.field.check:hover > input, label.field.radio:hover > input {\n    opacity: 0.04;\n  }\n\n  label.field.check input:focus, label.field.radio input:focus {\n    opacity: 0.12;\n  }\n\n  label.field.check:hover > input:focus, label.field.radio:hover > input:focus {\n    opacity: 0.16;\n  }\n\n  label.field.check input:active, label.field.radio input:active {\n    opacity: 0.6;\n    transform: scale(0);\n    transition: transform 0s, opacity 0s;\n  }\n\n  label.field.check:before, label.field.radio:before {\n    content: '';\n    display: inline-block;\n    box-sizing: border-box;\n    margin: 0 0.5em 0.2em 0.1em;\n    border: solid 0.125em; /* Safari */\n    border-color: " + (primary.fg || '#222') + ";\n    border-radius: 0.125em;\n    width: 1.2em;\n    height: 1.2em;\n    vertical-align: bottom;\n    transition: border-color 0.2s, background-color 0.2s;\n  }\n\n  label.field.check:after, label.field.radio:after {\n    content: '';\n    display: inline-block;\n    opacity: 0;\n    position: absolute;\n    width: 1.2em;\n    height: 1.2em;\n    top: 2.3em;\n    left: 0.6em;\n    border-radius: 0.125em;\n  }\n  label.field.check.inline:after, label.field.radio.inline:after {\n    top: 0.8em;\n  }\n\n  label.field.check.checked:after {\n    opacity: 1;\n    background: no-repeat center/80% url('data:image/svg+xml;utf8,<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 16 16\"><path fill=\"" + ((primary.bg || '#fff').replace(/#/g, '%23')) + "\" d=\"m 15.378906,1.7050781 a 1.0583349,1.0583349 0 0 0 -1.478515,0.234375 L 6.6210937,11.960938 1.8652344,8.5058594 a 1.0583349,1.0583349 0 0 0 -1.47851565,0.234375 1.0583349,1.0583349 0 0 0 0.234375,1.4785156 L 6.234375,14.294922 A 1.0584408,1.0584408 0 0 0 7.7128906,14.060547 L 15.613281,3.1835938 A 1.0583349,1.0583349 0 0 0 15.378906,1.7050781 Z\" /></svg>') " + (primary.fga || '#07e') + ";\n  }\n\n  label.field.radio.checked:after {\n    opacity: 1;\n    background: no-repeat center/80% url('data:image/svg+xml;utf8,<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 16 16\"><circle fill=\"" + ((primary.bg || '#fff').replace(/#/g, '%23')) + "\" cx=\"8\" cy=\"8\" r=\"5\" /></svg>') " + (primary.fga || '#07e') + ";\n  }\n\n  label.field.check.checked:before, label.field.radio.checked:before {\n    border-color: " + (primary.fga || '#07e') + ";\n  }\n  label.field.check.focus:before, label.field.radio.focus:before {\n    border-color: " + (primary.fga || '#07e') + ";\n  }\n\n  label.field.check input:disabled, label.field.radio input:disabled {\n    opacity: 0;\n  }\n\n  label.field.check.disabled, label.field.radio.disabled {\n    color: " + (disabled.fg || '#444') + ";\n    cursor: initial;\n  }\n\n  label.field.check.disabled:before, label.field.radio.disabled:before {\n    border-color: " + (disabled.bc || '#ccc') + ";\n    background-color: " + (disabled.bg || '#f4f4f4') + ";\n  }\n\n  label.field.check.checked.disabled:after, label.field.radio.checked.disabled:after {\n    border-color: transparent;\n    background-color: " + (disabled.bc || '#ccc') + ";\n  }\n\n  label.field select {\n    padding-right: 2em;\n  }\n\n  label.field.select {\n    cursor: pointer;\n    position: relative;\n  }\n\n  label.field.select:after {\n    content: ' ';\n    position: absolute;\n    display: block;\n    width: 0.6em;\n    right: 1.125em;\n    height: 0.6em;\n    top: 2.6em;\n    border-bottom: 0.125em solid;\n    border-right: 0.125em solid;\n    transform: rotate(45deg);\n    pointer-events: none;\n    color: " + (primary.bc || '#ccc') + ";\n  }\n\n  label.field textarea {\n    border: none;" + (boxy ? "\n    padding: 0;" : '') + "\n  }\n\n  label.field > select {\n    -moz-appearance: none;\n    -webkit-appearance: none;\n  }\n\n  label.field input:focus,\n  label.field select:focus,\n  label.field.file.focus:after\n  {\n    border-color: " + (active.fg || primary.fga || '#07e') + ";\n    " + (!boxy ? ("box-shadow: 0 0.0625em 0 0 " + (active.fg || primary.fga || '#07e') + ";") : '') + "\n  }\n\n  label.field input[type=checkbox]:focus,\n  label.field input[type=radio]:focus {\n    box-shadow: none;\n  }\n\n  label.field.file.focus:after {\n    color: " + (active.fg || primary.fga || '#07e') + ";\n  }\n  label.field.file [type=file] {\n    position: absolute;\n    width: 0;\n    height: 0;\n    opacity: 0;\n    z-index: -1;\n  }\n  label.field.file {\n    position: relative;\n    min-width: 9em;\n    height: 5em;\n  }\n  label.field.file:after {\n    position: absolute;\n    content: 'Choose a file';\n    box-sizing: border-box;\n    width: calc(100% - 0.3em);\n    height: 2.5em;\n    font-size: 1.1em;\n    line-height: 1.5em;\n    color: " + (primary.fg || '#222') + ";\n    text-align: " + (boxy ? 'center' : 'left') + ";\n    padding: 0.5em " + (boxy ? '0.5em' : '0') + ";\n    cursor: pointer;\n    font-style: oblique;\n    left: 0.25em;\n    top: 1.6em;\n    transition: 0.2s ease-in-out;\n    transition-property: color, border-bolor, box-shadow;" + (boxy ? ("\n    border-radius: " + (primary.radius || '0.2em') + ";\n    border-color: " + (primary.bc || '#ccc') + ";\n    border-style: solid;\n    border-width: 0.0625em;") : ("\n    border-bottom-color: " + (primary.bc || '#ccc') + ";\n    border-bottom-width: 0.0625em;\n    border-bottom-style: solid;\n    ")) + "\n  }\n  label.field.file.inline:after {\n    top: 0.2em;\n  }\n\n  label.field.button {\n    vertical-align: top;\n    padding-top: " + (boxy ? '1.7' : '1.958') + "em;\n  }\n  label.field .with-buttons button, label.field.button button {\n    font-size: 1.1em;\n    margin-top: " + (boxy ? '0.15em' : '0') + ";\n  }\n\n  label.field .field-wrapper.with-buttons {\n    display: flex;\n  }\n  label.field .with-buttons button {\n    flex-shrink: 0;\n    padding-left: 0.5em;\n    padding-right: 0.5em;\n    margin-top: 0;\n    margin-right: 0;\n    " + (boxy ? ("height: 2.5em;\n    box-shadow: none;\n    border-radius: 0;\n    border-left: 1px solid " + (primary.bg || '#fff') + ";\n    margin-left: 0;") : 
+          "height: 2.25em;") + "\n  }" + (boxy ? ("\n  label.field .with-buttons button:first-of-type {\n    margin-left: -0.05em;\n    border-left: none;\n  }\n  label.field .with-buttons button:last-of-type {\n    border-radius: 0 " + (primary.radius || '0.2em') + " " + (primary.radius || '0.2em') + " 0;\n  }\n  label.field .with-buttons input {\n    border-radius: " + (primary.radius || '0.2em') + " 0 0 " + (primary.radius || '0.2em') + ";\n    min-width: 0;\n  }\n  ") : '') + "\n\n  label.field.plain > div {\n    position: absolute;\n    font-size: 1.1em;\n    top: 2.4em;\n    font-weight: normal;\n  }\n\n  /* inline fields (no labels) */\n  label.field.inline {\n    min-height: 3.3em;\n  }\n\n  label.field.button.inline {\n    margin-top: 0.2em;\n    padding-top: 0.12em;\n  }\n\n  label.field.button.inline button {\n    margin-top: 0;\n  }\n\n  label.field.inline.select:after {\n    top: 1." + (boxy ? '15' : '1') + "em;\n  }\n\n  .just-the.field-tip,\n  label.field .field-tip {\n    display: inline-block;\n    width: 1em;\n    height: 1em;\n    background-color: " + (primary.fga || '#07e') + ";\n    color: " + (primary.bg || '#fff;') + ";\n    cursor: default;\n    user-select: none;\n    border-radius: 1em;\n    margin-left: 0.5em;\n    line-height: 1em;\n    font-family: monospace;\n    text-align: center;\n    margin-top: -0.2em;\n    cursor: help;\n  }\n  .just-the.field-tip.field-tip-error {\n    background-color: " + (primary.error || '#ca3c3c') + ";\n  }\n  .just-the.field-tip.field-tip-warn {\n    background-color: " + (primary.warn || '#f79e0b') + ";\n  }\n\n  label.field .field-solo-tip {\n    margin-left: -0.1em;\n  }\n  ");
+        // TODO: other themes
       }
 
-      var clipEl = (function() {
-        var el;
-        return function clipEl() {
-          if (!el) {
-            el = document.querySelector('.ractive-json-editor-clipboard-el');
-            if (!el) {
-              el = document.createElement('span');
-              el.style.display = 'block';
-              el.style.left = '-10000px';
-              el.style.position = 'absolute';
-              el.setAttribute('class', 'ractive-json-editor-clipboard-el');
-              document.body.appendChild(el);
+      function noop() {}
+
+      function focused(ev) {
+        if (!~this.className.indexOf('focus')) { this.className += ' focus'; }
+      }
+
+      function blurred(ev) {
+        this.className = this.className.replace(/\bfocus\b/g, '').trim();
+      }
+
+      function field$1(node) {
+        var ctx = this.getContext(node);
+
+        var isField, isCheck, isRadio, isArea, isSelect, isFile, isButton, isPlain, isInput;
+        var change, attrs, desc, last;
+
+        function invalidate() {
+          var val = setup().split(/\s+/).filter(function (c) { return !!c; });
+
+          isField = !!~val.indexOf('field');
+          if (!isField) {
+            val.push('field');
+            isField = true;
+          }
+
+          isCheck = node.querySelector('input[type=checkbox]');
+          if (isCheck && !~val.indexOf('check')) { val.push('check'); }
+
+          isRadio = node.querySelector('input[type=radio]');
+          if (isRadio && !~val.indexOf('radio')) { val.push('radio'); }
+
+          var checkable = (isCheck || isRadio);
+          if (checkable && checkable.checked && !~val.indexOf('checked')) { val.push('checked'); }
+          if (checkable && checkable.disabled && !~val.indexOf('disabled')) { val.push('disabled'); }
+
+          if (!checkable && change) {
+            change.cancel();
+            change = 0;
+            if (attrs) {
+              attrs.disconnect();
+              attrs = 0;
             }
-          }
-          return el;
-        }
-      })();
-
-      var JSONEditor = /*@__PURE__*/(function (Ractive) {
-        function JSONEditor(opts) { Ractive.call(this, opts); }
-
-        if ( Ractive ) JSONEditor.__proto__ = Ractive;
-        JSONEditor.prototype = Object.create( Ractive && Ractive.prototype );
-        JSONEditor.prototype.constructor = JSONEditor;
-
-        JSONEditor.prototype.renameKey = function renameKey (path, name) {
-          var then = path;
-          var value = this.get(then);
-          path = Ractive.splitKeypath(path);
-          var thenKey = path.pop();
-          var base = this.get(join(path));
-          path.push(name);
-          var now = join(path);
-          var edit = 'keys.' + Ractive.escapeKey(then);
-
-          if (name !== thenKey) {
-            delete base[thenKey];
-            this.update(then);
-            this.set(now, value);
-          }
-          this.set(edit, false);
-          return false;
-        };
-
-        JSONEditor.prototype.removeKey = function removeKey (path) {
-          path = Ractive.splitKeypath(path);
-          var key = path.pop();
-          var now = join(path);
-          var base = this.get(now);
-          delete base[key];
-          this.update(now);
-          return false;
-        };
-
-        JSONEditor.prototype.addKey = function addKey (path) {
-          var namePath = "values." + (Ractive.escapeKey(path)) + ".name";
-          var name = this.get(namePath);
-          if (!name) { return; }
-          path = Ractive.splitKeypath(path);
-          path.push(name);
-          this.set(join(path), '');
-          this.set(namePath, '');
-          return false;
-        };
-
-        JSONEditor.prototype.startEdit = function startEdit (path, node) {
-          if (!this.get('editable')) { return; }
-          path = "edits." + (Ractive.escapeKey(path));
-          if (this.get(path)) { return; } // already editing
-          this.set(path, true);
-          if (node) { setTimeout(function () { return node.querySelector('textarea,input').focus(); }, 1); }
-          return false;
-        };
-
-        JSONEditor.prototype.stopEdit = function stopEdit (path, key) {
-          this.toggle(((key || 'edits') + "." + (Ractive.escapeKey(path))));
-          return false;
-        };
-
-        JSONEditor.prototype.changeType = function changeType (path) {
-          var val = getType(this.get(path));
-          var next = this.event.original.target.value;
-          if (val !== next) {
-            switch (next) {
-              case 'wat': val = undefined; break;
-              case 'null': val = null; break;
-              case 'string': val = ''; break;
-              case 'number': val = 0; break;
-              case 'boolean': val = false; break;
-              case 'array': val = []; break;
-              default: val = {}; break;
+            delete checkable._form_callback;
+            if (last) {
+              delete last.checked;
+              desc = last = undefined;
             }
-            this.set(path, val);
-          }
-          return false;
-        };
+          } else if (checkable) {
+            checkable._form_callback = function (ev, init) {
+              if ( init === void 0 ) init = true;
 
-        JSONEditor.prototype.deferFocus = function deferFocus (node) {
-          setTimeout(function () { return node.querySelector('textarea,input').focus(); }, 1);
-          return false;
-        };
-
-        JSONEditor.prototype.toClipboard = function toClipboard (str) {
-          setTimeout(function () {
-            window.getSelection().removeAllRanges();
-            var el = clipEl();
-            el.innerText = str;
-            var range = document.createRange();
-            range.selectNodeContents(el);
-            window.getSelection().addRange(range);
-
-            try {
-              document.execCommand('copy');
-            } catch (e) {
-              console.log(e);
-            }
-
-            window.getSelection().removeAllRanges();
-          }, 1);
-
-          return false;
-        };
-
-        JSONEditor.prototype.openPath = function openPath (str) {
-          var this$1 = this;
-
-          if (str && typeof str === 'string') {
-            var path = Ractive.splitKeypath(str);
-            path.reduce(function (a, c) {
-              var path = a + '\\.' + c;
-              this$1.set(path, true);
-              return path;
-            }, 'toggles.root');
-            this.set('toggles.root', true);
-          }
-        };
-
-        JSONEditor.prototype.closePath = function closePath (str, toRoot) {
-          var this$1 = this;
-
-          if (str && typeof str === 'string') {
-            if (toRoot) {
-              var path = Ractive.splitKeypath(str);
-              path.reduce(function (a, c) {
-                var path = a + '\\.' + c;
-                this$1.set(path, false);
-                return path;
-              }, 'toggles.root');
-            } else {
-              this.set('toggles.root\\.' + Ractive.escapeKey(str), false);
-            }
-          }
-        };
-
-        return JSONEditor;
-      }(Ractive$1));
-
-      Ractive$1.extendWith(JSONEditor, {
-        template: {v:4,t:[{t:7,e:"div",m:[{t:13,n:"class",f:"rje-wrapper",g:1},{n:"class-rje-editable",t:13,f:[{t:2,r:"~/editable"}]},{n:"class-rje-readonly",t:13,f:[{t:2,x:{r:["~/editable"],s:"!_0"}}]},{n:"class-rje-plain-keys",t:13,f:[{t:2,r:"~/plainkeys"}]},{t:16,r:"extra-attributes"}],f:[{t:4,f:[{t:8,r:"value",c:{r:"root"}}],n:50,x:{r:["root"],s:"!_0"}}," ",{t:4,f:[{t:8,r:"open"}," ",{t:7,e:"div",m:[{t:13,n:"class",f:"rje-root",g:1},{n:"class-rje-value-expanded",t:13,f:[{t:2,r:"~/toggles.root"}]}],f:[{t:8,r:"value"}]}],n:54,r:"root"}]}],e:{"!_0":function (_0){return(!_0);},"[_0.changeType(_1)]":function (_0,_1){return([_0.changeType(_1)]);},"_0(_1)":function (_0,_1){return(_0(_1));},"[_0.stopEdit(_1)]":function (_0,_1){return([_0.stopEdit(_1)]);},"[_0.startEdit(_1)]":function (_0,_1){return([_0.startEdit(_1)]);},"_0&&_2[_1]":function (_0,_1,_2){return(_0&&_2[_1]);},"[_0.startEdit(_1,_2)]":function (_0,_1,_2){return([_0.startEdit(_1,_2)]);},"[_0===27&&_1.stopEdit(_2)]":function (_0,_1,_2){return([_0===27&&_1.stopEdit(_2)]);},"_0.indexOf(\"\\n\")!==-1":function (_0){return(_0.indexOf("\n")!==-1);},"[_0.toggle(\"toggles.\"+_1(_2)),false]":function (_0,_1,_2){return([_0.toggle("toggles."+_1(_2)),false]);},"!_1[_0]":function (_0,_1){return(!_1[_0]);},"[_0.toggle(\"indexes.\"+_1(_2)),false]":function (_0,_1,_2){return([_0.toggle("indexes."+_1(_2)),false]);},"[_0.splice(_1,_2,1),false]":function (_0,_1,_2){return([_0.splice(_1,_2,1),false]);},"[_0.splice(_1,_2-1,0,_0.splice(_1,_2,1).result[0]),false]":function (_0,_1,_2){return([_0.splice(_1,_2-1,0,_0.splice(_1,_2,1).result[0]),false]);},"[_0.splice(_1,_2+1,0,_0.splice(_1,_2,1).result[0]),false]":function (_0,_1,_2){return([_0.splice(_1,_2+1,0,_0.splice(_1,_2,1).result[0]),false]);},"_0===_1-1":function (_0,_1){return(_0===_1-1);},"[_0.toClipboard(_1.substr(5))]":function (_0,_1){return([_0.toClipboard(_1.substr(5))]);},"[_0.toggle(\"extras.\"+_1(_2)),false]":function (_0,_1,_2){return([_0.toggle("extras."+_1(_2)),false]);},"[_0.push(_1,\"\"),false]":function (_0,_1){return([_0.push(_1,""),false]);},"[_0.unshift(_1,\"\"),false]":function (_0,_1){return([_0.unshift(_1,""),false]);},"[_0.pop(_1),false]":function (_0,_1){return([_0.pop(_1),false]);},"[_0.shift(_1),false]":function (_0,_1){return([_0.shift(_1),false]);},"[_3.set(\"keys.\"+_0(_1),_2),_3.deferFocus(_4)]":function (_0,_1,_2,_3,_4){return([_3.set("keys."+_0(_1),_2),_3.deferFocus(_4)]);},"_0&&typeof _2[_1]===\"string\"":function (_0,_1,_2){return(_0&&typeof _2[_1]==="string");},"_0.indexOf(\"\\n\")!==-1||_2[_1].indexOf(\"\\n\")!==-1":function (_0,_1,_2){return(_0.indexOf("\n")!==-1||_2[_1].indexOf("\n")!==-1);},"[_0===27&&_1.renameKey(_2,_3[_2])]":function (_0,_1,_2,_3){return([_0===27&&_1.renameKey(_2,_3[_2])]);},"typeof _1[_0]===\"string\"":function (_0,_1){return(typeof _1[_0]==="string");},"[_0.renameKey(_1,_2[_1])]":function (_0,_1,_2){return([_0.renameKey(_1,_2[_1])]);},"[_0.stopEdit(_1,\"keys\")]":function (_0,_1){return([_0.stopEdit(_1,"keys")]);},"[_0.removeKey(_1)]":function (_0,_1){return([_0.removeKey(_1)]);},"[_0===13&&_1.addKey(_2)]":function (_0,_1,_2){return([_0===13&&_1.addKey(_2)]);},"[_0.addKey(_1)]":function (_0,_1){return([_0.addKey(_1)]);},"_0(_1)===\"object\"":function (_0,_1){return(_0(_1)==="object");},"_0(_1)===\"array\"":function (_0,_1){return(_0(_1)==="array");}},p:{changeType:[{t:7,e:"select",m:[{n:["change"],t:70,f:{r:["@this","@keypath"],s:"[_0.changeType(_1)]"}},{t:73,v:"t",f:"false"},{n:"value",f:[{t:2,x:{r:["~/getType","."],s:"_0(_1)"}}],t:13},{n:"title",f:"change type",t:13}],f:[{t:7,e:"option",f:["string"]}," ",{t:7,e:"option",f:["number"]}," ",{t:7,e:"option",f:["boolean"]}," ",{t:7,e:"option",f:["object"]}," ",{t:7,e:"option",f:["array"]}," ",{t:7,e:"option",f:["null"]}]}],editorEnd:[{t:7,e:"button",m:[{t:13,n:"class",f:"rje-ok rje-icon",g:1},{n:"title",f:"close editor",t:13,g:1},{n:["click"],t:70,f:{r:["@this","@keypath"],s:"[_0.stopEdit(_1)]"}}],f:["✓"]},{t:8,r:"changeType"}],wat:[{t:7,e:"span",m:[{t:13,n:"class",f:"rje-wat",g:1},{n:["click"],t:70,f:{r:["@this","@keypath"],s:"[_0.startEdit(_1)]"}}],f:["???"]},{t:7,e:"span",m:[{t:13,n:"class",f:"rje-close",g:1}]},{t:4,f:[{t:8,r:"editorEnd"}],n:50,x:{r:["~/editable","@keypath","~/edits"],s:"_0&&_2[_1]"}}],function:[{t:7,e:"span",m:[{t:13,n:"class",f:"rje-fn",g:1},{n:["click"],t:70,f:{r:["@this","@keypath"],s:"[_0.startEdit(_1)]"}}],f:["function() {...}"]},{t:7,e:"span",m:[{t:13,n:"class",f:"rje-close",g:1}]}],null:[{t:7,e:"span",m:[{t:13,n:"class",f:"rje-null",g:1},{n:["click"],t:70,f:{r:["@this","@keypath"],s:"[_0.startEdit(_1)]"}}],f:["null"]},{t:7,e:"span",m:[{t:13,n:"class",f:"rje-close",g:1}]},{t:4,f:[{t:8,r:"editorEnd"}],n:50,x:{r:["~/editable","@keypath","~/edits"],s:"_0&&_2[_1]"}}],boolean:[{t:7,e:"span",m:[{t:13,n:"class",f:"rje-bool",g:1},{n:["click"],t:70,f:{r:["@this","@keypath","@node"],s:"[_0.startEdit(_1,_2)]"}}],f:[{t:4,f:[{t:7,e:"input",m:[{n:"type",f:"checkbox",t:13},{n:"checked",f:[{t:2,r:"."}],t:13},{n:["keyup"],t:70,f:{r:["@event.which","@this","@keypath"],s:"[_0===27&&_1.stopEdit(_2)]"}}]}],n:50,x:{r:["~/editable","@keypath","~/edits"],s:"_0&&_2[_1]"}},{t:4,f:[{t:2,r:"."}],n:51,l:1}]},{t:7,e:"span",m:[{t:13,n:"class",f:"rje-close",g:1}]},{t:4,f:[{t:8,r:"editorEnd"}],n:50,x:{r:["~/editable","@keypath","~/edits"],s:"_0&&_2[_1]"}}],number:[{t:7,e:"span",m:[{t:13,n:"class",f:"rje-num",g:1},{n:["click"],t:70,f:{r:["@this","@keypath","@node"],s:"[_0.startEdit(_1,_2)]"}}],f:[{t:4,f:[{t:7,e:"input",m:[{n:"type",f:"number",t:13},{n:"value",f:[{t:2,r:"."}],t:13},{n:["keyup"],t:70,f:{r:["@event.which","@this","@keypath"],s:"[_0===27&&_1.stopEdit(_2)]"}}]}],n:50,x:{r:["~/editable","@keypath","~/edits"],s:"_0&&_2[_1]"}},{t:4,f:[{t:2,r:"."}],n:51,l:1}]},{t:7,e:"span",m:[{t:13,n:"class",f:"rje-close",g:1}]},{t:4,f:[{t:8,r:"editorEnd"}],n:50,x:{r:["~/editable","@keypath","~/edits"],s:"_0&&_2[_1]"}}],string:[{t:7,e:"span",m:[{t:13,n:"class",f:"rje-str",g:1},{n:"class-rje-edit",t:13,f:[{t:2,x:{r:["~/editable","@keypath","~/edits"],s:"_0&&_2[_1]"}}]},{n:["click"],t:70,f:{r:["@this","@keypath","@node"],s:"[_0.startEdit(_1,_2)]"}}],f:[{t:4,f:[{t:7,e:"textarea",m:[{n:"rows",f:[{t:4,f:["5"],n:50,x:{r:["."],s:"_0.indexOf(\"\\n\")!==-1"}},{t:4,f:["1"],n:51,l:1}],t:13},{n:["keyup"],t:70,f:{r:["@event.which","@this","@keypath"],s:"[_0===27&&_1.stopEdit(_2)]"}}],f:[{t:2,r:"."}]}],n:50,x:{r:["~/editable","@keypath","~/edits"],s:"_0&&_2[_1]"}},{t:4,f:[{t:7,e:"pre",f:[{t:2,r:"."}]}],n:51,l:1}]},{t:7,e:"span",m:[{t:13,n:"class",f:"rje-close",g:1}]},{t:4,f:[{t:8,r:"editorEnd"}],n:50,x:{r:["~/editable","@keypath","~/edits"],s:"_0&&_2[_1]"}}],array:[{t:7,e:"div",m:[{t:13,n:"class",f:"rje-array",g:1}],f:[{t:4,f:[{t:7,e:"span",m:[{t:13,n:"class",f:"rje-ellipsis",g:1},{n:["click"],t:70,f:{r:["@this","~/escapeKey","@keypath"],s:"[_0.toggle(\"toggles.\"+_1(_2)),false]"}}],f:["…"]}],n:50,x:{r:["@keypath","~/toggles"],s:"!_1[_0]"}},{t:4,f:[{t:19,f:[{t:4,f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rje-entry",g:1}],f:[{t:7,e:"span",m:[{t:13,n:"class",f:"rje-idx",g:1}],f:[{t:7,e:"span",m:[{n:["click"],t:70,f:{r:["@this","~/escapeKey","array"],s:"[_0.toggle(\"indexes.\"+_1(_2)),false]"}}],f:[{t:2,r:"@index"}]}," ",{t:4,f:[{t:7,e:"button",m:[{t:13,n:"class",f:"rje-icon",g:1},{n:"title",f:"remove",t:13,g:1},{n:["click"],t:70,f:{r:["@this","array","@index"],s:"[_0.splice(_1,_2,1),false]"}}],f:["−"]}," ",{t:7,e:"button",m:[{t:13,n:"class",f:"rje-icon",g:1},{n:"title",f:"move up",t:13,g:1},{n:["click"],t:70,f:{r:["@this","array","@index"],s:"[_0.splice(_1,_2-1,0,_0.splice(_1,_2,1).result[0]),false]"}},{t:4,f:[{n:"disabled",f:0,t:13}],n:50,x:{r:["@index"],s:"!_0"}}],f:["^"]}," ",{t:7,e:"button",m:[{t:13,n:"class",f:"rje-icon",g:1},{n:"title",f:"move down",t:13,g:1},{n:["click"],t:70,f:{r:["@this","array","@index"],s:"[_0.splice(_1,_2+1,0,_0.splice(_1,_2,1).result[0]),false]"}},{t:4,f:[{n:"disabled",f:0,t:13}],n:50,x:{r:["@index","../length"],s:"_0===_1-1"}}],f:["v"]}," ",{t:7,e:"button",m:[{t:13,n:"class",f:"rje-icon rje-copy",g:1},{n:"title",f:"copy keypath",t:13,g:1},{n:["click"],t:70,f:{r:["@this","@keypath"],s:"[_0.toClipboard(_1.substr(5))]"}}],f:["⧉"]}],n:50,x:{r:["~/editable","array","~/indexes"],s:"_0&&_2[_1]"}}," "]},{t:8,r:"open"},{t:7,e:"div",m:[{t:13,n:"class",f:"rje-value",g:1},{n:"class-rje-value-expanded",t:13,f:[{t:2,rx:{r:"~/toggles",m:[{t:30,n:"@keypath"}]}}]}],f:[{t:8,r:"value"}]}]}],n:52,r:"."}],n:54,z:[{n:"array",x:{r:"@keypath"}}]}],n:51,l:1},{t:7,e:"span",m:[{t:13,n:"class",f:"rje-close rje-bracket",g:1},{n:["click"],t:70,f:{r:["@this","~/escapeKey","@keypath"],s:"[_0.toggle(\"toggles.\"+_1(_2)),false]"}}],f:["]"]},{t:4,f:[" ",{t:7,e:"div",m:[{t:13,n:"class",f:"rje-buttons",g:1}],f:[{t:7,e:"button",m:[{t:13,n:"class",f:"rje-icon",g:1},{n:"title",f:"more actions",t:13,g:1},{n:["click"],t:70,f:{r:["@this","~/escapeKey","@keypath"],s:"[_0.toggle(\"extras.\"+_1(_2)),false]"}}],f:["⋯"]}," ",{t:4,f:[{t:7,e:"button",m:[{t:13,n:"class",f:"rje-icon",g:1},{n:"title",f:"push",t:13,g:1},{n:["click"],t:70,f:{r:["@this","@keypath"],s:"[_0.push(_1,\"\"),false]"}}],f:["˃+"]}," ",{t:7,e:"button",m:[{t:13,n:"class",f:"rje-icon",g:1},{n:"title",f:"unshift",t:13,g:1},{n:["click"],t:70,f:{r:["@this","@keypath"],s:"[_0.unshift(_1,\"\"),false]"}}],f:["+˂"]}," ",{t:7,e:"button",m:[{t:13,n:"class",f:"rje-icon",g:1},{n:"title",f:"pop",t:13,g:1},{n:["click"],t:70,f:{r:["@this","@keypath"],s:"[_0.pop(_1),false]"}}],f:["˃-"]}," ",{t:7,e:"button",m:[{t:13,n:"class",f:"rje-icon",g:1},{n:"title",f:"shift",t:13,g:1},{n:["click"],t:70,f:{r:["@this","@keypath"],s:"[_0.shift(_1),false]"}}],f:["-˂"]}," ",{t:8,r:"changeType"}],n:50,rx:{r:"~/extras",m:[{t:30,n:"@keypath"}]}}]}],n:50,x:{r:["~/editable","@keypath","~/toggles"],s:"_0&&_2[_1]"}}]}],object:[{t:7,e:"div",m:[{t:13,n:"class",f:"rje-obj",g:1}],f:[{t:4,f:[{t:7,e:"span",m:[{t:13,n:"class",f:"rje-ellipsis",g:1},{n:["click"],t:70,f:{r:["@this","~/escapeKey","@keypath"],s:"[_0.toggle(\"toggles.\"+_1(_2)),false]"}}],f:["…"]}],n:50,x:{r:["@keypath","~/toggles"],s:"!_1[_0]"}},{t:4,f:[{t:4,f:[{t:7,e:"div",m:[{t:13,n:"class",f:"rje-entry",g:1}],f:[{t:7,e:"span",m:[{t:13,n:"class",f:"rje-key",g:1},{t:4,f:[{n:["click"],t:70,f:{r:["~/escapeKey","@keypath","@key","@this","@node"],s:"[_3.set(\"keys.\"+_0(_1),_2),_3.deferFocus(_4)]"}}],n:50,r:"~/editable"},{t:4,f:[{n:["click"],t:70,f:{r:["@this","@keypath"],s:"[_0.toClipboard(_1.substr(5))]"}}],n:51,l:1}],f:[{t:7,e:"span",m:[{t:13,n:"class",f:"rje-str",g:1},{n:"class-rje-edit",t:13,f:[{t:2,x:{r:["~/editable","@keypath","~/keys"],s:"_0&&typeof _2[_1]===\"string\""}}]}],f:[{t:4,f:[{t:7,e:"textarea",m:[{n:"rows",f:[{t:4,f:["5"],n:50,x:{r:["@key","@keypath","~/keys"],s:"_0.indexOf(\"\\n\")!==-1||_2[_1].indexOf(\"\\n\")!==-1"}},{t:4,f:["1"],n:51,l:1}],t:13},{n:["keyup"],t:70,f:{r:["@event.which","@this","@keypath","~/keys"],s:"[_0===27&&_1.renameKey(_2,_3[_2])]"}}],f:[{t:2,rx:{r:"~/keys",m:[{t:30,n:"@keypath"}]}}]}],n:50,x:{r:["@keypath","~/keys"],s:"typeof _1[_0]===\"string\""}},{t:4,f:[{t:7,e:"pre",f:[{t:2,r:"@key"}]}],n:51,l:1}]}," ",{t:4,f:[{t:7,e:"button",m:[{t:13,n:"class",f:"rje-icon rje-ok",g:1},{n:"title",f:"apply",t:13,g:1},{n:["click"],t:70,f:{r:["@this","@keypath","~/keys"],s:"[_0.renameKey(_1,_2[_1])]"}}],f:["✓"]}," ",{t:7,e:"button",m:[{t:13,n:"class",f:"rje-icon rje-cancel",g:1},{n:"title",f:"cancel",t:13,g:1},{n:["click"],t:70,f:{r:["@this","@keypath"],s:"[_0.stopEdit(_1,\"keys\")]"}}],f:["✕"]}," ",{t:7,e:"button",m:[{t:13,n:"class",f:"rje-icon rje-cancel",g:1},{n:"title",f:"remove key",t:13,g:1},{n:["click"],t:70,f:{r:["@this","@keypath"],s:"[_0.removeKey(_1)]"}}],f:["−"]}," ",{t:7,e:"button",m:[{t:13,n:"class",f:"rje-icon rje-copy",g:1},{n:"title",f:"copy keypath",t:13,g:1},{n:["click"],t:70,f:{r:["@this","@keypath"],s:"[_0.toClipboard(_1.substr(5))]"}}],f:["⧉"]}],n:50,x:{r:["@keypath","~/keys"],s:"typeof _1[_0]===\"string\""}}," "]},{t:8,r:"open"},{t:7,e:"div",m:[{t:13,n:"class",f:"rje-value",g:1},{n:"class-rje-value-expanded",t:13,f:[{t:2,rx:{r:"~/toggles",m:[{t:30,n:"@keypath"}]}}]}],f:[{t:8,r:"value"}]}]}],n:52,r:"."}],n:51,l:1},{t:7,e:"span",m:[{t:13,n:"class",f:"rje-close rje-bracket",g:1},{n:["click"],t:70,f:{r:["@this","~/escapeKey","@keypath"],s:"[_0.toggle(\"toggles.\"+_1(_2)),false]"}}],f:["}"]},{t:4,f:[" ",{t:7,e:"div",m:[{t:13,n:"class",f:"rje-buttons",g:1}],f:[{t:7,e:"button",m:[{t:13,n:"class",f:"rje-icon",g:1},{n:"title",f:"more actions",t:13,g:1},{n:["click"],t:70,f:{r:["@this","~/escapeKey","@keypath"],s:"[_0.toggle(\"extras.\"+_1(_2)),false]"}}],f:["⋯"]}," ",{t:4,f:[{t:7,e:"input",m:[{n:"value",f:[{t:2,rx:{r:"~/values",m:[{t:30,n:"@keypath"},"name"]}}],t:13},{n:["keyup"],t:70,f:{r:["@event.which","@this","@keypath"],s:"[_0===13&&_1.addKey(_2)]"}}]},{t:7,e:"button",m:[{t:13,n:"class",f:"rje-icon rje-ok",g:1},{n:"title",f:"add key",t:13,g:1},{n:["click"],t:70,f:{r:["@this","@keypath"],s:"[_0.addKey(_1)]"}}],f:["+"]}," ",{t:8,r:"changeType"}],n:50,rx:{r:"~/extras",m:[{t:30,n:"@keypath"}]}}]}],n:50,x:{r:["~/editable","@keypath","~/toggles"],s:"_0&&_2[_1]"}}]}],open:[{t:4,f:[{t:7,e:"span",m:[{t:13,n:"class",f:"rje-open rje-bracket",g:1},{n:["click"],t:70,f:{r:["@this","~/escapeKey","@keypath"],s:"[_0.toggle(\"toggles.\"+_1(_2)),false]"}}],f:["{"]}],n:50,x:{r:["~/getType","."],s:"_0(_1)===\"object\""}},{t:4,f:[{t:7,e:"span",m:[{t:13,n:"class",f:"rje-open rje-bracket",g:1},{n:["click"],t:70,f:{r:["@this","~/escapeKey","@keypath"],s:"[_0.toggle(\"toggles.\"+_1(_2)),false]"}}],f:["["]}],n:50,x:{r:["~/getType","."],s:"_0(_1)===\"array\""},l:1}],value:[{t:8,x:{r:["~/getType","."],s:"_0(_1)"}}]}},
-        css: function(data) { return [" .rje-wrapper { font-family: monospace; line-height: 1.5em; } .rje-root { display: inline-block; } .rje-wrapper select, .rje-wrapper input { height: 1.6em; border: 1px solid; color: #222; border-radius: 0.2em; background-color: transparent; padding: 0; box-sizing: border-box; opacity: 0.3; transition: opacity 0.3s ease-in-out; vertical-align: top; } .rje-wrapper select:hover, .rje-wrapper input:hover, .rje-wrapper select:focus, .rje-wrapper input:focus { opacity: 1; } .rje-wrapper input[type=checkbox] { width: 1.4em; height: 1.4em; margin: 0.1em; vertical-align: top; outline: 0; } .rje-wrapper textarea { border: 1px solid; color: #222; border-radius: 0.2em; } .rje-value { display: inline-block; position: relative; margin-left: 0.75em; } .rje-value > * { vertical-align: top; } .rje-value > .rje-close { margin-right: 1em; } .rje-value-expanded { display: block; margin-left: 0; } .rje-value-expanded > .rje-obj, .rje-value-expanded > .rje-array { border-left: 1px dotted #f4f4f4; transition: border-left-color 0.2s ease-in-out; margin: 0 0 1.5em 0.25em; position: relative; display: block; padding-bottom: 0.6em; } .rje-value-expanded > .rje-obj:hover, .rje-value-expanded > .rje-array:hover { border-left-color: #ccc; } .rje-value-expanded > .rje-obj > .rje-close, .rje-value-expanded > .rje-array > .rje-close { position: absolute; bottom: -1.5em; left: -1em; width: 2em; } .rje-root.rje-value-expanded > * > .rje-close { left: -0.25em; } .rje-root > * > .rje-ellipsis { margin-left: -1.25em; } .rje-open, .rje-close, .rje-ellipsis { cursor: pointer; } .rje-entry .rje-close.rje-bracket, .rje-ellipsis { margin-left: 0; padding-left: 0.75em; } .rje-entry .rje-open.rje-bracket { margin-left: 0.75em; margin-right: -0.75em; } .rje-value-expanded > .rje-obj > .rje-buttons, .rje-value-expanded > .rje-array > .rje-buttons { position: absolute; bottom: -1.6em; left: 1.5em; } .rje-entry { margin-left: 0.75em; line-height: 2em; white-space: nowrap; } .rje-editable .rje-entry:nth-last-of-type(n+3) > .rje-value > .rje-close:after, .rje-editable .rje-entry:nth-last-of-type(n+3) > .rje-value > * > .rje-close:after { content: ','; position: absolute; top: 0; } .rje-readonly .rje-entry:nth-last-of-type(n+2) > .rje-value > .rje-close:after, .rje-readonly .rje-entry:nth-last-of-type(n+2) > .rje-value > * > .rje-close:after { content: ','; position: absolute; top: 0; } .rje-idx { cursor: pointer; } .rje-key, .rje-idx { margin-right: 0.5em; position: relative; display: inline-block; vertical-align: top; } .rje-key:after, .rje-idx:after { content: ':'; position: absolute; right: -0.5em; display: inline-block; top: 0; } .rje-str > pre { font-family: monospace; display: inline-block; margin: 0; vertical-align: top; } .rje-str { position: relative; margin: 0 0.6em; display: inline-block; cursor: text; } .rje-str:before, .rje-str:after { content: '\"'; position: absolute; } .rje-plain-keys .rje-key .rje-str:before, .rje-plain-keys .rje-key .rje-str:after { content: ''; } .rje-plain-keys .rje-key .rje-str { margin: 0; } .rje-str:before { left: -0.6em; width: 0.6em; text-align: right; } .rje-str:after { right: -0.6em; width: 0.6em; text-align: left; top: 0; } .rje-edit:before, .rje-edit:after { margin-top: -0.5em; } .rje-obj { display: inline-block; vertical-align: baseline; } .rje-icon { width: 1.3em; height: 1.6em; line-height: 1.6em; min-height: auto; box-sizing: border-box; padding: 0; margin: 0 0.25em; display: inline-block; vertical-align: top; background-color: transparent; color: #222; border: 1px solid; border-radius: 0.2em; opacity: 0.3; transition: opacity 0.2s ease-in-out; outline: 0; cursor: pointer; } .rje-icon:hover { opacity: 1; }", (function(data) {
-         var theme = data('raui.json') || {};
-         return ("\n   .rje-key .rje-str {\n     color: " + (theme.key || '#005a00') + ";\n   }\n   .rje-idx {\n     color: " + (theme.index || '#0000e6') + ";\n   }\n   .rje-num {\n     color: " + (theme.number || '#0000e6') + ";\n     font-weight: 500;\n   }\n   .rje-bool {\n     color: " + (theme.boolean || '#cc8400') + ";\n     font-weight: 500;\n   }\n   .rje-wat {\n     color: " + (theme.wat || '#e60000') + ";\n     font-weight: 500;\n   }\n   .rje-null {\n     color: " + (theme.null | '#737373') + ";\n     font-weight: 500;\n   }\n   .rje-fn {\n     color: " + (theme.function || '#005a00') + ";\n   }\n   .rje-str {\n     color: " + (theme.string || '#753bb0') + ";\n   }\n   ")
-      }).call(this, data)].join(' '); },
-        cssId: "json-editor",
-        noCssTransform: true,
-        attributes: ['editable', 'plainkeys', 'root', 'preservetoggles'],
-        data: function data() {
-          return {
-            getType: getType,
-            toggles: { root: true },
-            edits: {},
-            keys: {},
-            extras: {},
-            indexes: {},
-            values: {},
-            escapeKey: Ractive$1.escapeKey,
-            editable: true
-          };
-        },
-        observe: {
-          root: {
-            strict: true,
-            init: false,
-            handler: function handler() {
-              if (!this.get('preservetoggles')) {
-                this.set({
-                  toggles: { root: true },
-                  keys: {},
-                  values: {},
-                  extras: {}
-                });
-              } else {
-                this.set({
-                  keys: {},
-                  values: {},
-                  extras: {}
-                });
+              if (init && checkable.type === 'radio' && checkable.name) {
+                var list = [];
+                list.push.apply(list, document.querySelectorAll(("input[type=radio][name=" + (checkable.name) + "]")));
+                list = list.filter(function (i) { return i !== checkable; });
+                list.forEach(function (l) { return l._form_callback && l._form_callback(ev, false); });
               }
+
+              var checked = checkable.checked;
+              if (checked && !~node.className.indexOf('checked')) { node.className += ' checked'; }
+              else if (!checked && ~node.className.indexOf('checked')) { node.className = node.className.replace(/\bchecked\b/g, '').replace(/ +/g, ' ').trim(); }
+            };
+
+            if (MutationObserver) {
+              attrs = new MutationObserver(function () {
+                var val;
+                val = checkable.disabled;
+                if (val && !~node.className.indexOf('disabled')) { node.className += ' disabled'; }
+                else if (!val && ~node.className.indexOf('disabled')) { node.className = node.className.replace(/\bdisabled\b/g, '').replace(/ +/g, ' ').trim(); }
+              });
+              attrs.observe(checkable, { attributes: true });
+            }
+
+            change = this.getContext(checkable).listen('change', checkable._form_callback);
+
+            desc = Object.getOwnPropertyDescriptor(Object.getPrototypeOf(checkable), 'checked');
+            if (desc && desc.configurable) {
+              last = checkable;
+              Object.defineProperty(checkable, 'checked', {
+                get: desc.get,
+                set: function set(v) {
+                  desc.set.call(last, v);
+                  checkable._form_callback();
+                },
+                enumerable: true,
+                configurable: true
+              });
             }
           }
+
+          isArea = !!node.querySelector('textarea');
+          if (isArea && !~val.indexOf('textarea')) { val.push('textarea'); }
+
+          isSelect = !!node.querySelector('select');
+          if (isSelect && !~val.indexOf('select')) { val.push('select'); }
+
+          isFile = !!node.querySelector('input[type=file]');
+          if (isFile && !~val.indexOf('file')) { val.push('file'); }
+
+          isButton = node.querySelector('button');
+          isButton = !!isButton && isButton.parentNode === node;
+          if (isButton && !~val.indexOf('button')) { val.push('button'); }
+
+          isPlain = !!node.querySelector('div');
+          if (isPlain && !~val.indexOf('plain')) { val.push('plain'); }
+
+          isInput = !isCheck && !isRadio && !isFile && !!node.querySelector('input');
+          if (isInput && !~val.indexOf('input')) { val.push('input'); }
+
+          node.className = val.join(' ');
         }
+
+        function setup() {
+          var cls = node.className;
+
+          if (!isField) { cls = cls.replace(/\bfield\b/g, '').trim(); }
+          if (!isCheck) { cls = cls.replace(/\bcheck(ed)?\b/g, '').trim(); }
+          if (!isRadio) { cls = cls.replace(/\bradio\b/g, '').trim(); }
+          if (!isArea) { cls = cls.replace(/\btextarea\b/g, '').trim(); }
+          if (!isSelect) { cls = cls.replace(/\bselect\b/g, '').trim(); }
+          if (!isFile) { cls = cls.replace(/\bfile\b/g, '').trim(); }
+          if (!isButton) { cls = cls.replace(/\bbutton\b/g, '').trim(); }
+          if (!isPlain) { cls = cls.replace(/\bplain\b/g, '').trim(); }
+          if (!isInput) { cls = cls.replace(/\binput\b/g, '').trim(); }
+          cls = cls.replace(/  +/g, ' ');
+
+          return cls;
+        }
+
+        var focus = ctx.listen('focusin', focused);
+        var blur = ctx.listen('focusout', blurred);
+
+        invalidate.call(this);
+
+        var res = {
+          update: noop,
+          invalidate: invalidate.bind(this),
+          teardown: function teardown() {
+            ctx.ractive.fire('fieldUnregistered', ctx, node, res);
+            var cls = setup();
+            cls = cls.replace(/\bfocus\b/g, '').trim();
+
+            focus.cancel();
+            blur.cancel();
+            change && change.cancel();
+            if (attrs) { attrs.disconnect(); }
+            if (last) {
+              delete last.checked;
+              desc = last = undefined;
+            }
+
+            node.className = cls;
+          },
+          setDisabled: function setDisabled(v) {
+            var children = node.querySelectorAll('input,button,select,textarea');
+            children.forEach(function (c) { return c.disabled = v; });
+            this.invalidate();
+          },
+        };
+
+        ctx.ractive.fire('fieldRegistered', ctx, node, res);
+
+        return res;
+      }
+
+      field$1.style = style;
+
+      function findDeep(els, el) {
+        if (!els) { return false; }
+        for (var i = 0; i < els.length; i++) {
+          if (els[i].e === el) { return true; }
+          if (els[i].f && findDeep(els[i].f, el)) { return true; }
+        }
+        return false;
+      }
+
+      var macro = Ractive$1.macro(function (handle) {
+        var body = [];
+        var label = [];
+        var attrs = (handle.template.m || []).slice();
+        var content = handle.template.f || [];
+
+        // TODO: special field types
+        var value = attrs.find(function (a) { return a.n === 'value'; });
+        var type = attrs.find(function (a) { return a.n === 'type'; });
+        var tip = attrs.find(function (a) { return a.n === 'tip'; });
+        var disabled = attrs.find(function (a) { return a.n === 'disabled'; });
+        var maxlength = attrs.find(function (a) { return a.n === 'maxlength'; });
+        if (tip) { attrs.splice(attrs.indexOf(tip), 1); }
+
+        if (type && typeof macro.types[type.f] === 'function') {
+          body.push.apply(body, macro.types[type.f](attrs, content, handle));
+        } else if (value) {
+          var el = {
+            t: 7, e: 'input', m: [value]
+          };
+          if (disabled) { el.m.push(disabled); }
+          if (maxlength) { el.m.push(maxlength); }
+          // watch for select
+          if (findDeep(content, 'option')) {
+            el.e = 'select';
+            el.f = content;
+          }
+          if (type) {
+            el.m.push(type);
+            if (type.f === 'checkbox' || type.f === 'radio') {
+              var target = attrs.find(function (a) { return a.n === 'target'; });
+              if (target) { el.m.push(Object.assign({}, target, { n: 'name' })); }
+              else { el.m.splice(el.m.indexOf(value), 1, Object.assign({}, value, { n: 'checked' })); }
+            }
+          }
+          el.m = el.m.concat(attrs.filter(function (a) { return a.t === 73 || a.t === 73 || a.n === 'placeholder'; }));
+          body.push(el);
+
+          var btns = content.filter(function (e) { return e.e === 'button' || findDeep(e.f, 'button'); });
+          if (btns.length) {
+            body.push.apply(body, btns);
+            body = [{
+              t: 7, e: 'span', m: [
+                { t: 13, n: 'class', f: 'field-wrapper with-buttons', g: 1 }
+              ],
+              f: body
+            }];
+          }
+        } else { // mostly passthru
+          // check for button wrapping
+          content.forEach(function (e) {
+            if (e.e === 'label') {
+              if (e.f && e.f.length) { label.push.apply(label, e.f); }
+            } else {
+              body.push(e);
+            }
+          });
+          var els = content.filter(function (e) { return e.e; });
+          if (els.find(function (e) { return e.e === 'button'; }) && els.length > 1) {
+            body = [{
+              t: 7, e: 'span', m: [
+                { t: 13, n: 'class', f: 'field-wrapper with-buttons', g: 1 }
+              ],
+              f: body
+            }];
+          }
+        }
+
+        var labelattr = attrs.find(function (a) { return a.n === 'label'; });
+        if (labelattr && labelattr.f && labelattr.f.length) { label.push.apply(label, Array.isArray(labelattr.f) ? labelattr.f : [labelattr.f]); }
+        if (tip) { body.unshift({
+          t: 7, e: 'span', m: [
+            { t: 13, n: 'class', f: ("field-tip" + (!label.length ? ' field-solo-tip' : '')), g: 1 },
+            { t: 13, n: 'title', f: tip.f },
+            { t: 70, n: ['click'], f: { r: [], s: '[false]' } }
+          ],
+          f: '?',
+        }); }
+        var inline = attrs.find(function (a) { return a.n === 'inline'; });
+        if (label && !inline) { body.unshift.apply(body, label); }
+        else if (!inline) { body.unshift('\xa0'); }
+
+        var outer = {
+          t: 7, e: 'label', m: [{ t: 71, n: 'field' }].concat(attrs.filter(function (a) { return (a.t !== 13 && a.t !== 73) || (a.n !== 'value' && a.n !== 'type' && a.n !== 'inline' && a.n !== 'label' && a.n !== 'placeholder' && a.n !== 'target' && a.n !== 'disabled'); })),
+          f: body
+        };
+
+        if (inline) { outer.m.push({ t: 13, n: 'class', f: 'inline' }); }
+
+        handle.setTemplate([outer]);
       });
+
+      macro.types = {};
+
+      var tip = Ractive$1.macro(function (handle) {
+        handle.aliasLocal('__rtip');
+        var body = [{
+          t: 7, e: 'span', m: (handle.template.m || []).concat([
+            { t: 13, n: 'class', f: ["just-the field-tip", { t: 4, f: [' field-tip-error'], x: { r: ['__rtip.attrs.type'], s: '_0==="error"' } }, { t: 4, f: [' field-tip-warn'], x: { r: ['__rtip.attrs.type'], s: '_0==="warn"' } }] },
+            { t: 13, n: 'title', f: Array.isArray(handle.template.f) || typeof handle.template.f === 'string' ? handle.template.f : [handle.template.f] },
+            { t: 70, n: ['click'], f: { r: [], s: '[false]' } }
+          ]),
+          f: [{ t: 4, f: [{ t: 3, r: '__rtip.attrs.sign' }], n: 50, r: '__rtip.attrs.sign' }, { t: 4, f: ['!'], n: 50, x: { r: ['__rtip.attrs.type'], s: '_0==="error"||_0==="warn"' }, l: 1 }, { t: 4, f: ['?'], n: 51, l: 1 }],
+        }];
+
+        handle.set('__rtip.attrs', handle.attributes);
+
+        handle.setTemplate(body);
+
+        return {
+          update: function update() {
+            handle.set('__rtip.attrs', handle.attributes);
+          }
+        };
+      }, {
+        attributes: ['sign', 'type'],
+      });
+
+      function autofocus(node, opts) {
+        if (typeof node.focus === 'function' && !node.disabled) {
+          if (opts && opts.immediate) { node.focus(); }
+          else { setTimeout(function () { return !node.disabled && node.focus(); }, (opts || {}).timeout || 250); }
+        }
+        return { teardown: noop };
+      }
 
       function plugin(opts) {
         if ( opts === void 0 ) opts = {};
 
         return function(ref) {
+          var Ractive = ref.Ractive;
           var instance = ref.instance;
 
-          instance.components[opts.name || 'json-editor'] = JSONEditor;
+          // if an extension, offer to include style
+          if (!Ractive.isInstance(instance)) {
+            if (opts.includeStyle) {
+              // handle global use
+              if (instance === Ractive) {
+                Ractive.addCSS('form-decorator', style);
+              } else {
+                var css = instance.css;
+                instance.css = function(data) {
+                  var res = typeof css !== 'function' ? (css || '') : css(data);
+                  return res + style(data);
+                };
+              }
+            }
+          }
+
+          instance.partials[opts.name || 'field'] = macro;
+          instance.partials[opts.tipName || 'tip'] = tip;
+          instance.decorators[opts.name || 'field'] = field$1;
+          instance.decorators[opts.autofocusName || 'autofocus'] = autofocus;
         }
       }
 
-      globalRegister('RauiJSONEditor', 'components', JSONEditor);
+      globalRegister('field', 'decorators', field$1);
+      globalRegister('field', 'partials', macro);
+      globalRegister('tip', 'partials', tip);
+      globalRegister('autofocus', 'decorators', autofocus);
       exports('default', plugin);
 
     }

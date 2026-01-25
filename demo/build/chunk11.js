@@ -1,35 +1,615 @@
-System.register(['./chunk2.js'], function (exports, module) {
+System.register([], function (exports, module) {
   'use strict';
-  var globalRegister;
   return {
-    setters: [function (module) {
-      globalRegister = module.default;
-    }],
     execute: function () {
 
-      function fade(t, params) {
-        var p = t.processParams(params, { duration: 200, easing: 'easeInOut' });
-        if (t.isIntro || p.intro) {
-          t.setStyle('opacity', 0);
-          return t.animateStyle('opacity', 1, p);
-        } else {
-          t.setStyle('opacity', 1);
-          return t.animateStyle('opacity', 0, p);
+      exports('default', plugin);
+      // TODO: support for non-numeric formats?
+
+      var nonDigits = /[^\d]+/;
+      var nonDisplay = /[^\d_]+/;
+      var blankChar = '_';
+
+      var map = {
+        y: 0, M: 1, d: 2, H: 3, h: 3, m: 4, s: 5, S: 6
+      };
+
+      function padl(str, total, char) {
+        if ( char === void 0 ) char = '0';
+
+        var v = str == null ? '' : '' + str;
+        for (var i = v.length; i < total; i++) {
+          v = char + v;
         }
+        return v;
       }
 
-      function plugin(opts) {
-        if ( opts === void 0 ) opts = {};
+      function padr(str, total, char) {
+        if ( char === void 0 ) char = '0';
+
+        var v = str == null ? '' : '' + str;
+        for (var i = v.length; i < total; i++) {
+          v += char;
+        }
+        return v;
+      }
+
+      var defaults = {
+        mask: 'yyyy-MM-dd',
+        time: [0, 0, 0, 0],
+        date: function date() {
+          var now = new Date();
+          var tm = defaults.time;
+          return new Date(now.getFullYear(), now.getMonth(), now.getDate(), tm[0], tm[1], tm[2], tm[3]);
+        },
+        parseDate: function parseDate(dt) {
+          return new Date(dt);
+        },
+      };
+
+      function timeArray(value) {
+        if (value === 'start') { value = [0, 0, 0, 0]; }
+        else if (value === 'end') { value = [23, 59, 59, 999]; }
+        else if (value === 'mid') { value = [12, 0, 0, 0]; }
+        else if (value === 'now') { value = function () {
+          var dt = new Date();
+          return [dt.getHours(), dt.getMinutes(), dt.getSeconds(), dt.getMilliseconds()];
+        }; }
+        else if (typeof value === 'string') {
+          var dt = new Date(("2000-05-13T" + value + "Z"));
+          if (+dt) { value = [dt.getUTCHours(), dt.getUTCMinutes(), dt.getUTCSeconds(), dt.getUTCMilliseconds()]; }
+        }
+        if (!Array.isArray(value) && typeof value !== 'function' && !Array.isArray(value())) { value = [0, 0, 0, 0]; }
+        return value;
+      }
+
+      function plugin(options) {
+        if ( options === void 0 ) options = {};
+
+        var defaultMask = options.mask || defaults.mask;
+        var defaultTime = timeArray(options.time || defaults.time);
+        var defaultDate = options.date || defaults.date;
+        if (typeof defaultDate !== 'function') {
+          var dt = defaultDate;
+          defaultDate = function () { return dt; };
+        }
 
         return function(ref) {
           var instance = ref.instance;
 
-          instance.transitions[opts.name || 'fade'] = fade;
+          instance.decorators[options.name || 'date'] = function(/** @type { HTMLInputElement } */ node, optsin, other) {
+            if ( optsin === void 0 ) optsin = {};
+
+            var opts = Object.assign(
+              {},
+              options,
+              typeof optsin === 'string' ? { value: optsin } : optsin,
+              typeof other === 'string' ? { mask: other } : other
+            );
+
+            if (!opts.parseDate) { opts.parseDate = options.parseDate || defaults.parseDate; }
+
+            var defdt = opts.date || defaultDate;
+            var deftm = timeArray(opts.time || defaultTime);
+            if (typeof defdt !== 'function') {
+              var dt = defdt;
+              defdt = function () { return dt; };
+            }
+
+            var ctx = this.getContext(node);
+            var mask = opts.mask || defaultMask;
+            var handles = { observers: [], listeners: [] };
+
+            var lastBackspace = false;
+
+            if (node.tagName !== 'INPUT') {
+              console.warn(("Attempted to add a date decorator a " + (node.tagName)));
+              return noop;
+            }
+
+            if (!mask) { return noop; }
+
+            var groups = [];
+            var match, last = 0;
+            while (match = dateRE.exec(mask)) {
+              var group = { mask: match[0], type: match[0][0], length: match[0].length, start: match.index, end: match.index + match[0].length, chunk: groups.length, prefix: mask.substring(last, match.index), groups: groups, value: null, display: padr('', match[0].length, blankChar) };
+              last = group.end;
+              groups.push(group);
+            }
+            groups.suffix = mask.substring(groups[groups.length - 1].end);
+            groups.last = null;
+
+            if (groups.slice(1).find(function (g) { return !g.prefix; })) {
+              console.warn(("Attempted to add a date decorator missing interstitial between fields '" + mask + "'"));
+              return noop;
+            }
+
+            if (opts.min > opts.max) { delete opts.min; }
+            
+            if (typeof opts.value === 'string') {
+              handles.observers.push(ctx.observe(opts.value, function (v) {
+                if (!v && opts.null === false) { v = defdt(); }
+                groups.value = v;
+                receiveValue(groups, v, opts.parseDate);
+                groups.last = v;
+                updateDisplay(groups, node);
+                if (opts.min && v < opts.min || opts.max && v > opts.max) {
+                  groups.last = null;
+                  setTimeout(sendValue);
+                }
+              }, { defer: true }));
+            }
+
+            if (typeof opts.display === 'string') {
+              handles.observers.push(ctx.observe(opts.display, function (v) {
+                node.value = v || '';
+                readInput(groups, node, mask);
+                updateValues(groups);
+                applyValues(groups, sendValue, true, defdt, deftm);
+                updateDisplay(groups, node);
+              }, { defer: true }));
+            }
+
+            if (!opts.display && !opts.value) {
+              if (opts.date || opts.null === false) { groups.value = getDateValue(opts.date || defdt(), opts.parseDate); }
+              updateDisplay(groups, node);
+            }
+
+            function sendValue(focused) {
+              if (groups.value === null && groups.last === null || +groups.value === +groups.last) { return 1; }
+
+              if (focused && opts.lazy !== false) { return; }
+
+              if (opts.null === false && groups.value === null) { return receiveValue(groups, groups.last, opts.parseDate) && 1 || 1; }
+
+              if (opts.min && groups.value < opts.min) {
+                receiveValue(groups, opts.min, opts.parseDate);
+                updateDisplay(groups, node);
+              } else if (opts.max && groups.value > opts.max) {
+                receiveValue(groups, opts.max, opts.parseDate);
+                updateDisplay(groups, node);
+              }
+
+              groups.last = groups.value;
+
+              if (typeof opts.value === 'string') {
+                handles.observers.forEach(function (h) { return h.silence(); });
+                ctx.set(opts.value, groups.value);
+                handles.observers.forEach(function (h) { return h.resume(); });
+              }
+
+              if (typeof opts.display === 'string') {
+                handles.observers.forEach(function (h) { return h.silence(); });
+                ctx.set(opts.display, node.value);
+                handles.observers.forEach(function (h) { return h.resume(); });
+              }
+            }
+
+            var selectGroup = function (group, pos) {
+              if (pos === undefined) { pos = node.selectionStart; }
+              if (group && group.target) { group = undefined; }
+              if (!group) {
+                if (pos === node.value.length && node.selectionEnd === node.value.length) { group = groups[0]; }
+                else { group = groupForPos(groups, pos); }
+              }
+              if (lastBackspace) {
+                lastBackspace = false;
+                if (pos < group.start) { group = groups[groups.indexOf(group) - 1]; }
+              }
+              document.activeElement === node && node.setSelectionRange(group.start, group.end);
+            };
+
+            handles.listeners.push(ctx.listen('input', function () {
+              var pos = node.selectionStart;
+              var start = node.value;
+
+              readInput(groups, node, mask);
+              var active = groupForPos(groups, pos);
+              var accepted = updateValues(groups, active, pos);
+              applyValues(groups, sendValue, true, defdt, deftm);
+              updateDisplay(groups, node);
+
+              if (active && ((start.length >= mask.length && pos === active.end) || accepted) && active !== groups[groups.length - 1]) {
+                var next = groups[groups.indexOf(active) + 1];
+                selectGroup(next, pos);
+              } else {
+                node.setSelectionRange(pos, pos);
+              }
+            }));
+
+            handles.listeners.push(ctx.listen('blur', function () {
+              lastBackspace = false;
+              if (sendValue(false)) { receiveValue(groups, groups.value, opts.parseDate); }
+              if (groups.value === null) { groups.forEach(function (g) { return g.value = null; }); }
+              groups.forEach(function (g) { return g.display = displayForGroup(g); });
+              updateDisplay(groups, node);
+            }));
+
+            handles.listeners.push(ctx.listen('click', selectGroup));
+            handles.listeners.push(ctx.listen('focus', selectGroup));
+
+            handles.listeners.push(ctx.listen('keydown', function (/** @type { KeyboardEvent } */ ev) {
+              lastBackspace = false;
+              switch (ev.key) {
+                case 'Enter':
+                case 'Tab': {
+                  var g = groupForPos(groups, node.selectionStart);
+                  var idx = groups.indexOf(g);
+                  if (updateValues(groups, g, node.selectionStart, true)) {
+                    updateDisplay(groups, node);
+                    applyValues(groups, sendValue, ev.shiftKey && idx > 0 || !ev.shiftKey && idx + 1 < groups.length, defdt, deftm);
+                  }
+                  if (ev.shiftKey && idx > 0) {
+                    selectGroup(groups[idx - 1]);
+                    ev.preventDefault();
+                    ev.stopPropagation();
+                  } else if (!ev.shiftKey && idx + 1 < groups.length) {
+                    selectGroup(groups[idx + 1]);
+                    ev.preventDefault();
+                    ev.stopPropagation();
+                  }
+                  break;
+                }
+
+                case 'Backspace': 
+                  lastBackspace = true;
+                  break;
+
+                case 'ArrowUp':
+                case 'ArrowDown': {
+                  var ref = [node.selectionStart, node.selectionEnd];
+                  var s = ref[0];
+                  var e = ref[1];
+                  var g$1 = groupForPos(groups, s);
+                  if (g$1.value === null) {
+                    if (g$1.type === 'a') { g$1.value = 'AM'; }
+                    else { g$1.value = 1; }
+                  }
+
+                  if (g$1.type === 'a') { syncAP(groups, g$1.value === 'AM' ? 'PM' : 'AM', g$1); }
+                  else { bumpValue(g$1, ev.key === 'ArrowDown'); }
+
+                  g$1.input = g$1.display = displayForGroup(g$1);
+                  applyValues(groups, sendValue, true, defdt, deftm);
+                  updateDisplay(groups, node);
+                  ev.preventDefault();
+                  ev.stopPropagation();
+                  node.setSelectionRange(s, e);
+                  break;
+                }
+              }
+            }));
+
+            return {
+              teardown: function teardown() {
+                handles.observers.forEach(function (o) { return o.cancel(); });
+                handles.listeners.forEach(function (o) { return o.cancel(); });
+              }
+            }
+          };
         }
       }
 
-      globalRegister('fade', 'transitions', fade);
-      exports('default', plugin);
+      function syncAP(groups, next, a, h) {
+        a = a || groups.find(function (g) { return g.type === 'a'; });
+        if (!a) { return; }
+        h = h || groups.find(function (g) { return g.type.toUpperCase() === 'H'; });
+        if (!h) { return; }
+
+        if (next && a.value !== next) {
+          if (h.value > 11 && next === 'AM') { h.value -= 12; }
+          else if (h.value < 12 && next === 'PM') { h.value += 12; }
+        }
+        if (h.value != null && h.value > 11) { a.value = a.display = a.input = 'PM'; }
+        else if (h.value != null && h.value < 12) { a.value = a.display = a.input = 'AM'; }
+        else { a.value = a.display = a.input = padl('', 2, blankChar); }
+      }
+
+      function readInput(groups, node, mask) {
+        var val = node.value;
+        var pos = node.selectionStart;
+        var active = groupForPos(groups, pos);
+        var gidx = 0;
+        var group = groups[gidx];
+        var next = groups[gidx + 1];
+        groups.forEach(function (g) { return g.input = ''; });
+
+        for (var i = 0; i < val.length; i++) {
+          if (next && val[i] === next.prefix[0] && (group.type === 'h' || active !== group || group.input.length >= group.length || val.length - i < (mask.length - group.end) + (group.length - group.input.length))) {
+            // skip separator
+            if (next.prefix.length > 1) { i += next.prefix.length - 1; }
+            // skip duped separator
+            if (val[i + 1] === next.prefix[0]) { i += next.prefix.length; }
+
+            group = groups[++gidx];
+            next = groups[gidx + 1];
+          } else { group.input += val[i]; }
+        }
+
+        var ap = groups.find(function (g) { return g.type === 'a'; });
+        ap && syncAP(groups, ((ap === active ? ap.input : ap.display) || 'AM').toUpperCase(), ap);
+      }
+
+      function updateValues(groups, target, pos, leave) {
+        if ( pos === void 0 ) pos = 0;
+        if ( leave === void 0 ) leave = false;
+
+        var accepted = false;
+        for (var i = 0; i < groups.length; i++) {
+          var g = groups[i];
+          var v = (g.input || '').replace(nonDigits, '');
+          var hasSep = groups[i + 1] && groups[i + 1].prefix && nonDisplay.test(g.input);
+          if (v.length > g.length && g === target) {
+            var drop = v.length - target.length;
+            v = v.substr(0, pos - target.start) + v.substr((pos - target.start) + drop);
+          } else {
+            v = v.substr(0, g.length);
+          }
+          g.input = v;
+
+          if (g.type === 'y' && v.length === 0 && (hasSep || leave)) {
+            g.value = (new Date()).getFullYear();
+            g.input = g.display = padl(g.value, g.length);
+            accepted = true;
+          } else if (g.type === 'm' && v.length === 0 && (hasSep || leave)) {
+            g.value = 0;
+            g.input = g.display = padl(g.value, g.length);
+            accepted = true;
+          } else if (g.type === 'd' && v.length !== g.length && leave) {
+            g.value = +v;
+            g.display = displayForGroup(g);
+          } else if (v === '' && g.type !== 'a') {
+            g.value = null;
+            g.display = displayForGroup(g);
+          } else if (g !== target) {
+            if (g.type !== 'h' && g.type !== 'a') { g.value = +v; }
+            if (g.type === 'M') { g.value--; }
+            g.display = displayForGroup(g);
+            if (g.type === 'h' && g !== target) { g.input = displayForGroup(g); }
+          } else {
+            if (
+              (g.type === 'M' && +v > 1) ||
+              (g.type === 'd' && +v > 3) ||
+              (g.type.toUpperCase() === 'H' && +v > 2) ||
+              ((g.type === 'm' || g.type === 's') && +v > 6)
+            ) {
+              if (g.type === 'h') {
+                var ap = groups.find(function (g) { return g.type === 'a'; });
+                g.value = +v;
+                if (g.value < 12 && ap && ap.value && ap.value.toUpperCase() === 'PM') { g.value += 12; }
+                else if (g.value === 12 && ap && ap.value && ap.value.toUpperCase() === 'AM') { g.value = 0; }
+                if (g.value > 23) { g.value = 0; }
+              } else {
+                g.value = +v;
+              }
+              if (g.type === 'M') { g.value--; }
+              g.display = displayForGroup(g);
+              accepted = true;
+            } else if (g.type === 'y' && v.length === 2 && (hasSep || leave)) {
+              var n = (new Date()).getFullYear();
+              var cen = Math.floor(n / 100) * 100;
+              var val = Math.abs(n - (cen + +v)) < 20 ? cen + +v : (cen - 100) + +v;
+              g.value = val;
+              g.input = g.display = padl(val, g.length);
+              accepted = true;
+            } else if (g.type === 'a') {
+              g.display = g.input = g.value = displayForGroup(g);
+            } else {
+              g.display = padr(v, g.length, blankChar);
+              g.value = +v;
+              if (g.type === 'M') { g.value--; }
+            }
+          }
+        }
+        return accepted;
+      }
+
+      function receiveValue(groups, v, parseDate) {
+        v = groups.value = v && getDateValue(v, parseDate);
+        var parts = v ? [v.getFullYear(), v.getMonth(), v.getDate(), v.getHours(), v.getMinutes(), v.getSeconds(), v.getMilliseconds()] : [null, null, null, null, null, null, null];
+        groups.forEach(function (g) {
+          g.value = parts[map[g.type]];
+          g.input = g.display = displayForGroup(g);
+        });
+        syncAP(groups);
+      }
+
+      function applyValues(groups, send, focused, defaultDate, defaultTime) {
+        var v = groups.value || defaultDate();
+        var parts = [v.getFullYear(), v.getMonth(), v.getDate(), v.getHours(), v.getMinutes(), v.getSeconds(), v.getMilliseconds()];
+
+        if (!groups.find(function (p) { return p.type === 'm' || p.type === 's' || p.type === 'H' || p.type === 'h' || p.type === 'S' || p.type === 'a'; })) {
+          if (typeof defaultTime === 'function') { defaultTime = defaultTime(); }
+          for (var i = 0; i < 4; i++) { parts[i + 3] = defaultTime[i]; }
+        }
+        
+        groups.forEach(function (g) {
+          var vv = g.value;
+          if (vv !== null && g.type === 'M') {
+            if (vv < 0) { vv = 0; }
+            else if (vv > 11) { vv = 11; }
+          } else if (vv !== null && (g.type === 'm' || g.type === 's')) {
+            if (vv < 0) { vv = 0; }
+            else if (vv > 59) { vv = 59; }
+          } else if (vv !== null && g.type.toUpperCase() === 'H') {
+            if (vv < 0) { vv = 0; }
+            else if (vv > 23) { vv = 23; }
+          }
+
+          if (vv !== g.value) {
+            g.value = vv;
+            g.input = g.display = displayForGroup(g);
+          }
+
+          parts[map[g.type]] = g.value;
+        });
+
+        if (parts[0] !== null && parts[1] !== null && parts[2] !== null) {
+          var d = groups.find(function (g) { return g.type === 'd'; });
+          if (d) {
+            if (parts[2] < 1) {
+              d.value = parts[2] = 1;
+              d.display = displayForGroup(d);
+            } else {
+              var last = lastDay(new Date(parts[0], parts[1], 1));
+              if (parts[2] > last) {
+                d.value = parts[2] = last;
+                d.display = d.input = displayForGroup(d);
+              }
+            }
+          }
+
+          ['m', 's', 'h', 'H', 'S'].forEach(function (p) {
+            var g = groups.find(function (g) { return g.type === p; });
+            if (g && g.value === null) {
+              g.value = defaultTime[p === 'm' ? 1 : p.toUpperCase() === 'H' ? 0 : p === 's' ? 2 : 3];
+              g.display = displayForGroup(g);
+            }
+          });
+        }
+
+        if (groups.find(function (g) { return g.value === null && g.type !== 'a'; }) || parts[0] === 0 || parts[1] > 11 || parts[1] < 0 || parts[2] === 0) {
+          groups.value = null;
+        } else {
+          parts.unshift(null);
+          groups.value = new (Date.bind.apply(Date, parts))();
+        }
+
+        send(focused);
+      }
+
+      function updateDisplay(groups, node) {
+        node.value = groups.reduce(function (a, c) {
+          return a + c.prefix + c.display;
+        }, '') + groups.suffix;
+      }
+
+      function groupForPos(groups, pos) {
+        return groups.find(function (g) { return pos >= g.start && pos <= g.end; });
+      }
+
+      function displayForGroup(group) {
+        if (group.value === null || group.value === undefined) {
+          if (group.type === 'a') {
+            var h$1 = group.groups.find(function (g) { return g.type.toUpperCase() === 'H'; });
+            if (!h$1 || h$1.value === null || h$1.value === undefined) { return padl('', 2, blankChar); }
+          } else {
+            return padl('', group.length, blankChar);
+          }
+        }
+        switch (group.type) {
+          case 'y':
+            if (!group.value) { return padl('', group.length, blankChar); }
+            return group.length <= 2 ? ('' + group.value).substr(2, 2) : '' + padl(group.value, group.length);
+          
+          case 'M':
+            if (!~group.value) { return padl('', group.length, blankChar); }
+            if (group.length === 1) { return '' + (group.value + 1); }
+            else if (group.length === 2) { return (group.value < 9 ? '0' : '') + (group.value + 1); }
+            else if (group.length === 3) { return months[group.value].substr(0, 3); }
+            else { return months[group.value]; }
+          
+          case 'd':
+            if (!group.value) { return padl('', group.length, blankChar); }
+            if (group.length === 1) { return '' + group.value; }
+            else if (group.length === 2) { return (group.value <= 9 ? '0' : '') + group.value; }
+            else if (group.length === 3) { return days[group.groups.value.getDay()].substr(0, 3); }
+            else { return days[group.groups.value.getDay()]; }
+          
+          case 'H':
+          case 'm':
+          case 's':
+            if (group.length === 1) { return '' + group.value; }
+            else { return padl(group.value, group.length); }
+
+          case 'h': {
+            var v = group.value;
+            if (v > 12) { v = v % 12; }
+            if (v === 0) { v = 12; }
+            return padl(v, group.length, ' ');
+          }
+          
+          case 'S':
+            if (group.length === 1) { return '' + group.value; }
+            else { return padl(group.value, 3); }
+
+          case 'a':
+            var h = group.groups.find(function (g) { return g.type === 'h' || g.type === 'H'; });
+            if (h && h.value != null && h.value > 11) { return 'PM'; }
+            else if (h && h.value != null && h.value < 12) { return 'AM'; }
+            else { return padl('', 2, blankChar); }
+        }
+      }
+
+      var dateRE = /y+|M+|d+|E+|H+|h+|m+|s+|S+|k+|a+/g;
+      var months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+      var days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+
+      var noop = { teardown: function teardown() {} };
+
+      function bumpValue(group, down) {
+        switch (group.type) {
+          case 'y':
+            group.value = group.value + (down ? -1 : 1);
+            break;
+          
+          case 'M':
+            group.value = down ?
+              group.value < 1 ? 11 : group.value - 1 :
+              group.value > 10 ? 0 : group.value + 1;
+            break;
+          
+          case 'd': {
+            var groups = group.groups;
+            var last = lastDay(new Date((groups.find(function (g) { return g.type === 'y'; }) || { value: 1 }).value, (groups.find(function (g) { return g.type === 'M'; }) || { value: 1 }).value), 1);
+            if (down) {
+              group.value = group.value < 2 ? last : group.value - 1;
+            } else {
+              group.value = group.value + 1 > last ? 1 : group.value + 1;
+            }
+            break;
+          }
+          
+          case 'H':
+          case 'h':
+            group.value = down ?
+              group.value < 1 ? 23 : group.value - 1 :
+              group.value > 22 ? 0 : group.value + 1;
+            break;
+          
+          case 'm':
+          case 's':
+            group.value = down ?
+              group.value < 1 ? 59 : group.value - 1 :
+              group.value > 58 ? 0 : group.value + 1;
+            break;
+          
+          case 'S':
+            group.value = down ?
+              group.value < 1 ? 999 : group.value - 1 :
+              group.value > 998 ? 0 : group.value + 1;
+            break;
+        }
+      }
+
+      function lastDay(date) {
+        return (new Date((new Date(date.getFullYear(), date.getMonth() + 1, 1)) - 86400000)).getDate();
+      }
+
+      var origin = new Date('0000-01-01T00:00:00');
+      function getDateValue(thing, parseDate) {
+        var v = thing;
+        if (typeof v === 'function') { v = thing(); }
+        if (typeof v === 'string') {
+          if (typeof parseDate === 'function') {
+            try { v = parseDate(v); } catch (e) { return defaultDate(); }
+          } else {
+            try { v = new Date(v); } catch (e) { return defaultDate(); }
+          }
+        }
+        if (v instanceof Date) { return v; }
+        else { return origin; }
+      }
 
     }
   };
