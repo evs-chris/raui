@@ -24,6 +24,7 @@
     * `space: number = 5` - The distance between bars on bar charts
     * `flip: boolean = false` - Invert line or bar graphs such that the negative y-axis is at the top
     * `nolabelvalue: boolean = false` - Leave the value out of the label title on data points
+    * `hoverlabel: boolean = false` - Show a black hover label next to the pointer
     * `dot: number = 3` - The radius of points on line charts
     * `smooth: number` - Apply smoothing to line charts using a bezier (0.2 is recommended if you want smoothing)
     * `project: boolean = false` - Allow line charts to project when smoothed
@@ -53,6 +54,7 @@
       </label>
       <label as-field><input type=checkbox checked="{{.legend}}" /> Legend?</label>
       <label as-field><input type=checkbox checked="{{.nolabelvalue}}" /> No label value?</label>
+      <label as-field><input type=checkbox checked="{{.hoverlabel}}" /> Hover label?</label>
       {{#if .type === 'bar' || .type === 'line'}}
         <label as-field><input type=checkbox checked="{{.flip}}" /> Flip?</label>
         <label as-field>Span<input type=number value="{{.span}}" step="1" /></label>
@@ -83,15 +85,17 @@
     <marked>
       ### Template:
       ```handlebars
-        <chart type="{{.type}}" data="{{sources[.source]}}" bind-horizontal bind-flip bind-smooth bind-project bind-sub bind-legend bind-hole bind-clustergap bind-point bind-space bind-span bind-nolabelvalue bind-dot on-select="@.set('selected', `${$1} ${$2}`)" on-hover="@.set('hovered', `${$1} ${$2} ${JSON.stringify($3)}`)" />
+        <chart type="{{.type}}" data="{{sources[.source]}}" bind-horizontal bind-flip bind-smooth bind-project bind-sub bind-legend bind-hole bind-clustergap bind-point bind-space bind-span bind-nolabelvalue bind-hoverlabel bind-dot on-select="@.set('selected', `${$1} ${$2}`)" on-hover="@.set('hovered', `${$1} ${$2} ${JSON.stringify($3)}`)" />
       ```
       ### Result:
     </marked>
-    <div style="min-width: 20em; width: 50vw; height: 20em; margin: 2em auto;">
-      <chart type="{{.type}}" data="{{sources[.source]}}" bind-horizontal bind-flip bind-smooth bind-project bind-sub bind-legend bind-hole bind-clustergap bind-point bind-space bind-span bind-nolabelvalue bind-dot on-select="@.set('selected', `${$1} ${$2}`)" on-hover="@.set('hovered', `${$1} ${$2} ${JSON.stringify($3)})`)" />
-      <div style="margin-top: 8em;">
-        Selected: {{.selected || '(none)'}}<br/>
-        Hovered: {{.hovered || '(none)'}}
+    <div style="display: flex;">
+      <div style="width: 20em; height: 20em;">
+        <chart type="{{.type}}" data="{{sources[.source]}}" bind-horizontal bind-flip bind-smooth bind-project bind-sub bind-legend bind-hole bind-clustergap bind-point bind-space bind-span bind-nolabelvalue bind-hoverlabel bind-dot on-select="@.set('selected', `${$1} ${$2}`)" on-hover="@.set('hovered', `${$1} ${$2} ${JSON.stringify($3)})`)" />
+        <div style="margin-top: 8em;">
+          Selected: {{.selected || '(none)'}}<br/>
+          Hovered: {{.hovered || '(none)'}}
+        </div>
       </div>
     </div>
   </tab>
@@ -125,5 +129,3 @@
     }
   });
 </script>
-  
-

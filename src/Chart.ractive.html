@@ -1,4 +1,4 @@
-<div class="rg-graph rg-graph-{{.type}}" {{#if .type === 'bar'}}class-rg-graph-h="graph.horiz" class-rg-graph-v="!graph.horiz"{{/if}} {{yield extra-attributes}}>
+<div class="rg-graph rg-graph-{{.type}}" {{#if .type === 'bar'}}class-rg-graph-h="graph.horiz" class-rg-graph-v="!graph.horiz"{{/if}} {{yield extra-attributes}} on-mousemove="@this._moveTooltip(@event)" on-mouseleave="@this._hideTooltip()">
   {{#if .type === 'pie' || .type === 'donut' || .type === 'tire' || .type === 'hoop'}}
     <div class-rg-graph-circular>
       {{#if (.type === 'donut' || .type === 'tire' || .type === 'hoop') && @.partials.content}}
@@ -8,8 +8,7 @@
       {{/if}}
       <svg width="100%" height="100%" viewBox="-55 -55 110 110" {{#if ~/svgA}}{{yield svgA}}{{/if}}>
         {{#each chonks}}
-          <path d="{{.d}}" class="rg-chonk rg-chonk-{{@index}}" {{#if .click}}on-click=".click(@context, .value, .label, .point)"{{/if}} on-click="['select', .value, .label, .point]" style-fill="{{.color}}" on-mouseenter="['hover', .value, .label, .point]">
-          {{#if .label}}<title>{{.label}} {{#unless ~/nolabelvalue}} ({{.value}}){{/unless}}{{#if .sublabel}}{{'\n' + .sublabel}}{{/if}}</title>{{/if}}
+          <path d="{{.d}}" class="rg-chonk rg-chonk-{{@index}}" {{#if .click}}on-click=".click(@context, .value, .label, .point)"{{/if}} on-click="['select', .value, .label, .point]" style-fill="{{.color}}" on-mouseenter="@this._showTooltip(@event, .value, .label, .point)" on-mouseleave="@this._hideTooltip()">
           </path>
         {{/each}}
       </svg>
@@ -19,8 +18,7 @@
       {{#if graph.horiz}}
         {{#each graph.groups: grp}}
           {{#each .points: idx}}
-            <path d="M {{.y}},{{.x}} {{.y}},{{.x2}}, {{.y2}},{{.x2}} {{.y2}},{{.x}} Z" style-fill="{{.color}}" {{#if .click}}on-click=".click(@context, .value, .label, .point)"{{/if}} on-click="['select', .value, .label, .point]" on-mouseenter="['hover', .value, .label, .point]">
-              <title>{{#if .label}}{{.label}}{{#unless ~/nolabelvalue}} ({{.value}}){{/unless}}{{#if .sublabel}}{{'\n' + .sublabel}}{{/if}}{{else}}{{.value}}{{/if}}</title>
+            <path d="M {{.y}},{{.x}} {{.y}},{{.x2}}, {{.y2}},{{.x2}} {{.y2}},{{.x}} Z" style-fill="{{.color}}" {{#if .click}}on-click=".click(@context, .value, .label, .point)"{{/if}} on-click="['select', .value, .label, .point]" on-mouseenter="@this._showTooltip(@event, .value, .label, .point)" on-mouseleave="@this._hideTooltip()">
             </path>
           {{/each}}
         {{/each}}
@@ -28,8 +26,7 @@
       {{else}}
         {{#each graph.groups}}
           {{#each .points}}
-            <path d="M {{.x}},{{.y}} {{.x}},{{.y2}}, {{.x2}},{{.y2}} {{.x2}},{{.y}} Z" style-fill="{{.color}}" {{#if .click}}on-click=".click(@context, .value, .label, .point)"{{/if}} on-click="['select', .value, .label, .point]" on-mouseenter="['hover', .value, .label, .point]">
-              <title>{{#if .label}}{{.label}}{{#unless ~/nolabelvalue}} ({{.value}}){{/unless}}{{#if .sublabel}}{{'\n' + .sublabel}}{{/if}}{{else}}{{.value}}{{/if}}</title>
+            <path d="M {{.x}},{{.y}} {{.x}},{{.y2}}, {{.x2}},{{.y2}} {{.x2}},{{.y}} Z" style-fill="{{.color}}" {{#if .click}}on-click=".click(@context, .value, .label, .point)"{{/if}} on-click="['select', .value, .label, .point]" on-mouseenter="@this._showTooltip(@event, .value, .label, .point)" on-mouseleave="@this._hideTooltip()">
             </path>
           {{/each}}
         {{/each}}
@@ -46,12 +43,17 @@
       {{/each}}
       {{#each graph.groups}}
         {{#each .points}}
-        <circle r={{~/dot}} cx="{{.x}}" cy="{{.y2}}" fill="{{#if ~/graph.groups.length === 1}}{{.color}}{{else}}{{^^/color}}{{/if}}"{{#if .click}}on-click=".click(@context, .value, .label, .point)"{{/if}} on-click="['select', .value, .label, .point]" stroke-width=1 stroke="#000" on-mouseenter="['hover', .value, .label, .point]">
-          <title>{{#if .label}}{{.label}}{{#unless ~/nolabelvalue}} ({{.value}}){{/unless}}{{#if .sublabel}}{{'\n' + .sublabel}}{{/if}}{{else}}{{.value}}{{/if}}</title>
+        <circle r={{~/dot}} cx="{{.x}}" cy="{{.y2}}" fill="{{#if ~/graph.groups.length === 1}}{{.color}}{{else}}{{^^/color}}{{/if}}"{{#if .click}}on-click=".click(@context, .value, .label, .point)"{{/if}} on-click="['select', .value, .label, .point]" stroke-width=1 stroke="#000" on-mouseenter="@this._showTooltip(@event, .value, .label, .point)" on-mouseleave="@this._hideTooltip()">
           </circle>
         {{/each}}
       {{/each}}
     </svg>
+  {{/if}}
+  {{#if ~/hoverlabel && ~/tooltip.visible}}
+    <div class="rg-tooltip" style-left="{{~/tooltip.x}}px" style-top="{{~/tooltip.y}}px">
+      {{#if ~/tooltip.label}}{{~/tooltip.label}}{{#unless ~/nolabelvalue}} ({{~/tooltip.value}}){{/unless}}{{else}}{{~/tooltip.value}}{{/if}}
+      {{#if ~/tooltip.sublabel}}<br/>{{~/tooltip.sublabel}}{{/if}}
+    </div>
   {{/if}}
   {{#if ~/legend}}
     <div class="rg-legend">
@@ -118,6 +120,36 @@
   
   export class Chart extends Ractive {
     constructor(opts) { super(opts); }
+
+    _showTooltip(event, value, label, point) {
+      this.fire('hover', value, label, point);
+      if (!this.get('hoverlabel')) return;
+      this.set('tooltip', {
+        visible: true,
+        value,
+        label,
+        sublabel: point && point.sublabel,
+        x: 0,
+        y: 0
+      });
+      this._moveTooltip(event);
+    }
+
+    _moveTooltip(event) {
+      if (!this.get('hoverlabel') || !this.get('tooltip.visible')) return;
+      const graph = this.find('.rg-graph');
+      const tooltip = this.find('.rg-tooltip');
+      if (!tooltip) return;
+      const rect = graph.getBoundingClientRect();
+      const maxX = graph.clientWidth - tooltip.offsetWidth;
+      const maxY = graph.clientHeight - tooltip.offsetHeight;
+      this.set('tooltip.x', Math.max(0, Math.min(event.clientX - rect.left + 12, maxX)));
+      this.set('tooltip.y', Math.max(0, Math.min(event.clientY - rect.top + 12, maxY)));
+    }
+
+    _hideTooltip() {
+      this.set('tooltip.visible', false);
+    }
 
     _graph() {
       this._graphtm = undefined;
@@ -278,6 +310,7 @@
     cssId: 'rchart',
     noCssTransform: true,
     attributes: ['data', 'type', 'horizontal', 'colors', 'point', 'space', 'flip', 'dot', 'smooth', 'project', 'span', 'sub', 'legend', 'hole', 'clustergap', 'nolabelvalue'],
+      attributes: ['data', 'type', 'horizontal', 'colors', 'point', 'space', 'flip', 'dot', 'smooth', 'project', 'span', 'sub', 'legend', 'hole', 'clustergap', 'nolabelvalue', 'hoverlabel'],
     computed: {
       chonks() {
         let data = this.get('data');
@@ -349,9 +382,19 @@
     position: relative;
     display: flex;
     flex-direction: row;
-    width: 100%;
-    height: 100%;
     box-sizing: border-box;
+  }
+
+  .rg-tooltip {
+    position: absolute;
+    z-index: 1;
+    max-width: 20em;
+    padding: 0.35em 0.5em;
+    background: rgba(0, 0, 0, 0.8);
+    border-radius: 0.25em;
+    color: #fff;
+    pointer-events: none;
+    display: flex;
   }
 
   .rg-graph-circular {
