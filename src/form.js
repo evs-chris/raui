@@ -445,8 +445,8 @@ function blurred(ev) {
 export function field(node) {
   const ctx = this.getContext(node);
 
-  let isField, isCheck, isRadio, isArea, isSelect, isFile, isButton, isPlain, isInput;
-  let change, attrs, desc, last;
+  let isField, isCheck, isRadio, isToggle, isArea, isSelect, isFile, isButton, isPlain, isInput;
+  let change, attrs, desc, last, toggleChange, toggleAttrs;
 
   function invalidate() {
     let val = setup().split(/\s+/).filter(c => !!c);
@@ -463,9 +463,35 @@ export function field(node) {
     isRadio = node.querySelector('input[type=radio]');
     if (isRadio && !~val.indexOf('radio')) val.push('radio');
 
+    isToggle = node.querySelector('.rtoggle');
     const checkable = (isCheck || isRadio);
     if (checkable && checkable.checked && !~val.indexOf('checked')) val.push('checked');
     if (checkable && checkable.disabled && !~val.indexOf('disabled')) val.push('disabled');
+
+    if (isToggle) {
+      const updateToggle = () => {
+        const checked = isToggle.classList.contains('rtoggle-true');
+        const disabled = isToggle.classList.contains('rtoggle-disabled');
+        if (checked && !node.classList.contains('checked')) node.classList.add('checked');
+        else if (!checked) node.classList.remove('checked');
+        if (disabled && !node.classList.contains('disabled')) node.classList.add('disabled');
+        else if (!disabled) node.classList.remove('disabled');
+      };
+      updateToggle();
+      if (!toggleChange) toggleChange = this.getContext(isToggle).listen('change', updateToggle);
+      if (!toggleAttrs && MutationObserver) {
+        toggleAttrs = new MutationObserver(updateToggle);
+        toggleAttrs.observe(isToggle, { attributes: true, attributeFilter: ['class'] });
+      }
+    } else if (toggleChange || toggleAttrs) {
+      toggleChange && toggleChange.cancel();
+      toggleChange = 0;
+      if (toggleAttrs) {
+        toggleAttrs.disconnect();
+        toggleAttrs = 0;
+      }
+      node.classList.remove('checked', 'disabled');
+    }
 
     if (!checkable && change) {
       change.cancel();
@@ -548,6 +574,7 @@ export function field(node) {
     if (!isField) cls = cls.replace(/\bfield\b/g, '').trim();
     if (!isCheck) cls = cls.replace(/\bcheck(ed)?\b/g, '').trim();
     if (!isRadio) cls = cls.replace(/\bradio\b/g, '').trim();
+    if (!isCheck && !isToggle) cls = cls.replace(/\bchecked\b/g, '').trim();
     if (!isArea) cls = cls.replace(/\btextarea\b/g, '').trim();
     if (!isSelect) cls = cls.replace(/\bselect\b/g, '').trim();
     if (!isFile) cls = cls.replace(/\bfile\b/g, '').trim();
@@ -575,7 +602,9 @@ export function field(node) {
       focus.cancel();
       blur.cancel();
       change && change.cancel();
+      toggleChange && toggleChange.cancel();
       if (attrs) attrs.disconnect();
+      if (toggleAttrs) toggleAttrs.disconnect();
       if (last) {
         delete last.checked;
         desc = last = undefined;
