@@ -4,4 +4,5 @@ umd
 *.log
 package-lock.json
 demo/build/dev
+/demo/build/
 demo-src/dev.js

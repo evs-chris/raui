@@ -54,6 +54,8 @@
     <marked>
       ### Template:
       ```handlebars
+        <label style-width=13em class="toggle-field" as-valid=`.togglevalidation`><span>Toggle Validation</span> <toggle value=".togglevalidation"/></label>
+        <br/><br/>
         Current level for all paths: {{level}}.
         <tabs pad>
           <tab>
@@ -98,7 +100,8 @@
       ```
       ### Result:
     </marked>
-
+    <label style-width=13em class="toggle-field" as-valid=`.togglevalidation`><span>Toggle Validation</span> <toggle value=".togglevalidation"/></label>
+    <br/><br/><br/>
     Current level for all paths: {{level}}.
     <tabs pad>
       <tab>
@@ -129,6 +132,7 @@
   import { Window } from 'cmp/Window';
   import { Validator, required, between } from 'cmp/validate';
   import tabs from 'cmp/Tabs';
+  import Toggle from 'cmp/Toggle';
 
   export default Window.extend({
     template: $TEMPLATE,
@@ -137,13 +141,14 @@
       resizable: true, flex: true,
       width: '48em', height: '30em'
     },
-    use: [tabs()],
+    use: [tabs(), Toggle()],
     data() {
       return { things: [] };
     },
     on: {
       init() {
         const validator = this.valid = new Validator(this);
+        validator.check('togglevalidation', required('Toggle Validation'));
         validator.check('name', required('Name'), { group: 'tab1' });
         validator.check('name', (v) => /dave/i.test(v) ? [['error', 'Dave\'s not here, man.']] : [], { group: 'tab1' });
         validator.checkCondition('things.length', len => len > 2, (path, v) => {
